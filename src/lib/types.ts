@@ -64,3 +64,74 @@ export interface ClientVisit {
   visitCount: number;
   lastVisit: string;
 }
+
+// New interfaces for enhanced functionality
+
+export type LaundryOption = 'color_separation' | 'delicate_wash' | 'extra_rinse' | 'heavy_soil' | 'stain_treatment';
+
+export interface LaundryOptions {
+  colorSeparation: boolean;
+  delicateWash: boolean;
+  extraRinse: boolean;
+  heavySoil: boolean;
+  stainTreatment: boolean;
+}
+
+export interface DryCleaningItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  ticketId: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phoneNumber: string;
+  createdAt: string;
+}
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  createdAt: string;
+}
+
+export interface DailyMetrics {
+  totalSales: number;
+  valetCount: number;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadoPago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}
+
+export interface WeeklyMetrics {
+  salesByDay: Record<string, number>;
+  valetsByDay: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadoPago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}
+
+export interface MonthlyMetrics {
+  salesByWeek: Record<string, number>;
+  valetsByWeek: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadoPago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}

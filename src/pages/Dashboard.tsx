@@ -1,91 +1,50 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
 import MetricsCard from '@/components/MetricsCard';
 import Navbar from '@/components/Navbar';
-import { getCurrentUser } from '@/lib/auth';
 import { BarChart3, TrendingUp, DollarSign, UsersRound, Calendar } from 'lucide-react';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { ClientVisit } from '@/lib/types';
-
-// Mock data for metrics
-const metricsData = {
-  daily: {
-    income: 3200,
-    expenses: 850,
-    tickets: 12,
-    newClients: 3,
-  },
-  weekly: {
-    income: 22400,
-    expenses: 5950,
-    tickets: 84,
-    newClients: 21,
-  },
-  monthly: {
-    income: 89600,
-    expenses: 23800,
-    tickets: 336,
-    newClients: 84,
-  },
-};
-
-// Mock data for frequent clients
-const frequentClientsData: ClientVisit[] = [
-  { phoneNumber: '+5493512345678', clientName: 'Maria Lopez', visitCount: 8, lastVisit: '2023-11-22' },
-  { phoneNumber: '+5493512345679', clientName: 'Carlos Rodriguez', visitCount: 6, lastVisit: '2023-11-20' },
-  { phoneNumber: '+5493512345680', clientName: 'Ana Martinez', visitCount: 5, lastVisit: '2023-11-18' },
-  { phoneNumber: '+5493512345681', clientName: 'Juan Gomez', visitCount: 5, lastVisit: '2023-11-15' },
-  { phoneNumber: '+5493512345682', clientName: 'Laura Fernandez', visitCount: 4, lastVisit: '2023-11-12' },
-];
-
-// Chart data
-const barChartData = {
-  data: [
-    { name: 'Mon', total: 1200 },
-    { name: 'Tue', total: 1800 },
-    { name: 'Wed', total: 2200 },
-    { name: 'Thu', total: 1800 },
-    { name: 'Fri', total: 2400 },
-    { name: 'Sat', total: 3200 },
-    { name: 'Sun', total: 1800 },
-  ],
-};
-
-const lineChartData = {
-  data: [
-    { name: 'Week 1', income: 21000, expenses: 6500 },
-    { name: 'Week 2', income: 27000, expenses: 7800 },
-    { name: 'Week 3', income: 24000, expenses: 6200 },
-    { name: 'Week 4', income: 26000, expenses: 7100 },
-  ],
-};
-
-const pieChartData = {
-  data: [
-    { name: 'Wash', value: 45 },
-    { name: 'Dry', value: 30 },
-    { name: 'Iron', value: 15 },
-    { name: 'Fold', value: 10 },
-  ],
-};
 
 const Dashboard = () => {
   const [viewType, setViewType] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const navigate = useNavigate();
   
-  useEffect(() => {
-    const checkAuth = async () => {
-      const user = await getCurrentUser();
-      if (!user) {
-        navigate('/');
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
+  // Use our custom hook
+  const { 
+    loading, 
+    metrics, 
+    frequentClients, 
+    chartData,
+    refreshData 
+  } = useDashboardData(viewType);
+  
+  // Get the current metrics based on view type
+  const currentMetrics = metrics[viewType];
+  
+  // Helper to format currency
+  const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
+  
+  // If data is loading, we could show a loading state
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Navbar />
+        <div className="flex-1 md:ml-64">
+          <div className="container mx-auto p-6 md:p-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="mt-1 text-muted-foreground">Loading metrics...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -114,31 +73,35 @@ const Dashboard = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
                   title="Total Income"
-                  value={`$${metricsData.daily.income.toLocaleString()}`}
+                  value={formatCurrency(metrics.daily?.totalSales || 0)}
                   description="Today's earnings"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 12, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Expenses"
-                  value={`$${metricsData.daily.expenses.toLocaleString()}`}
-                  description="Today's expenses"
+                  title="Valets"
+                  value={metrics.daily?.valetCount || 0}
+                  description="Valets processed today"
                   icon={<TrendingUp className="h-4 w-4" />}
-                  trend={{ value: 5, isPositive: false }}
-                />
-                <MetricsCard
-                  title="Tickets"
-                  value={metricsData.daily.tickets}
-                  description="Tickets processed today"
-                  icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 8, isPositive: true }}
                 />
                 <MetricsCard
-                  title="New Clients"
-                  value={metricsData.daily.newClients}
-                  description="First-time clients today"
+                  title="Cash Payments"
+                  value={formatCurrency(metrics.daily?.paymentMethods.cash || 0)}
+                  description="Today's cash revenue"
+                  icon={<BarChart3 className="h-4 w-4" />}
+                  trend={{ value: 5, isPositive: true }}
+                />
+                <MetricsCard
+                  title="Digital Payments"
+                  value={formatCurrency(
+                    (metrics.daily?.paymentMethods.debit || 0) + 
+                    (metrics.daily?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.daily?.paymentMethods.cuentaDni || 0)
+                  )}
+                  description="Today's digital revenue"
                   icon={<UsersRound className="h-4 w-4" />}
-                  trend={{ value: 2, isPositive: true }}
+                  trend={{ value: 15, isPositive: true }}
                 />
               </div>
             </TabsContent>
@@ -147,31 +110,39 @@ const Dashboard = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
                   title="Total Income"
-                  value={`$${metricsData.weekly.income.toLocaleString()}`}
+                  value={formatCurrency(
+                    Object.values(metrics.weekly?.salesByDay || {}).reduce((acc, val) => acc + val, 0)
+                  )}
                   description="This week's earnings"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 8, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Expenses"
-                  value={`$${metricsData.weekly.expenses.toLocaleString()}`}
-                  description="This week's expenses"
+                  title="Valets"
+                  value={
+                    Object.values(metrics.weekly?.valetsByDay || {}).reduce((acc, val) => acc + val, 0)
+                  }
+                  description="Valets processed this week"
                   icon={<TrendingUp className="h-4 w-4" />}
-                  trend={{ value: 3, isPositive: false }}
-                />
-                <MetricsCard
-                  title="Tickets"
-                  value={metricsData.weekly.tickets}
-                  description="Tickets processed this week"
-                  icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 12, isPositive: true }}
                 />
                 <MetricsCard
-                  title="New Clients"
-                  value={metricsData.weekly.newClients}
-                  description="First-time clients this week"
+                  title="Cash Payments"
+                  value={formatCurrency(metrics.weekly?.paymentMethods.cash || 0)}
+                  description="This week's cash revenue"
+                  icon={<BarChart3 className="h-4 w-4" />}
+                  trend={{ value: 3, isPositive: true }}
+                />
+                <MetricsCard
+                  title="Digital Payments"
+                  value={formatCurrency(
+                    (metrics.weekly?.paymentMethods.debit || 0) + 
+                    (metrics.weekly?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.weekly?.paymentMethods.cuentaDni || 0)
+                  )}
+                  description="This week's digital revenue"
                   icon={<UsersRound className="h-4 w-4" />}
-                  trend={{ value: 5, isPositive: true }}
+                  trend={{ value: 10, isPositive: true }}
                 />
               </div>
             </TabsContent>
@@ -180,31 +151,39 @@ const Dashboard = () => {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
                   title="Total Income"
-                  value={`$${metricsData.monthly.income.toLocaleString()}`}
+                  value={formatCurrency(
+                    Object.values(metrics.monthly?.salesByWeek || {}).reduce((acc, val) => acc + val, 0)
+                  )}
                   description="This month's earnings"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 15, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Expenses"
-                  value={`$${metricsData.monthly.expenses.toLocaleString()}`}
-                  description="This month's expenses"
+                  title="Valets"
+                  value={
+                    Object.values(metrics.monthly?.valetsByWeek || {}).reduce((acc, val) => acc + val, 0)
+                  }
+                  description="Valets processed this month"
                   icon={<TrendingUp className="h-4 w-4" />}
-                  trend={{ value: 8, isPositive: false }}
-                />
-                <MetricsCard
-                  title="Tickets"
-                  value={metricsData.monthly.tickets}
-                  description="Tickets processed this month"
-                  icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 20, isPositive: true }}
                 />
                 <MetricsCard
-                  title="New Clients"
-                  value={metricsData.monthly.newClients}
-                  description="First-time clients this month"
+                  title="Cash Payments"
+                  value={formatCurrency(metrics.monthly?.paymentMethods.cash || 0)}
+                  description="This month's cash revenue"
+                  icon={<BarChart3 className="h-4 w-4" />}
+                  trend={{ value: 18, isPositive: true }}
+                />
+                <MetricsCard
+                  title="Digital Payments"
+                  value={formatCurrency(
+                    (metrics.monthly?.paymentMethods.debit || 0) + 
+                    (metrics.monthly?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.monthly?.paymentMethods.cuentaDni || 0)
+                  )}
+                  description="This month's digital revenue"
                   icon={<UsersRound className="h-4 w-4" />}
-                  trend={{ value: 12, isPositive: true }}
+                  trend={{ value: 25, isPositive: true }}
                 />
               </div>
             </TabsContent>
@@ -221,7 +200,7 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BarChart data={barChartData.data} />
+                <BarChart data={chartData.barData} />
               </CardContent>
             </Card>
             
@@ -233,7 +212,9 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <PieChart data={pieChartData.data} />
+                <PieChart data={chartData.pieData.length > 0 ? chartData.pieData : [
+                  { name: 'No Data', value: 1 }
+                ]} />
               </CardContent>
             </Card>
             
@@ -245,7 +226,7 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <LineChart data={lineChartData.data} />
+                <LineChart data={chartData.lineData} />
               </CardContent>
             </Card>
             
@@ -258,20 +239,26 @@ const Dashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {frequentClientsData.map((client, index) => (
-                    <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
-                      <div className="space-y-0.5">
-                        <div className="font-medium">{client.clientName}</div>
-                        <div className="text-xs text-muted-foreground">{client.phoneNumber}</div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                          <Calendar className="h-3.5 w-3.5" />
-                          <span>{client.visitCount} visits</span>
+                  {frequentClients.length > 0 ? (
+                    frequentClients.slice(0, 5).map((client, index) => (
+                      <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                        <div className="space-y-0.5">
+                          <div className="font-medium">{client.clientName}</div>
+                          <div className="text-xs text-muted-foreground">{client.phoneNumber}</div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                            <Calendar className="h-3.5 w-3.5" />
+                            <span>{client.visitCount} visits</span>
+                          </div>
                         </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-muted-foreground py-4">
+                      No client visit data available
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
