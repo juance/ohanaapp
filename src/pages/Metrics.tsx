@@ -17,6 +17,17 @@ const Metrics = () => {
     setPeriod(value as 'daily' | 'weekly' | 'monthly');
   };
   
+  // Helper function to get payment method value based on period
+  const getPaymentMethodValue = (method: 'cash' | 'debit' | 'mercadoPago' | 'cuentaDni') => {
+    if (period === 'daily') {
+      return metrics.daily?.paymentMethods?.[method] || 0;
+    } else if (period === 'weekly') {
+      return metrics.weekly?.paymentMethods?.[method] || 0;
+    } else {
+      return metrics.monthly?.paymentMethods?.[method] || 0;
+    }
+  };
+  
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
@@ -144,38 +155,10 @@ const Metrics = () => {
                 </CardHeader>
                 <CardContent className="flex justify-center">
                   <PieChart data={[
-                    { 
-                      name: 'Efectivo', 
-                      value: period === 'daily' 
-                        ? metrics.daily?.paymentMethods?.cash || 0 
-                        : period === 'weekly' 
-                          ? metrics.weekly?.paymentMethods?.cash || 0 
-                          : metrics.monthly?.paymentMethods?.cash || 0 
-                    },
-                    { 
-                      name: 'Débito', 
-                      value: period === 'daily' 
-                        ? metrics.daily?.paymentMethods?.debit || 0 
-                        : period === 'weekly' 
-                          ? metrics.weekly?.paymentMethods?.debit || 0 
-                          : metrics.monthly?.paymentMethods?.debit || 0 
-                    },
-                    { 
-                      name: 'Mercado Pago', 
-                      value: period === 'daily' 
-                        ? metrics.daily?.paymentMethods?.mercadoPago || 0 
-                        : period === 'weekly' 
-                          ? metrics.weekly?.paymentMethods?.mercadoPago || 0 
-                          : metrics.monthly?.paymentMethods?.mercadoPago || 0 
-                    },
-                    { 
-                      name: 'Cuenta DNI', 
-                      value: period === 'daily' 
-                        ? metrics.daily?.paymentMethods?.cuentaDni || 0 
-                        : period === 'weekly' 
-                          ? metrics.weekly?.paymentMethods?.cuentaDni || 0 
-                          : metrics.monthly?.paymentMethods?.cuentaDni || 0 
-                    }
+                    { name: 'Efectivo', value: getPaymentMethodValue('cash') },
+                    { name: 'Débito', value: getPaymentMethodValue('debit') },
+                    { name: 'Mercado Pago', value: getPaymentMethodValue('mercadoPago') },
+                    { name: 'Cuenta DNI', value: getPaymentMethodValue('cuentaDni') }
                   ]} />
                 </CardContent>
               </Card>
