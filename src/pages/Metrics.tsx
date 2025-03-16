@@ -103,10 +103,11 @@ const Metrics = () => {
                     {loading ? 'Cargando...' : period === 'daily' ? 
                       Object.entries(metrics.daily?.paymentMethods || {})
                         .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 
-                      Object.entries(metrics.weekly?.paymentMethods || {})
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 
-                      Object.entries(metrics.monthly?.paymentMethods || {})
-                        .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
+                      period === 'weekly' ? 
+                        Object.entries(metrics.weekly?.paymentMethods || {})
+                          .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A' : 
+                        Object.entries(metrics.monthly?.paymentMethods || {})
+                          .sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A'}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Método de pago más utilizado
