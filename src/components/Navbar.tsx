@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,10 @@ import {
   LogOut,
   Menu,
   X,
-  User
+  User,
+  ShoppingBag,
+  Users,
+  ArrowLeft
 } from 'lucide-react';
 import { getCurrentUser, logout, hasPermission } from '@/lib/auth';
 import { User as UserType, Role } from '@/lib/types';
@@ -57,16 +59,34 @@ const Navbar = () => {
       allowedRoles: ['admin', 'cashier'] as Role[]
     },
     {
-      name: 'Inventory',
+      name: 'Pedidos a Retirar',
+      path: '/orders/pickup',
+      icon: <ShoppingBag className="h-5 w-5" />,
+      allowedRoles: ['admin', 'cashier', 'operator'] as Role[]
+    },
+    {
+      name: 'Pedidos Entregados',
+      path: '/orders/delivered',
+      icon: <ShoppingBag className="h-5 w-5" />,
+      allowedRoles: ['admin', 'cashier', 'operator'] as Role[]
+    },
+    {
+      name: 'Inventario',
       path: '/inventory',
       icon: <PackageOpen className="h-5 w-5" />,
       allowedRoles: ['admin'] as Role[]
     },
     {
-      name: 'Orders',
-      path: '/orders',
+      name: 'Usuarios',
+      path: '/users',
+      icon: <Users className="h-5 w-5" />,
+      allowedRoles: ['admin'] as Role[]
+    },
+    {
+      name: 'Métricas',
+      path: '/metrics',
       icon: <BarChart3 className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier', 'operator'] as Role[]
+      allowedRoles: ['admin', 'cashier'] as Role[]
     }
   ];
   

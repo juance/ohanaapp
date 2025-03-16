@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -14,7 +13,7 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-export type PaymentMethod = 'cash' | 'debit' | 'mercado_pago' | 'cuenta_dni';
+export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
 
 export interface LaundryService {
   id: string;
@@ -67,14 +66,15 @@ export interface ClientVisit {
 
 // New interfaces for enhanced functionality
 
-export type LaundryOption = 'color_separation' | 'delicate_wash' | 'extra_rinse' | 'heavy_soil' | 'stain_treatment';
+export type LaundryOption = 'separateByColor' | 'delicateDry' | 'stainRemoval' | 'bleach' | 'noFragrance' | 'noDry';
 
 export interface LaundryOptions {
-  colorSeparation: boolean;
-  delicateWash: boolean;
-  extraRinse: boolean;
-  heavySoil: boolean;
-  stainTreatment: boolean;
+  separateByColor: boolean;
+  delicateDry: boolean;
+  stainRemoval: boolean;
+  bleach: boolean;
+  noFragrance: boolean;
+  noDry: boolean;
 }
 
 export interface DryCleaningItem {
@@ -106,7 +106,7 @@ export interface DailyMetrics {
   paymentMethods: {
     cash: number;
     debit: number;
-    mercadoPago: number;
+    mercadopago: number;
     cuentaDni: number;
   };
   dryCleaningItems: Record<string, number>;
@@ -118,7 +118,7 @@ export interface WeeklyMetrics {
   paymentMethods: {
     cash: number;
     debit: number;
-    mercadoPago: number;
+    mercadopago: number;
     cuentaDni: number;
   };
   dryCleaningItems: Record<string, number>;
@@ -130,7 +130,7 @@ export interface MonthlyMetrics {
   paymentMethods: {
     cash: number;
     debit: number;
-    mercadoPago: number;
+    mercadopago: number;
     cuentaDni: number;
   };
   dryCleaningItems: Record<string, number>;

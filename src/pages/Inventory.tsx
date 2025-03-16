@@ -1,238 +1,133 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import InventoryItem from '@/components/InventoryItem';
-import { getCurrentUser, hasPermission } from '@/lib/auth';
-import { InventoryItem as InventoryItemType } from '@/lib/types';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Table, TableBody, TableCell, TableHead, 
+  TableHeader, TableRow 
+} from '@/components/ui/table';
+import { Link } from 'react-router-dom';
+import { 
+  ArrowLeft, Package, AlertTriangle, Pencil, 
+  Trash, Plus 
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { Search, Plus, Package } from 'lucide-react';
 
 // Mock inventory data
-const mockInventory: InventoryItemType[] = [
-  { id: '1', name: 'Detergent', quantity: 20, threshold: 10, unit: 'liters' },
-  { id: '2', name: 'Fabric Softener', quantity: 15, threshold: 8, unit: 'liters' },
-  { id: '3', name: 'Bleach', quantity: 5, threshold: 10, unit: 'liters' },
-  { id: '4', name: 'Stain Remover', quantity: 8, threshold: 6, unit: 'bottles' },
-  { id: '5', name: 'Laundry Bags', quantity: 50, threshold: 30, unit: 'pieces' },
-  { id: '6', name: 'Hangers', quantity: 75, threshold: 50, unit: 'pieces' },
+const mockInventory = [
+  { id: '1', name: 'Skip', quantity: '10 kg', minStock: '2 kg', lastUpdated: '13 de mar de 2025' },
+  { id: '2', name: 'Vinagre', quantity: '5', minStock: '1', lastUpdated: '13 de mar de 2025' },
+  { id: '3', name: 'Bolsas camiseta', quantity: '100 unidades', minStock: '20 unidades', lastUpdated: '13 de mar de 2025' },
+  { id: '4', name: 'Bolsas acolchado', quantity: '50 unidades', minStock: '10 unidades', lastUpdated: '13 de mar de 2025' },
+  { id: '5', name: 'Perfumina', quantity: '3 L', minStock: '1 L', lastUpdated: '13 de mar de 2025' },
+  { id: '6', name: 'Desengrasante', quantity: '2 L', minStock: '1 L', lastUpdated: '13 de mar de 2025' },
+  { id: '7', name: 'Bactericida', quantity: '2 L', minStock: '1 L', lastUpdated: '13 de mar de 2025' },
+  { id: '8', name: 'Bolsas', quantity: '20 unidades', minStock: '5 unidades', lastUpdated: '13 de mar de 2025' },
+  { id: '9', name: 'Quita sangre', quantity: '1 L', minStock: '1 L', lastUpdated: '13 de mar de 2025' },
+  { id: '10', name: 'Quitamanchas', quantity: '2 L', minStock: '1 L', lastUpdated: '13 de mar de 2025' }
 ];
 
 const Inventory = () => {
-  const [inventory, setInventory] = useState<InventoryItemType[]>(mockInventory);
-  const [filteredInventory, setFilteredInventory] = useState<InventoryItemType[]>(mockInventory);
   const [searchQuery, setSearchQuery] = useState('');
-  const [newItem, setNewItem] = useState({
-    name: '',
-    quantity: 0,
-    threshold: 0,
-    unit: '',
+  
+  const filteredItems = searchQuery.trim() 
+    ? mockInventory.filter(item => 
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : mockInventory;
+    
+  const lowStockItems = mockInventory.filter(item => {
+    // Simple check for low stock
+    const itemQuantity = parseInt(item.quantity);
+    const itemMinStock = parseInt(item.minStock);
+    if (!isNaN(itemQuantity) && !isNaN(itemMinStock)) {
+      return itemQuantity <= itemMinStock;
+    }
+    return false;
   });
-  const [isAddingItem, setIsAddingItem] = useState(false);
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    const checkAuth = async () => {
-      const user = await getCurrentUser();
-      
-      if (!user) {
-        navigate('/');
-        return;
-      }
-      
-      if (!hasPermission(user, ['admin'])) {
-        navigate('/dashboard');
-        toast.error('Access denied', {
-          description: 'You do not have permission to access this page',
-        });
-        return;
-      }
-    };
-    
-    checkAuth();
-  }, [navigate]);
-  
-  useEffect(() => {
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      setFilteredInventory(inventory.filter(item => 
-        item.name.toLowerCase().includes(query) ||
-        item.unit.toLowerCase().includes(query)
-      ));
-    } else {
-      setFilteredInventory(inventory);
-    }
-  }, [searchQuery, inventory]);
-  
-  const handleDeleteItem = (id: string) => {
-    setInventory(inventory.filter(item => item.id !== id));
-  };
-  
-  const handleUpdateItem = (updatedItem: InventoryItemType) => {
-    setInventory(inventory.map(item => 
-      item.id === updatedItem.id ? updatedItem : item
-    ));
-    
-    toast.success('Item updated', {
-      description: `${updatedItem.name} has been updated`,
-    });
-  };
-  
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.unit) {
-      toast.error('Missing information', {
-        description: 'Please provide a name and unit for the new item',
-      });
-      return;
-    }
-    
-    const newId = `${inventory.length + 1}`;
-    const item: InventoryItemType = {
-      id: newId,
-      ...newItem,
-    };
-    
-    setInventory([...inventory, item]);
-    setNewItem({
-      name: '',
-      quantity: 0,
-      threshold: 0,
-      unit: '',
-    });
-    setIsAddingItem(false);
-    
-    toast.success('Item added', {
-      description: `${newItem.name} has been added to inventory`,
-    });
-  };
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
       
-      <div className="flex-1 md:ml-64">
-        <div className="container mx-auto p-6 md:p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
-            <p className="mt-1 text-muted-foreground">
-              Manage laundry supplies and inventory items
-            </p>
-          </div>
-          
-          <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <div className="relative w-full sm:w-[300px]">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search inventory..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+      <div className="flex-1 md:ml-64 p-6">
+        <div className="container mx-auto pt-6">
+          <header className="mb-8 flex justify-between items-center">
+            <div>
+              <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
+                <ArrowLeft className="mr-1 h-4 w-4" />
+                <span>Volver</span>
+              </Link>
+              <h1 className="text-2xl font-bold">Gestión de Inventario</h1>
             </div>
-            <Button
-              onClick={() => setIsAddingItem(true)}
-              className="bg-laundry-500 hover:bg-laundry-600"
-            >
+            
+            <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus className="mr-2 h-4 w-4" />
-              Add Item
+              Agregar Producto
             </Button>
-          </div>
+          </header>
           
-          {isAddingItem && (
-            <Card className="mb-6 animate-scale-in border-dashed">
-              <CardHeader>
-                <CardTitle className="text-lg">Add New Inventory Item</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Name</label>
-                    <Input
-                      value={newItem.name}
-                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                      placeholder="Item name"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Unit</label>
-                    <Input
-                      value={newItem.unit}
-                      onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
-                      placeholder="e.g. liters, pieces"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Initial Quantity</label>
-                    <Input
-                      type="number"
-                      value={newItem.quantity}
-                      onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 0 })}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Low Stock Threshold</label>
-                    <Input
-                      type="number"
-                      value={newItem.threshold}
-                      onChange={(e) => setNewItem({ ...newItem, threshold: parseInt(e.target.value) || 0 })}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAddingItem(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleAddItem}
-                  className="bg-laundry-500 hover:bg-laundry-600"
-                >
-                  Add Item
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
-          
-          {filteredInventory.length === 0 ? (
-            <div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-                <Package className="h-6 w-6 text-muted-foreground" />
+          {lowStockItems.length > 0 && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-red-700 font-medium mb-2">
+                <AlertTriangle className="h-5 w-5" />
+                <h3>Productos con Bajo Stock</h3>
               </div>
-              <h3 className="mt-4 text-lg font-medium">No items found</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {searchQuery ? 'Try a different search term' : 'Start by adding some inventory items'}
-              </p>
-              {!searchQuery && (
-                <Button
-                  onClick={() => setIsAddingItem(true)}
-                  className="mt-4 bg-laundry-500 hover:bg-laundry-600"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add First Item
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredInventory.map((item) => (
-                <InventoryItem
-                  key={item.id}
-                  item={item}
-                  onDelete={handleDeleteItem}
-                  onUpdate={handleUpdateItem}
-                />
-              ))}
+              
+              <div className="space-x-2">
+                {lowStockItems.map(item => (
+                  <span key={item.id} className="inline-block bg-white border border-red-200 text-red-700 text-sm px-2 py-1 rounded">
+                    {item.name}: {item.quantity}
+                  </span>
+                ))}
+              </div>
             </div>
           )}
+          
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Cantidad</TableHead>
+                    <TableHead>Stock Mínimo</TableHead>
+                    <TableHead>Última Actualización</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map(item => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center">
+                          <span className="text-blue-600 mr-2">
+                            <Package className="h-4 w-4" />
+                          </span>
+                          {item.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>{item.minStock}</TableCell>
+                      <TableCell>{item.lastUpdated}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600">
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
