@@ -13,7 +13,7 @@ import {
   User
 } from 'lucide-react';
 import { getCurrentUser, logout, hasPermission } from '@/lib/auth';
-import { User as UserType } from '@/lib/types';
+import { User as UserType, Role } from '@/lib/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -48,25 +48,25 @@ const Navbar = () => {
       name: 'Dashboard',
       path: '/dashboard',
       icon: <LayoutDashboard className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier', 'operator'] as const
+      allowedRoles: ['admin', 'cashier', 'operator'] as Role[]
     },
     {
       name: 'Tickets',
       path: '/tickets',
       icon: <Ticket className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier'] as const
+      allowedRoles: ['admin', 'cashier'] as Role[]
     },
     {
       name: 'Inventory',
       path: '/inventory',
       icon: <PackageOpen className="h-5 w-5" />,
-      allowedRoles: ['admin'] as const
+      allowedRoles: ['admin'] as Role[]
     },
     {
       name: 'Orders',
       path: '/orders',
       icon: <BarChart3 className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier', 'operator'] as const
+      allowedRoles: ['admin', 'cashier', 'operator'] as Role[]
     }
   ];
   
