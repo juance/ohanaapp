@@ -144,18 +144,38 @@ const Metrics = () => {
                 </CardHeader>
                 <CardContent className="flex justify-center">
                   <PieChart data={[
-                    { name: 'Efectivo', value: period === 'daily' ? metrics.daily?.paymentMethods?.cash || 0 : 
-                                            period === 'weekly' ? metrics.weekly?.paymentMethods?.cash || 0 : 
-                                            metrics.monthly?.paymentMethods?.cash || 0 },
-                    { name: 'Débito', value: period === 'daily' ? metrics.daily?.paymentMethods?.debit || 0 : 
-                                          period === 'weekly' ? metrics.weekly?.paymentMethods?.debit || 0 : 
-                                          metrics.monthly?.paymentMethods?.debit || 0 },
-                    { name: 'Mercado Pago', value: period === 'daily' ? metrics.daily?.paymentMethods?.mercadoPago || 0 : 
-                                               period === 'weekly' ? metrics.weekly?.paymentMethods?.mercadoPago || 0 : 
-                                               metrics.monthly?.paymentMethods?.mercadoPago || 0 },
-                    { name: 'Cuenta DNI', value: period === 'daily' ? metrics.daily?.paymentMethods?.cuentaDni || 0 : 
-                                             period === 'weekly' ? metrics.weekly?.paymentMethods?.cuentaDni || 0 : 
-                                             metrics.monthly?.paymentMethods?.cuentaDni || 0 }
+                    { 
+                      name: 'Efectivo', 
+                      value: period === 'daily' 
+                        ? metrics.daily?.paymentMethods?.cash || 0 
+                        : period === 'weekly' 
+                          ? metrics.weekly?.paymentMethods?.cash || 0 
+                          : metrics.monthly?.paymentMethods?.cash || 0 
+                    },
+                    { 
+                      name: 'Débito', 
+                      value: period === 'daily' 
+                        ? metrics.daily?.paymentMethods?.debit || 0 
+                        : period === 'weekly' 
+                          ? metrics.weekly?.paymentMethods?.debit || 0 
+                          : metrics.monthly?.paymentMethods?.debit || 0 
+                    },
+                    { 
+                      name: 'Mercado Pago', 
+                      value: period === 'daily' 
+                        ? metrics.daily?.paymentMethods?.mercadoPago || 0 
+                        : period === 'weekly' 
+                          ? metrics.weekly?.paymentMethods?.mercadoPago || 0 
+                          : metrics.monthly?.paymentMethods?.mercadoPago || 0 
+                    },
+                    { 
+                      name: 'Cuenta DNI', 
+                      value: period === 'daily' 
+                        ? metrics.daily?.paymentMethods?.cuentaDni || 0 
+                        : period === 'weekly' 
+                          ? metrics.weekly?.paymentMethods?.cuentaDni || 0 
+                          : metrics.monthly?.paymentMethods?.cuentaDni || 0 
+                    }
                   ]} />
                 </CardContent>
               </Card>
