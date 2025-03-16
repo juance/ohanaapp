@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
-import { ArrowLeft, TrendingUp, CreditCard, Calendar, Users } from 'lucide-react';
+import { ArrowLeft, TrendingUp, CreditCard, Calendar, Users, PackageOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDashboardData } from '@/hooks/useDashboardData';
 
@@ -65,7 +65,7 @@ const Metrics = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Cantidad de Valets</CardTitle>
-                  <Package className="h-4 w-4 text-blue-600" />
+                  <PackageOpen className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
@@ -175,9 +175,5 @@ const Metrics = () => {
     </div>
   );
 };
-
-function Package(props: any) {
-  return <PackageOpen {...props} />;
-}
 
 export default Metrics;
