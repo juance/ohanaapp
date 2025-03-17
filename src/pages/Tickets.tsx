@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import SimpleTicketForm from '@/components/SimpleTicketForm';
 import { Button } from '@/components/ui/button';
@@ -25,27 +24,7 @@ const Tickets = () => {
             </div>
           </header>
           
-          <Tabs defaultValue="tickets" className="w-full">
-            <TabsList className="mb-8 grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="tickets">Tickets</TabsTrigger>
-              <TabsTrigger value="metricas">Métricas</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="tickets" className="pt-4">
-              <SimpleTicketForm />
-            </TabsContent>
-            
-            <TabsContent value="metricas" className="pt-4">
-              <div className="text-center">
-                <p className="text-lg text-gray-600">Las métricas están disponibles en la sección de Métricas</p>
-                <Link to="/metrics">
-                  <Button className="mt-4 bg-blue-600 hover:bg-blue-700">
-                    Ver Métricas
-                  </Button>
-                </Link>
-              </div>
-            </TabsContent>
-          </Tabs>
+          <SimpleTicketForm />
         </div>
       </div>
     </div>

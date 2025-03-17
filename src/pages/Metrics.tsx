@@ -18,7 +18,7 @@ const Metrics = () => {
   };
   
   // Helper function to get payment method value based on period
-  const getPaymentMethodValue = (method: 'cash' | 'debit' | 'mercadoPago' | 'cuentaDni') => {
+  const getPaymentMethodValue = (method: 'cash' | 'debit' | 'mercadopago' | 'cuentaDni') => {
     if (period === 'daily') {
       return metrics.daily?.paymentMethods?.[method] || 0;
     } else if (period === 'weekly') {
@@ -158,7 +158,7 @@ const Metrics = () => {
                   <PieChart data={[
                     { name: 'Efectivo', value: getPaymentMethodValue('cash') },
                     { name: 'Débito', value: getPaymentMethodValue('debit') },
-                    { name: 'Mercado Pago', value: getPaymentMethodValue('mercadoPago') },
+                    { name: 'Mercado Pago', value: getPaymentMethodValue('mercadopago') },
                     { name: 'Cuenta DNI', value: getPaymentMethodValue('cuentaDni') }
                   ]} />
                 </CardContent>

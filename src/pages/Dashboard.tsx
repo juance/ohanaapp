@@ -38,7 +38,7 @@ const Dashboard = () => {
           <div className="container mx-auto p-6 md:p-8">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-              <p className="mt-1 text-muted-foreground">Loading metrics...</p>
+              <p className="mt-1 text-muted-foreground">Cargando métricas...</p>
             </div>
           </div>
         </div>
@@ -55,51 +55,51 @@ const Dashboard = () => {
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
             <p className="mt-1 text-muted-foreground">
-              Monitor your laundry's performance and analytics
+              Monitorea el rendimiento y analíticas de tu lavandería
             </p>
           </div>
           
           <Tabs defaultValue="daily" className="mb-8" onValueChange={(value) => setViewType(value as any)}>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <h2 className="text-xl font-semibold">Performance Metrics</h2>
+              <h2 className="text-xl font-semibold">Métricas de Rendimiento</h2>
               <TabsList className="grid w-full max-w-[400px] grid-cols-3">
-                <TabsTrigger value="daily">Daily</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                <TabsTrigger value="daily">Diario</TabsTrigger>
+                <TabsTrigger value="weekly">Semanal</TabsTrigger>
+                <TabsTrigger value="monthly">Mensual</TabsTrigger>
               </TabsList>
             </div>
             
             <TabsContent value="daily" className="mt-6 animate-fade-in">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
-                  title="Total Income"
+                  title="Ingresos Totales"
                   value={formatCurrency(metrics.daily?.totalSales || 0)}
-                  description="Today's earnings"
+                  description="Ganancias de hoy"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 12, isPositive: true }}
                 />
                 <MetricsCard
                   title="Valets"
                   value={metrics.daily?.valetCount || 0}
-                  description="Valets processed today"
+                  description="Valets procesados hoy"
                   icon={<TrendingUp className="h-4 w-4" />}
                   trend={{ value: 8, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Cash Payments"
+                  title="Pagos en Efectivo"
                   value={formatCurrency(metrics.daily?.paymentMethods.cash || 0)}
-                  description="Today's cash revenue"
+                  description="Ingresos en efectivo de hoy"
                   icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 5, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Digital Payments"
+                  title="Pagos Digitales"
                   value={formatCurrency(
                     (metrics.daily?.paymentMethods.debit || 0) + 
-                    (metrics.daily?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.daily?.paymentMethods.mercadopago || 0) + 
                     (metrics.daily?.paymentMethods.cuentaDni || 0)
                   )}
-                  description="Today's digital revenue"
+                  description="Ingresos digitales de hoy"
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 15, isPositive: true }}
                 />
@@ -109,11 +109,11 @@ const Dashboard = () => {
             <TabsContent value="weekly" className="mt-6 animate-fade-in">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
-                  title="Total Income"
+                  title="Ingresos Totales"
                   value={formatCurrency(
                     Object.values(metrics.weekly?.salesByDay || {}).reduce((acc, val) => acc + val, 0)
                   )}
-                  description="This week's earnings"
+                  description="Ganancias de esta semana"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 8, isPositive: true }}
                 />
@@ -122,25 +122,25 @@ const Dashboard = () => {
                   value={
                     Object.values(metrics.weekly?.valetsByDay || {}).reduce((acc, val) => acc + val, 0)
                   }
-                  description="Valets processed this week"
+                  description="Valets procesados esta semana"
                   icon={<TrendingUp className="h-4 w-4" />}
                   trend={{ value: 12, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Cash Payments"
+                  title="Pagos en Efectivo"
                   value={formatCurrency(metrics.weekly?.paymentMethods.cash || 0)}
-                  description="This week's cash revenue"
+                  description="Ingresos en efectivo de esta semana"
                   icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 3, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Digital Payments"
+                  title="Pagos Digitales"
                   value={formatCurrency(
                     (metrics.weekly?.paymentMethods.debit || 0) + 
-                    (metrics.weekly?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.weekly?.paymentMethods.mercadopago || 0) + 
                     (metrics.weekly?.paymentMethods.cuentaDni || 0)
                   )}
-                  description="This week's digital revenue"
+                  description="Ingresos digitales de esta semana"
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 10, isPositive: true }}
                 />
@@ -150,11 +150,11 @@ const Dashboard = () => {
             <TabsContent value="monthly" className="mt-6 animate-fade-in">
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <MetricsCard
-                  title="Total Income"
+                  title="Ingresos Totales"
                   value={formatCurrency(
                     Object.values(metrics.monthly?.salesByWeek || {}).reduce((acc, val) => acc + val, 0)
                   )}
-                  description="This month's earnings"
+                  description="Ganancias de este mes"
                   icon={<DollarSign className="h-4 w-4" />}
                   trend={{ value: 15, isPositive: true }}
                 />
@@ -163,25 +163,25 @@ const Dashboard = () => {
                   value={
                     Object.values(metrics.monthly?.valetsByWeek || {}).reduce((acc, val) => acc + val, 0)
                   }
-                  description="Valets processed this month"
+                  description="Valets procesados este mes"
                   icon={<TrendingUp className="h-4 w-4" />}
                   trend={{ value: 20, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Cash Payments"
+                  title="Pagos en Efectivo"
                   value={formatCurrency(metrics.monthly?.paymentMethods.cash || 0)}
-                  description="This month's cash revenue"
+                  description="Ingresos en efectivo de este mes"
                   icon={<BarChart3 className="h-4 w-4" />}
                   trend={{ value: 18, isPositive: true }}
                 />
                 <MetricsCard
-                  title="Digital Payments"
+                  title="Pagos Digitales"
                   value={formatCurrency(
                     (metrics.monthly?.paymentMethods.debit || 0) + 
-                    (metrics.monthly?.paymentMethods.mercadoPago || 0) + 
+                    (metrics.monthly?.paymentMethods.mercadopago || 0) + 
                     (metrics.monthly?.paymentMethods.cuentaDni || 0)
                   )}
-                  description="This month's digital revenue"
+                  description="Ingresos digitales de este mes"
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 25, isPositive: true }}
                 />
@@ -192,11 +192,11 @@ const Dashboard = () => {
           <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
             <Card className="xl:col-span-2">
               <CardHeader>
-                <CardTitle className="text-lg font-medium">Revenue Overview</CardTitle>
+                <CardTitle className="text-lg font-medium">Resumen de Ingresos</CardTitle>
                 <CardDescription>
-                  {viewType === 'daily' && 'Today\'s revenue by hour'}
-                  {viewType === 'weekly' && 'This week\'s daily revenue'}
-                  {viewType === 'monthly' && 'This month\'s weekly revenue'}
+                  {viewType === 'daily' && 'Ingresos de hoy por hora'}
+                  {viewType === 'weekly' && 'Ingresos diarios de esta semana'}
+                  {viewType === 'monthly' && 'Ingresos semanales de este mes'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -206,23 +206,23 @@ const Dashboard = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-medium">Service Distribution</CardTitle>
+                <CardTitle className="text-lg font-medium">Distribución de Servicios</CardTitle>
                 <CardDescription>
-                  Breakdown of services requested
+                  Desglose de servicios solicitados
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <PieChart data={chartData.pieData.length > 0 ? chartData.pieData : [
-                  { name: 'No Data', value: 1 }
+                  { name: 'Sin Datos', value: 1 }
                 ]} />
               </CardContent>
             </Card>
             
             <Card className="xl:col-span-2">
               <CardHeader>
-                <CardTitle className="text-lg font-medium">Income vs Expenses</CardTitle>
+                <CardTitle className="text-lg font-medium">Ingresos vs Gastos</CardTitle>
                 <CardDescription>
-                  Comparison of income and expenses
+                  Comparación de ingresos y gastos
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -232,9 +232,9 @@ const Dashboard = () => {
             
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg font-medium">Frequent Clients</CardTitle>
+                <CardTitle className="text-lg font-medium">Clientes Frecuentes</CardTitle>
                 <CardDescription>
-                  Clients with most visits
+                  Clientes con más visitas
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -249,14 +249,14 @@ const Dashboard = () => {
                         <div className="flex items-center space-x-2">
                           <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                             <Calendar className="h-3.5 w-3.5" />
-                            <span>{client.visitCount} visits</span>
+                            <span>{client.visitCount} visitas</span>
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
                     <div className="text-center text-muted-foreground py-4">
-                      No client visit data available
+                      No hay datos de visitas de clientes disponibles
                     </div>
                   )}
                 </div>
