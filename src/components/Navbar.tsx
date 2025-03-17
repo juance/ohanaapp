@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -96,7 +97,7 @@ const Navbar = () => {
       <div className="fixed left-0 top-0 z-30 hidden h-full w-64 border-r border-border bg-card p-4 shadow-sm md:block">
         <div className="flex flex-col space-y-8">
           <div className="flex items-center justify-center py-4">
-            <h1 className="text-2xl font-semibold text-laundry-500">WashWise</h1>
+            <h1 className="text-2xl font-semibold text-laundry-500">Lavandería</h1>
           </div>
           
           <nav className="flex flex-col space-y-1">
@@ -148,7 +149,7 @@ const Navbar = () => {
       {/* Mobile Navigation */}
       <div className="fixed left-0 top-0 z-40 w-full border-b border-border bg-card/80 backdrop-blur-md md:hidden">
         <div className="flex h-16 items-center justify-between px-4">
-          <h1 className="text-xl font-semibold text-laundry-500">WashWise</h1>
+          <h1 className="text-xl font-semibold text-laundry-500">Lavandería</h1>
           <Button 
             variant="ghost" 
             size="icon"

@@ -904,7 +904,4 @@ export const syncOfflineData = async (): Promise<boolean> => {
     
     return true;
   } catch (error) {
-    console.error('Error syncing offline data:', error);
-    return false;
-  }
-};
+    console.error('Error syncing offline

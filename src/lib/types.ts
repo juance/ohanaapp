@@ -49,13 +49,14 @@ export interface Metrics {
   };
 }
 
-export interface InventoryItem {
+export type InventoryItem = {
   id: string;
   name: string;
   quantity: number;
   threshold: number;
   unit: string;
-}
+  lastUpdated: string;
+};
 
 export interface ClientVisit {
   phoneNumber: string;
