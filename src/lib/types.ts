@@ -1,3 +1,4 @@
+
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -32,6 +33,7 @@ export interface Ticket {
   status: 'pending' | 'processing' | 'ready' | 'delivered';
   createdAt: string;
   updatedAt: string;
+  deliveredDate?: string;
 }
 
 export interface Metrics {

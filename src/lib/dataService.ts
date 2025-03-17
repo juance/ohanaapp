@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -116,7 +115,7 @@ export const storeTicketData = async (
       customerId = newCustomer.id;
     }
     
-    // Insert ticket - Fix: Use a single object instead of an array
+    // Insert ticket with 'ready' status by default
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
       .insert({
@@ -124,7 +123,8 @@ export const storeTicketData = async (
         total: ticket.totalPrice,
         payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
-        customer_id: customerId
+        customer_id: customerId,
+        status: 'ready' // Set status to ready by default
       })
       .select('*')
       .single();
@@ -904,8 +904,4 @@ export const syncOfflineData = async (): Promise<boolean> => {
     }
     
     return true;
-  } catch (error) {
-    console.error('Error syncing offline data:', error);
-    return false;
   }
-};

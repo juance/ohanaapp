@@ -153,8 +153,10 @@ export type Database = {
           created_at: string
           customer_id: string
           date: string
+          delivered_date: string | null
           id: string
           payment_method: Database["public"]["Enums"]["payment_method"]
+          status: string
           ticket_number: string
           total: number
           updated_at: string
@@ -164,8 +166,10 @@ export type Database = {
           created_at?: string
           customer_id: string
           date?: string
+          delivered_date?: string | null
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          status?: string
           ticket_number: string
           total: number
           updated_at?: string
@@ -175,8 +179,10 @@ export type Database = {
           created_at?: string
           customer_id?: string
           date?: string
+          delivered_date?: string | null
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
+          status?: string
           ticket_number?: string
           total?: number
           updated_at?: string

@@ -3,95 +3,43 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Bell } from 'lucide-react';
+import { ArrowLeft, Search, Bell, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
-
-// Mock ticket data
-const mockTickets = [
-  {
-    id: '1',
-    ticketNumber: '00000001',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '16/03/2023',
-    total: 24000,
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 3 },
-      { name: 'Lavado de zapatillas (por par)', price: 10000, quantity: 1 }
-    ]
-  },
-  {
-    id: '2',
-    ticketNumber: '00000002',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '16/03/2023',
-    total: 18500,
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 2 },
-      { name: 'Secado', price: 4000, quantity: 1 },
-      { name: 'Camisa / Remera', price: 8500, quantity: 1 }
-    ]
-  },
-  {
-    id: '3',
-    ticketNumber: '00000003',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '16/03/2023',
-    total: 17000,
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
-      { name: 'Campera', price: 13000, quantity: 1 }
-    ]
-  },
-  {
-    id: '4',
-    ticketNumber: '00000004',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '16/03/2023',
-    total: 9000,
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
-      { name: 'Secado', price: 4000, quantity: 1 }
-    ]
-  },
-  {
-    id: '5',
-    ticketNumber: '00000005',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '16/03/2023',
-    total: 15000,
-    services: [
-      { name: 'Corbata', price: 7000, quantity: 1 },
-      { name: 'Secado', price: 4000, quantity: 2 }
-    ]
-  }
-];
+import { Ticket } from '@/lib/types';
+import { getPickupTickets, getTicketServices, markTicketAsDelivered } from '@/lib/ticketService';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
+import { es } from 'date-fns/locale';
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<'ticket' | 'name' | 'phone'>('ticket');
+  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const queryClient = useQueryClient();
   
-  const filteredTickets = searchQuery.trim() 
-    ? mockTickets.filter(ticket => {
-        if (searchFilter === 'ticket') {
-          return ticket.ticketNumber.includes(searchQuery);
-        } else if (searchFilter === 'name') {
-          return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
-        } else { // 'phone'
-          return ticket.phoneNumber.includes(searchQuery);
-        }
-      })
-    : mockTickets;
-    
-  const handleNotifyClient = (ticketId: string) => {
-    const ticket = mockTickets.find(t => t.id === ticketId);
+  // Fetch tickets ready for pickup
+  const { data: tickets = [], isLoading, error } = useQuery({
+    queryKey: ['pickupTickets'],
+    queryFn: getPickupTickets
+  });
+
+  useEffect(() => {
+    if (selectedTicket) {
+      loadTicketServices(selectedTicket);
+    } else {
+      setTicketServices([]);
+    }
+  }, [selectedTicket]);
+
+  const loadTicketServices = async (ticketId: string) => {
+    const services = await getTicketServices(ticketId);
+    setTicketServices(services);
+  };
+
+  const handleNotifyClient = (ticket: Ticket) => {
     if (ticket) {
       // Format WhatsApp URL
       const whatsappMessage = encodeURIComponent(
@@ -109,6 +57,58 @@ const PickupOrders = () => {
       toast.error('Seleccione un ticket primero');
     }
   };
+
+  const handleMarkAsDelivered = async (ticketId: string) => {
+    const success = await markTicketAsDelivered(ticketId);
+    if (success) {
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+      queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
+      setSelectedTicket(null);
+    }
+  };
+  
+  const filteredTickets = searchQuery.trim() 
+    ? tickets.filter(ticket => {
+        if (searchFilter === 'ticket') {
+          return ticket.ticketNumber.includes(searchQuery);
+        } else if (searchFilter === 'name') {
+          return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+        } else { // 'phone'
+          return ticket.phoneNumber.includes(searchQuery);
+        }
+      })
+    : tickets;
+    
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Navbar />
+        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
+          <p>Cargando tickets...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Navbar />
+        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
+          <p className="text-red-500">Error al cargar los tickets. Por favor, intente de nuevo.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -130,15 +130,32 @@ const PickupOrders = () => {
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Pedidos a Retirar</h2>
             
-            <div className="flex justify-end mb-4">
+            <div className="flex justify-end mb-4 space-x-2">
               <Button 
                 variant="outline" 
                 className="flex items-center space-x-2"
-                onClick={() => selectedTicket ? handleNotifyClient(selectedTicket) : toast.error('Seleccione un ticket primero')}
+                onClick={() => {
+                  const ticket = tickets.find(t => t.id === selectedTicket);
+                  if (ticket) handleNotifyClient(ticket);
+                  else toast.error('Seleccione un ticket primero');
+                }}
                 disabled={!selectedTicket}
               >
                 <Bell className="h-4 w-4" />
                 <span>Avisar al cliente</span>
+              </Button>
+              
+              <Button 
+                variant="default" 
+                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
+                onClick={() => {
+                  if (selectedTicket) handleMarkAsDelivered(selectedTicket);
+                  else toast.error('Seleccione un ticket primero');
+                }}
+                disabled={!selectedTicket}
+              >
+                <CheckCircle className="h-4 w-4" />
+                <span>ENTREGADO</span>
               </Button>
             </div>
             
@@ -191,12 +208,12 @@ const PickupOrders = () => {
                   >
                     <div className="font-medium">{ticket.clientName}</div>
                     <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
-                    <div className="text-sm text-gray-500">Fecha: {ticket.date}</div>
+                    <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
                     <div className="mt-2 flex justify-between items-center">
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs">
+                      <Badge className="bg-blue-600 hover:bg-blue-700">
                         {ticket.ticketNumber}
-                      </Button>
-                      <span className="font-medium text-blue-700">$ {ticket.total.toLocaleString()}</span>
+                      </Badge>
+                      <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
                     </div>
                   </div>
                 ))}
@@ -213,7 +230,7 @@ const PickupOrders = () => {
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-medium">Detalles del Ticket</h3>
                     {(() => {
-                      const ticket = mockTickets.find(t => t.id === selectedTicket);
+                      const ticket = tickets.find(t => t.id === selectedTicket);
                       if (!ticket) return <p>No se encontró el ticket seleccionado</p>;
                       
                       return (
@@ -233,25 +250,29 @@ const PickupOrders = () => {
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Fecha:</p>
-                              <p className="font-medium">{ticket.date}</p>
+                              <p className="font-medium">{formatDate(ticket.createdAt)}</p>
                             </div>
                           </div>
                           
                           <div className="border-t pt-3">
                             <p className="font-medium mb-2">Servicios:</p>
                             <div className="space-y-2">
-                              {ticket.services.map((service, index) => (
-                                <div key={index} className="flex justify-between text-sm border-b pb-1">
-                                  <span>
-                                    {service.name} x{service.quantity}
-                                  </span>
-                                  <span>$ {(service.price * service.quantity).toLocaleString()}</span>
-                                </div>
-                              ))}
+                              {ticketServices.length > 0 ? (
+                                ticketServices.map((service, index) => (
+                                  <div key={index} className="flex justify-between text-sm border-b pb-1">
+                                    <span>
+                                      {service.name} x{service.quantity}
+                                    </span>
+                                    <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500">Cargando servicios...</p>
+                              )}
                             </div>
                             <div className="flex justify-between font-medium mt-3 text-blue-700">
                               <span>Total:</span>
-                              <span>$ {ticket.total.toLocaleString()}</span>
+                              <span>$ {ticket.totalPrice.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>

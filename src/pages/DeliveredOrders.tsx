@@ -1,68 +1,77 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Check } from 'lucide-react';
-
-// Mock delivered ticket data
-const mockDeliveredTickets = [
-  {
-    id: '1',
-    ticketNumber: '00000001',
-    clientName: 'Tiziano',
-    phoneNumber: '1123456716',
-    date: '10/03/2023',
-    total: 22000,
-    deliveredDate: '12/03/2023',
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 2 },
-      { name: 'Campera', price: 13000, quantity: 1 }
-    ]
-  },
-  {
-    id: '2',
-    ticketNumber: '00000002',
-    clientName: 'Laura',
-    phoneNumber: '1123456789',
-    date: '11/03/2023',
-    total: 15500,
-    deliveredDate: '13/03/2023',
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
-      { name: 'Secado', price: 4000, quantity: 1 },
-      { name: 'Camisa / Remera', price: 8500, quantity: 1 }
-    ]
-  },
-  {
-    id: '3',
-    ticketNumber: '00000003',
-    clientName: 'Carlos',
-    phoneNumber: '1123789456',
-    date: '12/03/2023',
-    total: 18700,
-    deliveredDate: '14/03/2023',
-    services: [
-      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
-      { name: 'Lavado de zapatillas (por par)', price: 10000, quantity: 1 },
-      { name: 'Secado', price: 4000, quantity: 1 }
-    ]
-  }
-];
+import { getDeliveredTickets, getTicketServices } from '@/lib/ticketService';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  
+  // Fetch delivered tickets
+  const { data: tickets = [], isLoading, error } = useQuery({
+    queryKey: ['deliveredTickets'],
+    queryFn: getDeliveredTickets
+  });
+
+  useEffect(() => {
+    if (selectedTicket) {
+      loadTicketServices(selectedTicket);
+    } else {
+      setTicketServices([]);
+    }
+  }, [selectedTicket]);
+
+  const loadTicketServices = async (ticketId: string) => {
+    const services = await getTicketServices(ticketId);
+    setTicketServices(services);
+  };
   
   const filteredTickets = searchQuery.trim() 
-    ? mockDeliveredTickets.filter(ticket => 
+    ? tickets.filter(ticket => 
         ticket.ticketNumber.includes(searchQuery) ||
         ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ticket.phoneNumber.includes(searchQuery)
       )
-    : mockDeliveredTickets;
+    : tickets;
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Navbar />
+        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
+          <p>Cargando tickets entregados...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col md:flex-row">
+        <Navbar />
+        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
+          <p className="text-red-500">Error al cargar los tickets. Por favor, intente de nuevo.</p>
+        </div>
+      </div>
+    );
+  }
     
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -121,18 +130,18 @@ const DeliveredOrders = () => {
                       <div className="text-sm mb-3">
                         <div className="flex justify-between mb-1">
                           <span className="text-gray-500">Fecha de creación:</span>
-                          <span>{ticket.date}</span>
+                          <span>{formatDate(ticket.createdAt)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Fecha de entrega:</span>
-                          <span>{ticket.deliveredDate}</span>
+                          <span>{formatDate(ticket.deliveredDate || '')}</span>
                         </div>
                       </div>
                       <div className="flex justify-between items-center mt-3">
                         <Button size="sm" variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700 text-xs">
                           {ticket.ticketNumber}
                         </Button>
-                        <span className="font-medium text-blue-700">$ {ticket.total.toLocaleString()}</span>
+                        <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
                       </div>
                     </CardContent>
                   </Card>
@@ -150,7 +159,7 @@ const DeliveredOrders = () => {
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-medium">Detalles del Ticket</h3>
                     {(() => {
-                      const ticket = mockDeliveredTickets.find(t => t.id === selectedTicket);
+                      const ticket = tickets.find(t => t.id === selectedTicket);
                       if (!ticket) return <p>No se encontró el ticket seleccionado</p>;
                       
                       return (
@@ -170,29 +179,33 @@ const DeliveredOrders = () => {
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Fecha de creación:</p>
-                              <p className="font-medium">{ticket.date}</p>
+                              <p className="font-medium">{formatDate(ticket.createdAt)}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Fecha de entrega:</p>
-                              <p className="font-medium">{ticket.deliveredDate}</p>
+                              <p className="font-medium">{formatDate(ticket.deliveredDate || '')}</p>
                             </div>
                           </div>
                           
                           <div className="border-t pt-3">
                             <p className="font-medium mb-2">Servicios:</p>
                             <div className="space-y-2">
-                              {ticket.services.map((service, index) => (
-                                <div key={index} className="flex justify-between text-sm border-b pb-1">
-                                  <span>
-                                    {service.name} x{service.quantity}
-                                  </span>
-                                  <span>$ {(service.price * service.quantity).toLocaleString()}</span>
-                                </div>
-                              ))}
+                              {ticketServices.length > 0 ? (
+                                ticketServices.map((service, index) => (
+                                  <div key={index} className="flex justify-between text-sm border-b pb-1">
+                                    <span>
+                                      {service.name} x{service.quantity}
+                                    </span>
+                                    <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+                                  </div>
+                                ))
+                              ) : (
+                                <p className="text-sm text-gray-500">Cargando servicios...</p>
+                              )}
                             </div>
                             <div className="flex justify-between font-medium mt-3 text-blue-700">
                               <span>Total:</span>
-                              <span>$ {ticket.total.toLocaleString()}</span>
+                              <span>$ {ticket.totalPrice.toLocaleString()}</span>
                             </div>
                           </div>
                         </div>
