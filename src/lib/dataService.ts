@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -904,4 +905,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
     
     return true;
   } catch (error) {
-    console.error('Error syncing offline
+    console.error('Error syncing offline data:', error);
+    return false;
+  }
+};

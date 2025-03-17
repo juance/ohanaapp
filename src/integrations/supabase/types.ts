@@ -89,6 +89,36 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_items: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          quantity: number
+          threshold: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          quantity?: number
+          threshold?: number
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: number
+          threshold?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ticket_laundry_options: {
         Row: {
           created_at: string

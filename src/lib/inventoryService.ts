@@ -44,6 +44,8 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       
     if (error) throw error;
     
+    toast.success('Inventory item added successfully');
+    
     return {
       id: data.id,
       name: data.name,
@@ -74,6 +76,7 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
       
     if (error) throw error;
     
+    toast.success('Inventory item updated successfully');
     return true;
   } catch (error) {
     console.error('Error updating inventory item:', error);
@@ -92,6 +95,7 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
       
     if (error) throw error;
     
+    toast.success('Inventory item deleted successfully');
     return true;
   } catch (error) {
     console.error('Error deleting inventory item:', error);
