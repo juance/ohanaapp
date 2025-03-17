@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,11 @@ const mockTickets = [
     clientName: 'Tiziano',
     phoneNumber: '1123456716',
     date: '16/03/2023',
-    total: 24000
+    total: 24000,
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 3 },
+      { name: 'Lavado de zapatillas (por par)', price: 10000, quantity: 1 }
+    ]
   },
   {
     id: '2',
@@ -24,7 +28,12 @@ const mockTickets = [
     clientName: 'Tiziano',
     phoneNumber: '1123456716',
     date: '16/03/2023',
-    total: 18500
+    total: 18500,
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 2 },
+      { name: 'Secado', price: 4000, quantity: 1 },
+      { name: 'Camisa / Remera', price: 8500, quantity: 1 }
+    ]
   },
   {
     id: '3',
@@ -32,7 +41,11 @@ const mockTickets = [
     clientName: 'Tiziano',
     phoneNumber: '1123456716',
     date: '16/03/2023',
-    total: 17000
+    total: 17000,
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
+      { name: 'Campera', price: 13000, quantity: 1 }
+    ]
   },
   {
     id: '4',
@@ -40,7 +53,11 @@ const mockTickets = [
     clientName: 'Tiziano',
     phoneNumber: '1123456716',
     date: '16/03/2023',
-    total: 9000
+    total: 9000,
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
+      { name: 'Secado', price: 4000, quantity: 1 }
+    ]
   },
   {
     id: '5',
@@ -48,28 +65,48 @@ const mockTickets = [
     clientName: 'Tiziano',
     phoneNumber: '1123456716',
     date: '16/03/2023',
-    total: 15000
+    total: 15000,
+    services: [
+      { name: 'Corbata', price: 7000, quantity: 1 },
+      { name: 'Secado', price: 4000, quantity: 2 }
+    ]
   }
 ];
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [searchFilter, setSearchFilter] = useState<'ticket' | 'name' | 'phone'>('ticket');
   
   const filteredTickets = searchQuery.trim() 
-    ? mockTickets.filter(ticket => 
-        ticket.ticketNumber.includes(searchQuery) ||
-        ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.phoneNumber.includes(searchQuery)
-      )
+    ? mockTickets.filter(ticket => {
+        if (searchFilter === 'ticket') {
+          return ticket.ticketNumber.includes(searchQuery);
+        } else if (searchFilter === 'name') {
+          return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+        } else { // 'phone'
+          return ticket.phoneNumber.includes(searchQuery);
+        }
+      })
     : mockTickets;
     
   const handleNotifyClient = (ticketId: string) => {
     const ticket = mockTickets.find(t => t.id === ticketId);
     if (ticket) {
+      // Format WhatsApp URL
+      const whatsappMessage = encodeURIComponent(
+        `Hola ${ticket.clientName}, su pedido #${ticket.ticketNumber} está listo para retirar en Lavandería Ohana.`
+      );
+      const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
+      
+      // Open WhatsApp in a new tab
+      window.open(whatsappUrl, '_blank');
+      
       toast.success(`Notificación enviada a ${ticket.clientName}`, {
         description: `Se notificó que su pedido #${ticket.ticketNumber} está listo para retirar.`
       });
+    } else {
+      toast.error('Seleccione un ticket primero');
     }
   };
   
@@ -97,7 +134,7 @@ const PickupOrders = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center space-x-2"
-                onClick={() => handleNotifyClient(selectedTicket || '1')}
+                onClick={() => selectedTicket ? handleNotifyClient(selectedTicket) : toast.error('Seleccione un ticket primero')}
                 disabled={!selectedTicket}
               >
                 <Bell className="h-4 w-4" />
@@ -106,11 +143,39 @@ const PickupOrders = () => {
             </div>
             
             <div className="flex space-x-2 mb-4">
-              <Button variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700">
+              <Button 
+                variant={searchFilter === 'ticket' ? "secondary" : "outline"} 
+                className={searchFilter === 'ticket' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                onClick={() => setSearchFilter('ticket')}
+              >
                 Ticket
               </Button>
-              <Button variant="outline">Nombre</Button>
-              <Button variant="outline">Teléfono</Button>
+              <Button 
+                variant={searchFilter === 'name' ? "secondary" : "outline"} 
+                className={searchFilter === 'name' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                onClick={() => setSearchFilter('name')}
+              >
+                Nombre
+              </Button>
+              <Button 
+                variant={searchFilter === 'phone' ? "secondary" : "outline"} 
+                className={searchFilter === 'phone' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
+                onClick={() => setSearchFilter('phone')}
+              >
+                Teléfono
+              </Button>
+            </div>
+            
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder={`Buscar por ${searchFilter === 'ticket' ? 'número de ticket' : searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -135,13 +200,63 @@ const PickupOrders = () => {
                     </div>
                   </div>
                 ))}
+                
+                {filteredTickets.length === 0 && (
+                  <div className="text-center p-6 text-gray-500">
+                    No se encontraron tickets que coincidan con su búsqueda
+                  </div>
+                )}
               </div>
               
-              <div className="md:col-span-3 border rounded-lg p-6 flex items-center justify-center bg-gray-50">
+              <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50">
                 {selectedTicket ? (
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-medium">Detalles del Ticket</h3>
-                    <p>Seleccione un ticket para ver los detalles</p>
+                    {(() => {
+                      const ticket = mockTickets.find(t => t.id === selectedTicket);
+                      if (!ticket) return <p>No se encontró el ticket seleccionado</p>;
+                      
+                      return (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Cliente:</p>
+                              <p className="font-medium">{ticket.clientName}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Teléfono:</p>
+                              <p className="font-medium">{ticket.phoneNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Número de ticket:</p>
+                              <p className="font-medium">{ticket.ticketNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Fecha:</p>
+                              <p className="font-medium">{ticket.date}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="border-t pt-3">
+                            <p className="font-medium mb-2">Servicios:</p>
+                            <div className="space-y-2">
+                              {ticket.services.map((service, index) => (
+                                <div key={index} className="flex justify-between text-sm border-b pb-1">
+                                  <span>
+                                    {service.name} x{service.quantity}
+                                  </span>
+                                  <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex justify-between font-medium mt-3 text-blue-700">
+                              <span>Total:</span>
+                              <span>$ {ticket.total.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <p className="text-center text-gray-500">Seleccione un ticket para ver los detalles</p>

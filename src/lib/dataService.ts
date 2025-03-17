@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -84,6 +83,13 @@ export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer 
   }
 };
 
+// Utility to convert payment method to the format expected by the database
+const formatPaymentMethod = (method: PaymentMethod): "cash" | "debit" | "mercadopago" | "cuentadni" => {
+  if (method === "cuenta_dni") return "cuentadni";
+  if (method === "mercado_pago") return "mercadopago";
+  return method as "cash" | "debit";
+};
+
 // Ticket Functions
 export const storeTicketData = async (
   ticket: {
@@ -109,16 +115,16 @@ export const storeTicketData = async (
       customerId = newCustomer.id;
     }
     
-    // Insert ticket
+    // Insert ticket - Fix: Use a single object instead of an array
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
-      .insert([{
+      .insert({
         ticket_number: ticket.ticketNumber,
         total: ticket.totalPrice,
-        payment_method: ticket.paymentMethod,
+        payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
         customer_id: customerId
-      }])
+      })
       .select('*')
       .single();
     
@@ -333,16 +339,51 @@ export const getStoredExpenses = async (startDate?: Date, endDate?: Date): Promi
 // Client Visit Frequency
 export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
   try {
-    const { data, error } = await supabase.rpc('get_client_visit_frequency');
+    // Fix: Use another approach since the function doesn't exist in the database
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('customers(name, phone), created_at');
     
     if (error) throw error;
     
-    return data.map((item: any) => ({
-      phoneNumber: item.phone,
-      clientName: item.name,
-      visitCount: item.visit_count,
-      lastVisit: item.last_visit
+    if (!data || data.length === 0) return [];
+    
+    // Process the data to calculate visit frequency
+    const clientVisits = new Map<string, { name: string; visits: string[]; lastVisit: string }>();
+    
+    data.forEach((ticket: any) => {
+      if (!ticket.customers) return;
+      
+      const phoneNumber = ticket.customers.phone;
+      const name = ticket.customers.name;
+      const visitDate = ticket.created_at;
+      
+      if (clientVisits.has(phoneNumber)) {
+        const client = clientVisits.get(phoneNumber)!;
+        client.visits.push(visitDate);
+        
+        // Update last visit if newer
+        if (new Date(visitDate) > new Date(client.lastVisit)) {
+          client.lastVisit = visitDate;
+        }
+      } else {
+        clientVisits.set(phoneNumber, {
+          name,
+          visits: [visitDate],
+          lastVisit: visitDate
+        });
+      }
+    });
+    
+    // Convert to array and sort by visit count
+    const result: ClientVisit[] = Array.from(clientVisits.entries()).map(([phoneNumber, data]) => ({
+      phoneNumber,
+      clientName: data.name,
+      visitCount: data.visits.length,
+      lastVisit: data.lastVisit
     }));
+    
+    return result.sort((a, b) => b.visitCount - a.visitCount);
   } catch (error) {
     console.error('Error retrieving client visit frequency:', error);
     
@@ -435,7 +476,7 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
       paymentMethods: {
         cash: metrics.cash_payments || 0,
         debit: metrics.debit_payments || 0,
-        mercadoPago: metrics.mercadopago_payments || 0,
+        mercadopago: metrics.mercadopago_payments || 0,
         cuentaDni: metrics.cuentadni_payments || 0
       },
       dryCleaningItems
@@ -458,7 +499,7 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
       // Calculate totals
       let totalSales = 0;
       let valetCount = 0;
-      const paymentMethods = { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 };
+      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
       const dryCleaningItems: Record<string, number> = {};
       
       tickets.forEach(ticket => {
@@ -468,7 +509,7 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
         // Payment methods
         if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadoPago += ticket.totalPrice || 0;
+        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
         
         // Dry cleaning items
@@ -495,7 +536,7 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
       return {
         totalSales: 0,
         valetCount: 0,
-        paymentMethods: { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 },
+        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
         dryCleaningItems: {}
       };
     }
@@ -541,7 +582,7 @@ export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyM
       valetsByDay[day] = 0;
     });
     
-    const paymentMethods = { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 };
+    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
     const dryCleaningItems: Record<string, number> = {};
     
     // Process tickets data
@@ -555,7 +596,7 @@ export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyM
       // Payment methods
       if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
       if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
-      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadoPago += ticket.total || 0;
+      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadopago += ticket.total || 0;
       if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
     });
     
@@ -602,7 +643,7 @@ export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyM
         valetsByDay[day] = 0;
       });
       
-      const paymentMethods = { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 };
+      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
       const dryCleaningItems: Record<string, number> = {};
       
       // Process tickets
@@ -616,7 +657,7 @@ export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyM
         // Payment methods
         if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadoPago += ticket.totalPrice || 0;
+        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
         
         // Dry cleaning items
@@ -643,7 +684,7 @@ export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyM
       return {
         salesByDay: {},
         valetsByDay: {},
-        paymentMethods: { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 },
+        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
         dryCleaningItems: {}
       };
     }
@@ -693,7 +734,7 @@ export const getMonthlyMetrics = async (date: Date = new Date()): Promise<Monthl
       'Week 5': 0
     };
     
-    const paymentMethods = { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 };
+    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
     const dryCleaningItems: Record<string, number> = {};
     
     // Process tickets data
@@ -708,7 +749,7 @@ export const getMonthlyMetrics = async (date: Date = new Date()): Promise<Monthl
       // Payment methods
       if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
       if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
-      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadoPago += ticket.total || 0;
+      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadopago += ticket.total || 0;
       if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
     });
     
@@ -759,7 +800,7 @@ export const getMonthlyMetrics = async (date: Date = new Date()): Promise<Monthl
         'Week 5': 0
       };
       
-      const paymentMethods = { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 };
+      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
       const dryCleaningItems: Record<string, number> = {};
       
       // Process tickets
@@ -774,7 +815,7 @@ export const getMonthlyMetrics = async (date: Date = new Date()): Promise<Monthl
         // Payment methods
         if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadoPago += ticket.totalPrice || 0;
+        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
         if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
         
         // Dry cleaning items
@@ -801,7 +842,7 @@ export const getMonthlyMetrics = async (date: Date = new Date()): Promise<Monthl
       return {
         salesByWeek: {},
         valetsByWeek: {},
-        paymentMethods: { cash: 0, debit: 0, mercadoPago: 0, cuentaDni: 0 },
+        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
         dryCleaningItems: {}
       };
     }

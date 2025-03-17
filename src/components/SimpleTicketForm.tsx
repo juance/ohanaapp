@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { User, Phone, Package, Plus, ShoppingCart } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { PaymentMethod, LaundryOption } from '@/lib/types';
-import { storeTicketData } from '@/lib/dataService';
+import { storeTicketData, getStoredTickets } from '@/lib/dataService';
 import { 
   Select, 
   SelectContent, 
@@ -72,12 +72,37 @@ const SimpleTicketForm = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [pricePerValet] = useState(5000);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nextTicketNumber, setNextTicketNumber] = useState('00000001');
   
   // New state for dry cleaning services
   const [selectedService, setSelectedService] = useState('');
   const [selectedPrice, setSelectedPrice] = useState(0);
   const [selectedItems, setSelectedItems] = useState<{id: string, name: string, price: number, quantity: number}[]>([]);
   const [itemQuantity, setItemQuantity] = useState(1);
+  
+  // Get the next ticket number
+  useEffect(() => {
+    const fetchLastTicketNumber = async () => {
+      try {
+        const tickets = await getStoredTickets();
+        if (tickets && tickets.length > 0) {
+          // Sort tickets by ticket number
+          tickets.sort((a, b) => a.ticketNumber.localeCompare(b.ticketNumber));
+          
+          // Get the last ticket number
+          const lastTicketNumber = tickets[tickets.length - 1].ticketNumber;
+          
+          // Increment the ticket number
+          const nextNumber = (parseInt(lastTicketNumber) + 1).toString().padStart(8, '0');
+          setNextTicketNumber(nextNumber);
+        }
+      } catch (error) {
+        console.error('Error fetching last ticket number:', error);
+      }
+    };
+    
+    fetchLastTicketNumber();
+  }, []);
   
   // Calculate total price including valet and selected services
   const calculateTotalPrice = () => {
@@ -109,7 +134,7 @@ const SimpleTicketForm = () => {
   };
   
   const decrementValet = () => {
-    if (valetQuantity > 1) {
+    if (valetQuantity > 0) {
       setValetQuantity(prev => prev - 1);
     }
   };
@@ -188,13 +213,10 @@ const SimpleTicketForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Generate ticket number
-      const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
-      
       // Store ticket data
       const success = await storeTicketData(
         {
-          ticketNumber,
+          ticketNumber: nextTicketNumber,
           totalPrice,
           paymentMethod,
           valetQuantity
@@ -209,7 +231,7 @@ const SimpleTicketForm = () => {
       
       if (success) {
         toast.success('Ticket generado exitosamente', {
-          description: `Ticket #${ticketNumber} para ${clientName}`,
+          description: `Ticket #${nextTicketNumber} para ${clientName}`,
         });
         
         // Reset form
@@ -219,6 +241,9 @@ const SimpleTicketForm = () => {
         setSelectedOptions([]);
         setPaymentMethod('cash');
         setSelectedItems([]);
+        
+        // Increment the ticket number for the next submission
+        setNextTicketNumber((parseInt(nextTicketNumber) + 1).toString().padStart(8, '0'));
       } else {
         toast.error('Error al generar el ticket', {
           description: 'Intente nuevamente',

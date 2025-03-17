@@ -16,7 +16,11 @@ const mockDeliveredTickets = [
     phoneNumber: '1123456716',
     date: '10/03/2023',
     total: 22000,
-    deliveredDate: '12/03/2023'
+    deliveredDate: '12/03/2023',
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 2 },
+      { name: 'Campera', price: 13000, quantity: 1 }
+    ]
   },
   {
     id: '2',
@@ -25,7 +29,12 @@ const mockDeliveredTickets = [
     phoneNumber: '1123456789',
     date: '11/03/2023',
     total: 15500,
-    deliveredDate: '13/03/2023'
+    deliveredDate: '13/03/2023',
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
+      { name: 'Secado', price: 4000, quantity: 1 },
+      { name: 'Camisa / Remera', price: 8500, quantity: 1 }
+    ]
   },
   {
     id: '3',
@@ -34,7 +43,12 @@ const mockDeliveredTickets = [
     phoneNumber: '1123789456',
     date: '12/03/2023',
     total: 18700,
-    deliveredDate: '14/03/2023'
+    deliveredDate: '14/03/2023',
+    services: [
+      { name: 'Lavado (valet)', price: 5000, quantity: 1 },
+      { name: 'Lavado de zapatillas (por par)', price: 10000, quantity: 1 },
+      { name: 'Secado', price: 4000, quantity: 1 }
+    ]
   }
 ];
 
@@ -82,52 +96,113 @@ const DeliveredOrders = () => {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredTickets.map(ticket => (
-                <Card 
-                  key={ticket.id}
-                  className={`
-                    cursor-pointer transition-all
-                    ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:border-blue-200'}
-                  `}
-                  onClick={() => setSelectedTicket(ticket.id)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <div className="font-medium">{ticket.clientName}</div>
-                        <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="md:col-span-2 space-y-4">
+                {filteredTickets.map(ticket => (
+                  <Card 
+                    key={ticket.id}
+                    className={`
+                      cursor-pointer transition-all
+                      ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:border-blue-200'}
+                    `}
+                    onClick={() => setSelectedTicket(ticket.id)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <div className="font-medium">{ticket.clientName}</div>
+                          <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+                        </div>
+                        <div className="flex items-center gap-1 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
+                          <Check className="h-3 w-3" />
+                          <span>Entregado</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
-                        <Check className="h-3 w-3" />
-                        <span>Entregado</span>
+                      <div className="text-sm mb-3">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-gray-500">Fecha de creación:</span>
+                          <span>{ticket.date}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Fecha de entrega:</span>
+                          <span>{ticket.deliveredDate}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-sm mb-3">
-                      <div className="flex justify-between mb-1">
-                        <span className="text-gray-500">Fecha de creación:</span>
-                        <span>{ticket.date}</span>
+                      <div className="flex justify-between items-center mt-3">
+                        <Button size="sm" variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700 text-xs">
+                          {ticket.ticketNumber}
+                        </Button>
+                        <span className="font-medium text-blue-700">$ {ticket.total.toLocaleString()}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Fecha de entrega:</span>
-                        <span>{ticket.deliveredDate}</span>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center mt-3">
-                      <Button size="sm" variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700 text-xs">
-                        {ticket.ticketNumber}
-                      </Button>
-                      <span className="font-medium text-blue-700">$ {ticket.total.toLocaleString()}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+                
+                {filteredTickets.length === 0 && (
+                  <div className="col-span-full text-center p-8 text-gray-500">
+                    No se encontraron tickets entregados
+                  </div>
+                )}
+              </div>
               
-              {filteredTickets.length === 0 && (
-                <div className="col-span-full text-center p-8 text-gray-500">
-                  No se encontraron tickets entregados
-                </div>
-              )}
+              <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50">
+                {selectedTicket ? (
+                  <div className="w-full space-y-4">
+                    <h3 className="text-lg font-medium">Detalles del Ticket</h3>
+                    {(() => {
+                      const ticket = mockDeliveredTickets.find(t => t.id === selectedTicket);
+                      if (!ticket) return <p>No se encontró el ticket seleccionado</p>;
+                      
+                      return (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Cliente:</p>
+                              <p className="font-medium">{ticket.clientName}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Teléfono:</p>
+                              <p className="font-medium">{ticket.phoneNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Número de ticket:</p>
+                              <p className="font-medium">{ticket.ticketNumber}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Fecha de creación:</p>
+                              <p className="font-medium">{ticket.date}</p>
+                            </div>
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Fecha de entrega:</p>
+                              <p className="font-medium">{ticket.deliveredDate}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="border-t pt-3">
+                            <p className="font-medium mb-2">Servicios:</p>
+                            <div className="space-y-2">
+                              {ticket.services.map((service, index) => (
+                                <div key={index} className="flex justify-between text-sm border-b pb-1">
+                                  <span>
+                                    {service.name} x{service.quantity}
+                                  </span>
+                                  <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex justify-between font-medium mt-3 text-blue-700">
+                              <span>Total:</span>
+                              <span>$ {ticket.total.toLocaleString()}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <p className="text-center text-gray-500">Seleccione un ticket para ver los detalles</p>
+                )}
+              </div>
             </div>
           </div>
         </div>
