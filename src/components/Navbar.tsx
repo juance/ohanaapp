@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
   Receipt,
-  ShoppingBag,
   Package2,
   PackageCheck,
   Users,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
-import { getCurrentUser, hasPermission } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 
 const Navbar = () => {
   const location = useLocation();
@@ -25,7 +25,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const loadUser = async () => {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
@@ -49,6 +49,64 @@ const Navbar = () => {
 
   const isAdmin = user && user.role === 'admin';
 
+  // Define navigation items for better organization
+  const navItems = [
+    { 
+      path: "/tickets", 
+      label: "Crear Tickets", 
+      icon: <Receipt className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/orders/pickup", 
+      label: "Pedidos a Retirar", 
+      icon: <Package2 className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/orders/delivered", 
+      label: "Pedidos Entregados", 
+      icon: <PackageCheck className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/inventory", 
+      label: "Inventario", 
+      icon: <Warehouse className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/clients", 
+      label: "Clientes", 
+      icon: <User className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/dashboard", 
+      label: "Dashboard", 
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/expenses", 
+      label: "Gastos", 
+      icon: <BanknoteIcon className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/users", 
+      label: "Usuarios", 
+      icon: <Users className="h-5 w-5" />,
+      showFor: "admin" 
+    },
+    { 
+      path: "/settings", 
+      label: "Configuración", 
+      icon: <Settings className="h-5 w-5" />,
+      showFor: "admin" 
+    }
+  ];
+
   return (
     <>
       <Button
@@ -71,123 +129,28 @@ const Navbar = () => {
       >
         <div className="p-6">
           <Link to="/" className="flex items-center space-x-2" onClick={closeMenu}>
-            <ShoppingBag className="h-8 w-8 text-blue-600" />
+            <Receipt className="h-8 w-8 text-blue-600" />
             <span className="text-xl font-bold">Lavandería Ohana</span>
           </Link>
         </div>
 
         <nav className="space-y-1 px-4">
-          <Link
-            to="/dashboard"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/dashboard") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Dashboard</span>
-          </Link>
-
-          <Link
-            to="/tickets"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/tickets") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <Receipt className="h-5 w-5" />
-            <span>Crear Tickets</span>
-          </Link>
-
-          <Link
-            to="/orders/pickup"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/orders/pickup") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <Package2 className="h-5 w-5" />
-            <span>Para Retirar</span>
-          </Link>
-
-          <Link
-            to="/orders/delivered"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/orders/delivered") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <PackageCheck className="h-5 w-5" />
-            <span>Entregados</span>
-          </Link>
-
-          <Link
-            to="/inventory"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/inventory") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <Warehouse className="h-5 w-5" />
-            <span>Inventario</span>
-          </Link>
-
-          <Link
-            to="/expenses"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/expenses") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <BanknoteIcon className="h-5 w-5" />
-            <span>Gastos</span>
-          </Link>
-
-          <Link
-            to="/clients"
-            className={cn(
-              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-              isActive("/clients") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-            )}
-            onClick={closeMenu}
-          >
-            <User className="h-5 w-5" />
-            <span>Clientes</span>
-          </Link>
-
-          {isAdmin && (
-            <Link
-              to="/users"
-              className={cn(
-                "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-                isActive("/users") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-              )}
-              onClick={closeMenu}
-            >
-              <Users className="h-5 w-5" />
-              <span>Usuarios</span>
-            </Link>
-          )}
-
-          {isAdmin && (
-            <Link
-              to="/settings"
-              className={cn(
-                "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-                isActive("/settings") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-              )}
-              onClick={closeMenu}
-            >
-              <Settings className="h-5 w-5" />
-              <span>Configuración</span>
-            </Link>
-          )}
+          {navItems.map((item, index) => (
+            ((item.showFor === "all") || (item.showFor === "admin" && isAdmin)) && (
+              <Link
+                key={index}
+                to={item.path}
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+                  isActive(item.path) ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+                )}
+                onClick={closeMenu}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            )
+          ))}
         </nav>
       </div>
 

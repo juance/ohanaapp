@@ -1,4 +1,5 @@
 
+// We'll create a smaller component for the price display to make the form more maintainable
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,41 @@ const generateTicketNumber = () => {
   return `${year}${month}${day}-${random}`;
 };
 
+// Price Display Component to reduce complexity
+const PriceDisplay = ({ totalPrice }: { totalPrice: number }) => (
+  <div>
+    <Label>Precio Total</Label>
+    <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
+  </div>
+);
+
+// Payment Method Selector Component
+const PaymentMethodSelector = ({ 
+  value, 
+  onChange 
+}: { 
+  value: PaymentMethod; 
+  onChange: (value: PaymentMethod) => void 
+}) => (
+  <div>
+    <Label htmlFor="paymentMethod">Método de Pago</Label>
+    <Select 
+      value={value} 
+      onValueChange={onChange}
+    >
+      <SelectTrigger id="paymentMethod" className="mt-1">
+        <SelectValue placeholder="Método de pago" />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value="cash">Efectivo</SelectItem>
+        <SelectItem value="debit">Tarjeta de Débito</SelectItem>
+        <SelectItem value="mercadopago">Mercado Pago</SelectItem>
+        <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
+      </SelectContent>
+    </Select>
+  </div>
+);
+
 const SimpleTicketForm = () => {
   // Customer information
   const [customerName, setCustomerName] = useState('');
@@ -64,6 +100,11 @@ const SimpleTicketForm = () => {
   
   // Active tab
   const [activeTab, setActiveTab] = useState('valet');
+  
+  // Explicitly typed callback to resolve TypeScript error
+  const handlePaymentMethodChange = (value: PaymentMethod) => {
+    setPaymentMethod(value);
+  };
   
   // Check if user is admin
   useEffect(() => {
@@ -222,6 +263,7 @@ const SimpleTicketForm = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Customer information section */}
               <div className="space-y-4">
                 <div className="flex flex-col gap-4 sm:flex-row">
                   <div className="flex-1">
@@ -268,6 +310,7 @@ const SimpleTicketForm = () => {
                 
                 <Separator className="my-4" />
                 
+                {/* Date Selection (Admin only) */}
                 {isAdmin && (
                   <div className="space-y-2">
                     <Label htmlFor="date">Fecha</Label>
@@ -296,12 +339,14 @@ const SimpleTicketForm = () => {
                 
                 <Separator className="my-4" />
                 
+                {/* Service Type Tabs */}
                 <Tabs value={activeTab} onValueChange={setActiveTab}>
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="valet">Valet</TabsTrigger>
                     <TabsTrigger value="tintoreria">Tintorería</TabsTrigger>
                   </TabsList>
                   
+                  {/* Valet Tab Content */}
                   <TabsContent value="valet" className="mt-4">
                     <div className="flex flex-col gap-4 sm:flex-row items-end">
                       <div className="w-full sm:w-1/3">
@@ -316,28 +361,17 @@ const SimpleTicketForm = () => {
                         />
                       </div>
                       <div className="w-full sm:w-1/3">
-                        <Label htmlFor="paymentMethod">Método de Pago</Label>
-                        <Select 
+                        <PaymentMethodSelector 
                           value={paymentMethod} 
-                          onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
-                        >
-                          <SelectTrigger id="paymentMethod" className="mt-1">
-                            <SelectValue placeholder="Método de pago" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Efectivo</SelectItem>
-                            <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-                            <SelectItem value="mercadopago">Mercado Pago</SelectItem>
-                            <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          onChange={handlePaymentMethodChange} 
+                        />
                       </div>
                       <div className="w-full sm:w-1/3">
-                        <Label>Precio Total</Label>
-                        <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
+                        <PriceDisplay totalPrice={totalPrice} />
                       </div>
                     </div>
                     
+                    {/* Laundry Options */}
                     <div className="mt-6">
                       <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
                       <div className="grid gap-4 sm:grid-cols-2">
@@ -393,28 +427,17 @@ const SimpleTicketForm = () => {
                     </div>
                   </TabsContent>
                   
+                  {/* Dry Cleaning Tab Content */}
                   <TabsContent value="tintoreria" className="mt-4">
                     <div className="flex flex-col gap-4 sm:flex-row items-end mb-6">
                       <div className="w-full sm:w-1/2">
-                        <Label htmlFor="paymentMethod">Método de Pago</Label>
-                        <Select 
+                        <PaymentMethodSelector 
                           value={paymentMethod} 
-                          onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
-                        >
-                          <SelectTrigger id="paymentMethod" className="mt-1">
-                            <SelectValue placeholder="Método de pago" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Efectivo</SelectItem>
-                            <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-                            <SelectItem value="mercadopago">Mercado Pago</SelectItem>
-                            <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
-                          </SelectContent>
-                        </Select>
+                          onChange={handlePaymentMethodChange} 
+                        />
                       </div>
                       <div className="w-full sm:w-1/2">
-                        <Label>Precio Total</Label>
-                        <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
+                        <PriceDisplay totalPrice={totalPrice} />
                       </div>
                     </div>
                     
@@ -434,6 +457,7 @@ const SimpleTicketForm = () => {
         </Card>
       </div>
       
+      {/* Instructions panel */}
       <div className="md:col-span-4">
         <Card>
           <CardHeader>

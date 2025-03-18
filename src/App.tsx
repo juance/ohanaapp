@@ -4,18 +4,30 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import Dashboard from "./pages/Dashboard";
-import Tickets from "./pages/Tickets";
-import PickupOrders from "./pages/PickupOrders";
-import DeliveredOrders from "./pages/DeliveredOrders";
-import Inventory from "./pages/Inventory";
-import UserManagement from "./pages/UserManagement";
-import Expenses from "./pages/Expenses";
-import Clients from "./pages/Clients";
+import { Suspense, lazy } from "react";
+import LoadingState from "./components/dashboard/LoadingState";
 
-const queryClient = new QueryClient();
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Tickets = lazy(() => import("./pages/Tickets"));
+const PickupOrders = lazy(() => import("./pages/PickupOrders"));
+const DeliveredOrders = lazy(() => import("./pages/DeliveredOrders"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const UserManagement = lazy(() => import("./pages/UserManagement"));
+const Expenses = lazy(() => import("./pages/Expenses"));
+const Clients = lazy(() => import("./pages/Clients"));
+
+// Create a client with default options
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false, // Prevents refetching when changing tabs
+      retry: 1, // Limit retries on failure
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -23,19 +35,20 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/orders/pickup" element={<PickupOrders />} />
-          <Route path="/orders/delivered" element={<DeliveredOrders />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/clients" element={<Clients />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Suspense fallback={<LoadingState />}>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/tickets" element={<Tickets />} />
+            <Route path="/orders/pickup" element={<PickupOrders />} />
+            <Route path="/orders/delivered" element={<DeliveredOrders />} />
+            <Route path="/inventory" element={<Inventory />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="/expenses" element={<Expenses />} />
+            <Route path="/clients" element={<Clients />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

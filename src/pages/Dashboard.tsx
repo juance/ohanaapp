@@ -6,9 +6,10 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import MetricsCards from '@/components/dashboard/MetricsCards';
 import ChartSection from '@/components/dashboard/ChartSection';
 import LoadingState from '@/components/dashboard/LoadingState';
+import { MetricsPeriod } from '@/hooks/useMetricsData';
 
 const Dashboard = () => {
-  const [viewType, setViewType] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [viewType, setViewType] = useState<MetricsPeriod>('daily');
   
   // Use our custom hook
   const { 
@@ -38,7 +39,7 @@ const Dashboard = () => {
             </p>
           </div>
           
-          <Tabs defaultValue="daily" className="mb-8" onValueChange={(value) => setViewType(value as any)}>
+          <Tabs defaultValue="daily" className="mb-8" onValueChange={(value) => setViewType(value as MetricsPeriod)}>
             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <h2 className="text-xl font-semibold">Métricas de Rendimiento</h2>
               <TabsList className="grid w-full max-w-[400px] grid-cols-3">

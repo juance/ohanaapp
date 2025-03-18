@@ -22,7 +22,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       ticketNumber: ticket.ticket_number,
       clientName: ticket.customers?.name || '',
       phoneNumber: ticket.customers?.phone || '',
-      services: [], // This would need to be populated from dry_cleaning_items if needed
+      services: [], // This will be populated by getTicketServices
       paymentMethod: ticket.payment_method,
       totalPrice: ticket.total,
       status: ticket.status,
@@ -55,7 +55,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       ticketNumber: ticket.ticket_number,
       clientName: ticket.customers?.name || '',
       phoneNumber: ticket.customers?.phone || '',
-      services: [], // This would need to be populated from dry_cleaning_items if needed
+      services: [], // This will be populated by getTicketServices
       paymentMethod: ticket.payment_method,
       totalPrice: ticket.total,
       status: ticket.status,
@@ -93,23 +93,34 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
   }
 };
 
-// Get ticket services (dry cleaning items)
+// Get ticket services (dry cleaning items) with immediate default values
 export const getTicketServices = async (ticketId: string) => {
+  // Return an empty default state immediately
+  const defaultServices = [];
+  
   try {
     const { data, error } = await supabase
       .from('dry_cleaning_items')
       .select('*')
       .eq('ticket_id', ticketId);
       
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching ticket services:', error);
+      return defaultServices;
+    }
     
-    return data.map((item: any) => ({
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity
-    }));
+    // Only return populated data if we have items
+    if (data && data.length > 0) {
+      return data.map((item: any) => ({
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity
+      }));
+    }
+    
+    return defaultServices;
   } catch (error) {
     console.error('Error fetching ticket services:', error);
-    return [];
+    return defaultServices;
   }
 };
