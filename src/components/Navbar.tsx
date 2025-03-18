@@ -6,14 +6,14 @@ import {
   LayoutDashboard, 
   Ticket, 
   PackageOpen, 
-  BarChart3, 
   LogOut,
   Menu,
   X,
   User,
   ShoppingBag,
   Users,
-  ArrowLeft
+  ArrowLeft,
+  DollarSign
 } from 'lucide-react';
 import { getCurrentUser, logout, hasPermission } from '@/lib/auth';
 import { User as UserType, Role } from '@/lib/types';
@@ -84,9 +84,9 @@ const Navbar = () => {
       allowedRoles: ['admin'] as Role[]
     },
     {
-      name: 'Métricas',
-      path: '/metrics',
-      icon: <BarChart3 className="h-5 w-5" />,
+      name: 'Gastos',
+      path: '/expenses',
+      icon: <DollarSign className="h-5 w-5" />,
       allowedRoles: ['admin', 'cashier'] as Role[]
     }
   ];
