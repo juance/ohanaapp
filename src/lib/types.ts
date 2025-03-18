@@ -93,6 +93,7 @@ export interface Customer {
   name: string;
   phoneNumber: string;
   createdAt: string;
+  lastVisit?: string;
 }
 
 export interface Expense {

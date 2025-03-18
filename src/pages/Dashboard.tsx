@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
 import MetricsCard from '@/components/MetricsCard';
 import Navbar from '@/components/Navbar';
-import { BarChart3, TrendingUp, DollarSign, UsersRound, Calendar } from 'lucide-react';
+import { BarChart3, TrendingUp, DollarSign, UsersRound, Calendar, BanknoteIcon } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { ClientVisit } from '@/lib/types';
 
@@ -18,6 +18,7 @@ const Dashboard = () => {
   const { 
     loading, 
     metrics, 
+    expenses,
     frequentClients, 
     chartData,
     refreshData 
@@ -70,7 +71,7 @@ const Dashboard = () => {
             </div>
             
             <TabsContent value="daily" className="mt-6 animate-fade-in">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <MetricsCard
                   title="Ingresos Totales"
                   value={formatCurrency(metrics.daily?.totalSales || 0)}
@@ -103,11 +104,18 @@ const Dashboard = () => {
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 15, isPositive: true }}
                 />
+                <MetricsCard
+                  title="Gastos"
+                  value={formatCurrency(expenses.daily || 0)}
+                  description="Gastos de hoy"
+                  icon={<BanknoteIcon className="h-4 w-4" />}
+                  trend={{ value: 5, isPositive: false }}
+                />
               </div>
             </TabsContent>
             
             <TabsContent value="weekly" className="mt-6 animate-fade-in">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <MetricsCard
                   title="Ingresos Totales"
                   value={formatCurrency(
@@ -144,11 +152,18 @@ const Dashboard = () => {
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 10, isPositive: true }}
                 />
+                <MetricsCard
+                  title="Gastos"
+                  value={formatCurrency(expenses.weekly || 0)}
+                  description="Gastos de esta semana"
+                  icon={<BanknoteIcon className="h-4 w-4" />}
+                  trend={{ value: 7, isPositive: false }}
+                />
               </div>
             </TabsContent>
             
             <TabsContent value="monthly" className="mt-6 animate-fade-in">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                 <MetricsCard
                   title="Ingresos Totales"
                   value={formatCurrency(
@@ -184,6 +199,13 @@ const Dashboard = () => {
                   description="Ingresos digitales de este mes"
                   icon={<UsersRound className="h-4 w-4" />}
                   trend={{ value: 25, isPositive: true }}
+                />
+                <MetricsCard
+                  title="Gastos"
+                  value={formatCurrency(expenses.monthly || 0)}
+                  description="Gastos de este mes"
+                  icon={<BanknoteIcon className="h-4 w-4" />}
+                  trend={{ value: 10, isPositive: false }}
                 />
               </div>
             </TabsContent>

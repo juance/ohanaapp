@@ -1,507 +1,393 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { User, Phone, Package, Plus, ShoppingCart } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { PaymentMethod, LaundryOption } from '@/lib/types';
-import { storeTicketData, getStoredTickets } from '@/lib/dataService';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Switch } from '@/components/ui/switch';
+import { storeTicketData } from '@/lib/dataService';
+import { getCustomerByPhone } from '@/lib/customerService';
+import { getCurrentUser } from '@/lib/auth';
 
-// Define dry cleaning services and prices
-const dryCleaningServices = [
-  { id: 'lavado_valet', name: 'Lavado (valet)', price: 5000 },
-  { id: 'secado', name: 'Secado', price: 4000 },
-  { id: 'lavado_mano', name: 'Lavado a mano (por 3 prendas)', price: 5000 },
-  { id: 'lavado_zapatillas', name: 'Lavado de zapatillas (por par)', price: 10000 },
-  { id: 'lavado_mantas', name: 'Lavado de mantas, cortinas y colchas (doble secado)', price: 8000 },
-  { id: 'ambo_comun', name: 'Ambo común / Ambo lino', priceRange: [19000, 22000] },
-  { id: 'blusa_buzo', name: 'Blusa / Buzo', priceRange: [8600, 9800] },
-  { id: 'traje', name: 'Traje', priceRange: [29000, 34000] },
-  { id: 'saco', name: 'Saco', priceRange: [12000, 14000] },
-  { id: 'sacon', name: 'Sacón', price: 13000 },
-  { id: 'pantalon_vestir', name: 'Pantalón vestir / lino', priceRange: [8000, 9200] },
-  { id: 'pantalon_sky', name: 'Pantalón Sky', price: 14000 },
-  { id: 'campera_sky', name: 'Campera Sky', price: 18000 },
-  { id: 'pollera', name: 'Pollera', priceRange: [9000, 14400] },
-  { id: 'pollera_tableada', name: 'Pollera tableada', priceRange: [11000, 16000] },
-  { id: 'pullover', name: 'Pullover', priceRange: [9600, 13000] },
-  { id: 'saco_lana', name: 'Saco de lana', priceRange: [10600, 15600] },
-  { id: 'camisa_remera', name: 'Camisa / Remera', priceRange: [8000, 9200] },
-  { id: 'corbata', name: 'Corbata', price: 7000 },
-  { id: 'chaleco_chaqueta', name: 'Chaleco / Chaqueta', priceRange: [10000, 13000] },
-  { id: 'campera', name: 'Campera', price: 13000 },
-  { id: 'camperon', name: 'Camperón', price: 14600 },
-  { id: 'campera_desmontable', name: 'Campera desmontable', priceRange: [15600, 18000] },
-  { id: 'campera_inflable', name: 'Campera inflable / plumas', price: 14600 },
-  { id: 'tapado_sobretodo', name: 'Tapado / Sobretodo', priceRange: [14600, 16400] },
-  { id: 'camperon_inflable', name: 'Camperón inflable o plumas / Tapado', priceRange: [16400, 18000] },
-  { id: 'piloto_simple', name: 'Piloto simple', priceRange: [14000, 19000] },
-  { id: 'piloto_desmontable', name: 'Piloto desmontable', price: 18000 },
-  { id: 'vestido_comun', name: 'Vestido común', priceRange: [14000, 19000] },
-  { id: 'vestido_fiesta', name: 'Vestido de fiesta (desde)', price: 22000 },
-  { id: 'vestido_15', name: 'Vestido de 15 años (desde)', price: 34000 },
-  { id: 'vestido_novia', name: 'Vestido de novia (desde)', price: 40000 },
-  { id: 'frazada', name: 'Frazada', priceRange: [14000, 18000] },
-  { id: 'acolchado', name: 'Acolchado', priceRange: [16000, 20000] },
-  { id: 'acolchado_plumas', name: 'Acolchado de plumas', priceRange: [16000, 22000] },
-  { id: 'funda_colchon', name: 'Funda de colchón', priceRange: [19000, 28000] },
-  { id: 'cortina_liviana', name: 'Cortina liviana (por m²)', price: 7600 },
-  { id: 'cortina_pesada', name: 'Cortina pesada (por m²)', price: 8400 },
-  { id: 'cortina_forrada', name: 'Cortina forrada (por m²)', price: 9200 },
-  { id: 'alfombra', name: 'Alfombra (por m²)', price: 18000 },
-  { id: 'funda_acolchado', name: 'Funda de acolchado', priceRange: [14000, 19000] },
-  { id: 'almohada', name: 'Almohada / Almohada plumas', priceRange: [12000, 16000] },
-];
+const generateTicketNumber = () => {
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+  return `${year}${month}${day}-${random}`;
+};
 
 const SimpleTicketForm = () => {
-  const [clientName, setClientName] = useState('');
+  // Customer information
+  const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  
+  // Valet information
   const [valetQuantity, setValetQuantity] = useState(1);
-  const [selectedOptions, setSelectedOptions] = useState<LaundryOption[]>([]);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
-  const [pricePerValet] = useState(5000);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [nextTicketNumber, setNextTicketNumber] = useState('00000001');
+  const [totalPrice, setTotalPrice] = useState(0);
   
-  // New state for dry cleaning services
-  const [selectedService, setSelectedService] = useState('');
-  const [selectedPrice, setSelectedPrice] = useState(0);
-  const [selectedItems, setSelectedItems] = useState<{id: string, name: string, price: number, quantity: number}[]>([]);
-  const [itemQuantity, setItemQuantity] = useState(1);
+  // Payment method
+  const [paymentMethod, setPaymentMethod] = useState('cash');
   
-  // Get the next ticket number
+  // Laundry options
+  const [separateByColor, setSeparateByColor] = useState(false);
+  const [delicateDry, setDelicateDry] = useState(false);
+  const [stainRemoval, setStainRemoval] = useState(false);
+  const [bleach, setBleach] = useState(false);
+  const [noFragrance, setNoFragrance] = useState(false);
+  const [noDry, setNoDry] = useState(false);
+  
+  // Customer lookup
+  const [lookupPhone, setLookupPhone] = useState('');
+  
+  // Admin-specific date selection
+  const [date, setDate] = useState<Date>(new Date());
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Check if user is admin
   useEffect(() => {
-    const fetchLastTicketNumber = async () => {
-      try {
-        const tickets = await getStoredTickets();
-        if (tickets && tickets.length > 0) {
-          // Sort tickets by ticket number
-          tickets.sort((a, b) => a.ticketNumber.localeCompare(b.ticketNumber));
-          
-          // Get the last ticket number
-          const lastTicketNumber = tickets[tickets.length - 1].ticketNumber;
-          
-          // Increment the ticket number
-          const nextNumber = (parseInt(lastTicketNumber) + 1).toString().padStart(8, '0');
-          setNextTicketNumber(nextNumber);
-        }
-      } catch (error) {
-        console.error('Error fetching last ticket number:', error);
-      }
+    const checkAdmin = async () => {
+      const user = await getCurrentUser();
+      setIsAdmin(user?.role === 'admin');
     };
-    
-    fetchLastTicketNumber();
+    checkAdmin();
   }, []);
   
-  // Calculate total price including valet and selected services
-  const calculateTotalPrice = () => {
-    const valetTotal = pricePerValet * valetQuantity;
-    const servicesTotal = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    return valetTotal + servicesTotal;
-  };
+  // Calculate price when quantity changes
+  useEffect(() => {
+    const basePrice = 15; // Base price per valet
+    const calculatedPrice = basePrice * valetQuantity;
+    
+    // Add extra costs for special options
+    let extraCost = 0;
+    if (stainRemoval) extraCost += 5 * valetQuantity;
+    if (delicateDry) extraCost += 2 * valetQuantity;
+    
+    setTotalPrice(calculatedPrice + extraCost);
+  }, [valetQuantity, stainRemoval, delicateDry]);
   
-  const totalPrice = calculateTotalPrice();
-  
-  const laundryOptions = [
-    { id: 'separateByColor', label: '1. Separar por color' },
-    { id: 'delicateDry', label: '2. Secar en delicado' },
-    { id: 'stainRemoval', label: '3. Desmanchar' },
-    { id: 'bleach', label: '4. Blanquear' },
-    { id: 'noFragrance', label: '5. Sin perfume' },
-    { id: 'noDry', label: '6. No secar' },
-  ];
-  
-  const handleOptionToggle = (optionId: LaundryOption) => {
-    setSelectedOptions(selectedOptions.includes(optionId)
-      ? selectedOptions.filter(id => id !== optionId)
-      : [...selectedOptions, optionId]
-    );
-  };
-  
-  const incrementValet = () => {
-    setValetQuantity(prev => prev + 1);
-  };
-  
-  const decrementValet = () => {
-    if (valetQuantity > 0) {
-      setValetQuantity(prev => prev - 1);
-    }
-  };
-  
-  const handleServiceChange = (serviceId: string) => {
-    const service = dryCleaningServices.find(s => s.id === serviceId);
-    if (service) {
-      setSelectedService(serviceId);
-      
-      // Set default price (either fixed or minimum from range)
-      if ('price' in service) {
-        setSelectedPrice(service.price);
-      } else if ('priceRange' in service) {
-        setSelectedPrice(service.priceRange[0]);
-      }
-    }
-  };
-  
-  const handlePriceChange = (price: number) => {
-    setSelectedPrice(price);
-  };
-  
-  const incrementItemQuantity = () => {
-    setItemQuantity(prev => prev + 1);
-  };
-  
-  const decrementItemQuantity = () => {
-    if (itemQuantity > 1) {
-      setItemQuantity(prev => prev - 1);
-    }
-  };
-  
-  const addServiceToTicket = () => {
-    if (!selectedService) {
-      toast.error('Por favor seleccione un servicio');
+  const handleCustomerLookup = async () => {
+    if (!lookupPhone || lookupPhone.length < 8) {
+      toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
     
-    const service = dryCleaningServices.find(s => s.id === selectedService);
-    if (service) {
-      const newItem = {
-        id: service.id,
-        name: service.name,
-        price: selectedPrice,
-        quantity: itemQuantity
-      };
+    try {
+      const customer = await getCustomerByPhone(lookupPhone);
       
-      setSelectedItems([...selectedItems, newItem]);
-      
-      // Reset selection
-      setSelectedService('');
-      setSelectedPrice(0);
-      setItemQuantity(1);
-      
-      toast.success(`Servicio añadido: ${service.name} x${itemQuantity}`);
+      if (customer) {
+        setCustomerName(customer.name);
+        setPhoneNumber(customer.phoneNumber);
+        toast.success(`Cliente encontrado: ${customer.name}`);
+      } else {
+        toast.error('Cliente no encontrado');
+      }
+    } catch (error) {
+      console.error('Error looking up customer:', error);
+      toast.error('Error al buscar cliente');
     }
-  };
-  
-  const removeItem = (index: number) => {
-    setSelectedItems(selectedItems.filter((_, i) => i !== index));
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!clientName.trim()) {
-      toast.error('Por favor ingrese el nombre del cliente');
+    if (!customerName || !phoneNumber) {
+      toast.error('Por favor complete los datos del cliente');
       return;
     }
     
-    if (!phoneNumber.trim()) {
-      toast.error('Por favor ingrese el número de teléfono');
+    if (phoneNumber.length < 8) {
+      toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
     
-    setIsSubmitting(true);
+    if (valetQuantity <= 0) {
+      toast.error('La cantidad de valets debe ser mayor a cero');
+      return;
+    }
+    
+    const ticketNumber = generateTicketNumber();
+    
+    // Collect laundry options
+    const laundryOptions = [];
+    if (separateByColor) laundryOptions.push('separateByColor');
+    if (delicateDry) laundryOptions.push('delicateDry');
+    if (stainRemoval) laundryOptions.push('stainRemoval');
+    if (bleach) laundryOptions.push('bleach');
+    if (noFragrance) laundryOptions.push('noFragrance');
+    if (noDry) laundryOptions.push('noDry');
     
     try {
-      // Store ticket data
+      // Prepare ticket data
+      const ticketData = {
+        ticketNumber,
+        totalPrice,
+        paymentMethod,
+        valetQuantity,
+        customDate: isAdmin ? date : undefined, // Use custom date only for admins
+      };
+      
+      // Prepare customer data
+      const customerData = {
+        name: customerName,
+        phoneNumber,
+      };
+      
+      // Store the ticket
       const success = await storeTicketData(
-        {
-          ticketNumber: nextTicketNumber,
-          totalPrice,
-          paymentMethod,
-          valetQuantity
-        },
-        {
-          name: clientName,
-          phoneNumber
-        },
-        [], // No dry cleaning items in this simplified version
-        selectedOptions
+        ticketData,
+        customerData,
+        [], // No dry cleaning items in simple form
+        laundryOptions
       );
       
       if (success) {
-        toast.success('Ticket generado exitosamente', {
-          description: `Ticket #${nextTicketNumber} para ${clientName}`,
-        });
+        toast.success('Ticket generado correctamente');
         
         // Reset form
-        setClientName('');
+        setCustomerName('');
         setPhoneNumber('');
         setValetQuantity(1);
-        setSelectedOptions([]);
+        setSeparateByColor(false);
+        setDelicateDry(false);
+        setStainRemoval(false);
+        setBleach(false);
+        setNoFragrance(false);
+        setNoDry(false);
+        setLookupPhone('');
         setPaymentMethod('cash');
-        setSelectedItems([]);
-        
-        // Increment the ticket number for the next submission
-        setNextTicketNumber((parseInt(nextTicketNumber) + 1).toString().padStart(8, '0'));
+        if (isAdmin) setDate(new Date());
       } else {
-        toast.error('Error al generar el ticket', {
-          description: 'Intente nuevamente',
-        });
+        toast.error('Error al generar el ticket');
       }
     } catch (error) {
-      console.error('Error generando ticket:', error);
+      console.error('Error submitting ticket:', error);
       toast.error('Error al generar el ticket');
-    } finally {
-      setIsSubmitting(false);
     }
   };
   
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2" htmlFor="clientName">
-            <User className="h-4 w-4" />
-            Nombre del Cliente
-          </Label>
-          <Input
-            id="clientName"
-            placeholder="Ingrese nombre del cliente"
-            value={clientName}
-            onChange={(e) => setClientName(e.target.value)}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2" htmlFor="phoneNumber">
-            <Phone className="h-4 w-4" />
-            Número de Teléfono
-          </Label>
-          <Input
-            id="phoneNumber"
-            placeholder="Ingrese número telefónico"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-          />
-        </div>
-        
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2" htmlFor="valetQuantity">
-            <Package className="h-4 w-4" />
-            Cantidad de Valet
-          </Label>
-          <div className="flex items-center space-x-2">
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="h-10 w-10 rounded-full p-0"
-              onClick={decrementValet}
-            >
-              −
-            </Button>
-            <Input
-              id="valetQuantity"
-              type="number"
-              className="w-16 text-center"
-              value={valetQuantity}
-              onChange={(e) => setValetQuantity(parseInt(e.target.value) || 1)}
-              min={1}
-            />
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="h-10 w-10 rounded-full p-0"
-              onClick={incrementValet}
-            >
-              +
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      <Card>
-        <CardContent className="p-4">
-          <h3 className="mb-4 text-lg font-medium">Servicios de Tintorería</h3>
-          
-          <div className="space-y-4 border-t pt-4">
-            <h4 className="mb-3 font-medium">Seleccione un servicio:</h4>
-            <div className="grid grid-cols-1 gap-3">
-              <Select value={selectedService} onValueChange={handleServiceChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione un servicio" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dryCleaningServices.map((service) => (
-                    <SelectItem key={service.id} value={service.id}>
-                      {service.name} - {
-                        'price' in service 
-                          ? `$${service.price.toLocaleString()}`
-                          : `$${service.priceRange[0].toLocaleString()} - $${service.priceRange[1].toLocaleString()}`
-                      }
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {selectedService && 'priceRange' in (dryCleaningServices.find(s => s.id === selectedService) || {}) && (
-                <div className="space-y-2">
-                  <Label>Precio:</Label>
-                  <Input
-                    type="number"
-                    value={selectedPrice}
-                    onChange={(e) => handlePriceChange(Number(e.target.value))}
-                    min={(dryCleaningServices.find(s => s.id === selectedService)?.priceRange || [])[0]}
-                    max={(dryCleaningServices.find(s => s.id === selectedService)?.priceRange || [])[1]}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Rango: ${(dryCleaningServices.find(s => s.id === selectedService)?.priceRange || [])[0].toLocaleString()} - 
-                    ${(dryCleaningServices.find(s => s.id === selectedService)?.priceRange || [])[1].toLocaleString()}
-                  </p>
+    <div className="grid gap-8 md:grid-cols-12">
+      <div className="md:col-span-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Ingreso de Valet</CardTitle>
+            <CardDescription>Generar ticket para valets</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <div className="flex-1">
+                    <Label htmlFor="customerName">Nombre del Cliente</Label>
+                    <Input 
+                      id="customerName" 
+                      value={customerName} 
+                      onChange={(e) => setCustomerName(e.target.value)} 
+                      placeholder="Nombre completo"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="phoneNumber">Teléfono</Label>
+                    <Input 
+                      id="phoneNumber" 
+                      value={phoneNumber} 
+                      onChange={(e) => setPhoneNumber(e.target.value)} 
+                      placeholder="Número de contacto"
+                      className="mt-1"
+                    />
+                  </div>
                 </div>
-              )}
-              
-              <div className="space-y-2">
-                <Label>Cantidad:</Label>
-                <div className="flex items-center space-x-2">
+                
+                <div className="flex items-end gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor="lookupPhone">Buscar Cliente</Label>
+                    <Input 
+                      id="lookupPhone" 
+                      value={lookupPhone} 
+                      onChange={(e) => setLookupPhone(e.target.value)} 
+                      placeholder="Buscar por teléfono"
+                      className="mt-1"
+                    />
+                  </div>
                   <Button 
                     type="button" 
-                    variant="outline" 
-                    className="h-10 w-10 rounded-full p-0"
-                    onClick={decrementItemQuantity}
+                    onClick={handleCustomerLookup}
+                    variant="outline"
                   >
-                    −
+                    Buscar
                   </Button>
-                  <Input
-                    type="number"
-                    className="w-16 text-center"
-                    value={itemQuantity}
-                    onChange={(e) => setItemQuantity(parseInt(e.target.value) || 1)}
-                    min={1}
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    className="h-10 w-10 rounded-full p-0"
-                    onClick={incrementItemQuantity}
-                  >
-                    +
-                  </Button>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <div className="flex flex-col gap-4 sm:flex-row items-end">
+                  <div className="w-full sm:w-1/3">
+                    <Label htmlFor="valetQuantity">Cantidad de Valets</Label>
+                    <Input 
+                      id="valetQuantity" 
+                      type="number" 
+                      min="1"
+                      value={valetQuantity}
+                      onChange={(e) => setValetQuantity(parseInt(e.target.value) || 1)}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div className="w-full sm:w-1/3">
+                    <Label htmlFor="paymentMethod">Método de Pago</Label>
+                    <Select 
+                      value={paymentMethod} 
+                      onValueChange={setPaymentMethod}
+                    >
+                      <SelectTrigger id="paymentMethod" className="mt-1">
+                        <SelectValue placeholder="Método de pago" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Efectivo</SelectItem>
+                        <SelectItem value="debit">Tarjeta de Débito</SelectItem>
+                        <SelectItem value="mercado_pago">Mercado Pago</SelectItem>
+                        <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-full sm:w-1/3">
+                    <Label>Precio Total</Label>
+                    <div className="text-2xl font-bold mt-1">${totalPrice.toFixed(2)}</div>
+                  </div>
+                </div>
+                
+                {isAdmin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Fecha</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={date}
+                          onSelect={(date) => date && setDate(date)}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
+                
+                <Separator className="my-4" />
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="separateByColor" 
+                        checked={separateByColor} 
+                        onCheckedChange={setSeparateByColor}
+                      />
+                      <Label htmlFor="separateByColor">Separar por Color</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="delicateDry" 
+                        checked={delicateDry} 
+                        onCheckedChange={setDelicateDry}
+                      />
+                      <Label htmlFor="delicateDry">Secado Delicado (+$2)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="stainRemoval" 
+                        checked={stainRemoval} 
+                        onCheckedChange={setStainRemoval}
+                      />
+                      <Label htmlFor="stainRemoval">Quitamanchas (+$5)</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="bleach" 
+                        checked={bleach} 
+                        onCheckedChange={setBleach}
+                      />
+                      <Label htmlFor="bleach">Usar Lavandina</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="noFragrance" 
+                        checked={noFragrance} 
+                        onCheckedChange={setNoFragrance}
+                      />
+                      <Label htmlFor="noFragrance">Sin Perfume</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Switch 
+                        id="noDry" 
+                        checked={noDry} 
+                        onCheckedChange={setNoDry}
+                      />
+                      <Label htmlFor="noDry">Sin Secar</Label>
+                    </div>
+                  </div>
                 </div>
               </div>
               
-              <Button 
-                type="button" 
-                onClick={addServiceToTicket}
-                className="bg-green-600 hover:bg-green-700 flex gap-2 mt-2"
-              >
-                <Plus size={16} /> <ShoppingCart size={16} /> Agregar al Ticket
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
+                Generar Ticket
               </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="md:col-span-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-xl">Instrucciones</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-medium">Uso del Formulario:</h3>
+              <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
+                <li>Complete los datos del cliente.</li>
+                <li>Puede buscar clientes existentes por teléfono.</li>
+                <li>Especifique la cantidad de valets.</li>
+                <li>Seleccione el método de pago.</li>
+                <li>Marque las opciones de lavado requeridas.</li>
+                <li>El precio se calcula automáticamente.</li>
+              </ul>
             </div>
             
-            {selectedItems.length > 0 && (
-              <div className="mt-4 border-t pt-4">
-                <h4 className="mb-3 font-medium">Servicios Agregados:</h4>
-                <ul className="space-y-2">
-                  {selectedItems.map((item, index) => (
-                    <li key={index} className="flex justify-between items-center border-b pb-2">
-                      <div>
-                        <span className="font-medium">{item.name}</span>
-                        <span className="text-sm text-gray-600"> x{item.quantity}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span>${(item.price * item.quantity).toLocaleString()}</span>
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-                          onClick={() => removeItem(index)}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-          
-          <div className="border-t pt-4 mt-4">
-            <h4 className="mb-3 font-medium">Opciones de lavado:</h4>
-            <div className="grid grid-cols-2 gap-3">
-              {laundryOptions.map((option) => (
-                <div className="flex items-start space-x-2" key={option.id}>
-                  <Checkbox 
-                    id={option.id} 
-                    checked={selectedOptions.includes(option.id as LaundryOption)}
-                    onCheckedChange={() => handleOptionToggle(option.id as LaundryOption)}
-                  />
-                  <Label htmlFor={option.id} className="text-sm font-normal">
-                    {option.label}
-                  </Label>
-                </div>
-              ))}
+            <div>
+              <h3 className="font-medium">Recordatorios:</h3>
+              <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
+                <li>El secado delicado tiene un costo adicional.</li>
+                <li>El servicio de quitamanchas tiene un costo adicional.</li>
+                <li>Verificar siempre la información antes de generar el ticket.</li>
+              </ul>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="space-y-4">
-        <h3 className="text-lg font-medium">Método de pago:</h3>
-        <RadioGroup 
-          value={paymentMethod} 
-          onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
-          className="grid grid-cols-2 gap-3"
-        >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="cash" id="cash" />
-            <Label htmlFor="cash">Efectivo</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="debit" id="debit" />
-            <Label htmlFor="debit">Débito</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="mercadopago" id="mercadopago" />
-            <Label htmlFor="mercadopago">Mercado Pago</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="cuenta_dni" id="cuenta_dni" />
-            <Label htmlFor="cuenta_dni">Cuenta DNI</Label>
-          </div>
-        </RadioGroup>
+          </CardContent>
+        </Card>
       </div>
-      
-      <div className="space-y-3 border-t pt-4">
-        <div className="flex justify-between">
-          <span className="font-medium">Precio por Valet:</span>
-          <span>$ {pricePerValet.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="font-medium">Subtotal Valet ({valetQuantity}):</span>
-          <span>$ {(pricePerValet * valetQuantity).toLocaleString()}</span>
-        </div>
-        {selectedItems.length > 0 && (
-          <div className="flex justify-between">
-            <span className="font-medium">Subtotal Servicios:</span>
-            <span>$ {selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0).toLocaleString()}</span>
-          </div>
-        )}
-        <div className="flex justify-between text-lg font-bold">
-          <span>Total:</span>
-          <span className="text-blue-600">$ {totalPrice.toLocaleString()}</span>
-        </div>
-      </div>
-      
-      <Button 
-        type="submit" 
-        className="w-full bg-blue-600 hover:bg-blue-700"
-        disabled={isSubmitting}
-      >
-        {isSubmitting ? 'Procesando...' : 'Generar Ticket →'}
-      </Button>
-    </form>
+    </div>
   );
 };
 

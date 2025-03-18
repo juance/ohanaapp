@@ -7,6 +7,7 @@ import {
   getClientVisitFrequency,
   syncOfflineData
 } from '@/lib/dataService';
+import { getStoredExpenses } from '@/lib/expenseService';
 import { ClientVisit, DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
 
 type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
@@ -18,6 +19,11 @@ interface UseDashboardDataReturn {
     daily: DailyMetrics | null;
     weekly: WeeklyMetrics | null;
     monthly: MonthlyMetrics | null;
+  };
+  expenses: {
+    daily: number;
+    weekly: number;
+    monthly: number;
   };
   frequentClients: ClientVisit[];
   chartData: {
@@ -35,6 +41,57 @@ export const useDashboardData = (period: MetricsPeriod = 'daily'): UseDashboardD
   const [weeklyMetrics, setWeeklyMetrics] = useState<WeeklyMetrics | null>(null);
   const [monthlyMetrics, setMonthlyMetrics] = useState<MonthlyMetrics | null>(null);
   const [frequentClients, setFrequentClients] = useState<ClientVisit[]>([]);
+  const [expenses, setExpenses] = useState<{daily: number; weekly: number; monthly: number}>({
+    daily: 0,
+    weekly: 0,
+    monthly: 0
+  });
+  
+  // Function to get expenses for different periods
+  const fetchExpenses = async () => {
+    try {
+      // Get current date
+      const today = new Date();
+      
+      // Get expenses for today
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const dailyExpenses = await getStoredExpenses(startOfDay, endOfDay);
+      const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      // Get expenses for current week
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      const weeklyExpenses = await getStoredExpenses(startOfWeek, endOfWeek);
+      const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      // Get expenses for current month
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      const monthlyExpenses = await getStoredExpenses(startOfMonth, endOfMonth);
+      const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      setExpenses({
+        daily: dailyTotal,
+        weekly: weeklyTotal,
+        monthly: monthlyTotal
+      });
+    } catch (err) {
+      console.error("Error fetching expenses:", err);
+    }
+  };
   
   // Prepare chart data based on metrics
   const getBarChartData = () => {
@@ -68,27 +125,36 @@ export const useDashboardData = (period: MetricsPeriod = 'daily'): UseDashboardD
   
   const getLineChartData = () => {
     if (period === 'weekly' && weeklyMetrics) {
-      // We don't have expense data by day in this example
-      // This could be enhanced when expense tracking is implemented
-      return Object.entries(weeklyMetrics.salesByDay).map(([day, income]) => ({
-        name: day.substring(0, 3),
-        income,
-        expenses: 0 // Placeholder for expenses
-      }));
+      // Now include actual expenses data
+      return Object.entries(weeklyMetrics.salesByDay).map(([day, income]) => {
+        // Since we don't have daily breakdown of expenses, we'll distribute weekly expenses evenly
+        const dailyExpenseEstimate = expenses.weekly / 7;
+        
+        return {
+          name: day.substring(0, 3),
+          income,
+          expenses: dailyExpenseEstimate
+        };
+      });
     } else if (period === 'monthly' && monthlyMetrics) {
-      return Object.entries(monthlyMetrics.salesByWeek).map(([week, income]) => ({
-        name: week,
-        income,
-        expenses: 0 // Placeholder for expenses
-      }));
+      return Object.entries(monthlyMetrics.salesByWeek).map(([week, income]) => {
+        // Distribute monthly expenses across weeks
+        const weeklyExpenseEstimate = expenses.monthly / 4;
+        
+        return {
+          name: week,
+          income,
+          expenses: weeklyExpenseEstimate
+        };
+      });
     }
     
     // Default data
     return [
-      { name: 'Week 1', income: 21000, expenses: 6500 },
-      { name: 'Week 2', income: 27000, expenses: 7800 },
-      { name: 'Week 3', income: 24000, expenses: 6200 },
-      { name: 'Week 4', income: 26000, expenses: 7100 },
+      { name: 'Week 1', income: 21000, expenses: expenses.monthly / 4 || 6500 },
+      { name: 'Week 2', income: 27000, expenses: expenses.monthly / 4 || 7800 },
+      { name: 'Week 3', income: 24000, expenses: expenses.monthly / 4 || 6200 },
+      { name: 'Week 4', income: 26000, expenses: expenses.monthly / 4 || 7100 },
     ];
   };
   
@@ -130,6 +196,9 @@ export const useDashboardData = (period: MetricsPeriod = 'daily'): UseDashboardD
       setWeeklyMetrics(weekly);
       setMonthlyMetrics(monthly);
       setFrequentClients(clients);
+      
+      // Fetch expenses
+      await fetchExpenses();
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
@@ -150,6 +219,7 @@ export const useDashboardData = (period: MetricsPeriod = 'daily'): UseDashboardD
       weekly: weeklyMetrics,
       monthly: monthlyMetrics
     },
+    expenses,
     frequentClients,
     chartData: {
       barData: getBarChartData(),

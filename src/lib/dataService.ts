@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -39,7 +38,7 @@ export const getFromLocalStorage = <T>(key: string): T[] => {
 // Utility to convert payment method to the format expected by the database
 const formatPaymentMethod = (method: PaymentMethod): "cash" | "debit" | "mercadopago" | "cuentadni" => {
   if (method === "cuenta_dni") return "cuentadni";
-  if (method === "mercadopago") return "mercadopago";
+  if (method === "mercado_pago") return "mercadopago";
   return method as "cash" | "debit";
 };
 
@@ -50,6 +49,7 @@ export const storeTicketData = async (
     totalPrice: number;
     paymentMethod: PaymentMethod;
     valetQuantity: number;
+    customDate?: Date;
   },
   customer: { name: string; phoneNumber: string },
   dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
@@ -68,6 +68,9 @@ export const storeTicketData = async (
       customerId = newCustomer.id;
     }
     
+    // Prepare date field - use custom date if provided, otherwise use current date
+    const ticketDate = ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString();
+    
     // Insert ticket with 'ready' status by default
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
@@ -77,7 +80,8 @@ export const storeTicketData = async (
         payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
         customer_id: customerId,
-        status: 'ready' // Set status to ready by default
+        status: 'ready', // Set status to ready by default
+        date: ticketDate
       })
       .select('*')
       .single();
@@ -132,7 +136,7 @@ export const storeTicketData = async (
         valetQuantity: ticket.valetQuantity,
         dryCleaningItems: dryCleaningItems,
         laundryOptions: laundryOptions,
-        createdAt: new Date().toISOString(),
+        createdAt: ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString(),
         pendingSync: true
       };
       

@@ -1,11 +1,18 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { 
   Table, 
   TableBody, 
@@ -15,16 +22,28 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { toast } from 'sonner';
-import { ArrowLeft, Calendar, DollarSign, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeExpense, getStoredExpenses } from '@/lib/expenseService';
 import { format } from 'date-fns';
+import { getCurrentUser } from '@/lib/auth';
 
 const Expenses = () => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
+  const [date, setDate] = useState<Date>(new Date());
+  const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const user = await getCurrentUser();
+      setIsAdmin(user?.role === 'admin');
+    };
+    checkAdmin();
+  }, []);
   
   // Fetch expenses data
   const { data: expenses, isLoading } = useQuery({
@@ -40,6 +59,7 @@ const Expenses = () => {
       // Reset form
       setDescription('');
       setAmount('');
+      setDate(new Date());
       // Refetch expenses
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
@@ -63,7 +83,7 @@ const Expenses = () => {
     addExpenseMutation.mutate({
       description,
       amount: Number(amount),
-      date: new Date().toISOString()
+      date: date.toISOString()
     });
   };
   
@@ -118,6 +138,31 @@ const Expenses = () => {
                       />
                     </div>
                     
+                    {isAdmin && (
+                      <div className="space-y-2">
+                        <Label htmlFor="date">Fecha</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={(date) => date && setDate(date)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
+                    
                     <Button 
                       className="w-full bg-blue-600 hover:bg-blue-700" 
                       onClick={handleAddExpense}
@@ -160,7 +205,7 @@ const Expenses = () => {
                             <TableRow key={expense.id}>
                               <TableCell className="font-medium whitespace-nowrap">
                                 <div className="flex items-center gap-1">
-                                  <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                                  <CalendarFull className="h-3.5 w-3.5 text-gray-500" />
                                   <span>{format(new Date(expense.date), 'dd/MM/yyyy')}</span>
                                 </div>
                               </TableCell>
