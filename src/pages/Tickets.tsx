@@ -1,8 +1,7 @@
 
-import { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import SimpleTicketForm from '@/components/SimpleTicketForm';
-import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

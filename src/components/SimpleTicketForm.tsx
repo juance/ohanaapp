@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,8 @@ import { storeTicketData } from '@/lib/dataService';
 import { getCustomerByPhone } from '@/lib/customerService';
 import { getCurrentUser } from '@/lib/auth';
 import { PaymentMethod } from '@/lib/types';
+import DryCleaningOptions, { SelectedDryCleaningItem, dryCleaningItems } from './DryCleaningOptions';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const generateTicketNumber = () => {
   const now = new Date();
@@ -49,12 +52,18 @@ const SimpleTicketForm = () => {
   const [noFragrance, setNoFragrance] = useState(false);
   const [noDry, setNoDry] = useState(false);
   
+  // Dry cleaning items
+  const [selectedDryCleaningItems, setSelectedDryCleaningItems] = useState<SelectedDryCleaningItem[]>([]);
+  
   // Customer lookup
   const [lookupPhone, setLookupPhone] = useState('');
   
   // Admin-specific date selection
   const [date, setDate] = useState<Date>(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Active tab
+  const [activeTab, setActiveTab] = useState('valet');
   
   // Check if user is admin
   useEffect(() => {
@@ -65,18 +74,24 @@ const SimpleTicketForm = () => {
     checkAdmin();
   }, []);
   
-  // Calculate price when quantity changes
+  // Calculate price when quantity or selected items change
   useEffect(() => {
-    const basePrice = 15; // Base price per valet
-    const calculatedPrice = basePrice * valetQuantity;
+    // Base price per valet (updated to 5000)
+    const basePrice = 5000;
+    let calculatedPrice = 0;
     
-    // Add extra costs for special options
-    let extraCost = 0;
-    if (stainRemoval) extraCost += 5 * valetQuantity;
-    if (delicateDry) extraCost += 2 * valetQuantity;
+    if (activeTab === 'valet') {
+      calculatedPrice = basePrice * valetQuantity;
+    } else if (activeTab === 'tintoreria') {
+      // Calculate dry cleaning total
+      calculatedPrice = selectedDryCleaningItems.reduce((total, item) => {
+        const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+        return total + ((itemDetails?.price || 0) * item.quantity);
+      }, 0);
+    }
     
-    setTotalPrice(calculatedPrice + extraCost);
-  }, [valetQuantity, stainRemoval, delicateDry]);
+    setTotalPrice(calculatedPrice);
+  }, [valetQuantity, selectedDryCleaningItems, activeTab]);
   
   const handleCustomerLookup = async () => {
     if (!lookupPhone || lookupPhone.length < 8) {
@@ -113,8 +128,13 @@ const SimpleTicketForm = () => {
       return;
     }
     
-    if (valetQuantity <= 0) {
+    if (activeTab === 'valet' && valetQuantity <= 0) {
       toast.error('La cantidad de valets debe ser mayor a cero');
+      return;
+    }
+    
+    if (activeTab === 'tintoreria' && selectedDryCleaningItems.length === 0) {
+      toast.error('Por favor seleccione al menos un artículo de tintorería');
       return;
     }
     
@@ -135,7 +155,7 @@ const SimpleTicketForm = () => {
         ticketNumber,
         totalPrice,
         paymentMethod,
-        valetQuantity,
+        valetQuantity: activeTab === 'valet' ? valetQuantity : 0, // Use 0 for dry cleaning only tickets
         customDate: isAdmin ? date : undefined, // Use custom date only for admins
       };
       
@@ -145,11 +165,23 @@ const SimpleTicketForm = () => {
         phoneNumber,
       };
       
+      // Prepare dry cleaning items
+      const dryCleaningItemsData = activeTab === 'tintoreria' 
+        ? selectedDryCleaningItems.map(item => {
+            const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+            return {
+              name: itemDetails?.name || '',
+              quantity: item.quantity,
+              price: (itemDetails?.price || 0) * item.quantity
+            };
+          })
+        : [];
+      
       // Store the ticket
       const success = await storeTicketData(
         ticketData,
         customerData,
-        [], // No dry cleaning items in simple form
+        dryCleaningItemsData,
         laundryOptions
       );
       
@@ -168,7 +200,9 @@ const SimpleTicketForm = () => {
         setNoDry(false);
         setLookupPhone('');
         setPaymentMethod('cash');
+        setSelectedDryCleaningItems([]);
         if (isAdmin) setDate(new Date());
+        setActiveTab('valet');
       } else {
         toast.error('Error al generar el ticket');
       }
@@ -183,8 +217,8 @@ const SimpleTicketForm = () => {
       <div className="md:col-span-8">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Ingreso de Valet</CardTitle>
-            <CardDescription>Generar ticket para valets</CardDescription>
+            <CardTitle className="text-xl">Formulario de Ticket</CardTitle>
+            <CardDescription>Genere tickets para valets o tintorería</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -234,47 +268,13 @@ const SimpleTicketForm = () => {
                 
                 <Separator className="my-4" />
                 
-                <div className="flex flex-col gap-4 sm:flex-row items-end">
-                  <div className="w-full sm:w-1/3">
-                    <Label htmlFor="valetQuantity">Cantidad de Valets</Label>
-                    <Input 
-                      id="valetQuantity" 
-                      type="number" 
-                      min="1"
-                      value={valetQuantity}
-                      onChange={(e) => setValetQuantity(parseInt(e.target.value) || 1)}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="w-full sm:w-1/3">
-                    <Label htmlFor="paymentMethod">Método de Pago</Label>
-                    <Select 
-                      value={paymentMethod} 
-                      onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
-                    >
-                      <SelectTrigger id="paymentMethod" className="mt-1">
-                        <SelectValue placeholder="Método de pago" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">Efectivo</SelectItem>
-                        <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-                        <SelectItem value="mercadopago">Mercado Pago</SelectItem>
-                        <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-full sm:w-1/3">
-                    <Label>Precio Total</Label>
-                    <div className="text-2xl font-bold mt-1">${totalPrice.toFixed(2)}</div>
-                  </div>
-                </div>
-                
                 {isAdmin && (
                   <div className="space-y-2">
                     <Label htmlFor="date">Fecha</Label>
                     <Popover>
                       <PopoverTrigger asChild>
                         <Button
+                          id="date"
                           variant="outline"
                           className="w-full justify-start text-left font-normal"
                         >
@@ -296,59 +296,134 @@ const SimpleTicketForm = () => {
                 
                 <Separator className="my-4" />
                 
-                <div>
-                  <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="separateByColor" 
-                        checked={separateByColor} 
-                        onCheckedChange={setSeparateByColor}
-                      />
-                      <Label htmlFor="separateByColor">Separar por Color</Label>
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="valet">Valet</TabsTrigger>
+                    <TabsTrigger value="tintoreria">Tintorería</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="valet" className="mt-4">
+                    <div className="flex flex-col gap-4 sm:flex-row items-end">
+                      <div className="w-full sm:w-1/3">
+                        <Label htmlFor="valetQuantity">Cantidad de Valets</Label>
+                        <Input 
+                          id="valetQuantity" 
+                          type="number" 
+                          min="1"
+                          value={valetQuantity}
+                          onChange={(e) => setValetQuantity(parseInt(e.target.value) || 1)}
+                          className="mt-1"
+                        />
+                      </div>
+                      <div className="w-full sm:w-1/3">
+                        <Label htmlFor="paymentMethod">Método de Pago</Label>
+                        <Select 
+                          value={paymentMethod} 
+                          onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
+                        >
+                          <SelectTrigger id="paymentMethod" className="mt-1">
+                            <SelectValue placeholder="Método de pago" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Efectivo</SelectItem>
+                            <SelectItem value="debit">Tarjeta de Débito</SelectItem>
+                            <SelectItem value="mercadopago">Mercado Pago</SelectItem>
+                            <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-full sm:w-1/3">
+                        <Label>Precio Total</Label>
+                        <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="delicateDry" 
-                        checked={delicateDry} 
-                        onCheckedChange={setDelicateDry}
-                      />
-                      <Label htmlFor="delicateDry">Secado Delicado (+$2)</Label>
+                    
+                    <div className="mt-6">
+                      <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="separateByColor" 
+                            checked={separateByColor} 
+                            onCheckedChange={setSeparateByColor}
+                          />
+                          <Label htmlFor="separateByColor">Separar por Color</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="delicateDry" 
+                            checked={delicateDry} 
+                            onCheckedChange={setDelicateDry}
+                          />
+                          <Label htmlFor="delicateDry">Secado Delicado</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="stainRemoval" 
+                            checked={stainRemoval} 
+                            onCheckedChange={setStainRemoval}
+                          />
+                          <Label htmlFor="stainRemoval">Quitamanchas</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="bleach" 
+                            checked={bleach} 
+                            onCheckedChange={setBleach}
+                          />
+                          <Label htmlFor="bleach">Blanquear</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="noFragrance" 
+                            checked={noFragrance} 
+                            onCheckedChange={setNoFragrance}
+                          />
+                          <Label htmlFor="noFragrance">Sin Perfume</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Switch 
+                            id="noDry" 
+                            checked={noDry} 
+                            onCheckedChange={setNoDry}
+                          />
+                          <Label htmlFor="noDry">Sin Secar</Label>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="stainRemoval" 
-                        checked={stainRemoval} 
-                        onCheckedChange={setStainRemoval}
-                      />
-                      <Label htmlFor="stainRemoval">Quitamanchas (+$5)</Label>
+                  </TabsContent>
+                  
+                  <TabsContent value="tintoreria" className="mt-4">
+                    <div className="flex flex-col gap-4 sm:flex-row items-end mb-6">
+                      <div className="w-full sm:w-1/2">
+                        <Label htmlFor="paymentMethod">Método de Pago</Label>
+                        <Select 
+                          value={paymentMethod} 
+                          onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
+                        >
+                          <SelectTrigger id="paymentMethod" className="mt-1">
+                            <SelectValue placeholder="Método de pago" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Efectivo</SelectItem>
+                            <SelectItem value="debit">Tarjeta de Débito</SelectItem>
+                            <SelectItem value="mercadopago">Mercado Pago</SelectItem>
+                            <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-full sm:w-1/2">
+                        <Label>Precio Total</Label>
+                        <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="bleach" 
-                        checked={bleach} 
-                        onCheckedChange={setBleach}
-                      />
-                      <Label htmlFor="bleach">Usar Lavandina</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="noFragrance" 
-                        checked={noFragrance} 
-                        onCheckedChange={setNoFragrance}
-                      />
-                      <Label htmlFor="noFragrance">Sin Perfume</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Switch 
-                        id="noDry" 
-                        checked={noDry} 
-                        onCheckedChange={setNoDry}
-                      />
-                      <Label htmlFor="noDry">Sin Secar</Label>
-                    </div>
-                  </div>
-                </div>
+                    
+                    <DryCleaningOptions 
+                      selectedItems={selectedDryCleaningItems}
+                      onItemsChange={setSelectedDryCleaningItems}
+                    />
+                  </TabsContent>
+                </Tabs>
               </div>
               
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700">
@@ -370,9 +445,10 @@ const SimpleTicketForm = () => {
               <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
                 <li>Complete los datos del cliente.</li>
                 <li>Puede buscar clientes existentes por teléfono.</li>
-                <li>Especifique la cantidad de valets.</li>
+                <li>Seleccione el tipo de servicio (valet o tintorería).</li>
+                <li>Para valet, especifique la cantidad y opciones.</li>
+                <li>Para tintorería, seleccione los artículos.</li>
                 <li>Seleccione el método de pago.</li>
-                <li>Marque las opciones de lavado requeridas.</li>
                 <li>El precio se calcula automáticamente.</li>
               </ul>
             </div>
@@ -380,8 +456,8 @@ const SimpleTicketForm = () => {
             <div>
               <h3 className="font-medium">Recordatorios:</h3>
               <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
-                <li>El secado delicado tiene un costo adicional.</li>
-                <li>El servicio de quitamanchas tiene un costo adicional.</li>
+                <li>El valet tiene un costo de $5.000 cada uno.</li>
+                <li>Los precios de tintorería varían según el artículo.</li>
                 <li>Verificar siempre la información antes de generar el ticket.</li>
               </ul>
             </div>
