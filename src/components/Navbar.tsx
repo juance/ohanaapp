@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   LayoutDashboard,
@@ -14,13 +14,16 @@ import {
   Warehouse,
   BanknoteIcon,
   User,
+  LogOut,
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { getCurrentUser } from '@/lib/auth';
+import { toast } from 'sonner';
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -44,6 +47,18 @@ const Navbar = () => {
   const closeMenu = () => {
     if (isMobile) {
       setIsOpen(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('user');
+      toast.success('Sesión cerrada correctamente');
+      navigate('/');
+      closeMenu();
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Error al cerrar sesión');
     }
   };
 
@@ -134,7 +149,7 @@ const Navbar = () => {
           </Link>
         </div>
 
-        <nav className="space-y-1 px-4">
+        <nav className="space-y-1 px-4 flex flex-col h-[calc(100%-180px)]">
           {navItems.map((item, index) => (
             ((item.showFor === "all") || (item.showFor === "admin" && isAdmin)) && (
               <Link
@@ -151,6 +166,17 @@ const Navbar = () => {
               </Link>
             )
           ))}
+          
+          <div className="mt-auto">
+            <Button
+              variant="ghost"
+              className="w-full flex items-center justify-start space-x-2 px-4 py-3 rounded-md text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Cerrar Sesión</span>
+            </Button>
+          </div>
         </nav>
       </div>
 
