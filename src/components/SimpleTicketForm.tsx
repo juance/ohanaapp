@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { storeTicketData } from '@/lib/dataService';
 import { getCustomerByPhone } from '@/lib/customerService';
 import { getCurrentUser } from '@/lib/auth';
+import { PaymentMethod } from '@/lib/types';
 
 const generateTicketNumber = () => {
   const now = new Date();
@@ -38,7 +39,7 @@ const SimpleTicketForm = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   
   // Payment method
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   
   // Laundry options
   const [separateByColor, setSeparateByColor] = useState(false);
@@ -249,7 +250,7 @@ const SimpleTicketForm = () => {
                     <Label htmlFor="paymentMethod">Método de Pago</Label>
                     <Select 
                       value={paymentMethod} 
-                      onValueChange={setPaymentMethod}
+                      onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
                     >
                       <SelectTrigger id="paymentMethod" className="mt-1">
                         <SelectValue placeholder="Método de pago" />
@@ -257,7 +258,7 @@ const SimpleTicketForm = () => {
                       <SelectContent>
                         <SelectItem value="cash">Efectivo</SelectItem>
                         <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-                        <SelectItem value="mercado_pago">Mercado Pago</SelectItem>
+                        <SelectItem value="mercadopago">Mercado Pago</SelectItem>
                         <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
                       </SelectContent>
                     </Select>

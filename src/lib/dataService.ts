@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -38,7 +39,7 @@ export const getFromLocalStorage = <T>(key: string): T[] => {
 // Utility to convert payment method to the format expected by the database
 const formatPaymentMethod = (method: PaymentMethod): "cash" | "debit" | "mercadopago" | "cuentadni" => {
   if (method === "cuenta_dni") return "cuentadni";
-  if (method === "mercado_pago") return "mercadopago";
+  if (method === "mercadopago") return "mercadopago";
   return method as "cash" | "debit";
 };
 
