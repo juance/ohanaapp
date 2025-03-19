@@ -14,7 +14,7 @@ import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import MetricsCard from '@/components/MetricsCard';
-import { BarChart, LineChart, PieChart, ResponsiveContainer } from '@/components/ui/custom-charts';
+import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
 
 const TicketAnalysis = () => {
   const isMobile = useIsMobile();
@@ -77,7 +77,8 @@ const TicketAnalysis = () => {
     
     return analytics.revenueByMonth.map(item => ({
       name: item.month,
-      total: parseFloat(item.revenue.toFixed(2))
+      income: parseFloat(item.revenue.toFixed(2)),
+      expenses: 0 // Adding default expenses value to match LineChart data type
     }));
   };
   
@@ -214,9 +215,7 @@ const TicketAnalysis = () => {
                       <Skeleton className="h-[350px] w-full" />
                     ) : (
                       <div className="h-[350px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={prepareRevenueChartData()} />
-                        </ResponsiveContainer>
+                        <LineChart data={prepareRevenueChartData()} />
                       </div>
                     )}
                   </CardContent>
@@ -235,9 +234,7 @@ const TicketAnalysis = () => {
                       <Skeleton className="h-[350px] w-full" />
                     ) : (
                       <div className="h-[350px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={prepareItemDistributionData()} />
-                        </ResponsiveContainer>
+                        <BarChart data={prepareItemDistributionData()} />
                       </div>
                     )}
                   </CardContent>
@@ -256,9 +253,7 @@ const TicketAnalysis = () => {
                       <Skeleton className="h-[350px] w-full" />
                     ) : (
                       <div className="h-[350px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart data={preparePaymentMethodData()} />
-                        </ResponsiveContainer>
+                        <PieChart data={preparePaymentMethodData()} />
                       </div>
                     )}
                   </CardContent>
