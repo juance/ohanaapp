@@ -18,6 +18,7 @@ const Inventory = lazy(() => import("./pages/Inventory"));
 const UserManagement = lazy(() => import("./pages/UserManagement"));
 const Expenses = lazy(() => import("./pages/Expenses"));
 const Clients = lazy(() => import("./pages/Clients"));
+const TicketAnalysis = lazy(() => import("./pages/TicketAnalysis"));
 
 // Create a client with default options
 const queryClient = new QueryClient({
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/users" element={<UserManagement />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/clients" element={<Clients />} />
+            <Route path="/analysis" element={<TicketAnalysis />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
