@@ -2,7 +2,7 @@
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import MetricsCard from '@/components/MetricsCard';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, StarIcon, UsersIcon, CoinsIcon } from 'lucide-react';
 import { TicketAnalytics } from '@/lib/analyticsService';
 
 interface MetricsSectionProps {
@@ -33,14 +33,17 @@ const MetricsSection = ({ loading, analytics }: MetricsSectionProps) => {
       <MetricsCard
         title="Valor Promedio"
         value={`$${analytics?.averageTicketValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        icon={<CoinsIcon className="h-4 w-4" />}
       />
       <MetricsCard
         title="Ingresos Totales"
         value={`$${analytics?.totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        icon={<CoinsIcon className="h-4 w-4" />}
       />
       <MetricsCard
         title="Tickets Listos"
         value={analytics?.ticketsByStatus?.ready?.toString() || '0'}
+        icon={<StarIcon className="h-4 w-4" />}
       />
     </div>
   );

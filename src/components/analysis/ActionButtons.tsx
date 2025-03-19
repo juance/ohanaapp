@@ -1,9 +1,10 @@
 
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { TicketAnalytics } from '@/lib/analyticsService';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface ActionButtonsProps {
   loading: boolean;
@@ -52,6 +53,20 @@ const ActionButtons = ({ loading, analytics, onRefresh }: ActionButtonsProps) =>
       <Button variant="outline" onClick={handleDownloadCSV} disabled={loading}>
         <Download className="mr-2 h-4 w-4" />
         Exportar
+      </Button>
+      
+      <Link to="/clients">
+        <Button variant="outline">
+          <Users className="mr-2 h-4 w-4" />
+          Gestionar Clientes
+        </Button>
+      </Link>
+      
+      <Button variant="default" asChild>
+        <Link to="/loyalty">
+          <Star className="mr-2 h-4 w-4" />
+          Programa de Fidelidad
+        </Link>
       </Button>
     </div>
   );

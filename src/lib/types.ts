@@ -94,6 +94,7 @@ export interface Customer {
   phoneNumber: string;
   createdAt: string;
   lastVisit?: string;
+  loyaltyPoints: number;
 }
 
 export interface Expense {
@@ -138,4 +139,13 @@ export interface MonthlyMetrics {
     cuentaDni: number;
   };
   dryCleaningItems: Record<string, number>;
+}
+
+// Loyalty Program interfaces
+export interface LoyaltyReward {
+  id: string;
+  name: string;
+  description: string;
+  pointsCost: number;
+  isAvailable: boolean;
 }

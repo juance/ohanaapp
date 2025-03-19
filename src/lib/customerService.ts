@@ -8,7 +8,8 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
       .from('customers')
       .insert([{ 
         name: customer.name, 
-        phone: customer.phoneNumber 
+        phone: customer.phoneNumber,
+        loyalty_points: 0 // Inicializar puntos de fidelidad en 0
       }])
       .select('*')
       .single();
@@ -20,7 +21,8 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
       name: data.name,
       phoneNumber: data.phone,
       createdAt: data.created_at,
-      lastVisit: data.created_at // Initialize lastVisit with createdAt
+      lastVisit: data.created_at, // Initialize lastVisit with createdAt
+      loyaltyPoints: data.loyalty_points || 0
     };
   } catch (error) {
     console.error('Error storing customer in Supabase:', error);
@@ -57,7 +59,8 @@ export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer 
         name: data.name,
         phoneNumber: data.phone,
         createdAt: data.created_at,
-        lastVisit
+        lastVisit,
+        loyaltyPoints: data.loyalty_points || 0
       };
     }
     
@@ -98,7 +101,8 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
           name: customer.name,
           phoneNumber: customer.phone,
           createdAt: customer.created_at,
-          lastVisit
+          lastVisit,
+          loyaltyPoints: customer.loyalty_points || 0
         };
       })
     );
@@ -107,5 +111,66 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
   } catch (error) {
     console.error('Error retrieving all customers from Supabase:', error);
     return [];
+  }
+};
+
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<boolean> => {
+  try {
+    // First get current points
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentPoints = customer.loyalty_points || 0;
+    
+    // Update with new points total
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: currentPoints + points })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return true;
+  } catch (error) {
+    console.error('Error adding loyalty points:', error);
+    return false;
+  }
+};
+
+export const redeemLoyaltyPoints = async (customerId: string, points: number): Promise<boolean> => {
+  try {
+    // First get current points
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentPoints = customer.loyalty_points || 0;
+    
+    // Ensure customer has enough points
+    if (currentPoints < points) {
+      return false;
+    }
+    
+    // Update with new points total
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: currentPoints - points })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return true;
+  } catch (error) {
+    console.error('Error redeeming loyalty points:', error);
+    return false;
   }
 };
