@@ -17,6 +17,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       
     if (error) throw error;
     
+    // Transform data to match the Ticket type
     return data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,

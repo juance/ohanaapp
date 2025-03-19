@@ -1,10 +1,10 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Bell, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Ticket } from '@/lib/types';
 import { getPickupTickets, getTicketServices, markTicketAsDelivered } from '@/lib/ticketService';
@@ -19,11 +19,14 @@ const PickupOrders = () => {
   const [searchFilter, setSearchFilter] = useState<'ticket' | 'name' | 'phone'>('ticket');
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const queryClient = useQueryClient();
+  const ticketDetailRef = useRef<HTMLDivElement>(null);
   
   // Fetch tickets ready for pickup
-  const { data: tickets = [], isLoading, error } = useQuery({
+  const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
-    queryFn: getPickupTickets
+    queryFn: getPickupTickets,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: true
   });
 
   useEffect(() => {
@@ -65,7 +68,166 @@ const PickupOrders = () => {
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
       setSelectedTicket(null);
+      refetch(); // Refetch the tickets list to update UI
+      toast.success('Ticket marcado como entregado exitosamente');
     }
+  };
+
+  const handlePrintTicket = () => {
+    if (!selectedTicket) {
+      toast.error('Seleccione un ticket primero');
+      return;
+    }
+
+    // Get the ticket details
+    const ticket = tickets.find(t => t.id === selectedTicket);
+    if (!ticket) {
+      toast.error('Ticket no encontrado');
+      return;
+    }
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('El navegador bloqueó la apertura de la ventana de impresión');
+      return;
+    }
+
+    // Format date
+    const formattedDate = formatDate(ticket.createdAt);
+
+    // Prepare services content
+    const servicesContent = ticketServices.length > 0 
+      ? ticketServices.map(service => 
+          `<div class="service-item">
+            <span>${service.name} x${service.quantity}</span>
+            <span>$ ${(service.price).toLocaleString()}</span>
+          </div>`
+        ).join('')
+      : '<p>No hay servicios registrados</p>';
+
+    // Create the print content
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Ticket #${ticket.ticketNumber}</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          .header {
+            text-align: center;
+            margin-bottom: 20px;
+          }
+          .ticket-info {
+            margin-bottom: 20px;
+          }
+          .ticket-info p {
+            margin: 5px 0;
+          }
+          .services {
+            margin-bottom: 20px;
+          }
+          .service-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+          }
+          .total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+            font-size: 1.2em;
+          }
+          @media print {
+            .no-print {
+              display: none;
+            }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>Lavandería Ohana</h1>
+          <p>Ticket de servicio</p>
+        </div>
+        
+        <div class="ticket-info">
+          <p><strong>Número de ticket:</strong> ${ticket.ticketNumber}</p>
+          <p><strong>Cliente:</strong> ${ticket.clientName}</p>
+          <p><strong>Teléfono:</strong> ${ticket.phoneNumber}</p>
+          <p><strong>Fecha:</strong> ${formattedDate}</p>
+        </div>
+        
+        <h3>Servicios:</h3>
+        <div class="services">
+          ${servicesContent}
+        </div>
+        
+        <div class="total">
+          Total: $ ${ticket.totalPrice.toLocaleString()}
+        </div>
+        
+        <div class="no-print" style="text-align: center; margin-top: 30px;">
+          <button onclick="window.print();" style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Imprimir Ticket
+          </button>
+        </div>
+      </body>
+      </html>
+    `);
+    
+    printWindow.document.close();
+    
+    // Auto-prompt the print dialog after content is fully loaded
+    printWindow.onload = function() {
+      printWindow.focus();
+      printWindow.print();
+    };
+    
+    toast.success('Preparando impresión del ticket');
+  };
+
+  const handleShareWhatsApp = () => {
+    if (!selectedTicket) {
+      toast.error('Seleccione un ticket primero');
+      return;
+    }
+
+    const ticket = tickets.find(t => t.id === selectedTicket);
+    if (!ticket) {
+      toast.error('Ticket no encontrado');
+      return;
+    }
+
+    // Compose a detailed WhatsApp message
+    let message = `🧼 *LAVANDERÍA OHANA - TICKET #${ticket.ticketNumber}* 🧼\n\n`;
+    message += `Estimado/a ${ticket.clientName},\n\n`;
+    message += `Su pedido está listo para retirar.\n\n`;
+    
+    if (ticketServices.length > 0) {
+      message += `*Detalle de servicios:*\n`;
+      ticketServices.forEach(service => {
+        message += `- ${service.name} x${service.quantity}: $${service.price.toLocaleString()}\n`;
+      });
+    }
+    
+    message += `\n*Total a pagar: $${ticket.totalPrice.toLocaleString()}*\n\n`;
+    message += `Gracias por confiar en Lavandería Ohana.`;
+
+    // Format WhatsApp URL
+    const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp in a new tab
+    window.open(whatsappUrl, '_blank');
+    
+    toast.success(`Compartiendo ticket con ${ticket.clientName}`);
   };
   
   const filteredTickets = searchQuery.trim() 
@@ -105,6 +267,9 @@ const PickupOrders = () => {
         <Navbar />
         <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
           <p className="text-red-500">Error al cargar los tickets. Por favor, intente de nuevo.</p>
+          <Button onClick={() => refetch()} className="mt-4">
+            Reintentar
+          </Button>
         </div>
       </div>
     );
@@ -130,7 +295,7 @@ const PickupOrders = () => {
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Pedidos a Retirar</h2>
             
-            <div className="flex justify-end mb-4 space-x-2">
+            <div className="flex flex-wrap justify-end mb-4 gap-2">
               <Button 
                 variant="outline" 
                 className="flex items-center space-x-2"
@@ -143,6 +308,26 @@ const PickupOrders = () => {
               >
                 <Bell className="h-4 w-4" />
                 <span>Avisar al cliente</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center space-x-2"
+                onClick={handlePrintTicket}
+                disabled={!selectedTicket}
+              >
+                <Printer className="h-4 w-4" />
+                <span>IMPRIMIR</span>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="flex items-center space-x-2"
+                onClick={handleShareWhatsApp}
+                disabled={!selectedTicket}
+              >
+                <Share2 className="h-4 w-4" />
+                <span>ENVIAR POR WHATSAPP</span>
               </Button>
               
               <Button 
@@ -196,36 +381,38 @@ const PickupOrders = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="md:col-span-2 space-y-4 border rounded-lg p-4 bg-gray-50">
-                {filteredTickets.map(ticket => (
-                  <div 
-                    key={ticket.id}
-                    className={`
-                      p-3 border rounded-lg bg-white cursor-pointer transition-all
-                      ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}
-                    `}
-                    onClick={() => setSelectedTicket(ticket.id)}
-                  >
-                    <div className="font-medium">{ticket.clientName}</div>
-                    <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
-                    <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
-                    <div className="mt-2 flex justify-between items-center">
-                      <Badge className="bg-blue-600 hover:bg-blue-700">
-                        {ticket.ticketNumber}
-                      </Badge>
-                      <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
+              <div className="md:col-span-2 space-y-4 border rounded-lg p-4 bg-gray-50 max-h-[calc(100vh-300px)] overflow-y-auto">
+                {filteredTickets.length > 0 ? (
+                  filteredTickets.map(ticket => (
+                    <div 
+                      key={ticket.id}
+                      className={`
+                        p-3 border rounded-lg bg-white cursor-pointer transition-all
+                        ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}
+                      `}
+                      onClick={() => setSelectedTicket(ticket.id)}
+                    >
+                      <div className="font-medium">{ticket.clientName}</div>
+                      <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+                      <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
+                      <div className="mt-2 flex justify-between items-center">
+                        <Badge className="bg-blue-600 hover:bg-blue-700">
+                          {ticket.ticketNumber}
+                        </Badge>
+                        <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-                
-                {filteredTickets.length === 0 && (
+                  ))
+                ) : (
                   <div className="text-center p-6 text-gray-500">
-                    No se encontraron tickets que coincidan con su búsqueda
+                    {searchQuery ? 
+                      'No se encontraron tickets que coincidan con su búsqueda' : 
+                      'No hay tickets pendientes de entrega'}
                   </div>
                 )}
               </div>
               
-              <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50">
+              <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 {selectedTicket ? (
                   <div className="w-full space-y-4">
                     <h3 className="text-lg font-medium">Detalles del Ticket</h3>
@@ -263,7 +450,7 @@ const PickupOrders = () => {
                                     <span>
                                       {service.name} x{service.quantity}
                                     </span>
-                                    <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+                                    <span>$ {(service.price).toLocaleString()}</span>
                                   </div>
                                 ))
                               ) : (
