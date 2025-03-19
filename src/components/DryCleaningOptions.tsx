@@ -1,10 +1,12 @@
 
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Plus, Trash2 } from 'lucide-react';
 
 // Define dry cleaning items with their prices
 export const dryCleaningItems = [
@@ -85,23 +87,39 @@ interface DryCleaningOptionsProps {
 }
 
 const DryCleaningOptions: React.FC<DryCleaningOptionsProps> = ({ selectedItems, onItemsChange }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState<string>('');
+  const [quantity, setQuantity] = useState<number>(1);
   
-  const handleItemToggle = (itemId: string) => {
-    const existingItem = selectedItems.find(item => item.id === itemId);
+  const handleAddItem = () => {
+    if (!selectedItemId) return;
+    
+    // Check if item already exists
+    const existingItem = selectedItems.find(item => item.id === selectedItemId);
     
     if (existingItem) {
-      // Remove the item
-      onItemsChange(selectedItems.filter(item => item.id !== itemId));
+      // Update existing item quantity
+      onItemsChange(
+        selectedItems.map(item => 
+          item.id === selectedItemId ? { ...item, quantity: item.quantity + quantity } : item
+        )
+      );
     } else {
-      // Add the item with quantity 1
-      onItemsChange([...selectedItems, { id: itemId, quantity: 1 }]);
+      // Add new item
+      onItemsChange([...selectedItems, { id: selectedItemId, quantity }]);
     }
+    
+    // Reset form
+    setSelectedItemId('');
+    setQuantity(1);
   };
   
-  const handleQuantityChange = (itemId: string, quantity: number) => {
+  const handleRemoveItem = (itemId: string) => {
+    onItemsChange(selectedItems.filter(item => item.id !== itemId));
+  };
+  
+  const handleQuantityChange = (itemId: string, newQuantity: number) => {
     // Ensure quantity is at least 1
-    const validQuantity = Math.max(1, quantity);
+    const validQuantity = Math.max(1, newQuantity);
     
     onItemsChange(
       selectedItems.map(item => 
@@ -110,115 +128,144 @@ const DryCleaningOptions: React.FC<DryCleaningOptionsProps> = ({ selectedItems, 
     );
   };
   
-  // Calculate total price for dry cleaning items
-  const calculateDryCleaningTotal = (): number => {
-    return selectedItems.reduce((total, item) => {
-      const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
-      return total + ((itemDetails?.price || 0) * item.quantity);
-    }, 0);
+  // Get item details by ID
+  const getItemDetails = (itemId: string) => {
+    return dryCleaningItems.find(item => item.id === itemId);
   };
-
-  // Filter items based on search term
-  const filteredItems = dryCleaningItems.filter(item => 
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
   
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
-
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Artículos de Tintorería</CardTitle>
-        <div className="mt-2">
-          <Input
-            type="text"
-            placeholder="Buscar artículo..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full"
-          />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {filteredItems.map((item) => {
-            const selectedItem = selectedItems.find(i => i.id === item.id);
-            const isSelected = !!selectedItem;
-            
-            return (
-              <div
-                key={item.id}
-                className={`border rounded-lg p-4 transition-colors ${
-                  isSelected ? 'border-blue-500 bg-blue-50' : ''
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={`drycleaning-${item.id}`}
-                      checked={isSelected}
-                      onCheckedChange={() => handleItemToggle(item.id)}
-                    />
-                    <Label 
-                      htmlFor={`drycleaning-${item.id}`}
-                      className="cursor-pointer truncate"
-                    >
-                      {item.name}
-                    </Label>
-                  </div>
-                  <span className="text-sm font-medium shrink-0">${item.price.toLocaleString()}</span>
-                </div>
-                
-                {isSelected && (
-                  <div className="flex items-center mt-2">
-                    <span className="text-sm mr-2">Cantidad:</span>
-                    <div className="flex items-center">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleQuantityChange(item.id, (selectedItem?.quantity || 1) - 1)}
-                        disabled={(selectedItem?.quantity || 1) <= 1}
-                      >
-                        -
-                      </Button>
-                      <Input
-                        className="h-8 w-12 mx-1 text-center p-1"
-                        value={selectedItem?.quantity || 1}
-                        onChange={(e) => {
-                          const value = parseInt(e.target.value);
-                          if (!isNaN(value)) {
-                            handleQuantityChange(item.id, value);
-                          }
-                        }}
-                        min="1"
-                        type="number"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleQuantityChange(item.id, (selectedItem?.quantity || 1) + 1)}
-                      >
-                        +
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        
-        {selectedItems.length > 0 && (
-          <div className="mt-4 text-right font-semibold">
-            Total Tintorería: ${calculateDryCleaningTotal().toLocaleString()}
+      <CardContent className="pt-6">
+        <div className="space-y-6">
+          {/* Item Selector */}
+          <div className="flex flex-col gap-4 sm:flex-row items-end">
+            <div className="flex-1">
+              <Label htmlFor="item-select">Seleccionar Artículo</Label>
+              <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+                <SelectTrigger className="mt-1">
+                  <SelectValue placeholder="Seleccionar artículo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dryCleaningItems.map(item => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name} - ${item.price.toLocaleString()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-1/4">
+              <Label htmlFor="quantity">Cantidad</Label>
+              <Input
+                id="quantity"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                min="1"
+                className="mt-1"
+              />
+            </div>
+            <Button 
+              type="button" 
+              onClick={handleAddItem} 
+              disabled={!selectedItemId}
+              className="shrink-0"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Agregar
+            </Button>
           </div>
-        )}
+          
+          {/* Selected Items Table */}
+          {selectedItems.length > 0 ? (
+            <div className="border rounded-md">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Artículo</TableHead>
+                    <TableHead className="text-right">Precio Unit.</TableHead>
+                    <TableHead className="text-center">Cantidad</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead className="w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedItems.map(item => {
+                    const itemDetails = getItemDetails(item.id);
+                    if (!itemDetails) return null;
+                    
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{itemDetails.name}</TableCell>
+                        <TableCell className="text-right">${itemDetails.price.toLocaleString()}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                            >
+                              -
+                            </Button>
+                            <Input
+                              className="h-8 w-16 mx-1 text-center"
+                              value={item.quantity}
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value);
+                                if (!isNaN(value)) {
+                                  handleQuantityChange(item.id, value);
+                                }
+                              }}
+                              min="1"
+                              type="number"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          ${(itemDetails.price * item.quantity).toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1 h-auto"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+              
+              <div className="p-4 border-t">
+                <div className="text-right font-semibold text-lg">
+                  Total: ${selectedItems.reduce((sum, item) => {
+                    const itemDetails = getItemDetails(item.id);
+                    return sum + (itemDetails ? itemDetails.price * item.quantity : 0);
+                  }, 0).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground border rounded-md">
+              No hay artículos seleccionados. Agregue artículos desde el menú desplegable.
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

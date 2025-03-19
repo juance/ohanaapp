@@ -94,7 +94,7 @@ const SimpleTicketForm = () => {
   // Customer lookup
   const [lookupPhone, setLookupPhone] = useState('');
   
-  // Admin-specific date selection
+  // Date selection for all users
   const [date, setDate] = useState<Date>(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
   
@@ -197,7 +197,7 @@ const SimpleTicketForm = () => {
         totalPrice,
         paymentMethod,
         valetQuantity: activeTab === 'valet' ? valetQuantity : 0, // Use 0 for dry cleaning only tickets
-        customDate: isAdmin ? date : undefined, // Use custom date only for admins
+        customDate: date, // Now all users can set a custom date
       };
       
       // Prepare customer data
@@ -242,7 +242,7 @@ const SimpleTicketForm = () => {
         setLookupPhone('');
         setPaymentMethod('cash');
         setSelectedDryCleaningItems([]);
-        if (isAdmin) setDate(new Date());
+        setDate(new Date());
         setActiveTab('valet');
       } else {
         toast.error('Error al generar el ticket');
@@ -310,32 +310,31 @@ const SimpleTicketForm = () => {
                 
                 <Separator className="my-4" />
                 
-                {/* Date Selection (Admin only) */}
-                {isAdmin && (
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Fecha</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="date"
-                          variant="outline"
-                          className="w-full justify-start text-left font-normal"
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(date) => date && setDate(date)}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                )}
+                {/* Date Selection (now for everyone) */}
+                <div className="space-y-2">
+                  <Label htmlFor="date">Fecha</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        id="date"
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={(date) => date && setDate(date)}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
                 
                 <Separator className="my-4" />
                 
@@ -469,6 +468,7 @@ const SimpleTicketForm = () => {
               <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
                 <li>Complete los datos del cliente.</li>
                 <li>Puede buscar clientes existentes por teléfono.</li>
+                <li>Seleccione la fecha del ticket.</li>
                 <li>Seleccione el tipo de servicio (valet o tintorería).</li>
                 <li>Para valet, especifique la cantidad y opciones.</li>
                 <li>Para tintorería, seleccione los artículos.</li>
