@@ -9,7 +9,7 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
       .insert([{ 
         name: customer.name, 
         phone: customer.phoneNumber,
-        loyalty_points: 0 // Inicializar puntos de fidelidad en 0
+        loyalty_points: customer.loyaltyPoints || 0
       }])
       .select('*')
       .single();
@@ -125,7 +125,7 @@ export const addLoyaltyPoints = async (customerId: string, points: number): Prom
     
     if (getError) throw getError;
     
-    const currentPoints = customer.loyalty_points || 0;
+    const currentPoints = customer?.loyalty_points || 0;
     
     // Update with new points total
     const { error: updateError } = await supabase
@@ -153,7 +153,7 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
     
     if (getError) throw getError;
     
-    const currentPoints = customer.loyalty_points || 0;
+    const currentPoints = customer?.loyalty_points || 0;
     
     // Ensure customer has enough points
     if (currentPoints < points) {

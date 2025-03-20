@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -64,7 +63,12 @@ export const storeTicketData = async (
     if (existingCustomer) {
       customerId = existingCustomer.id;
     } else {
-      const newCustomer = await storeCustomer(customer);
+      // Create new customer with loyaltyPoints set to 0
+      const newCustomer = await storeCustomer({
+        name: customer.name,
+        phoneNumber: customer.phoneNumber,
+        loyaltyPoints: 0
+      });
       if (!newCustomer) throw new Error('Failed to create customer');
       customerId = newCustomer.id;
     }
