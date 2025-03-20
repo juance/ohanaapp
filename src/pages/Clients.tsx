@@ -13,7 +13,7 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Search, User, Phone, Star, Gift } from 'lucide-react';
+import { ArrowLeft, Calendar, Search, User, Phone, Star, Gift, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -30,6 +30,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -149,9 +155,10 @@ const Clients = () => {
                       <TableRow>
                         <TableHead>Nombre</TableHead>
                         <TableHead>Teléfono</TableHead>
-                        <TableHead>Fecha de Registro</TableHead>
+                        <TableHead>Registro</TableHead>
                         <TableHead>Última Visita</TableHead>
-                        <TableHead>Puntos de Fidelidad</TableHead>
+                        <TableHead>Valets</TableHead>
+                        <TableHead>Puntos</TableHead>
                         <TableHead>Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -184,6 +191,35 @@ const Clients = () => {
                               </span>
                             </div>
                           </TableCell>
+                          
+                          {/* Nueva celda para valets */}
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <ShoppingBag className="h-4 w-4 text-blue-500" />
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="cursor-help">
+                                      {customer.valetsCount || 0}
+                                      {customer.freeValets > 0 && (
+                                        <span className="ml-2 text-xs font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                          {customer.freeValets} gratis
+                                        </span>
+                                      )}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent className="bg-blue-50 text-blue-800 border border-blue-200">
+                                    <div className="p-1">
+                                      <p>Total valets: {customer.valetsCount}</p>
+                                      <p>Valets gratis disponibles: {customer.freeValets}</p>
+                                      <p className="text-xs mt-1">Por cada 9 valets, 1 valet gratis</p>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </TableCell>
+                          
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <Star className="h-4 w-4 text-yellow-500" />

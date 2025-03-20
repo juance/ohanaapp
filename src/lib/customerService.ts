@@ -1,15 +1,29 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from './types';
 
 export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
   try {
+    // Formato de teléfono Argentina: asegurar que comience con +549
+    let phoneNumber = customer.phoneNumber;
+    if (!phoneNumber.startsWith('+549')) {
+      // Si el número ya tiene + al inicio, reemplazarlo
+      if (phoneNumber.startsWith('+')) {
+        phoneNumber = '+549' + phoneNumber.substring(1);
+      } 
+      // Si no tiene + al inicio, simplemente agregar +549
+      else {
+        phoneNumber = '+549' + phoneNumber;
+      }
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .insert([{ 
         name: customer.name, 
-        phone: customer.phoneNumber,
-        loyalty_points: customer.loyaltyPoints || 0
+        phone: phoneNumber,
+        loyalty_points: customer.loyaltyPoints || 0,
+        valets_count: 0,
+        free_valets: 0
       }])
       .select('*')
       .single();
@@ -22,7 +36,9 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
       phoneNumber: data.phone,
       createdAt: data.created_at,
       lastVisit: data.created_at, // Initialize lastVisit with createdAt
-      loyaltyPoints: data.loyalty_points || 0
+      loyaltyPoints: data.loyalty_points || 0,
+      valetsCount: data.valets_count || 0,
+      freeValets: data.free_valets || 0
     };
   } catch (error) {
     console.error('Error storing customer in Supabase:', error);
@@ -32,6 +48,18 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
 
 export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer | null> => {
   try {
+    // Formato de teléfono Argentina: asegurar que comience con +549
+    if (!phoneNumber.startsWith('+549')) {
+      // Si el número ya tiene + al inicio, reemplazarlo
+      if (phoneNumber.startsWith('+')) {
+        phoneNumber = '+549' + phoneNumber.substring(1);
+      } 
+      // Si no tiene + al inicio, simplemente agregar +549
+      else {
+        phoneNumber = '+549' + phoneNumber;
+      }
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .select('*')
@@ -60,7 +88,9 @@ export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer 
         phoneNumber: data.phone,
         createdAt: data.created_at,
         lastVisit,
-        loyaltyPoints: data.loyalty_points || 0
+        loyaltyPoints: data.loyalty_points || 0,
+        valetsCount: data.valets_count || 0,
+        freeValets: data.free_valets || 0
       };
     }
     
@@ -102,7 +132,9 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
           phoneNumber: customer.phone,
           createdAt: customer.created_at,
           lastVisit,
-          loyaltyPoints: customer.loyalty_points || 0
+          loyaltyPoints: customer.loyalty_points || 0,
+          valetsCount: customer.valets_count || 0,
+          freeValets: customer.free_valets || 0
         };
       })
     );
@@ -171,6 +203,78 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
     return true;
   } catch (error) {
     console.error('Error redeeming loyalty points:', error);
+    return false;
+  }
+};
+
+export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
+  try {
+    // Primero obtenemos los datos actuales del cliente
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('valets_count, free_valets')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentValets = customer?.valets_count || 0;
+    let currentFreeValets = customer?.free_valets || 0;
+    
+    // Calculamos los nuevos valores
+    const newTotalValets = currentValets + valetQuantity;
+    
+    // Por cada 9 valets completados, se otorga 1 valet gratis
+    const newFreeValetsEarned = Math.floor(newTotalValets / 9) - Math.floor(currentValets / 9);
+    const newFreeValets = currentFreeValets + newFreeValetsEarned;
+    
+    // Actualizamos en la base de datos
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ 
+        valets_count: newTotalValets,
+        free_valets: newFreeValets
+      })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return true;
+  } catch (error) {
+    console.error('Error updating valets count:', error);
+    return false;
+  }
+};
+
+export const useFreeValet = async (customerId: string): Promise<boolean> => {
+  try {
+    // Primero verificamos si el cliente tiene valets gratis disponibles
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('free_valets')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const freeValets = customer?.free_valets || 0;
+    
+    // Si no tiene valets gratis disponibles, retornamos error
+    if (freeValets <= 0) {
+      return false;
+    }
+    
+    // Actualizamos reduciendo en 1 los valets gratis
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ free_valets: freeValets - 1 })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return true;
+  } catch (error) {
+    console.error('Error using free valet:', error);
     return false;
   }
 };

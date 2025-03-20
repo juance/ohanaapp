@@ -12,24 +12,30 @@ export type Database = {
       customers: {
         Row: {
           created_at: string
+          free_valets: number
           id: string
           loyalty_points: number
           name: string
           phone: string
+          valets_count: number
         }
         Insert: {
           created_at?: string
+          free_valets?: number
           id?: string
           loyalty_points?: number
           name: string
           phone: string
+          valets_count?: number
         }
         Update: {
           created_at?: string
+          free_valets?: number
           id?: string
           loyalty_points?: number
           name?: string
           phone?: string
+          valets_count?: number
         }
         Relationships: []
       }
@@ -151,6 +157,21 @@ export type Database = {
           },
         ]
       }
+      ticket_sequence: {
+        Row: {
+          id: number
+          last_number: number
+        }
+        Insert: {
+          id?: number
+          last_number?: number
+        }
+        Update: {
+          id?: number
+          last_number?: number
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           created_at: string
@@ -219,6 +240,10 @@ export type Database = {
           mercadopago_payments: number
           cuentadni_payments: number
         }[]
+      }
+      get_next_ticket_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
     }
     Enums: {

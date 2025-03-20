@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -95,6 +94,8 @@ export interface Customer {
   createdAt: string;
   lastVisit?: string;
   loyaltyPoints: number;
+  valetsCount: number;
+  freeValets: number;
 }
 
 export interface Expense {

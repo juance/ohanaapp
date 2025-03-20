@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -8,7 +9,12 @@ import {
   PaymentMethod,
   ClientVisit
 } from './types';
-import { getCustomerByPhone, storeCustomer } from './customerService';
+import { 
+  getCustomerByPhone, 
+  storeCustomer, 
+  updateValetsCount, 
+  useFreeValet 
+} from './customerService';
 import { getDailyMetrics, getWeeklyMetrics, getMonthlyMetrics } from './metricsService';
 import { getClientVisitFrequency } from './clientService';
 import { storeExpense, getStoredExpenses } from './expenseService';
@@ -42,35 +48,75 @@ const formatPaymentMethod = (method: PaymentMethod): "cash" | "debit" | "mercado
   return method as "cash" | "debit";
 };
 
+// Función para obtener el siguiente número de ticket desde la base de datos
+const getNextTicketNumber = async (): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_next_ticket_number');
+      
+    if (error) throw error;
+    
+    return data;
+  } catch (error) {
+    console.error('Error getting next ticket number:', error);
+    // Fallback: generate a random number if DB function fails
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+    return `${year}${month}${day}-${random}`;
+  }
+};
+
 // Ticket Functions
 export const storeTicketData = async (
   ticket: {
-    ticketNumber: string;
+    ticketNumber?: string; // Ahora es opcional, lo generamos automáticamente
     totalPrice: number;
     paymentMethod: PaymentMethod;
     valetQuantity: number;
     customDate?: Date;
+    usesFreeValet?: boolean; // Nueva opción para usar valet gratis
   },
   customer: { name: string; phoneNumber: string },
   dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
   laundryOptions: LaundryOption[]
 ): Promise<boolean> => {
   try {
+    // Obtenemos el número de ticket (secuencial)
+    const ticketNumber = await getNextTicketNumber();
+    
     // First, ensure customer exists
     let customerId: string;
-    const existingCustomer = await getCustomerByPhone(customer.phoneNumber);
+    let existingCustomer = await getCustomerByPhone(customer.phoneNumber);
     
     if (existingCustomer) {
       customerId = existingCustomer.id;
     } else {
-      // Create new customer with loyaltyPoints set to 0
+      // Create new customer with default values
       const newCustomer = await storeCustomer({
         name: customer.name,
         phoneNumber: customer.phoneNumber,
-        loyaltyPoints: 0
+        loyaltyPoints: 0,
+        valetsCount: 0,
+        freeValets: 0
       });
       if (!newCustomer) throw new Error('Failed to create customer');
       customerId = newCustomer.id;
+      existingCustomer = newCustomer;
+    }
+    
+    // Si se utiliza un valet gratis, verificamos y actualizamos
+    if (ticket.usesFreeValet) {
+      const success = await useFreeValet(customerId);
+      if (!success) {
+        throw new Error('El cliente no tiene valets gratis disponibles');
+      }
+    } 
+    // Si no es valet gratis y hay valets, actualizamos el conteo
+    else if (ticket.valetQuantity > 0) {
+      await updateValetsCount(customerId, ticket.valetQuantity);
     }
     
     // Prepare date field - use custom date if provided, otherwise use current date
@@ -80,7 +126,7 @@ export const storeTicketData = async (
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
       .insert({
-        ticket_number: ticket.ticketNumber,
+        ticket_number: ticketNumber,
         total: ticket.totalPrice,
         payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
@@ -133,7 +179,7 @@ export const storeTicketData = async (
       
       const newTicket = {
         id: crypto.randomUUID(),
-        ticketNumber: ticket.ticketNumber,
+        ticketNumber: ticket.ticketNumber || `OFFLINE-${Date.now()}`,
         customerName: customer.name,
         phoneNumber: customer.phoneNumber,
         totalPrice: ticket.totalPrice,
@@ -285,5 +331,7 @@ export {
   getWeeklyMetrics,
   getMonthlyMetrics,
   storeExpense,
-  getStoredExpenses
+  getStoredExpenses,
+  updateValetsCount,
+  useFreeValet
 };
