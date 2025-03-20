@@ -8,6 +8,7 @@ import { addFeedback } from '@/lib/feedbackService';
 import { getCustomerByPhone } from '@/lib/customerService';
 import { Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -15,6 +16,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
   const [rating, setRating] = useState(5);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleCustomerSearch = async () => {
     if (!phoneNumber.trim()) {
@@ -74,36 +76,37 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
   };
 
   return (
-    <Card className="w-full mb-6">
-      <CardHeader>
-        <CardTitle>Agregar Comentario de Cliente</CardTitle>
+    <Card className="w-full mb-4 md:mb-6">
+      <CardHeader className={isMobile ? "px-3 py-2" : ""}>
+        <CardTitle className={isMobile ? "text-lg" : ""}>Agregar Comentario</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className={isMobile ? "px-3 pt-0" : ""}>
         <form onSubmit={handleSubmit}>
-          <div className="grid gap-4">
+          <div className="grid gap-3 md:gap-4">
             <div className="flex gap-2">
               <Input
                 placeholder="Teléfono del cliente"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="flex-1"
+                className="flex-1 text-sm md:text-base"
               />
               <Button 
                 type="button" 
                 variant="outline"
                 onClick={handleCustomerSearch}
+                className="text-xs md:text-sm px-2 md:px-3"
               >
                 Buscar
               </Button>
             </div>
             
             <div>
-              <label className="block text-sm font-medium mb-1">Calificación</label>
+              <label className="block text-xs md:text-sm font-medium mb-1">Calificación</label>
               <div className="flex space-x-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
                     key={star}
-                    className={`cursor-pointer h-6 w-6 ${
+                    className={`cursor-pointer ${isMobile ? 'h-5 w-5' : 'h-6 w-6'} ${
                       rating >= star ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
                     }`}
                     onClick={() => setRating(star)}
@@ -116,16 +119,17 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
               placeholder="Comentario del cliente"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              rows={4}
+              rows={isMobile ? 3 : 4}
+              className="text-sm md:text-base"
             />
           </div>
         </form>
       </CardContent>
-      <CardFooter>
+      <CardFooter className={isMobile ? "px-3 pb-3" : ""}>
         <Button 
           onClick={handleSubmit} 
           disabled={isSubmitting || !customerId}
-          className="w-full"
+          className="w-full text-sm md:text-base"
         >
           {isSubmitting ? 'Enviando...' : 'Enviar Comentario'}
         </Button>
