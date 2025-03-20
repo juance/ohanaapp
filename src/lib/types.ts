@@ -150,3 +150,13 @@ export interface LoyaltyReward {
   pointsCost: number;
   isAvailable: boolean;
 }
+
+// Feedback type for customer comments
+export interface CustomerFeedback {
+  id: string;
+  customerId: string;
+  customerName: string;
+  comment: string;
+  rating: number; // 1-5 star rating
+  createdAt: string;
+}
