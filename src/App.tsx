@@ -12,6 +12,7 @@ import TicketAnalysis from './pages/TicketAnalysis';
 import UserManagement from './pages/UserManagement';
 import Metrics from './pages/Metrics';
 import Expenses from './pages/Expenses';
+import Feedback from './pages/Feedback';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
         <Route path="/user-management" element={<UserManagement />} />
         <Route path="/metrics" element={<Metrics />} />
         <Route path="/expenses" element={<Expenses />} />
+        <Route path="/feedback" element={<Feedback />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

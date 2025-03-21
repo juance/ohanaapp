@@ -1,80 +1,191 @@
 
-import React from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  TicketIcon, LayoutDashboardIcon, UserIcon, PackageIcon, 
-  SendIcon, TruckIcon, BarChart3Icon, Settings2Icon, LogOutIcon
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Receipt,
+  Users,
+  Package,
+  Truck,
+  CheckSquare,
+  BarChart,
+  UserCog,
+  PieChart,
+  DollarSign,
+  Menu,
+  X,
+  LogOut,
+  MessageSquare
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { logout } from '@/lib/auth';
-import { toast } from 'sonner';
-
-const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboardIcon className="h-5 w-5" /> },
-  { path: '/tickets', label: 'Tickets', icon: <TicketIcon className="h-5 w-5" /> },
-  { path: '/clients', label: 'Clientes', icon: <UserIcon className="h-5 w-5" /> },
-  { path: '/inventory', label: 'Inventario', icon: <PackageIcon className="h-5 w-5" /> },
-  { path: '/pickup-orders', label: 'Órdenes de Recogida', icon: <SendIcon className="h-5 w-5" /> },
-  { path: '/delivered-orders', label: 'Órdenes Entregadas', icon: <TruckIcon className="h-5 w-5" /> },
-  { path: '/ticket-analysis', label: 'Análisis de Tickets', icon: <BarChart3Icon className="h-5 w-5" /> },
-  { path: '/metrics', label: 'Métricas', icon: <BarChart3Icon className="h-5 w-5" /> },
-  { path: '/expenses', label: 'Gastos', icon: <BarChart3Icon className="h-5 w-5" /> },
-  { path: '/user-management', label: 'Gestión de Usuarios', icon: <Settings2Icon className="h-5 w-5" /> },
-];
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
+  const isMobile = useIsMobile();
   
-  const handleLogout = async () => {
-    try {
-      await logout();
-      localStorage.removeItem('user');
-      toast.success('Sesión cerrada correctamente');
-      navigate('/');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      toast.error('Error al cerrar sesión');
-    }
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
   };
-
-  return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-md transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
-      <div className="flex flex-col h-full py-4">
-        <div className="px-6 py-4">
-          <h1 className="text-xl font-bold text-blue-600">Lavandería Ohana</h1>
-          <p className="text-sm text-gray-500">Sistema de Gestión</p>
-        </div>
+  
+  const handleLogout = () => {
+    // In a real app, this would clear auth state
+    // For now, just redirect to login page
+    window.location.href = '/';
+  };
+  
+  const menuLinks = [
+    { 
+      href: '/dashboard', 
+      label: 'Dashboard', 
+      icon: <LayoutDashboard className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/tickets', 
+      label: 'Tickets', 
+      icon: <Receipt className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/clients', 
+      label: 'Clientes', 
+      icon: <Users className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/inventory', 
+      label: 'Inventario', 
+      icon: <Package className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/pickup-orders', 
+      label: 'Órdenes de recogida', 
+      icon: <Truck className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/delivered-orders', 
+      label: 'Órdenes entregadas', 
+      icon: <CheckSquare className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/ticket-analysis', 
+      label: 'Análisis de tickets', 
+      icon: <BarChart className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/user-management', 
+      label: 'Administración de usuarios', 
+      icon: <UserCog className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/metrics', 
+      label: 'Métricas', 
+      icon: <PieChart className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/expenses', 
+      label: 'Gastos', 
+      icon: <DollarSign className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/feedback', 
+      label: 'Comentarios y Fidelidad', 
+      icon: <MessageSquare className="h-5 w-5 mr-3" /> 
+    }
+  ];
+  
+  // Base navbar JSX
+  const navbarContent = (
+    <>
+      <div className="flex items-center justify-between h-16 px-4 border-b bg-white">
+        <Link to="/dashboard" className="text-lg font-semibold text-primary">
+          LaundrySystem
+        </Link>
         
-        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname === item.path
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              {item.icon}
-              <span className="ml-3">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
-        
-        <div className="px-4 py-2 mt-auto border-t">
-          <Button 
-            variant="ghost" 
-            className="w-full flex items-center justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
-            onClick={handleLogout}
-          >
-            <LogOutIcon className="h-5 w-5 mr-3" />
-            Cerrar Sesión
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={toggleMenu}>
+            {isOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
-        </div>
+        )}
       </div>
-    </aside>
+      
+      <ScrollArea className="flex-1">
+        <nav className="flex-1 px-2 py-4">
+          <ul className="space-y-1">
+            {menuLinks.map((link) => (
+              <li key={link.href}>
+                <Link
+                  to={link.href}
+                  className={`flex items-center px-3 py-2 rounded-md text-sm ${
+                    location.pathname === link.href
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  }`}
+                  onClick={isMobile ? toggleMenu : undefined}
+                >
+                  {link.icon}
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </ScrollArea>
+      
+      <div className="p-4 border-t">
+        <Button 
+          variant="destructive" 
+          className="w-full flex items-center justify-center"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Cerrar Sesión
+        </Button>
+      </div>
+    </>
+  );
+  
+  // Return different layouts based on screen size
+  if (isMobile) {
+    return (
+      <>
+        <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b">
+          <div className="flex items-center justify-between h-16 px-4">
+            <Link to="/dashboard" className="text-lg font-semibold text-primary">
+              LaundrySystem
+            </Link>
+            <Button variant="ghost" size="icon" onClick={toggleMenu}>
+              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
+        </div>
+        
+        {/* Mobile drawer menu that slides in */}
+        <div 
+          className={`fixed inset-0 z-30 transform ${
+            isOpen ? 'translate-x-0' : '-translate-x-full'
+          } transition-transform duration-300 ease-in-out pt-16 bg-white`}
+        >
+          <div className="h-full flex flex-col">
+            {navbarContent}
+          </div>
+        </div>
+        
+        {/* Add top padding to content when on mobile */}
+        <div className="h-16"></div>
+      </>
+    );
+  }
+
+  // Desktop sidebar
+  return (
+    <div className="fixed top-0 left-0 bottom-0 w-64 bg-white border-r z-30 flex flex-col">
+      {navbarContent}
+    </div>
   );
 };
 

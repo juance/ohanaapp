@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomerFeedback } from '@/lib/types';
-import { getAllFeedback, deleteFeedback } from '@/lib/feedbackService';
+import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { Star, Trash2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -15,7 +15,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   useEffect(() => {
     const loadFeedback = async () => {
       setIsLoading(true);
-      const data = await getAllFeedback();
+      const data = await getFeedback();
       setFeedback(data);
       setIsLoading(false);
     };

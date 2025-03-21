@@ -4,12 +4,17 @@ import { CustomerFeedback } from './types';
 
 // Check if the customer_feedback table exists, if not, create it
 const ensureFeedbackTableExists = async () => {
-  const { error } = await supabase.rpc('check_feedback_table_exists');
+  // We'll use a different approach to check and create tables
+  // by directly querying for the table in the database schema
+  const { data, error } = await supabase
+    .from('customer_feedback')
+    .select('id')
+    .limit(1);
   
-  if (error) {
-    console.error('Error checking for feedback table:', error);
-    // Table might not exist, we'll create it via RPC
-    const { error: createError } = await supabase.rpc('create_feedback_table');
+  if (error && error.code === '42P01') { // Table doesn't exist error code
+    console.error('Feedback table does not exist, attempting to create it');
+    // Create table via direct SQL (using service_role would be better but using what we have)
+    const { error: createError } = await supabase.rpc('create_feedback_table_if_not_exists');
     if (createError) {
       console.error('Error creating feedback table:', createError);
     }
@@ -21,8 +26,10 @@ ensureFeedbackTableExists();
 
 export const getFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
-    // Using RPC to get feedback safely
-    const { data, error } = await supabase.rpc('get_feedback');
+    const { data, error } = await supabase
+      .from('customer_feedback')
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (error) {
       console.error('Error fetching feedback:', error);
@@ -30,13 +37,13 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     }
     
     // Transform the data to match our application structure
-    return (data || []).map((item: any) => ({
+    return (data || []).map((item) => ({
       id: item.id,
       customerId: item.customer_id,
       customerName: item.customer_name,
       comment: item.comment,
       rating: item.rating,
-      createdAt: item.created_at
+      createdAt: new Date(item.created_at).toLocaleDateString('es-ES')
     }));
   } catch (error) {
     console.error('Error in getFeedback:', error);
@@ -46,13 +53,14 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
 
 export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
   try {
-    // Using RPC to add feedback safely
-    const { data, error } = await supabase.rpc('add_feedback', {
-      p_customer_id: feedback.customerId,
-      p_customer_name: feedback.customerName,
-      p_comment: feedback.comment,
-      p_rating: feedback.rating
-    });
+    const { error } = await supabase
+      .from('customer_feedback')
+      .insert({
+        customer_id: feedback.customerId,
+        customer_name: feedback.customerName,
+        comment: feedback.comment,
+        rating: feedback.rating
+      });
     
     if (error) {
       console.error('Error adding feedback:', error);
@@ -68,10 +76,10 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
 
 export const deleteFeedback = async (id: string): Promise<boolean> => {
   try {
-    // Using RPC to delete feedback safely
-    const { error } = await supabase.rpc('delete_feedback', {
-      p_feedback_id: id
-    });
+    const { error } = await supabase
+      .from('customer_feedback')
+      .delete()
+      .eq('id', id);
     
     if (error) {
       console.error('Error deleting feedback:', error);

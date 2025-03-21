@@ -15,6 +15,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
   const [comment, setComment] = useState('');
   const [rating, setRating] = useState(5);
   const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isMobile = useIsMobile();
 
@@ -28,10 +29,12 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       const customer = await getCustomerByPhone(phoneNumber);
       if (customer) {
         setCustomerId(customer.id);
+        setCustomerName(customer.name);
         toast.success(`Cliente encontrado: ${customer.name}`);
       } else {
         toast.error('Cliente no encontrado');
         setCustomerId(null);
+        setCustomerName('');
       }
     } catch (error) {
       console.error('Error al buscar cliente:', error);
@@ -57,19 +60,25 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     try {
       const result = await addFeedback({
         customerId,
+        customerName,
         comment,
         rating
       });
       
       if (result) {
+        toast.success('Comentario agregado correctamente');
         setPhoneNumber('');
         setComment('');
         setRating(5);
         setCustomerId(null);
+        setCustomerName('');
         onFeedbackAdded();
+      } else {
+        toast.error('Error al agregar comentario');
       }
     } catch (error) {
       console.error('Error al enviar comentario:', error);
+      toast.error('Error al enviar comentario');
     } finally {
       setIsSubmitting(false);
     }
