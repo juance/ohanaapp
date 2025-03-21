@@ -4,20 +4,14 @@ import { CustomerFeedback } from './types';
 
 // Check if the customer_feedback table exists, if not, create it
 const ensureFeedbackTableExists = async () => {
-  // We'll use a different approach to check and create tables
-  // by directly querying for the table in the database schema
-  const { data, error } = await supabase
-    .from('customer_feedback')
-    .select('id')
-    .limit(1);
-  
-  if (error && error.code === '42P01') { // Table doesn't exist error code
-    console.error('Feedback table does not exist, attempting to create it');
-    // Create table via direct SQL (using service_role would be better but using what we have)
-    const { error: createError } = await supabase.rpc('create_feedback_table_if_not_exists');
-    if (createError) {
-      console.error('Error creating feedback table:', createError);
+  try {
+    // Call the RPC function to create the table if it doesn't exist
+    const { error } = await supabase.rpc('create_feedback_table_if_not_exists');
+    if (error) {
+      console.error('Error ensuring feedback table exists:', error);
     }
+  } catch (error) {
+    console.error('Error in ensureFeedbackTableExists:', error);
   }
 };
 
@@ -37,7 +31,7 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     }
     
     // Transform the data to match our application structure
-    return (data || []).map((item) => ({
+    return (data || []).map((item: any) => ({
       id: item.id,
       customerId: item.customer_id,
       customerName: item.customer_name,

@@ -9,6 +9,41 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      customer_feedback: {
+        Row: {
+          comment: string
+          created_at: string
+          customer_id: string
+          customer_name: string
+          id: string
+          rating: number
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          customer_id: string
+          customer_name: string
+          id?: string
+          rating: number
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          customer_id?: string
+          customer_name?: string
+          id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_feedback_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           created_at: string
@@ -227,6 +262,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_feedback_table_if_not_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_metrics: {
         Args: {
           start_date: string

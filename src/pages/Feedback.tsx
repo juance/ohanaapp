@@ -87,8 +87,8 @@ const Feedback = () => {
                 
                 {customer ? (
                   <LoyaltyInfo 
-                    valetsCount={customer.valets_count || 0} 
-                    freeValets={customer.free_valets || 0} 
+                    valetsCount={customer.valetsCount || 0} 
+                    freeValets={customer.freeValets || 0} 
                   />
                 ) : (
                   <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-100">
