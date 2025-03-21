@@ -20,7 +20,7 @@ const Tickets = () => {
               </Link>
               <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
               <p className="text-gray-500">Sistema de Tickets</p>
-              <p className="text-xs text-blue-500 mt-1">Los tickets se generan con numeración secuencial comenzando desde 00000001</p>
+              <p className="text-xs text-blue-500 mt-1">Los tickets se generan con numeración secuencial (por ejemplo: 00000001)</p>
             </div>
           </header>
           

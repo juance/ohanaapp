@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Ticket,
@@ -56,16 +55,14 @@ const getNextTicketNumber = async (): Promise<string> => {
       
     if (error) throw error;
     
-    return data;
+    // Asegurar que el formato sea siempre 8 dígitos con ceros a la izquierda (por ejemplo: 00000001)
+    // La función get_next_ticket_number debe devolver un número entero
+    return data.toString().padStart(8, '0');
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     // Fallback: generate a random number if DB function fails
-    const now = new Date();
-    const year = now.getFullYear().toString().slice(-2);
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-    return `${year}${month}${day}-${random}`;
+    const randomNum = Math.floor(Math.random() * 100000000);
+    return randomNum.toString().padStart(8, '0');
   }
 };
 
@@ -86,6 +83,7 @@ export const storeTicketData = async (
   try {
     // Obtenemos el número de ticket (secuencial)
     const ticketNumber = await getNextTicketNumber();
+    console.log("Número de ticket generado:", ticketNumber);
     
     // First, ensure customer exists
     let customerId: string;
