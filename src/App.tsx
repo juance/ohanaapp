@@ -1,59 +1,37 @@
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense, lazy } from "react";
-import LoadingState from "./components/dashboard/LoadingState";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Tickets from './pages/Tickets';
+import NotFound from './pages/NotFound';
+import Index from './pages/Index';
+import Clients from './pages/Clients';
+import Inventory from './pages/Inventory';
+import PickupOrders from './pages/PickupOrders';
+import DeliveredOrders from './pages/DeliveredOrders';
+import TicketAnalysis from './pages/TicketAnalysis';
+import UserManagement from './pages/UserManagement';
+import Metrics from './pages/Metrics';
+import Expenses from './pages/Expenses';
 
-// Lazy load pages for better performance
-const Index = lazy(() => import("./pages/Index"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Tickets = lazy(() => import("./pages/Tickets"));
-const PickupOrders = lazy(() => import("./pages/PickupOrders"));
-const DeliveredOrders = lazy(() => import("./pages/DeliveredOrders"));
-const Inventory = lazy(() => import("./pages/Inventory"));
-const UserManagement = lazy(() => import("./pages/UserManagement"));
-const Expenses = lazy(() => import("./pages/Expenses"));
-const Clients = lazy(() => import("./pages/Clients"));
-const TicketAnalysis = lazy(() => import("./pages/TicketAnalysis"));
-
-// Create a client with default options
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false, // Prevents refetching when changing tabs
-      retry: 1, // Limit retries on failure
-    },
-  },
-});
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Suspense fallback={<LoadingState />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/orders/pickup" element={<PickupOrders />} />
-            <Route path="/orders/delivered" element={<DeliveredOrders />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/analysis" element={<TicketAnalysis />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/pickup-orders" element={<PickupOrders />} />
+        <Route path="/delivered-orders" element={<DeliveredOrders />} />
+        <Route path="/ticket-analysis" element={<TicketAnalysis />} />
+        <Route path="/user-management" element={<UserManagement />} />
+        <Route path="/metrics" element={<Metrics />} />
+        <Route path="/expenses" element={<Expenses />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Router>
+  );
+};
 
 export default App;

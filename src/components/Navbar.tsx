@@ -1,205 +1,80 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+
+import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
-  Home, 
-  Package, 
-  ShoppingBag, 
-  Truck, 
-  Users, 
-  Menu, 
-  X, 
-  DollarSign,
-  UserCircle,
-  BarChart
+  TicketIcon, LayoutDashboardIcon, UserIcon, PackageIcon, 
+  SendIcon, TruckIcon, BarChart3Icon, Settings2Icon, LogOutIcon
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { logout } from '@/lib/auth';
+import { toast } from 'sonner';
+
+const navItems = [
+  { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboardIcon className="h-5 w-5" /> },
+  { path: '/tickets', label: 'Tickets', icon: <TicketIcon className="h-5 w-5" /> },
+  { path: '/clients', label: 'Clientes', icon: <UserIcon className="h-5 w-5" /> },
+  { path: '/inventory', label: 'Inventario', icon: <PackageIcon className="h-5 w-5" /> },
+  { path: '/pickup-orders', label: 'Órdenes de Recogida', icon: <SendIcon className="h-5 w-5" /> },
+  { path: '/delivered-orders', label: 'Órdenes Entregadas', icon: <TruckIcon className="h-5 w-5" /> },
+  { path: '/ticket-analysis', label: 'Análisis de Tickets', icon: <BarChart3Icon className="h-5 w-5" /> },
+  { path: '/metrics', label: 'Métricas', icon: <BarChart3Icon className="h-5 w-5" /> },
+  { path: '/expenses', label: 'Gastos', icon: <BarChart3Icon className="h-5 w-5" /> },
+  { path: '/user-management', label: 'Gestión de Usuarios', icon: <Settings2Icon className="h-5 w-5" /> },
+];
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const location = useLocation();
+  const navigate = useNavigate();
   
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+  const handleLogout = async () => {
+    try {
+      await logout();
+      localStorage.removeItem('user');
+      toast.success('Sesión cerrada correctamente');
+      navigate('/');
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      toast.error('Error al cerrar sesión');
+    }
   };
-  
-  const closeMenu = () => {
-    setIsOpen(false);
-  };
-  
-  return (
-    <>
-      {/* Mobile nav */}
-      <div className="md:hidden bg-white border-b">
-        <div className="flex items-center justify-between p-4">
-          <Link to="/" className="flex items-center space-x-2">
-            <ShoppingBag className="w-6 h-6 text-laundry-500" />
-            <span className="text-xl font-bold">LaundryPro</span>
-          </Link>
-          <button
-            onClick={toggleMenu}
-            className="p-2 text-gray-600 rounded-md hover:bg-gray-100"
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-        
-        {isOpen && (
-          <div className="p-4 space-y-2">
-            <Link
-              to="/dashboard"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <Home className="w-5 h-5 mr-2 text-gray-500" />
-              Dashboard
-            </Link>
-            <Link
-              to="/tickets"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <ShoppingBag className="w-5 h-5 mr-2 text-gray-500" />
-              Tickets
-            </Link>
-            <Link
-              to="/orders/pickup"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <Package className="w-5 h-5 mr-2 text-gray-500" />
-              Órdenes para Retirar
-            </Link>
-            <Link
-              to="/orders/delivered"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <Truck className="w-5 h-5 mr-2 text-gray-500" />
-              Órdenes Entregadas
-            </Link>
-            <Link
-              to="/analysis"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <BarChart className="w-5 h-5 mr-2 text-gray-500" />
-              Análisis de Tickets
-            </Link>
-            <Link
-              to="/inventory"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <Package className="w-5 h-5 mr-2 text-gray-500" />
-              Inventario
-            </Link>
-            <Link
-              to="/expenses"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <DollarSign className="w-5 h-5 mr-2 text-gray-500" />
-              Gastos
-            </Link>
-            <Link
-              to="/clients"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <UserCircle className="w-5 h-5 mr-2 text-gray-500" />
-              Clientes
-            </Link>
-            <Link
-              to="/users"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-              onClick={closeMenu}
-            >
-              <Users className="w-5 h-5 mr-2 text-gray-500" />
-              Usuarios
-            </Link>
-          </div>
-        )}
-      </div>
 
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-10 flex-col hidden w-64 h-screen bg-white border-r md:flex">
-        <div className="flex items-center justify-between p-4 border-b">
-          <Link to="/" className="flex items-center space-x-2">
-            <ShoppingBag className="w-6 h-6 text-laundry-500" />
-            <span className="text-xl font-bold">LaundryPro</span>
-          </Link>
+  return (
+    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-md transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out">
+      <div className="flex flex-col h-full py-4">
+        <div className="px-6 py-4">
+          <h1 className="text-xl font-bold text-blue-600">Lavandería Ohana</h1>
+          <p className="text-sm text-gray-500">Sistema de Gestión</p>
         </div>
         
-        <div className="p-4 h-full overflow-auto">
-          <nav className="space-y-2 text-sm">
+        <nav className="flex-1 px-3 space-y-1 overflow-y-auto">
+          {navItems.map((item) => (
             <Link
-              to="/dashboard"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
+              key={item.path}
+              to={item.path}
+              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname === item.path
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'text-gray-700 hover:bg-gray-100'
+              }`}
             >
-              <Home className="w-5 h-5 mr-2 text-gray-500" />
-              Dashboard
+              {item.icon}
+              <span className="ml-3">{item.label}</span>
             </Link>
-            <Link
-              to="/tickets"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <ShoppingBag className="w-5 h-5 mr-2 text-gray-500" />
-              Tickets
-            </Link>
-            <Link
-              to="/orders/pickup"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <Package className="w-5 h-5 mr-2 text-gray-500" />
-              Órdenes para Retirar
-            </Link>
-            <Link
-              to="/orders/delivered"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <Truck className="w-5 h-5 mr-2 text-gray-500" />
-              Órdenes Entregadas
-            </Link>
-            <Link
-              to="/analysis"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <BarChart className="w-5 h-5 mr-2 text-gray-500" />
-              Análisis de Tickets
-            </Link>
-            <Link
-              to="/inventory"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <Package className="w-5 h-5 mr-2 text-gray-500" />
-              Inventario
-            </Link>
-            <Link
-              to="/expenses"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <DollarSign className="w-5 h-5 mr-2 text-gray-500" />
-              Gastos
-            </Link>
-            <Link
-              to="/clients"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <UserCircle className="w-5 h-5 mr-2 text-gray-500" />
-              Clientes
-            </Link>
-            <Link
-              to="/users"
-              className="flex items-center p-2 text-gray-900 rounded-lg hover:bg-gray-100"
-            >
-              <Users className="w-5 h-5 mr-2 text-gray-500" />
-              Usuarios
-            </Link>
-          </nav>
+          ))}
+        </nav>
+        
+        <div className="px-4 py-2 mt-auto border-t">
+          <Button 
+            variant="ghost" 
+            className="w-full flex items-center justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={handleLogout}
+          >
+            <LogOutIcon className="h-5 w-5 mr-3" />
+            Cerrar Sesión
+          </Button>
         </div>
-      </aside>
-    </>
+      </div>
+    </aside>
   );
 };
 

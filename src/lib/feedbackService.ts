@@ -1,86 +1,86 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { CustomerFeedback } from './types';
 
-// Get all customer feedback
-export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
+// Check if the customer_feedback table exists, if not, create it
+const ensureFeedbackTableExists = async () => {
+  const { error } = await supabase.rpc('check_feedback_table_exists');
+  
+  if (error) {
+    console.error('Error checking for feedback table:', error);
+    // Table might not exist, we'll create it via RPC
+    const { error: createError } = await supabase.rpc('create_feedback_table');
+    if (createError) {
+      console.error('Error creating feedback table:', createError);
+    }
+  }
+};
+
+// Initialize the table check
+ensureFeedbackTableExists();
+
+export const getFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
-    const { data, error } = await supabase
-      .from('customer_feedback')
-      .select(`
-        *,
-        customers (name)
-      `)
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
+    // Using RPC to get feedback safely
+    const { data, error } = await supabase.rpc('get_feedback');
     
-    return data.map((item: any) => ({
+    if (error) {
+      console.error('Error fetching feedback:', error);
+      return [];
+    }
+    
+    // Transform the data to match our application structure
+    return (data || []).map((item: any) => ({
       id: item.id,
       customerId: item.customer_id,
-      customerName: item.customers?.name || 'Cliente Anónimo',
+      customerName: item.customer_name,
       comment: item.comment,
       rating: item.rating,
-      createdAt: new Date(item.created_at).toLocaleDateString()
+      createdAt: item.created_at
     }));
   } catch (error) {
-    console.error('Error al obtener comentarios:', error);
-    toast.error('Error al cargar los comentarios de clientes');
+    console.error('Error in getFeedback:', error);
     return [];
   }
 };
 
-// Add new customer feedback
-export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'customerName' | 'createdAt'>): Promise<CustomerFeedback | null> => {
+export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
-      .from('customer_feedback')
-      .insert({
-        customer_id: feedback.customerId,
-        comment: feedback.comment,
-        rating: feedback.rating
-      })
-      .select(`
-        *,
-        customers (name)
-      `)
-      .single();
-      
-    if (error) throw error;
+    // Using RPC to add feedback safely
+    const { data, error } = await supabase.rpc('add_feedback', {
+      p_customer_id: feedback.customerId,
+      p_customer_name: feedback.customerName,
+      p_comment: feedback.comment,
+      p_rating: feedback.rating
+    });
     
-    toast.success('Comentario agregado con éxito');
+    if (error) {
+      console.error('Error adding feedback:', error);
+      return false;
+    }
     
-    return {
-      id: data.id,
-      customerId: data.customer_id,
-      customerName: data.customers?.name || 'Cliente Anónimo',
-      comment: data.comment,
-      rating: data.rating,
-      createdAt: new Date(data.created_at).toLocaleDateString()
-    };
+    return true;
   } catch (error) {
-    console.error('Error al agregar comentario:', error);
-    toast.error('Error al agregar comentario');
-    return null;
+    console.error('Error in addFeedback:', error);
+    return false;
   }
 };
 
-// Delete customer feedback
 export const deleteFeedback = async (id: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('customer_feedback')
-      .delete()
-      .eq('id', id);
-      
-    if (error) throw error;
+    // Using RPC to delete feedback safely
+    const { error } = await supabase.rpc('delete_feedback', {
+      p_feedback_id: id
+    });
     
-    toast.success('Comentario eliminado con éxito');
+    if (error) {
+      console.error('Error deleting feedback:', error);
+      return false;
+    }
+    
     return true;
   } catch (error) {
-    console.error('Error al eliminar comentario:', error);
-    toast.error('Error al eliminar comentario');
+    console.error('Error in deleteFeedback:', error);
     return false;
   }
 };
