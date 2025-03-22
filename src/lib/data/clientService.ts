@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ClientVisit } from './types';
-import { getFromLocalStorage } from './dataService';
+import { ClientVisit } from '../types';
+import { getFromLocalStorage } from './coreUtils';
+import { TICKETS_STORAGE_KEY } from './coreUtils';
 
 // Client Visit Frequency
 export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
@@ -56,7 +57,7 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     
     // Fallback calculation using localStorage
     try {
-      const localTickets = getFromLocalStorage<any>('laundry_tickets');
+      const localTickets = getFromLocalStorage<any>(TICKETS_STORAGE_KEY);
       
       // Group by phone number
       const clientsMap = new Map<string, { name: string; visits: string[]; lastVisit: string }>();

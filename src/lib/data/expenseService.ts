@@ -1,9 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Expense } from './types';
-import { getFromLocalStorage, saveToLocalStorage } from './dataService';
-
-const EXPENSES_STORAGE_KEY = 'laundry_expenses';
+import { Expense } from '../types';
+import { getFromLocalStorage, saveToLocalStorage, EXPENSES_STORAGE_KEY } from './coreUtils';
 
 export const storeExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Promise<boolean> => {
   try {

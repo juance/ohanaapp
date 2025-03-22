@@ -1,6 +1,7 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from './types';
-import { getStoredTickets } from './dataService';
+import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
+import { getStoredTickets } from './ticketService';
 
 export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMetrics> => {
   try {
