@@ -35,7 +35,7 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
     const html = `
       <html>
         <head>
-          <title>Ticket #${ticket.ticketNumber}</title>
+          <title>Ticket</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -88,12 +88,6 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
               text-align: center;
               margin-top: 20px;
               font-size: 12px;
-            }
-            .ticket-number {
-              font-size: 16px;
-              font-weight: bold;
-              text-align: center;
-              margin-top: 10px;
             }
             .divider {
               border-top: 1px dotted #000;
@@ -154,10 +148,6 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
             <div class="info-row">
               <div class="info-label">Importe:</div>
               <div>$${ticket.totalPrice.toLocaleString()}</div>
-            </div>
-            
-            <div class="ticket-number">
-              Ticket Canasto N°${ticket.ticketNumber}
             </div>
             
             <div class="footer">
@@ -244,10 +234,6 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
             <span className="font-medium">Importe:</span>
             <span>${ticket.totalPrice.toLocaleString()}</span>
           </div>
-        </div>
-        
-        <div className="text-center font-bold my-4">
-          Ticket Canasto N°{ticket.ticketNumber}
         </div>
         
         <div className="flex justify-between mt-6">

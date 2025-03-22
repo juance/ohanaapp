@@ -32,10 +32,6 @@ export const storeTicketData = async (
   laundryOptions: LaundryOption[]
 ): Promise<boolean> => {
   try {
-    // Get the ticket number (sequential)
-    const ticketNumber = await getNextTicketNumber();
-    console.log("Ticket number generated:", ticketNumber);
-    
     // First, ensure customer exists
     let customerId: string;
     let existingCustomer = await getCustomerByPhone(customer.phoneNumber);
@@ -75,7 +71,6 @@ export const storeTicketData = async (
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
       .insert({
-        ticket_number: ticketNumber,
         total: ticket.totalPrice,
         payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
@@ -128,7 +123,6 @@ export const storeTicketData = async (
       
       const newTicket = {
         id: crypto.randomUUID(),
-        ticketNumber: ticket.ticketNumber || `OFFLINE-${Date.now()}`,
         customerName: customer.name,
         phoneNumber: customer.phoneNumber,
         totalPrice: ticket.totalPrice,

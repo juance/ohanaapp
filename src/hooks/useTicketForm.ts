@@ -138,7 +138,7 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
               
           const ticketForPrint: Ticket = {
             id: crypto.randomUUID(),
-            ticketNumber: String(Date.now()).slice(-8), // Temporary number, will be replaced by actual DB value
+            ticketNumber: '',
             clientName: customerName,
             phoneNumber,
             services,

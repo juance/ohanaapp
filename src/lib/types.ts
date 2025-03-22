@@ -1,3 +1,4 @@
+
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -23,7 +24,7 @@ export interface LaundryService {
 
 export interface Ticket {
   id: string;
-  ticketNumber: string;
+  ticketNumber?: string;
   clientName: string;
   phoneNumber: string;
   services: LaundryService[];

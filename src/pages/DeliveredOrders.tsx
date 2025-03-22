@@ -37,7 +37,6 @@ const DeliveredOrders = () => {
   
   const filteredTickets = searchQuery.trim() 
     ? tickets.filter(ticket => 
-        ticket.ticketNumber.includes(searchQuery) ||
         ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         ticket.phoneNumber.includes(searchQuery)
       )
@@ -97,7 +96,7 @@ const DeliveredOrders = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por ticket, nombre o teléfono"
+                  placeholder="Buscar por nombre o teléfono"
                   className="pl-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -138,9 +137,6 @@ const DeliveredOrders = () => {
                         </div>
                       </div>
                       <div className="flex justify-between items-center mt-3">
-                        <Button size="sm" variant="secondary" className="bg-blue-600 text-white hover:bg-blue-700 text-xs">
-                          {ticket.ticketNumber}
-                        </Button>
                         <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
                       </div>
                     </CardContent>
@@ -172,10 +168,6 @@ const DeliveredOrders = () => {
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Teléfono:</p>
                               <p className="font-medium">{ticket.phoneNumber}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm text-gray-500">Número de ticket:</p>
-                              <p className="font-medium">{ticket.ticketNumber}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Fecha de creación:</p>

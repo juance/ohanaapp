@@ -16,7 +16,7 @@ import { es } from 'date-fns/locale';
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [searchFilter, setSearchFilter] = useState<'ticket' | 'name' | 'phone'>('ticket');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
@@ -46,7 +46,7 @@ const PickupOrders = () => {
     if (ticket) {
       // Format WhatsApp URL
       const whatsappMessage = encodeURIComponent(
-        `Hola ${ticket.clientName}, su pedido #${ticket.ticketNumber} está listo para retirar en Lavandería Ohana.`
+        `Hola ${ticket.clientName}, su pedido está listo para retirar en Lavandería Ohana.`
       );
       const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
       
@@ -54,7 +54,7 @@ const PickupOrders = () => {
       window.open(whatsappUrl, '_blank');
       
       toast.success(`Notificación enviada a ${ticket.clientName}`, {
-        description: `Se notificó que su pedido #${ticket.ticketNumber} está listo para retirar.`
+        description: `Se notificó que su pedido está listo para retirar.`
       });
     } else {
       toast.error('Seleccione un ticket primero');
@@ -111,7 +111,7 @@ const PickupOrders = () => {
       <!DOCTYPE html>
       <html>
       <head>
-        <title>Ticket #${ticket.ticketNumber}</title>
+        <title>Ticket</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -159,7 +159,6 @@ const PickupOrders = () => {
         </div>
         
         <div class="ticket-info">
-          <p><strong>Número de ticket:</strong> ${ticket.ticketNumber}</p>
           <p><strong>Cliente:</strong> ${ticket.clientName}</p>
           <p><strong>Teléfono:</strong> ${ticket.phoneNumber}</p>
           <p><strong>Fecha:</strong> ${formattedDate}</p>
@@ -207,7 +206,7 @@ const PickupOrders = () => {
     }
 
     // Compose a detailed WhatsApp message
-    let message = `🧼 *LAVANDERÍA OHANA - TICKET #${ticket.ticketNumber}* 🧼\n\n`;
+    let message = `🧼 *LAVANDERÍA OHANA - TICKET* 🧼\n\n`;
     message += `Estimado/a ${ticket.clientName},\n\n`;
     message += `Su pedido está listo para retirar.\n\n`;
     
@@ -232,9 +231,7 @@ const PickupOrders = () => {
   
   const filteredTickets = searchQuery.trim() 
     ? tickets.filter(ticket => {
-        if (searchFilter === 'ticket') {
-          return ticket.ticketNumber.includes(searchQuery);
-        } else if (searchFilter === 'name') {
+        if (searchFilter === 'name') {
           return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
         } else { // 'phone'
           return ticket.phoneNumber.includes(searchQuery);
@@ -346,13 +343,6 @@ const PickupOrders = () => {
             
             <div className="flex space-x-2 mb-4">
               <Button 
-                variant={searchFilter === 'ticket' ? "secondary" : "outline"} 
-                className={searchFilter === 'ticket' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
-                onClick={() => setSearchFilter('ticket')}
-              >
-                Ticket
-              </Button>
-              <Button 
                 variant={searchFilter === 'name' ? "secondary" : "outline"} 
                 className={searchFilter === 'name' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
                 onClick={() => setSearchFilter('name')}
@@ -372,7 +362,7 @@ const PickupOrders = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder={`Buscar por ${searchFilter === 'ticket' ? 'número de ticket' : searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
+                  placeholder={`Buscar por ${searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
                   className="pl-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -396,9 +386,6 @@ const PickupOrders = () => {
                       <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
                       <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
                       <div className="mt-2 flex justify-between items-center">
-                        <Badge className="bg-blue-600 hover:bg-blue-700">
-                          {ticket.ticketNumber}
-                        </Badge>
                         <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
                       </div>
                     </div>
@@ -430,10 +417,6 @@ const PickupOrders = () => {
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Teléfono:</p>
                               <p className="font-medium">{ticket.phoneNumber}</p>
-                            </div>
-                            <div className="space-y-1">
-                              <p className="text-sm text-gray-500">Número de ticket:</p>
-                              <p className="font-medium">{ticket.ticketNumber}</p>
                             </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Fecha:</p>

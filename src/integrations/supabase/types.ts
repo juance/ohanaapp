@@ -216,7 +216,7 @@ export type Database = {
           id: string
           payment_method: Database["public"]["Enums"]["payment_method"]
           status: string
-          ticket_number: string
+          ticket_number: string | null
           total: number
           updated_at: string
           valet_quantity: number
@@ -229,7 +229,7 @@ export type Database = {
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
-          ticket_number: string
+          ticket_number?: string | null
           total: number
           updated_at?: string
           valet_quantity?: number
@@ -242,7 +242,7 @@ export type Database = {
           id?: string
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
-          ticket_number?: string
+          ticket_number?: string | null
           total?: number
           updated_at?: string
           valet_quantity?: number
