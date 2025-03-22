@@ -59,6 +59,21 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
         </div>
       </div>
       
+      {/* Display services with quantities */}
+      <div className="mb-4">
+        {ticket.services.map((service, index) => (
+          <div key={index} className="flex justify-between items-center my-1">
+            <div className="flex items-center">
+              <div className="w-4 h-4 border border-gray-400 mr-2 bg-blue-500 text-white flex items-center justify-center">✓</div>
+              <span>{service.name}</span>
+            </div>
+            {'quantity' in service && service.quantity > 1 && (
+              <span className="text-sm font-medium">x{service.quantity}</span>
+            )}
+          </div>
+        ))}
+      </div>
+      
       <div className="mb-4">
         {selectedOptions.map((option, index) => (
           <div key={index} className="flex items-center my-1">
@@ -73,7 +88,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Cantidad:</span>
-          <span>{ticket.services.reduce((sum, service) => sum + 1, 0)}</span>
+          <span>{ticket.services.reduce((sum, service) => sum + ('quantity' in service ? service.quantity : 1), 0)}</span>
         </div>
         
         <div className="flex justify-between">

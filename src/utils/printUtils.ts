@@ -44,6 +44,16 @@ export const generateTicketPrintHTML = (ticket: Ticket, selectedOptions: Laundry
           }
           .service-option {
             margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+          }
+          .service-name {
+            display: flex;
+            align-items: center;
+          }
+          .service-quantity {
+            font-size: 12px;
+            font-weight: bold;
           }
           .checkbox {
             display: inline-block;
@@ -110,10 +120,26 @@ export const generateTicketPrintHTML = (ticket: Ticket, selectedOptions: Laundry
           </div>
           
           <div style="margin-top: 10px;">
+            ${ticket.services.map(service => `
+              <div class="service-option">
+                <div class="service-name">
+                  <span class="checkbox checked"></span>
+                  ${service.name}
+                </div>
+                ${('quantity' in service && service.quantity > 1) ? `
+                  <div class="service-quantity">x${service.quantity}</div>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="margin-top: 10px;">
             ${selectedOptions.map(option => `
               <div class="service-option">
-                <span class="checkbox checked"></span>
-                ${translateOption(option)}
+                <div class="service-name">
+                  <span class="checkbox checked"></span>
+                  ${translateOption(option)}
+                </div>
               </div>
             `).join('')}
           </div>
@@ -122,7 +148,7 @@ export const generateTicketPrintHTML = (ticket: Ticket, selectedOptions: Laundry
           
           <div class="info-row">
             <div class="info-label">Cantidad:</div>
-            <div>${ticket.services.reduce((sum, service) => sum + 1, 0)}</div>
+            <div>${ticket.services.reduce((sum, service) => sum + ('quantity' in service ? service.quantity : 1), 0)}</div>
           </div>
           
           <div class="info-row">
