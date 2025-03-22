@@ -151,7 +151,7 @@ const Clients = () => {
                     <Button onClick={handleAddClient} disabled={isAddingClient}>
                       {isAddingClient ? (
                         <>
-                          <Loading size="sm" className="mr-2" />
+                          <Loading className="mr-2" />
                           Agregando...
                         </>
                       ) : (

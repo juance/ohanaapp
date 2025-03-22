@@ -26,7 +26,7 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value
+      value: Number(value) // Convert to number to fix type error
     }));
   };
   
@@ -35,7 +35,8 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
     
     return revenueData.map(item => ({
       name: item.month,
-      income: parseFloat((item.revenue || 0).toFixed(2)),
+      // Ensure we're working with numbers before arithmetic operations
+      income: Number(parseFloat(String(item.revenue || 0)).toFixed(2)),
       expenses: 0 // Adding default expenses value to match LineChart data type
     }));
   };
@@ -45,11 +46,11 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
     
     // Get top 10 items by quantity
     return Object.entries(distribution)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => Number(b[1]) - Number(a[1]))
       .slice(0, 10)
       .map(([name, value]) => ({
         name,
-        total: value
+        total: Number(value) // Convert to number to fix type error
       }));
   };
 
