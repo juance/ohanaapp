@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -216,8 +215,9 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
         // Create a ticket object for printing
         if (onTicketGenerated) {
           const services = activeTab === 'valet' 
-            ? [{ name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
+            ? [{ id: crypto.randomUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
             : dryCleaningItemsData.map(item => ({
+                id: crypto.randomUUID(),
                 name: item.name,
                 price: item.price,
                 quantity: item.quantity
