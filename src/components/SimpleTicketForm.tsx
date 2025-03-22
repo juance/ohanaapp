@@ -70,7 +70,7 @@ const PaymentMethodSelector = ({
   </div>
 );
 
-const SimpleTicketForm = () => {
+const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void }) => {
   // Customer information
   const [customerName, setCustomerName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -256,6 +256,32 @@ const SimpleTicketForm = () => {
           toast.success('Ticket de valet gratis generado correctamente');
         } else {
           toast.success('Ticket generado correctamente');
+        }
+        
+        // Create a ticket object for printing
+        if (onTicketGenerated) {
+          const services = activeTab === 'valet' 
+            ? [{ name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
+            : dryCleaningItemsData.map(item => ({
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+              }));
+              
+          const ticketForPrint: Ticket = {
+            id: crypto.randomUUID(),
+            ticketNumber: String(Date.now()).slice(-8), // Temporary number, will be replaced by actual DB value
+            clientName: customerName,
+            phoneNumber,
+            services,
+            paymentMethod,
+            totalPrice,
+            status: 'ready',
+            createdAt: date.toISOString(),
+            updatedAt: date.toISOString()
+          };
+          
+          onTicketGenerated(ticketForPrint, laundryOptions);
         }
         
         // Reset form
@@ -613,3 +639,4 @@ const SimpleTicketForm = () => {
 };
 
 export default SimpleTicketForm;
+
