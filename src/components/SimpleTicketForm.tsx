@@ -1,74 +1,29 @@
-// We'll create a smaller component for the price display to make the form more maintainable
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, Gift, AlertCircle } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
 import { storeTicketData } from '@/lib/dataService';
 import { getCurrentUser } from '@/lib/auth';
-import { PaymentMethod } from '@/lib/types';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import DryCleaningOptions, { SelectedDryCleaningItem, dryCleaningItems } from './DryCleaningOptions';
+import { PaymentMethod, Ticket, LaundryOption, Customer } from '@/lib/types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SelectedDryCleaningItem, dryCleaningItems } from './DryCleaningOptions';
+
+// Import refactored components
+import { PriceDisplay } from './ticket/PriceDisplay';
+import { PaymentMethodSelector } from './ticket/PaymentMethodSelector';
+import { CustomerLookup } from './ticket/CustomerLookup';
+import { LaundryOptions } from './ticket/LaundryOptions';
+import { ValetTab } from './ticket/ValetTab';
+import { DryCleaningTab } from './ticket/DryCleaningTab';
+import { CustomerForm } from './ticket/CustomerForm';
+import { DateSelector } from './ticket/DateSelector';
+import { FreeValetDialog } from './ticket/FreeValetDialog';
+import { Instructions } from './ticket/Instructions';
 
 // Import the customer service directly
 import { getCustomerByPhone } from '@/lib/dataService';
-
-// Price Display Component to reduce complexity
-const PriceDisplay = ({ totalPrice }: { totalPrice: number }) => (
-  <div>
-    <Label>Precio Total</Label>
-    <div className="text-2xl font-bold mt-1">${totalPrice.toLocaleString()}</div>
-  </div>
-);
-
-// Payment Method Selector Component
-const PaymentMethodSelector = ({ 
-  value, 
-  onChange 
-}: { 
-  value: PaymentMethod; 
-  onChange: (value: PaymentMethod) => void 
-}) => (
-  <div>
-    <Label htmlFor="paymentMethod">Método de Pago</Label>
-    <Select 
-      value={value} 
-      onValueChange={onChange}
-    >
-      <SelectTrigger id="paymentMethod" className="mt-1">
-        <SelectValue placeholder="Método de pago" />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="cash">Efectivo</SelectItem>
-        <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-        <SelectItem value="mercadopago">Mercado Pago</SelectItem>
-        <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
-      </SelectContent>
-    </Select>
-  </div>
-);
 
 const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void }) => {
   // Customer information
@@ -104,7 +59,7 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
   const [activeTab, setActiveTab] = useState('valet');
 
   // Estado para valets gratis
-  const [foundCustomer, setFoundCustomer] = useState<any>(null);
+  const [foundCustomer, setFoundCustomer] = useState<Customer | null>(null);
   const [useFreeValet, setUseFreeValet] = useState(false);
   const [showFreeValetDialog, setShowFreeValetDialog] = useState(false);
   
@@ -235,7 +190,7 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
         : [];
       
       // Collect laundry options
-      const laundryOptions = [];
+      const laundryOptions: LaundryOption[] = [];
       if (separateByColor) laundryOptions.push('separateByColor');
       if (delicateDry) laundryOptions.push('delicateDry');
       if (stainRemoval) laundryOptions.push('stainRemoval');
@@ -310,24 +265,6 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
     }
   };
   
-  // Función para formatear el número de teléfono con el formato de Argentina
-  const formatPhoneForDisplay = (phone: string) => {
-    if (!phone) return '';
-    
-    // Si ya tiene el formato completo, lo mostramos tal cual
-    if (phone.startsWith('+549')) {
-      return phone;
-    }
-    
-    // Si tiene algún otro formato con +, reemplazar el prefijo
-    if (phone.startsWith('+')) {
-      return '+549' + phone.substring(1);
-    }
-    
-    // Si no tiene +, agregar +549
-    return '+549' + phone;
-  };
-  
   return (
     <div className="grid gap-8 md:grid-cols-12">
       <div className="md:col-span-8">
@@ -340,111 +277,26 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Customer information section */}
               <div className="space-y-4">
-                <div className="flex flex-col gap-4 sm:flex-row">
-                  <div className="flex-1">
-                    <Label htmlFor="customerName">Nombre del Cliente</Label>
-                    <Input 
-                      id="customerName" 
-                      value={customerName} 
-                      onChange={(e) => setCustomerName(e.target.value)} 
-                      placeholder="Nombre completo"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <Label htmlFor="phoneNumber">Teléfono</Label>
-                    <Input 
-                      id="phoneNumber" 
-                      value={phoneNumber} 
-                      onChange={(e) => setPhoneNumber(e.target.value)} 
-                      placeholder="+549 número"
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
+                <CustomerForm 
+                  customerName={customerName}
+                  setCustomerName={setCustomerName}
+                  phoneNumber={phoneNumber}
+                  setPhoneNumber={setPhoneNumber}
+                />
                 
-                <div className="flex items-end gap-2">
-                  <div className="flex-1">
-                    <Label htmlFor="lookupPhone">Buscar Cliente</Label>
-                    <Input 
-                      id="lookupPhone" 
-                      value={lookupPhone} 
-                      onChange={(e) => setLookupPhone(e.target.value)} 
-                      placeholder="Buscar por teléfono"
-                      className="mt-1"
-                    />
-                  </div>
-                  <Button 
-                    type="button" 
-                    onClick={handleCustomerLookup}
-                    variant="outline"
-                  >
-                    Buscar
-                  </Button>
-                </div>
-                
-                {/* Mostrar información de valets del cliente si fue encontrado */}
-                {foundCustomer && activeTab === 'valet' && (
-                  <div className="bg-blue-50 p-3 rounded border border-blue-200">
-                    <h3 className="font-medium text-blue-800 flex items-center mb-1">
-                      <AlertCircle className="h-4 w-4 mr-1" />
-                      Información del Cliente
-                    </h3>
-                    <p className="text-sm text-blue-700">
-                      Valets acumulados: <strong>{foundCustomer.valetsCount}</strong>
-                    </p>
-                    {foundCustomer.freeValets > 0 && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <Gift className="h-4 w-4 text-blue-700" />
-                        <p className="text-sm font-bold text-blue-700">
-                          Valets gratis disponibles: {foundCustomer.freeValets}
-                        </p>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm"
-                          className="ml-auto h-7"
-                          onClick={() => setShowFreeValetDialog(true)}
-                        >
-                          Usar valet gratis
-                        </Button>
-                      </div>
-                    )}
-                    {useFreeValet && (
-                      <div className="mt-2 p-2 bg-green-100 rounded text-sm text-green-800 font-medium">
-                        ✓ Usando 1 valet gratis en este ticket
-                      </div>
-                    )}
-                  </div>
-                )}
+                <CustomerLookup 
+                  lookupPhone={lookupPhone}
+                  setLookupPhone={setLookupPhone}
+                  handleCustomerLookup={handleCustomerLookup}
+                  foundCustomer={foundCustomer}
+                  activeTab={activeTab}
+                  useFreeValet={useFreeValet}
+                  setShowFreeValetDialog={setShowFreeValetDialog}
+                />
                 
                 <Separator className="my-4" />
                 
-                {/* Date Selection (now for everyone) */}
-                <div className="space-y-2">
-                  <Label htmlFor="date">Fecha</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="date"
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={date}
-                        onSelect={(date) => date && setDate(date)}
-                        initialFocus
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                <DateSelector date={date} setDate={setDate} />
                 
                 <Separator className="my-4" />
                 
@@ -461,103 +313,36 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
                   
                   {/* Valet Tab Content */}
                   <TabsContent value="valet" className="mt-4">
-                    <div className="flex flex-col gap-4 sm:flex-row items-end">
-                      <div className="w-full sm:w-1/3">
-                        <Label htmlFor="valetQuantity">Cantidad de Valets</Label>
-                        <Input 
-                          id="valetQuantity" 
-                          type="number" 
-                          min="1"
-                          value={valetQuantity}
-                          onChange={(e) => setValetQuantity(parseInt(e.target.value) || 1)}
-                          className="mt-1"
-                          disabled={useFreeValet} // Deshabilitar si se usa valet gratis
-                        />
-                      </div>
-                      <div className="w-full sm:w-1/3">
-                        <PaymentMethodSelector 
-                          value={paymentMethod} 
-                          onChange={handlePaymentMethodChange} 
-                        />
-                      </div>
-                      <div className="w-full sm:w-1/3">
-                        <PriceDisplay totalPrice={totalPrice} />
-                      </div>
-                    </div>
-                    
-                    {/* Laundry Options */}
-                    <div className="mt-6">
-                      <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="separateByColor" 
-                            checked={separateByColor} 
-                            onCheckedChange={setSeparateByColor}
-                          />
-                          <Label htmlFor="separateByColor">Separar por Color</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="delicateDry" 
-                            checked={delicateDry} 
-                            onCheckedChange={setDelicateDry}
-                          />
-                          <Label htmlFor="delicateDry">Secado Delicado</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="stainRemoval" 
-                            checked={stainRemoval} 
-                            onCheckedChange={setStainRemoval}
-                          />
-                          <Label htmlFor="stainRemoval">Quitamanchas</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="bleach" 
-                            checked={bleach} 
-                            onCheckedChange={setBleach}
-                          />
-                          <Label htmlFor="bleach">Blanquear</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="noFragrance" 
-                            checked={noFragrance} 
-                            onCheckedChange={setNoFragrance}
-                          />
-                          <Label htmlFor="noFragrance">Sin Perfume</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Switch 
-                            id="noDry" 
-                            checked={noDry} 
-                            onCheckedChange={setNoDry}
-                          />
-                          <Label htmlFor="noDry">Sin Secar</Label>
-                        </div>
-                      </div>
-                    </div>
+                    <ValetTab 
+                      valetQuantity={valetQuantity}
+                      setValetQuantity={setValetQuantity}
+                      paymentMethod={paymentMethod}
+                      handlePaymentMethodChange={handlePaymentMethodChange}
+                      totalPrice={totalPrice}
+                      useFreeValet={useFreeValet}
+                      separateByColor={separateByColor}
+                      setSeparateByColor={setSeparateByColor}
+                      delicateDry={delicateDry}
+                      setDelicateDry={setDelicateDry}
+                      stainRemoval={stainRemoval}
+                      setStainRemoval={setStainRemoval}
+                      bleach={bleach}
+                      setBleach={setBleach}
+                      noFragrance={noFragrance}
+                      setNoFragrance={setNoFragrance}
+                      noDry={noDry}
+                      setNoDry={setNoDry}
+                    />
                   </TabsContent>
                   
                   {/* Dry Cleaning Tab Content */}
                   <TabsContent value="tintoreria" className="mt-4">
-                    <div className="flex flex-col gap-4 sm:flex-row items-end mb-6">
-                      <div className="w-full sm:w-1/2">
-                        <PaymentMethodSelector 
-                          value={paymentMethod} 
-                          onChange={handlePaymentMethodChange} 
-                        />
-                      </div>
-                      <div className="w-full sm:w-1/2">
-                        <PriceDisplay totalPrice={totalPrice} />
-                      </div>
-                    </div>
-                    
-                    <DryCleaningOptions 
-                      selectedItems={selectedDryCleaningItems}
-                      onItemsChange={setSelectedDryCleaningItems}
+                    <DryCleaningTab 
+                      paymentMethod={paymentMethod}
+                      handlePaymentMethodChange={handlePaymentMethodChange}
+                      totalPrice={totalPrice}
+                      selectedDryCleaningItems={selectedDryCleaningItems}
+                      setSelectedDryCleaningItems={setSelectedDryCleaningItems}
                     />
                   </TabsContent>
                 </Tabs>
@@ -573,70 +358,19 @@ const SimpleTicketForm = ({ onTicketGenerated }: { onTicketGenerated?: (ticket: 
       
       {/* Instructions panel */}
       <div className="md:col-span-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-xl">Instrucciones</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-medium">Uso del Formulario:</h3>
-              <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
-                <li>Complete los datos del cliente.</li>
-                <li>Puede buscar clientes existentes por teléfono.</li>
-                <li>Seleccione la fecha del ticket.</li>
-                <li>Seleccione el tipo de servicio (valet o tintorería).</li>
-                <li>Para valet, especifique la cantidad y opciones.</li>
-                <li>Para tintorería, seleccione los artículos.</li>
-                <li>Seleccione el método de pago.</li>
-                <li>El precio se calcula automáticamente.</li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-medium">Recordatorios:</h3>
-              <ul className="ml-5 mt-2 list-disc text-muted-foreground text-sm space-y-1">
-                <li>El valet tiene un costo de $5.000 cada uno.</li>
-                <li>Los precios de tintorería varían según el artículo.</li>
-                <li>Verificar siempre la información antes de generar el ticket.</li>
-                <li className="text-blue-700 font-semibold">Por cada 9 valets, el cliente recibe 1 valet gratis.</li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+        <Instructions />
       </div>
 
       {/* Dialog de confirmación para usar valet gratis */}
-      <AlertDialog open={showFreeValetDialog} onOpenChange={setShowFreeValetDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Usar Valet Gratis</AlertDialogTitle>
-            <AlertDialogDescription>
-              {foundCustomer?.name} tiene {foundCustomer?.freeValets} valet{foundCustomer?.freeValets !== 1 ? 's' : ''} gratis disponible{foundCustomer?.freeValets !== 1 ? 's' : ''}.
-              ¿Desea utilizar 1 valet gratis para este ticket?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setShowFreeValetDialog(false);
-              setUseFreeValet(false);
-            }}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => {
-              setUseFreeValet(true);
-              setShowFreeValetDialog(false);
-              // Al usar valet gratis, forzamos cantidad 1
-              setValetQuantity(1);
-              toast.success('Valet gratis aplicado al ticket');
-            }}>
-              Usar Valet Gratis
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <FreeValetDialog 
+        open={showFreeValetDialog}
+        onOpenChange={setShowFreeValetDialog}
+        foundCustomer={foundCustomer}
+        setUseFreeValet={setUseFreeValet}
+        setValetQuantity={setValetQuantity}
+      />
     </div>
   );
 };
 
 export default SimpleTicketForm;
-
