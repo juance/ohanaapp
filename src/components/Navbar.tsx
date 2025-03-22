@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -9,7 +8,6 @@ import {
   Truck,
   CheckSquare,
   BarChart,
-  UserCog,
   PieChart,
   DollarSign,
   Menu,
@@ -71,11 +69,6 @@ const Navbar = () => {
       href: '/ticket-analysis', 
       label: 'Análisis de tickets', 
       icon: <BarChart className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/user-management', 
-      label: 'Administración de usuarios', 
-      icon: <UserCog className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/metrics', 

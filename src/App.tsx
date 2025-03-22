@@ -10,7 +10,6 @@ import Inventory from './pages/Inventory';
 import PickupOrders from './pages/PickupOrders';
 import DeliveredOrders from './pages/DeliveredOrders';
 import TicketAnalysis from './pages/TicketAnalysis';
-import UserManagement from './pages/UserManagement';
 import Metrics from './pages/Metrics';
 import Expenses from './pages/Expenses';
 import Feedback from './pages/Feedback';
@@ -31,7 +30,6 @@ const App = () => {
           <Route path="/pickup-orders" element={<PickupOrders />} />
           <Route path="/delivered-orders" element={<DeliveredOrders />} />
           <Route path="/ticket-analysis" element={<TicketAnalysis />} />
-          <Route path="/user-management" element={<UserManagement />} />
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/feedback" element={<Feedback />} />
