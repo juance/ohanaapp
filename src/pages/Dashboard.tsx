@@ -1,72 +1,60 @@
 
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React from 'react';
 import Navbar from '@/components/Navbar';
+import { MetricsCards } from '@/components/dashboard/MetricsCards';
+import { ChartSection } from '@/components/dashboard/ChartSection';
+import { LoadingState } from '@/components/dashboard/LoadingState';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import MetricsCards from '@/components/dashboard/MetricsCards';
-import ChartSection from '@/components/dashboard/ChartSection';
-import LoadingState from '@/components/dashboard/LoadingState';
-import { MetricsPeriod } from '@/hooks/useMetricsData';
+import { ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const Dashboard = () => {
-  const [viewType, setViewType] = useState<MetricsPeriod>('daily');
+interface DashboardProps {
+  embedded?: boolean;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
+  const { data, isLoading, error } = useDashboardData();
   
-  // Use our custom hook
-  const { 
-    loading, 
-    metrics, 
-    expenses,
-    frequentClients, 
-    chartData,
-    refreshData 
-  } = useDashboardData(viewType);
+  const content = (
+    <>
+      {!embedded && (
+        <header className="mb-8">
+          <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
+            <ArrowLeft className="mr-1 h-4 w-4" />
+            <span>Volver al Inicio</span>
+          </Link>
+          <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
+          <p className="text-gray-500">Panel de Control</p>
+        </header>
+      )}
+      
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
+          <p className="text-red-700">{error.message}</p>
+        </div>
+      ) : (
+        <>
+          <MetricsCards data={data} />
+          <ChartSection data={data} />
+        </>
+      )}
+    </>
+  );
   
-  // If data is loading, show loading state
-  if (loading) {
-    return <LoadingState />;
+  if (embedded) {
+    return content;
   }
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
       
-      <div className="flex-1 md:ml-64">
-        <div className="container mx-auto p-6 md:p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="mt-1 text-muted-foreground">
-              Monitorea el rendimiento y analíticas de tu lavandería
-            </p>
-          </div>
-          
-          <Tabs defaultValue="daily" className="mb-8" onValueChange={(value) => setViewType(value as MetricsPeriod)}>
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-              <h2 className="text-xl font-semibold">Métricas de Rendimiento</h2>
-              <TabsList className="grid w-full max-w-[400px] grid-cols-3">
-                <TabsTrigger value="daily">Diario</TabsTrigger>
-                <TabsTrigger value="weekly">Semanal</TabsTrigger>
-                <TabsTrigger value="monthly">Mensual</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <TabsContent value="daily" className="mt-6 animate-fade-in">
-              <MetricsCards viewType="daily" metrics={metrics} expenses={expenses} />
-            </TabsContent>
-            
-            <TabsContent value="weekly" className="mt-6 animate-fade-in">
-              <MetricsCards viewType="weekly" metrics={metrics} expenses={expenses} />
-            </TabsContent>
-            
-            <TabsContent value="monthly" className="mt-6 animate-fade-in">
-              <MetricsCards viewType="monthly" metrics={metrics} expenses={expenses} />
-            </TabsContent>
-          </Tabs>
-          
-          <ChartSection 
-            viewType={viewType} 
-            chartData={chartData} 
-            frequentClients={frequentClients} 
-          />
+      <div className="flex-1 md:ml-64 p-6">
+        <div className="container mx-auto pt-6">
+          {content}
         </div>
       </div>
     </div>

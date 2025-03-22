@@ -57,7 +57,9 @@ const getNextTicketNumber = async (): Promise<string> => {
     
     // Asegurar que el formato sea siempre 8 dígitos con ceros a la izquierda (por ejemplo: 00000001)
     // La función get_next_ticket_number debe devolver un número entero
-    return data.toString().padStart(8, '0');
+    const formattedNumber = data.toString().padStart(8, '0');
+    console.log('Número de ticket generado:', formattedNumber);
+    return formattedNumber;
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     // Fallback: generate a random number if DB function fails

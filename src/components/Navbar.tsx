@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -13,7 +14,8 @@ import {
   Menu,
   X,
   LogOut,
-  MessageSquare
+  MessageSquare,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,24 +38,14 @@ const Navbar = () => {
   
   const menuLinks = [
     { 
-      href: '/dashboard', 
-      label: 'Dashboard', 
-      icon: <LayoutDashboard className="h-5 w-5 mr-3" /> 
+      href: '/administration', 
+      label: 'Administración', 
+      icon: <Settings className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/tickets', 
       label: 'Tickets', 
       icon: <Receipt className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/clients', 
-      label: 'Clientes', 
-      icon: <Users className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/inventory', 
-      label: 'Inventario', 
-      icon: <Package className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/pickup-orders', 
@@ -64,16 +56,6 @@ const Navbar = () => {
       href: '/delivered-orders', 
       label: 'Órdenes entregadas', 
       icon: <CheckSquare className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/ticket-analysis', 
-      label: 'Análisis de tickets', 
-      icon: <BarChart className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/metrics', 
-      label: 'Métricas', 
-      icon: <PieChart className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/expenses', 

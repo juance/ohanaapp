@@ -13,6 +13,7 @@ import TicketAnalysis from './pages/TicketAnalysis';
 import Metrics from './pages/Metrics';
 import Expenses from './pages/Expenses';
 import Feedback from './pages/Feedback';
+import Administration from './pages/Administration';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => {
           <Route path="/metrics" element={<Metrics />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/administration" element={<Administration />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
