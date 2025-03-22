@@ -5,8 +5,10 @@ import { ClientVisit } from '@/lib/types';
 
 interface UseClientDataReturn {
   loading: boolean;
+  isLoading: boolean;
   error: Error | null;
   frequentClients: ClientVisit[];
+  clients: ClientVisit[];
   refreshData: () => Promise<void>;
 }
 
@@ -38,8 +40,10 @@ export const useClientData = (): UseClientDataReturn => {
   
   return {
     loading,
+    isLoading: loading,
     error,
     frequentClients,
+    clients: frequentClients,
     refreshData
   };
 };

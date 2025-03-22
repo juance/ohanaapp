@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { getStoredExpenses } from '@/lib/expenseService';
+import { getStoredExpenses } from '@/lib/dataService';
 
 interface UseExpensesDataReturn {
   loading: boolean;

@@ -23,12 +23,7 @@ export {
 } from './data/syncService';
 
 // Export customer service
-export { 
-  getCustomerByPhone, 
-  storeCustomer, 
-  updateValetsCount,
-  useFreeValet
-} from './data/customerService';
+export * from './data/customerService';
 
 // Export client service
 export {
@@ -43,7 +38,4 @@ export {
 } from './data/metricsService';
 
 // Export expense service
-export {
-  storeExpense,
-  getStoredExpenses
-} from './data/expenseService';
+export * from './data/expenseService';

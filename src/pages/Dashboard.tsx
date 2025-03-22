@@ -1,9 +1,9 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { MetricsCards } from '@/components/dashboard/MetricsCards';
-import { ChartSection } from '@/components/dashboard/ChartSection';
-import { LoadingState } from '@/components/dashboard/LoadingState';
+import MetricsCards from '@/components/dashboard/MetricsCards';
+import ChartSection from '@/components/dashboard/ChartSection';
+import LoadingState from '@/components/dashboard/LoadingState';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';

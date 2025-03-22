@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
@@ -6,7 +5,7 @@ import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
 import LoyaltyInfo from '@/components/LoyaltyInfo';
 import { useQuery } from '@tanstack/react-query';
-import { getCustomerByPhone } from '@/lib/customerService';
+import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';

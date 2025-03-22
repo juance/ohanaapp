@@ -1,10 +1,10 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { DateRangeSelector } from '@/components/analysis/DateRangeSelector';
-import { MetricsSection } from '@/components/analysis/MetricsSection';
-import { ChartTabs } from '@/components/analysis/ChartTabs';
-import { ActionButtons } from '@/components/analysis/ActionButtons';
+import DateRangeSelector from '@/components/analysis/DateRangeSelector';
+import MetricsSection from '@/components/analysis/MetricsSection';
+import ChartTabs from '@/components/analysis/ChartTabs';
+import ActionButtons from '@/components/analysis/ActionButtons';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';

@@ -1,4 +1,3 @@
-
 // We'll create a smaller component for the price display to make the form more maintainable
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +17,6 @@ import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { storeTicketData } from '@/lib/dataService';
-import { getCustomerByPhone } from '@/lib/customerService';
 import { getCurrentUser } from '@/lib/auth';
 import { PaymentMethod } from '@/lib/types';
 import { 
