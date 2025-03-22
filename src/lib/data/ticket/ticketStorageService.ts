@@ -7,7 +7,12 @@ import {
   TICKETS_STORAGE_KEY,
   formatPaymentMethod 
 } from '../coreUtils';
-import { getCustomerByPhone, storeCustomer, updateValetsCount, useFreeValet } from '../customerService';
+import { 
+  getCustomerByPhone, 
+  storeCustomer, 
+  updateValetsCount, 
+  useFreeValet 
+} from '../customerService';
 import { getNextTicketNumber } from './ticketNumberService';
 
 /**
