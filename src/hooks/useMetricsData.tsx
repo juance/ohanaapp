@@ -11,25 +11,25 @@ import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
 interface UseMetricsDataReturn {
-  loading: boolean;
+  data: any;
+  isLoading: boolean;
   error: Error | null;
-  metrics: {
-    daily: DailyMetrics | null;
-    weekly: WeeklyMetrics | null;
-    monthly: MonthlyMetrics | null;
-  };
+  dateRange: { from: Date; to: Date };
+  setDateRange: (range: { from: Date; to: Date }) => void;
   refreshData: () => Promise<void>;
 }
 
-export const useMetricsData = (period: MetricsPeriod = 'daily'): UseMetricsDataReturn => {
-  const [loading, setLoading] = useState<boolean>(true);
+export const useMetricsData = (): UseMetricsDataReturn => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const [dailyMetrics, setDailyMetrics] = useState<DailyMetrics | null>(null);
-  const [weeklyMetrics, setWeeklyMetrics] = useState<WeeklyMetrics | null>(null);
-  const [monthlyMetrics, setMonthlyMetrics] = useState<MonthlyMetrics | null>(null);
+  const [data, setData] = useState<any>(null);
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(new Date().setDate(new Date().getDate() - 30)),
+    to: new Date()
+  });
   
   const refreshData = async () => {
-    setLoading(true);
+    setIsLoading(true);
     setError(null);
     
     try {
@@ -37,35 +37,51 @@ export const useMetricsData = (period: MetricsPeriod = 'daily'): UseMetricsDataR
       await syncOfflineData();
       
       // Fetch data based on selected period
-      const [daily, weekly, monthly] = await Promise.all([
-        getDailyMetrics(),
-        getWeeklyMetrics(),
-        getMonthlyMetrics()
-      ]);
+      const period = determinePeriod(dateRange.from, dateRange.to);
+      let metricsData;
       
-      setDailyMetrics(daily);
-      setWeeklyMetrics(weekly);
-      setMonthlyMetrics(monthly);
+      switch(period) {
+        case 'daily':
+          metricsData = await getDailyMetrics();
+          break;
+        case 'weekly':
+          metricsData = await getWeeklyMetrics();
+          break;
+        case 'monthly':
+          metricsData = await getMonthlyMetrics();
+          break;
+        default:
+          metricsData = await getDailyMetrics();
+      }
+      
+      setData(metricsData);
     } catch (err) {
       console.error("Error fetching metrics data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
+  };
+  
+  // Determine period based on date range
+  const determinePeriod = (from: Date, to: Date): MetricsPeriod => {
+    const diffDays = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 7) return 'daily';
+    if (diffDays <= 31) return 'weekly';
+    return 'monthly';
   };
   
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [dateRange.from, dateRange.to]);
   
   return {
-    loading,
+    data,
+    isLoading,
     error,
-    metrics: {
-      daily: dailyMetrics,
-      weekly: weeklyMetrics,
-      monthly: monthlyMetrics
-    },
+    dateRange,
+    setDateRange,
     refreshData
   };
 };

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -47,8 +48,10 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
         <div className="space-y-6">
           <MetricsCards data={data} />
           <RevenueChart data={data} />
-          <ServiceBreakdownChart data={data} />
-          <ClientTypeChart data={data} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ServiceBreakdownChart data={data} />
+            <ClientTypeChart data={data} />
+          </div>
         </div>
       )}
     </>
