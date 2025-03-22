@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Ticket } from './types';
@@ -20,6 +21,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     const tickets = data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
       clientName: ticket.customers?.name || '',
       phoneNumber: ticket.customers?.phone || '',
       services: [], // This will be populated by getTicketServices
@@ -60,6 +62,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     const tickets = data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
       clientName: ticket.customers?.name || '',
       phoneNumber: ticket.customers?.phone || '',
       services: [], // This will be populated by getTicketServices

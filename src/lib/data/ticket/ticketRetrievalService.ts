@@ -32,6 +32,7 @@ export const getStoredTickets = async (startDate?: Date, endDate?: Date): Promis
     return data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
       customerName: ticket.customers?.name || '',
       phoneNumber: ticket.customers?.phone || '',
       totalPrice: ticket.total,

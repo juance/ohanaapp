@@ -104,6 +104,11 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
             </div>
             
             <div class="info-row">
+              <div class="info-label">N° Canasto:</div>
+              <div>${ticket.basketTicketNumber || 'N/A'}</div>
+            </div>
+            
+            <div class="info-row">
               <div class="info-label">Fecha:</div>
               <div>${format(new Date(ticket.createdAt), 'dd/MM/yyyy')}</div>
             </div>
@@ -181,6 +186,11 @@ const TicketPrint: React.FC<TicketPrintProps> = ({ ticket, selectedOptions, onCl
         </div>
         
         <div className="space-y-2 mb-4">
+          <div className="flex justify-between">
+            <span className="font-medium">N° Canasto:</span>
+            <span>{ticket.basketTicketNumber || 'N/A'}</span>
+          </div>
+          
           <div className="flex justify-between">
             <span className="font-medium">Fecha:</span>
             <span>{format(new Date(ticket.createdAt), 'dd/MM/yyyy')}</span>

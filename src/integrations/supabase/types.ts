@@ -209,6 +209,7 @@ export type Database = {
       }
       tickets: {
         Row: {
+          basket_ticket_number: number | null
           created_at: string
           customer_id: string
           date: string
@@ -222,6 +223,7 @@ export type Database = {
           valet_quantity: number
         }
         Insert: {
+          basket_ticket_number?: number | null
           created_at?: string
           customer_id: string
           date?: string
@@ -235,6 +237,7 @@ export type Database = {
           valet_quantity?: number
         }
         Update: {
+          basket_ticket_number?: number | null
           created_at?: string
           customer_id?: string
           date?: string
@@ -262,6 +265,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_basket_ticket_number: {
+        Args: {
+          ticket_id: string
+        }
+        Returns: number
+      }
       create_feedback_table_if_not_exists: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -279,6 +288,10 @@ export type Database = {
           mercadopago_payments: number
           cuentadni_payments: number
         }[]
+      }
+      get_next_basket_ticket_number: {
+        Args: Record<PropertyKey, never>
+        Returns: number
       }
       get_next_ticket_number: {
         Args: Record<PropertyKey, never>

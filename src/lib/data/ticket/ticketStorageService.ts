@@ -83,6 +83,16 @@ export const storeTicketData = async (
     
     if (ticketError) throw ticketError;
     
+    // Assign a basket ticket number to the new ticket
+    try {
+      await supabase.rpc('assign_basket_ticket_number', {
+        ticket_id: ticketData.id
+      });
+    } catch (basketNumberError) {
+      console.error('Error assigning basket ticket number:', basketNumberError);
+      // Continue even if basket number assignment fails
+    }
+    
     // Insert dry cleaning items if any
     if (dryCleaningItems.length > 0) {
       const itemsToInsert = dryCleaningItems.map(item => ({
@@ -131,7 +141,8 @@ export const storeTicketData = async (
         dryCleaningItems: dryCleaningItems,
         laundryOptions: laundryOptions,
         createdAt: ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString(),
-        pendingSync: true
+        pendingSync: true,
+        basketTicketNumber: Math.floor(Math.random() * 1000) + 1 // Fallback random basket number
       };
       
       localTickets.push(newTicket);

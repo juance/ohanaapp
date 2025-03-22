@@ -25,6 +25,7 @@ export interface LaundryService {
 export interface Ticket {
   id: string;
   ticketNumber?: string;
+  basketTicketNumber?: number;
   clientName: string;
   phoneNumber: string;
   services: LaundryService[];
