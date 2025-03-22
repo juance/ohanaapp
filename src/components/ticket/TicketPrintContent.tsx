@@ -67,7 +67,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
               <div className="w-4 h-4 border border-gray-400 mr-2 bg-blue-500 text-white flex items-center justify-center">✓</div>
               <span>{service.name}</span>
             </div>
-            {'quantity' in service && service.quantity > 1 && (
+            {('quantity' in service && typeof service.quantity === 'number' && service.quantity > 1) && (
               <span className="text-sm font-medium">x{service.quantity}</span>
             )}
           </div>
@@ -88,7 +88,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Cantidad:</span>
-          <span>{ticket.services.reduce((sum, service) => sum + ('quantity' in service ? service.quantity : 1), 0)}</span>
+          <span>{ticket.services.reduce((sum, service) => sum + ('quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1), 0)}</span>
         </div>
         
         <div className="flex justify-between">
