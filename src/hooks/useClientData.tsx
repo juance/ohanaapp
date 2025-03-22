@@ -20,7 +20,19 @@ export const useClientData = (): UseClientDataReturn => {
   const fetchClientData = async () => {
     try {
       const clients = await getClientVisitFrequency();
-      setFrequentClients(clients);
+      // Enhance client data with default values for any missing properties
+      const enhancedClients = clients.map(client => ({
+        id: client.id || client.phoneNumber, // Use phone as fallback ID
+        phoneNumber: client.phoneNumber,
+        clientName: client.clientName,
+        visitCount: client.visitCount || 0,
+        lastVisit: client.lastVisit || '',
+        // Add default values for properties that might be missing
+        valetsCount: client.valetsCount || 0, 
+        freeValets: client.freeValets || 0,
+        visitFrequency: `${client.visitCount || 0} visits`
+      }));
+      setFrequentClients(enhancedClients);
     } catch (err) {
       console.error("Error fetching client data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching client data'));

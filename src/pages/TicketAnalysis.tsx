@@ -1,13 +1,13 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
+import { ArrowLeft } from 'lucide-react';
 import DateRangeSelector from '@/components/analysis/DateRangeSelector';
 import MetricsSection from '@/components/analysis/MetricsSection';
 import ChartTabs from '@/components/analysis/ChartTabs';
 import ActionButtons from '@/components/analysis/ActionButtons';
-import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
-import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
@@ -15,14 +15,18 @@ interface TicketAnalysisProps {
 
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
   const {
-    metrics,
-    chartData,
+    data,
     dateRange,
     setDateRange,
     isLoading,
     error,
-    exportData
+    exportData,
   } = useTicketAnalytics();
+
+  // Create an onRangeChange handler for DateRangeSelector
+  const handleRangeChange = (range: { from: Date; to: Date }) => {
+    setDateRange(range);
+  };
   
   const content = (
     <>
@@ -32,21 +36,35 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
             <ArrowLeft className="mr-1 h-4 w-4" />
             <span>Volver al Inicio</span>
           </Link>
-          <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
-          <p className="text-gray-500">Análisis de Tickets</p>
+          <h1 className="text-2xl font-bold text-blue-600">Análisis de Tickets</h1>
+          <p className="text-gray-500">Ver datos y tendencias de tickets</p>
         </header>
       )}
       
-      <div className="space-y-6">
-        <div className="flex flex-wrap gap-4 items-center justify-between">
-          <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
-          <ActionButtons exportData={exportData} />
-        </div>
-        
-        <MetricsSection metrics={metrics} isLoading={isLoading} error={error} />
-        
-        <ChartTabs chartData={chartData} isLoading={isLoading} error={error} />
+      <div className="flex flex-col md:flex-row gap-4 mb-6 items-start justify-between">
+        <DateRangeSelector 
+          dateRange={dateRange} 
+          setDateRange={setDateRange} 
+          onRangeChange={handleRangeChange}
+        />
+        <ActionButtons onExport={exportData} />
       </div>
+      
+      {isLoading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : error ? (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
+          <p className="text-red-700">{error.message}</p>
+        </div>
+      ) : (
+        <>
+          <MetricsSection data={data} />
+          <ChartTabs data={data} />
+        </>
+      )}
     </>
   );
   

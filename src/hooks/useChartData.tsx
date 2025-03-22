@@ -37,25 +37,28 @@ export const useChartData = (
       ];
     } else if (period === 'weekly' && metrics.weekly) {
       // Convert weekly data to chart format
-      return Object.entries(metrics.weekly.salesByDay).map(([day, total]) => ({
+      return Object.entries(metrics.weekly.salesByDay || {}).map(([day, total]) => ({
         name: day.substring(0, 3),  // Abbreviate day names
         total
       }));
     } else if (period === 'monthly' && metrics.monthly) {
       // Convert monthly data to chart format
-      return Object.entries(metrics.monthly.salesByWeek).map(([week, total]) => ({
+      return Object.entries(metrics.monthly.salesByWeek || {}).map(([week, total]) => ({
         name: week,
         total
       }));
     }
     
-    return [];
+    // Default fallback data if no matching period data
+    return [
+      { name: 'No Data', total: 0 }
+    ];
   }, [period, metrics]);
   
   const lineData = useMemo(() => {
     if (period === 'weekly' && metrics.weekly) {
       // Now include actual expenses data
-      return Object.entries(metrics.weekly.salesByDay).map(([day, income]) => {
+      return Object.entries(metrics.weekly.salesByDay || {}).map(([day, income]) => {
         // Since we don't have daily breakdown of expenses, we'll distribute weekly expenses evenly
         const dailyExpenseEstimate = expenses.weekly / 7;
         
@@ -66,7 +69,7 @@ export const useChartData = (
         };
       });
     } else if (period === 'monthly' && metrics.monthly) {
-      return Object.entries(metrics.monthly.salesByWeek).map(([week, income]) => {
+      return Object.entries(metrics.monthly.salesByWeek || {}).map(([week, income]) => {
         // Distribute monthly expenses across weeks
         const weeklyExpenseEstimate = expenses.monthly / 4;
         
@@ -80,10 +83,10 @@ export const useChartData = (
     
     // Default data
     return [
-      { name: 'Week 1', income: 21000, expenses: expenses.monthly / 4 || 6500 },
-      { name: 'Week 2', income: 27000, expenses: expenses.monthly / 4 || 7800 },
-      { name: 'Week 3', income: 24000, expenses: expenses.monthly / 4 || 6200 },
-      { name: 'Week 4', income: 26000, expenses: expenses.monthly / 4 || 7100 },
+      { name: 'Week 1', income: 0, expenses: expenses.monthly / 4 || 0 },
+      { name: 'Week 2', income: 0, expenses: expenses.monthly / 4 || 0 },
+      { name: 'Week 3', income: 0, expenses: expenses.monthly / 4 || 0 },
+      { name: 'Week 4', income: 0, expenses: expenses.monthly / 4 || 0 },
     ];
   }, [period, metrics, expenses]);
   
@@ -91,18 +94,21 @@ export const useChartData = (
     let dryCleaningItems: Record<string, number> = {};
     
     if (period === 'daily' && metrics.daily) {
-      dryCleaningItems = metrics.daily.dryCleaningItems;
+      dryCleaningItems = metrics.daily.dryCleaningItems || {};
     } else if (period === 'weekly' && metrics.weekly) {
-      dryCleaningItems = metrics.weekly.dryCleaningItems;
+      dryCleaningItems = metrics.weekly.dryCleaningItems || {};
     } else if (period === 'monthly' && metrics.monthly) {
-      dryCleaningItems = metrics.monthly.dryCleaningItems;
+      dryCleaningItems = metrics.monthly.dryCleaningItems || {};
     }
     
     // Convert to chart format
-    return Object.entries(dryCleaningItems).map(([name, value]) => ({
+    const chartData = Object.entries(dryCleaningItems).map(([name, value]) => ({
       name,
       value
     }));
+    
+    // Return default data if empty
+    return chartData.length ? chartData : [{ name: 'No Data', value: 1 }];
   }, [period, metrics]);
   
   return {

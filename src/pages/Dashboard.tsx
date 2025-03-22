@@ -37,8 +37,8 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         </div>
       ) : (
         <>
-          <MetricsCards data={data} />
-          <ChartSection data={data} />
+          <MetricsCards metrics={data?.metrics} expenses={data?.expenses} />
+          <ChartSection chartData={data?.chartData} />
         </>
       )}
     </>

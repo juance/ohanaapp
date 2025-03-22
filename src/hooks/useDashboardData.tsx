@@ -22,8 +22,21 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const expensesData = useExpensesData();
   const clientData = useClientData();
   
-  // Calculate chart data based on metrics and expenses
-  const chartData = useChartData(metricsData.data);
+  // Calculate chart data based on metrics data and the current period
+  const period = metricsData.data ? 'monthly' : 'monthly'; // Default to monthly if no data
+  const chartData = useChartData(
+    period,
+    {
+      daily: metricsData.data?.daily || null,
+      weekly: metricsData.data?.weekly || null,
+      monthly: metricsData.data?.monthly || null
+    },
+    {
+      daily: expensesData.expenses?.daily || 0,
+      weekly: expensesData.expenses?.weekly || 0,
+      monthly: expensesData.expenses?.monthly || 0
+    }
+  );
   
   // Determine overall loading state
   const loading = expensesData.loading || clientData.loading;
@@ -43,11 +56,19 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     }
   };
   
+  // Combine data for component consumption
+  const combinedData = {
+    metrics: metricsData.data || {},
+    expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
+    clients: clientData.frequentClients || [],
+    chartData
+  };
+  
   return {
     loading,
     isLoading,
     error: error || metricsData.error || expensesData.error || clientData.error,
-    data: metricsData.data,
+    data: combinedData,
     refreshData
   };
 };

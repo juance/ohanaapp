@@ -60,13 +60,15 @@ export type InventoryItem = {
 };
 
 export interface ClientVisit {
+  id?: string;
   phoneNumber: string;
   clientName: string;
   visitCount: number;
   lastVisit: string;
+  valetsCount?: number;
+  freeValets?: number;
+  visitFrequency?: string;
 }
-
-// New interfaces for enhanced functionality
 
 export type LaundryOption = 'separateByColor' | 'delicateDry' | 'stainRemoval' | 'bleach' | 'noFragrance' | 'noDry';
 
@@ -142,7 +144,6 @@ export interface MonthlyMetrics {
   dryCleaningItems: Record<string, number>;
 }
 
-// Loyalty Program interfaces
 export interface LoyaltyReward {
   id: string;
   name: string;
@@ -151,7 +152,6 @@ export interface LoyaltyReward {
   isAvailable: boolean;
 }
 
-// Feedback type for customer comments
 export interface CustomerFeedback {
   id: string;
   customerId: string;
