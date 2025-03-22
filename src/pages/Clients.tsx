@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import { useClientData } from '@/hooks/useClientData';
-import Loading from '@/components/ui/Loading';
+import { Loading } from '@/components/ui/loading';
 import { useToast } from '@/components/ui/use-toast';
 
 interface Client {

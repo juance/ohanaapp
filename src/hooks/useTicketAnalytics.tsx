@@ -4,12 +4,20 @@ import { useState, useEffect } from 'react';
 interface TicketAnalytics {
   totalTickets: number;
   averageTicketValue: number;
+  totalRevenue: number;
+  ticketsByStatus?: {
+    pending: number;
+    processing: number;
+    ready: number;
+    delivered: number;
+  };
   topServices: Array<{ name: string; count: number }>;
-  revenueByDay: Record<string, number>;
-  serviceBreakdown: Record<string, number>;
+  revenueByMonth: Array<{ month: string; revenue: number }>;
+  itemTypeDistribution: Record<string, number>;
+  paymentMethodDistribution: Record<string, number>;
 }
 
-interface UseTicketAnalyticsReturn {
+export interface UseTicketAnalyticsReturn {
   data: TicketAnalytics;
   dateRange: { from: Date; to: Date };
   setDateRange: (range: { from: Date; to: Date }) => void;
@@ -25,9 +33,17 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const [data, setData] = useState<TicketAnalytics>({
     totalTickets: 0,
     averageTicketValue: 0,
+    totalRevenue: 0,
+    ticketsByStatus: {
+      pending: 0,
+      processing: 0,
+      ready: 0,
+      delivered: 0
+    },
     topServices: [],
-    revenueByDay: {},
-    serviceBreakdown: {}
+    revenueByMonth: [],
+    itemTypeDistribution: {},
+    paymentMethodDistribution: {}
   });
   
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -45,25 +61,43 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       setData({
         totalTickets: 156,
         averageTicketValue: 35.42,
+        totalRevenue: 5525.52,
+        ticketsByStatus: {
+          pending: 12,
+          processing: 28,
+          ready: 42,
+          delivered: 74
+        },
         topServices: [
           { name: 'Dry Cleaning', count: 78 },
           { name: 'Laundry', count: 56 },
           { name: 'Ironing', count: 22 }
         ],
-        revenueByDay: {
-          'Monday': 450,
-          'Tuesday': 380,
-          'Wednesday': 520,
-          'Thursday': 490,
-          'Friday': 600,
-          'Saturday': 720,
-          'Sunday': 350
+        revenueByMonth: [
+          { month: 'Ene', revenue: 3800 },
+          { month: 'Feb', revenue: 4200 },
+          { month: 'Mar', revenue: 3900 },
+          { month: 'Abr', revenue: 4800 },
+          { month: 'May', revenue: 5200 },
+          { month: 'Jun', revenue: 5500 }
+        ],
+        itemTypeDistribution: {
+          'Camisas': 230,
+          'Pantalones': 180,
+          'Vestidos': 110,
+          'Sacos': 85,
+          'Ropa de Cama': 65,
+          'Sweaters': 55,
+          'Camperas': 45,
+          'Corbatas': 40,
+          'Mantel': 35,
+          'Toallas': 25
         },
-        serviceBreakdown: {
-          'Dry Cleaning': 45,
-          'Laundry': 30,
-          'Ironing': 15,
-          'Stain Removal': 10
+        paymentMethodDistribution: {
+          'cash': 40,
+          'debit': 30,
+          'mercadopago': 20,
+          'cuentadni': 10
         }
       });
     } catch (err) {
@@ -81,7 +115,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const exportData = async () => {
     // Implement CSV export logic
     console.log("Exporting data...");
-    // This would normally download a CSV file
+    return Promise.resolve();
   };
 
   return {

@@ -10,6 +10,10 @@ import Clients from './Clients';
 import Metrics from './Metrics';
 import TicketAnalysis from './TicketAnalysis';
 
+interface EmbeddableProps {
+  embedded?: boolean;
+}
+
 const Administration = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -46,7 +50,7 @@ const Administration = () => {
             </TabsContent>
             
             <TabsContent value="clients">
-              <Clients embedded={true} />
+              <Clients />
             </TabsContent>
             
             <TabsContent value="metrics">
