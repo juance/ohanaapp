@@ -7,10 +7,18 @@ import { useChartData } from './useChartData';
 import { ClientVisit } from '@/lib/types';
 
 interface UseDashboardDataReturn {
-  loading: boolean;
-  error: Error | null;
-  data: any;
   isLoading: boolean;
+  error: Error | null;
+  data: {
+    metrics: any;
+    expenses: any;
+    clients: ClientVisit[];
+    chartData: {
+      barData: any[];
+      lineData: any[];
+      pieData: any[];
+    };
+  };
   refreshData: () => Promise<void>;
 }
 
@@ -23,7 +31,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const clientData = useClientData();
   
   // Calculate chart data based on metrics data and the current period
-  const period = metricsData.data ? 'monthly' : 'monthly'; // Default to monthly if no data
+  const period = 'monthly'; // Default to monthly
   const chartData = useChartData(
     period,
     {
@@ -39,8 +47,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   );
   
   // Determine overall loading state
-  const loading = expensesData.loading || clientData.loading;
-  const isLoading = metricsData.isLoading || loading;
+  const isLoading = metricsData.isLoading || expensesData.loading || clientData.loading;
   
   // Function to refresh all data
   const refreshData = async () => {
@@ -61,11 +68,10 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     metrics: metricsData.data || {},
     expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
     clients: clientData.frequentClients || [],
-    chartData
+    chartData: chartData || { barData: [], lineData: [], pieData: [] }
   };
   
   return {
-    loading,
     isLoading,
     error: error || metricsData.error || expensesData.error || clientData.error,
     data: combinedData,

@@ -32,6 +32,9 @@ import {
 import DryCleaningOptions, { SelectedDryCleaningItem, dryCleaningItems } from './DryCleaningOptions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
+// Import the customer service directly
+import { getCustomerByPhone } from '@/lib/dataService';
+
 // Price Display Component to reduce complexity
 const PriceDisplay = ({ totalPrice }: { totalPrice: number }) => (
   <div>

@@ -37,8 +37,20 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         </div>
       ) : (
         <>
-          <MetricsCards metrics={data?.metrics} expenses={data?.expenses} />
-          <ChartSection chartData={data?.chartData} />
+          <MetricsCards 
+            metrics={data?.metrics} 
+            expenses={data?.expenses} 
+            viewType="monthly" 
+          />
+          <ChartSection 
+            chartData={data?.chartData || {
+              barData: [],
+              lineData: [],
+              pieData: []
+            }} 
+            viewType="monthly"
+            frequentClients={data?.clients || []}
+          />
         </>
       )}
     </>

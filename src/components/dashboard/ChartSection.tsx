@@ -15,7 +15,21 @@ interface ChartSectionProps {
   frequentClients: ClientVisit[];
 }
 
-const ChartSection: React.FC<ChartSectionProps> = ({ viewType, chartData, frequentClients }) => {
+const ChartSection: React.FC<ChartSectionProps> = ({ 
+  viewType = 'monthly', 
+  chartData = { 
+    barData: [], 
+    lineData: [], 
+    pieData: [] 
+  }, 
+  frequentClients = [] 
+}) => {
+  // Ensure all data properties exist with default empty arrays if undefined
+  const safeBarData = chartData?.barData || [];
+  const safeLineData = chartData?.lineData || [];
+  const safePieData = chartData?.pieData?.length ? chartData.pieData : [{ name: 'Sin Datos', value: 1 }];
+  const safeClients = frequentClients || [];
+
   return (
     <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
       <Card className="xl:col-span-2">
@@ -28,7 +42,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ viewType, chartData, freque
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <BarChart data={chartData.barData} />
+          <BarChart data={safeBarData} />
         </CardContent>
       </Card>
       
@@ -40,9 +54,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ viewType, chartData, freque
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <PieChart data={chartData.pieData.length > 0 ? chartData.pieData : [
-            { name: 'Sin Datos', value: 1 }
-          ]} />
+          <PieChart data={safePieData} />
         </CardContent>
       </Card>
       
@@ -54,7 +66,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({ viewType, chartData, freque
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LineChart data={chartData.lineData} />
+          <LineChart data={safeLineData} />
         </CardContent>
       </Card>
       
@@ -67,8 +79,8 @@ const ChartSection: React.FC<ChartSectionProps> = ({ viewType, chartData, freque
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {frequentClients.length > 0 ? (
-              frequentClients.slice(0, 5).map((client, index) => (
+            {safeClients.length > 0 ? (
+              safeClients.slice(0, 5).map((client, index) => (
                 <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
                   <div className="space-y-0.5">
                     <div className="font-medium">{client.clientName}</div>
