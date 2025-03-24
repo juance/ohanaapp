@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getDailyMetrics, 
@@ -74,9 +75,11 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       const serviceBreakdown: Array<{ name: string; value: number }> = [];
       if (monthly.dryCleaningItems) {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
+          // Fix the type error by explicitly casting value to number
+          const numericValue = Number(value || 0);
           serviceBreakdown.push({
             name,
-            value: Number(value || 0)
+            value: numericValue
           });
         });
       }
