@@ -87,7 +87,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
           serviceBreakdown.push({
             name,
-            value: Number(value)
+            value: Number(value || 0) // Explicitly convert to number
           });
         });
       }

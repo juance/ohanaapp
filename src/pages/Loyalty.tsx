@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft, Award, Gift, Star } from 'lucide-react';
@@ -18,6 +17,7 @@ interface LoyaltyCustomer {
   loyalty_points: number;
   free_valets: number;
   valets_count: number;
+  valets_redeemed: number | null;
 }
 
 const Loyalty = () => {
