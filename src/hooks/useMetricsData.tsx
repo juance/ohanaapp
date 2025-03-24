@@ -85,6 +85,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       const serviceBreakdown: Array<{ name: string; value: number }> = [];
       if (monthly.dryCleaningItems) {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
+          // Fix the type error by ensuring 'value' is a number using Number()
           serviceBreakdown.push({
             name,
             value: Number(value || 0) // Explicitly convert to number
