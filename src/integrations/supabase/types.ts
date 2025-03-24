@@ -53,6 +53,7 @@ export type Database = {
           name: string
           phone: string
           valets_count: number
+          valets_redeemed: number | null
         }
         Insert: {
           created_at?: string
@@ -62,6 +63,7 @@ export type Database = {
           name: string
           phone: string
           valets_count?: number
+          valets_redeemed?: number | null
         }
         Update: {
           created_at?: string
@@ -71,6 +73,7 @@ export type Database = {
           name?: string
           phone?: string
           valets_count?: number
+          valets_redeemed?: number | null
         }
         Relationships: []
       }
@@ -210,11 +213,13 @@ export type Database = {
       tickets: {
         Row: {
           basket_ticket_number: number | null
+          cancel_reason: string | null
           created_at: string
           customer_id: string
           date: string
           delivered_date: string | null
           id: string
+          is_canceled: boolean | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           status: string
           ticket_number: string | null
@@ -224,11 +229,13 @@ export type Database = {
         }
         Insert: {
           basket_ticket_number?: number | null
+          cancel_reason?: string | null
           created_at?: string
           customer_id: string
           date?: string
           delivered_date?: string | null
           id?: string
+          is_canceled?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
           ticket_number?: string | null
@@ -238,11 +245,13 @@ export type Database = {
         }
         Update: {
           basket_ticket_number?: number | null
+          cancel_reason?: string | null
           created_at?: string
           customer_id?: string
           date?: string
           delivered_date?: string | null
           id?: string
+          is_canceled?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
           ticket_number?: string | null

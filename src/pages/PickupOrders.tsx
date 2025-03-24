@@ -4,20 +4,24 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2 } from 'lucide-react';
+import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Ticket } from '@/lib/types';
-import { getPickupTickets, getTicketServices, markTicketAsDelivered } from '@/lib/ticketService';
+import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
 import { es } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
   
@@ -70,6 +74,33 @@ const PickupOrders = () => {
       setSelectedTicket(null);
       refetch(); // Refetch the tickets list to update UI
       toast.success('Ticket marcado como entregado exitosamente');
+    }
+  };
+
+  const handleOpenCancelDialog = () => {
+    if (!selectedTicket) {
+      toast.error('Seleccione un ticket primero');
+      return;
+    }
+    setCancelReason('');
+    setCancelDialogOpen(true);
+  };
+
+  const handleCancelTicket = async () => {
+    if (!selectedTicket) return;
+    
+    if (!cancelReason.trim()) {
+      toast.error('Por favor ingrese un motivo para anular el ticket');
+      return;
+    }
+
+    const success = await cancelTicket(selectedTicket, cancelReason);
+    if (success) {
+      setCancelDialogOpen(false);
+      setSelectedTicket(null);
+      // Refresh the ticket list
+      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+      refetch();
     }
   };
 
@@ -159,6 +190,7 @@ const PickupOrders = () => {
         </div>
         
         <div class="ticket-info">
+          <p><strong>Ticket N°:</strong> ${ticket.ticketNumber || 'N/A'}</p>
           <p><strong>Cliente:</strong> ${ticket.clientName}</p>
           <p><strong>Teléfono:</strong> ${ticket.phoneNumber}</p>
           <p><strong>Fecha:</strong> ${formattedDate}</p>
@@ -328,6 +360,16 @@ const PickupOrders = () => {
               </Button>
               
               <Button 
+                variant="destructive" 
+                className="flex items-center space-x-2"
+                onClick={handleOpenCancelDialog}
+                disabled={!selectedTicket}
+              >
+                <XCircle className="h-4 w-4" />
+                <span>ANULAR</span>
+              </Button>
+              
+              <Button 
                 variant="default" 
                 className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                 onClick={() => {
@@ -382,7 +424,12 @@ const PickupOrders = () => {
                       `}
                       onClick={() => setSelectedTicket(ticket.id)}
                     >
-                      <div className="font-medium">{ticket.clientName}</div>
+                      <div className="font-medium">
+                        {ticket.clientName}
+                        <span className="ml-2 text-xs text-gray-500">
+                          Ticket #{ticket.ticketNumber || 'N/A'}
+                        </span>
+                      </div>
                       <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
                       <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
                       <div className="mt-2 flex justify-between items-center">
@@ -410,6 +457,10 @@ const PickupOrders = () => {
                       return (
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                              <p className="text-sm text-gray-500">Ticket N°:</p>
+                              <p className="font-medium">{ticket.ticketNumber || 'N/A'}</p>
+                            </div>
                             <div className="space-y-1">
                               <p className="text-sm text-gray-500">Cliente:</p>
                               <p className="font-medium">{ticket.clientName}</p>
@@ -457,6 +508,43 @@ const PickupOrders = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Ticket Dialog */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Anular Ticket</DialogTitle>
+            <DialogDescription>
+              Ingrese el motivo por el cual se anula este ticket. Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <Textarea 
+              placeholder="Motivo de anulación" 
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setCancelDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleCancelTicket}
+              disabled={!cancelReason.trim()}
+            >
+              Anular Ticket
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

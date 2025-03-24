@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';
+import { getNextTicketNumber } from '@/lib/data/ticketNumberService';
 
 // Types for the combined form state
 interface TicketFormState {
@@ -117,6 +118,14 @@ export const useTicketFormSubmit = (
         
         // Create a ticket object for printing
         if (onTicketGenerated) {
+          // Get a ticket number for the preview
+          let ticketNumber = '1';
+          try {
+            ticketNumber = await getNextTicketNumber();
+          } catch (error) {
+            console.error('Error getting ticket number for preview:', error);
+          }
+          
           const services = activeTab === 'valet' 
             ? [{ id: crypto.randomUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
             : dryCleaningItemsData.map(item => ({
@@ -128,7 +137,7 @@ export const useTicketFormSubmit = (
               
           const ticketForPrint: Ticket = {
             id: crypto.randomUUID(),
-            ticketNumber: '',
+            ticketNumber: ticketNumber, // Use the next ticket number
             basketTicketNumber: undefined, // This will be assigned by the server
             clientName: customerName,
             phoneNumber,

@@ -89,6 +89,11 @@ export const generateTicketPrintHTML = (ticket: Ticket, selectedOptions: Laundry
           </div>
           
           <div class="info-row">
+            <div class="info-label">Ticket Número:</div>
+            <div>${ticket.ticketNumber || 'N/A'}</div>
+          </div>
+          
+          <div class="info-row">
             <div class="info-label">N° Canasto:</div>
             <div>${ticket.basketTicketNumber || 'N/A'}</div>
           </div>

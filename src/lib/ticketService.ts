@@ -13,6 +13,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         customers (name, phone)
       `)
       .eq('status', 'ready')
+      .eq('is_canceled', false) // Only show non-canceled tickets
       .order('created_at', { ascending: false });
       
     if (error) throw error;
@@ -55,6 +56,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         customers (name, phone)
       `)
       .eq('status', 'delivered')
+      .eq('is_canceled', false) // Only show non-canceled tickets
       .order('delivered_date', { ascending: false });
       
     if (error) throw error;
@@ -106,6 +108,29 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
   } catch (error) {
     console.error('Error marking ticket as delivered:', error);
     toast.error('Error al marcar el ticket como entregado');
+    return false;
+  }
+};
+
+// Cancel a ticket
+export const cancelTicket = async (ticketId: string, reason: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        is_canceled: true,
+        cancel_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+      
+    if (error) throw error;
+    
+    toast.success('Ticket anulado correctamente');
+    return true;
+  } catch (error) {
+    console.error('Error canceling ticket:', error);
+    toast.error('Error al anular el ticket');
     return false;
   }
 };

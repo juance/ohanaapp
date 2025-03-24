@@ -67,10 +67,14 @@ export const storeTicketData = async (
     // Prepare date field - use custom date if provided, otherwise use current date
     const ticketDate = ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString();
     
+    // Get next ticket number
+    const ticketNumber = await getNextTicketNumber();
+    
     // Insert ticket with 'ready' status by default
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
       .insert({
+        ticket_number: ticketNumber,
         total: ticket.totalPrice,
         payment_method: formatPaymentMethod(ticket.paymentMethod),
         valet_quantity: ticket.valetQuantity,
@@ -142,6 +146,7 @@ export const storeTicketData = async (
         laundryOptions: laundryOptions,
         createdAt: ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString(),
         pendingSync: true,
+        ticketNumber: Math.floor(Math.random() * 1000) + 1, // Local ticket number as fallback
         basketTicketNumber: Math.floor(Math.random() * 1000) + 1 // Fallback random basket number
       };
       

@@ -50,7 +50,10 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
     // Update with new points total
     const { error: updateError } = await supabase
       .from('customers')
-      .update({ loyalty_points: currentPoints - points })
+      .update({ 
+        loyalty_points: currentPoints - points,
+        valets_redeemed: supabase.sql`valets_redeemed + 1` // Increment redemptions counter
+      })
       .eq('id', customerId);
     
     if (updateError) throw updateError;

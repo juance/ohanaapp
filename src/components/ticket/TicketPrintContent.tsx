@@ -23,6 +23,11 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
+          <span className="font-medium">Ticket Número:</span>
+          <span>{ticket.ticketNumber || 'N/A'}</span>
+        </div>
+        
+        <div className="flex justify-between">
           <span className="font-medium">N° Canasto:</span>
           <span>{ticket.basketTicketNumber || 'N/A'}</span>
         </div>
