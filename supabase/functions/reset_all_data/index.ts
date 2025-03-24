@@ -31,54 +31,50 @@ serve(async (req) => {
         valets_count: 0,
         valets_redeemed: 0
       })
-    
+      .eq('id', 'not-null')  // This ensures we update all records
+
     if (loyaltyError) {
-      console.error('Error resetting loyalty data:', loyaltyError)
-      throw new Error(`Error resetting loyalty data: ${loyaltyError.message}`)
+      throw loyaltyError
     }
 
     // Delete all ticket_laundry_options (need to delete these first due to foreign key constraints)
     const { error: optionsError } = await supabaseClient
       .from('ticket_laundry_options')
       .delete()
-      .gt('id', '')  // This ensures we delete all records
-    
+      .neq('id', 'placeholder')
+
     if (optionsError) {
-      console.error('Error deleting ticket_laundry_options:', optionsError)
-      throw new Error(`Error deleting ticket_laundry_options: ${optionsError.message}`)
+      throw optionsError
     }
 
     // Delete all dry_cleaning_items (need to delete these first due to foreign key constraints)
     const { error: itemsError } = await supabaseClient
       .from('dry_cleaning_items')
       .delete()
-      .gt('id', '')  // This ensures we delete all records
-    
+      .neq('id', 'placeholder')
+
     if (itemsError) {
-      console.error('Error deleting dry_cleaning_items:', itemsError)
-      throw new Error(`Error deleting dry_cleaning_items: ${itemsError.message}`)
+      throw itemsError
     }
 
     // Delete all tickets
     const { error: ticketsError } = await supabaseClient
       .from('tickets')
       .delete()
-      .gt('id', '')  // This ensures we delete all records
-    
+      .neq('id', 'placeholder')
+
     if (ticketsError) {
-      console.error('Error deleting tickets:', ticketsError)
-      throw new Error(`Error deleting tickets: ${ticketsError.message}`)
+      throw ticketsError
     }
 
     // Delete all expenses
     const { error: expensesError } = await supabaseClient
       .from('expenses')
       .delete()
-      .gt('id', '')  // This ensures we delete all records
-    
+      .neq('id', 'placeholder')
+
     if (expensesError) {
-      console.error('Error deleting expenses:', expensesError)
-      throw new Error(`Error deleting expenses: ${expensesError.message}`)
+      throw expensesError
     }
 
     // Reset ticket sequence to start over
@@ -86,10 +82,9 @@ serve(async (req) => {
       .from('ticket_sequence')
       .update({ last_number: 0 })
       .eq('id', 1)
-    
+
     if (sequenceError) {
-      console.error('Error resetting ticket sequence:', sequenceError)
-      throw new Error(`Error resetting ticket sequence: ${sequenceError.message}`)
+      throw sequenceError
     }
 
     console.log('Full data reset completed successfully!')
@@ -100,8 +95,8 @@ serve(async (req) => {
         message: 'All application data has been reset successfully'
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   } catch (error) {
@@ -113,8 +108,8 @@ serve(async (req) => {
         error: error.message || 'An error occurred during the data reset process'
       }),
       {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,  // Return 200 even for errors to avoid the Edge Function error
       }
     )
   }
