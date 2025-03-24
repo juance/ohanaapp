@@ -34,13 +34,14 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
     // First get current points
     const { data: customer, error: getError } = await supabase
       .from('customers')
-      .select('loyalty_points')
+      .select('loyalty_points, valets_redeemed')
       .eq('id', customerId)
       .single();
     
     if (getError) throw getError;
     
     const currentPoints = customer?.loyalty_points || 0;
+    const currentValetsRedeemed = customer?.valets_redeemed || 0;
     
     // Ensure customer has enough points
     if (currentPoints < points) {
@@ -52,7 +53,7 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
       .from('customers')
       .update({ 
         loyalty_points: currentPoints - points,
-        valets_redeemed: customer.valets_redeemed ? customer.valets_redeemed + 1 : 1
+        valets_redeemed: currentValetsRedeemed + 1
       })
       .eq('id', customerId);
     

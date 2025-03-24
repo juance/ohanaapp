@@ -19,9 +19,13 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
 
   const handleExport = async () => {
     setExporting(true);
-    // Simulate export process
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setExporting(false);
+    try {
+      await exportData();
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setExporting(false);
+    }
   };
 
   // Get analytics data

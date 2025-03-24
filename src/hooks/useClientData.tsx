@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { getClientVisitFrequency } from '@/lib/dataService';
 import { ClientVisit } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseClientDataReturn {
   loading: boolean;
@@ -20,18 +21,33 @@ export const useClientData = (): UseClientDataReturn => {
   const fetchClientData = async () => {
     try {
       const clients = await getClientVisitFrequency();
-      // Enhance client data with default values for any missing properties
-      const enhancedClients = clients.map(client => ({
-        id: client.id || client.phoneNumber, // Use phone as fallback ID
-        phoneNumber: client.phoneNumber,
-        clientName: client.clientName,
-        visitCount: client.visitCount || 0,
-        lastVisit: client.lastVisit || '',
-        // Add default values for properties that might be missing
-        valetsCount: client.valetsCount || 0, 
-        freeValets: client.freeValets || 0,
-        visitFrequency: `${client.visitCount || 0} visits`
-      }));
+      
+      // Get all customers from the database to include loyalty data
+      const { data: customersData, error: customersError } = await supabase
+        .from('customers')
+        .select('id, phone, name, loyalty_points, valets_count, free_valets');
+        
+      if (customersError) throw customersError;
+      
+      // Enhance client data with default values and loyalty info
+      const enhancedClients = clients.map(client => {
+        // Find matching customer in database for loyalty information
+        const customerMatch = customersData?.find(c => c.phone === client.phoneNumber);
+        
+        return {
+          id: customerMatch?.id || client.id || client.phoneNumber, // Use database ID if available
+          phoneNumber: client.phoneNumber,
+          clientName: client.clientName,
+          visitCount: client.visitCount || 0,
+          lastVisit: client.lastVisit || '',
+          // Add loyalty information from the database
+          valetsCount: customerMatch?.valets_count || 0, 
+          freeValets: customerMatch?.free_valets || 0,
+          loyaltyPoints: customerMatch?.loyalty_points || 0,
+          visitFrequency: `${client.visitCount || 0} visits`
+        };
+      });
+      
       setFrequentClients(enhancedClients);
     } catch (err) {
       console.error("Error fetching client data:", err);

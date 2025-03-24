@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -20,6 +19,7 @@ export interface LaundryService {
   id: string;
   name: string;
   price: number;
+  quantity?: number;
 }
 
 export interface Ticket {
@@ -62,7 +62,7 @@ export type InventoryItem = {
 };
 
 export interface ClientVisit {
-  id?: string;
+  id: string;
   phoneNumber: string;
   clientName: string;
   visitCount: number;
@@ -70,6 +70,7 @@ export interface ClientVisit {
   valetsCount?: number;
   freeValets?: number;
   visitFrequency?: string;
+  loyaltyPoints?: number;
 }
 
 export type LaundryOption = 'separateByColor' | 'delicateDry' | 'stainRemoval' | 'bleach' | 'noFragrance' | 'noDry';
