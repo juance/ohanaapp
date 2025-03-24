@@ -220,6 +220,7 @@ export type Database = {
           delivered_date: string | null
           id: string
           is_canceled: boolean | null
+          is_paid: boolean | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           status: string
           ticket_number: string | null
@@ -236,6 +237,7 @@ export type Database = {
           delivered_date?: string | null
           id?: string
           is_canceled?: boolean | null
+          is_paid?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
           ticket_number?: string | null
@@ -252,6 +254,7 @@ export type Database = {
           delivered_date?: string | null
           id?: string
           is_canceled?: boolean | null
+          is_paid?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
           ticket_number?: string | null

@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { es } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +25,6 @@ const PickupOrders = () => {
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
   
-  // Fetch tickets ready for pickup
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
     queryFn: getPickupTickets,
@@ -47,13 +47,11 @@ const PickupOrders = () => {
 
   const handleNotifyClient = (ticket: Ticket) => {
     if (ticket) {
-      // Format WhatsApp URL
       const whatsappMessage = encodeURIComponent(
         `Hola ${ticket.clientName}, su pedido está listo para retirar en Lavandería Ohana.`
       );
       const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
       
-      // Open WhatsApp in a new tab
       window.open(whatsappUrl, '_blank');
       
       toast.success(`Notificación enviada a ${ticket.clientName}`, {
@@ -67,12 +65,11 @@ const PickupOrders = () => {
   const handleMarkAsDelivered = async (ticketId: string) => {
     const success = await markTicketAsDelivered(ticketId);
     if (success) {
-      // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
-      queryClient.invalidateQueries({ queryKey: ['metrics'] }); // Refresh metrics data
+      queryClient.invalidateQueries({ queryKey: ['metrics'] });
       setSelectedTicket(null);
-      refetch(); // Refetch the tickets list to update UI
+      refetch();
       toast.success('Ticket marcado como entregado y pagado exitosamente');
     }
   };
@@ -98,7 +95,6 @@ const PickupOrders = () => {
     if (success) {
       setCancelDialogOpen(false);
       setSelectedTicket(null);
-      // Refresh the ticket list
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       refetch();
     }
@@ -110,24 +106,20 @@ const PickupOrders = () => {
       return;
     }
 
-    // Get the ticket details
     const ticket = tickets.find(t => t.id === selectedTicket);
     if (!ticket) {
       toast.error('Ticket no encontrado');
       return;
     }
 
-    // Create a new window for printing
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
       toast.error('El navegador bloqueó la apertura de la ventana de impresión');
       return;
     }
 
-    // Format date
     const formattedDate = formatDate(ticket.createdAt);
 
-    // Prepare services content
     const servicesContent = ticketServices.length > 0 
       ? ticketServices.map(service => 
           `<div class="service-item">
@@ -137,7 +129,6 @@ const PickupOrders = () => {
         ).join('')
       : '<p>No hay servicios registrados</p>';
 
-    // Create the print content
     printWindow.document.write(`
       <!DOCTYPE html>
       <html>
@@ -179,7 +170,7 @@ const PickupOrders = () => {
           @media print {
             .no-print {
               display: none;
-              }
+            }
           }
         </style>
       </head>
@@ -216,7 +207,6 @@ const PickupOrders = () => {
     
     printWindow.document.close();
     
-    // Auto-prompt the print dialog after content is fully loaded
     printWindow.onload = function() {
       printWindow.focus();
       printWindow.print();
@@ -237,7 +227,6 @@ const PickupOrders = () => {
       return;
     }
 
-    // Compose a detailed WhatsApp message
     let message = `🧼 *LAVANDERÍA OHANA - TICKET* 🧼\n\n`;
     message += `Estimado/a ${ticket.clientName},\n\n`;
     message += `Su pedido está listo para retirar.\n\n`;
@@ -252,15 +241,13 @@ const PickupOrders = () => {
     message += `\n*Total a pagar: $${ticket.totalPrice.toLocaleString()}*\n\n`;
     message += `Gracias por confiar en Lavandería Ohana.`;
 
-    // Format WhatsApp URL
     const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     
-    // Open WhatsApp in a new tab
     window.open(whatsappUrl, '_blank');
     
     toast.success(`Compartiendo ticket con ${ticket.clientName}`);
   };
-  
+
   const filteredTickets = searchQuery.trim() 
     ? tickets.filter(ticket => {
         if (searchFilter === 'name') {
@@ -519,7 +506,6 @@ const PickupOrders = () => {
         </div>
       </div>
 
-      {/* Cancel Ticket Dialog */}
       <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
         <DialogContent>
           <DialogHeader>

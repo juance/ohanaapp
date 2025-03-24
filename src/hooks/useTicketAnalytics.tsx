@@ -16,6 +16,8 @@ interface TicketAnalytics {
   revenueByMonth: Array<{ month: string; revenue: number }>;
   itemTypeDistribution: Record<string, number>;
   paymentMethodDistribution: Record<string, number>;
+  freeValets?: number; // Add this optional property
+  paidTickets?: number; // Add this optional property
 }
 
 export interface UseTicketAnalyticsReturn {
@@ -43,7 +45,9 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     topServices: [],
     revenueByMonth: [],
     itemTypeDistribution: {},
-    paymentMethodDistribution: {}
+    paymentMethodDistribution: {},
+    freeValets: 0,
+    paidTickets: 0
   });
   
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -88,7 +92,9 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
           topServices: [],
           revenueByMonth: [],
           itemTypeDistribution: {},
-          paymentMethodDistribution: {}
+          paymentMethodDistribution: {},
+          freeValets: 0,
+          paidTickets: 0
         });
         setIsLoading(false);
         return;
@@ -184,8 +190,8 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         revenueByMonth,
         itemTypeDistribution,
         paymentMethodDistribution,
-        freeValets, // Add the free valets count
-        paidTickets // Add the paid tickets count
+        freeValets, 
+        paidTickets 
       });
     } catch (err) {
       console.error("Error fetching ticket analytics:", err);
