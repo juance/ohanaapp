@@ -29,7 +29,8 @@ const Administration = () => {
           throw new Error(`Error resetting data: ${error.message}`);
         }
         
-        if (!data.success) {
+        // Check if the function returned success: false
+        if (data && data.success === false) {
           console.error("Reset function returned error:", data.error);
           throw new Error(`Error from server: ${data.error}`);
         }
