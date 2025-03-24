@@ -75,11 +75,11 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       const serviceBreakdown: Array<{ name: string; value: number }> = [];
       if (monthly.dryCleaningItems) {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
-          // Make sure we're explicitly converting the value to a number
+          // Aseguramos que el valor sea un número
           const numericValue = Number(value || 0);
           serviceBreakdown.push({
             name,
-            value: numericValue // Explicitly cast to number type
+            value: numericValue // Conversión explícita a número
           });
         });
       }
