@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ const DataReset = () => {
       
       toast({
         title: "Datos reiniciados",
-        description: "Todos los datos han sido reiniciados exitosamente.",
+        description: "Todos los datos han sido reiniciados exitosamente."
       });
       
       // Refresh the page after a short delay to show updated data
@@ -49,7 +50,7 @@ const DataReset = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Hubo un problema al reiniciar los datos. Intente nuevamente.",
+        description: "Hubo un problema al reiniciar los datos. Intente nuevamente."
       });
     } finally {
       setIsResetting(false);

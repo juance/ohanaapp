@@ -127,7 +127,8 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+// Create the base toast function
+function toast(props: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -156,6 +157,31 @@ function toast({ ...props }: Toast) {
   }
 }
 
+// Add helper methods
+toast.success = (message: string) => {
+  toast({
+    title: "Success",
+    description: message,
+    variant: "default",
+  })
+}
+
+toast.error = (message: string) => {
+  toast({
+    variant: "destructive",
+    title: "Error",
+    description: message,
+  })
+}
+
+toast.info = (message: string) => {
+  toast({
+    title: "Info",
+    description: message,
+    variant: "default",
+  })
+}
+
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
@@ -176,29 +202,4 @@ function useToast() {
   }
 }
 
-// Create a toast function that can be imported and used directly
-const toastUtil = {
-  success: (message: string) => {
-    toast({
-      title: "Success",
-      description: message,
-      variant: "default",
-    })
-  },
-  error: (message: string) => {
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: message,
-    })
-  },
-  info: (message: string) => {
-    toast({
-      title: "Info",
-      description: message,
-      variant: "default",
-    })
-  },
-}
-
-export { useToast, toastUtil as toast, type Toast }
+export { useToast, toast }

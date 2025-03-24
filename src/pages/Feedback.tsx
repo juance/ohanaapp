@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -29,14 +29,22 @@ const Feedback = () => {
   
   const handleSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast.error('Por favor ingrese un número de teléfono');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Por favor ingrese un número de teléfono'
+      });
       return;
     }
     
     await refetch();
     
     if (!customer) {
-      toast.error('Cliente no encontrado');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Cliente no encontrado'
+      });
     }
   };
   
