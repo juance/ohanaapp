@@ -12,8 +12,21 @@ import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
+interface MetricsData {
+  daily: DailyMetrics;
+  weekly: WeeklyMetrics;
+  monthly: MonthlyMetrics;
+  revenueByDate: Array<{ date: string; revenue: number }>;
+  serviceBreakdown: Array<{ name: string; value: number }>;
+  clientTypeBreakdown: Array<{ name: string; value: number }>;
+  totalRevenue: number;
+  totalTickets: number;
+  uniqueCustomers: number;
+  averageTicket: number;
+}
+
 interface UseMetricsDataReturn {
-  data: any;
+  data: MetricsData | null;
   isLoading: boolean;
   error: Error | null;
   dateRange: { from: Date; to: Date };
@@ -24,7 +37,7 @@ interface UseMetricsDataReturn {
 export const useMetricsData = (): UseMetricsDataReturn => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<MetricsData | null>(null);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(new Date().setDate(new Date().getDate() - 30)),
     to: new Date()
@@ -43,9 +56,9 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         getMonthlyMetrics()
       ]);
       
-      const calculateTotalRevenue = (paymentMethods: any): number => {
+      const calculateTotalRevenue = (paymentMethods: Record<string, number | undefined>): number => {
         if (!paymentMethods) return 0;
-        return Object.values(paymentMethods).reduce((sum: number, value: any) => sum + Number(value || 0), 0);
+        return Object.values(paymentMethods).reduce((sum: number, value) => sum + Number(value || 0), 0);
       };
       
       const daily = dailyMetrics;
@@ -85,10 +98,10 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         { name: 'Nuevos', value: 10 }
       ];
       
-      const totalTickets: number = 120;
+      const totalTickets = 120;
       
-      // Explicitly convert totalMonthlyRevenue to number to ensure type safety
-      const totalMonthlyRevenueNum: number = Number(totalMonthlyRevenue) || 0;
+      // Use the properly typed calculated revenue
+      const totalMonthlyRevenueNumber = Number(totalMonthlyRevenue) || 0;
       
       setData({
         daily,
@@ -97,10 +110,10 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         revenueByDate,
         serviceBreakdown,
         clientTypeBreakdown,
-        totalRevenue: totalMonthlyRevenueNum,
+        totalRevenue: totalMonthlyRevenueNumber,
         totalTickets,
         uniqueCustomers: 45,
-        averageTicket: totalTickets > 0 ? (totalMonthlyRevenueNum / totalTickets) : 0
+        averageTicket: totalTickets > 0 ? (totalMonthlyRevenueNumber / totalTickets) : 0
       });
       
       console.log("Metrics data refreshed successfully:", {
