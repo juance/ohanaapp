@@ -75,11 +75,11 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       const serviceBreakdown: Array<{ name: string; value: number }> = [];
       if (monthly.dryCleaningItems) {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
-          // Fix the type error by explicitly casting value to number
+          // Explicitly convert the value to a number before assigning it
           const numericValue = Number(value || 0);
           serviceBreakdown.push({
             name,
-            value: numericValue
+            value: numericValue // This should now be a valid number type
           });
         });
       }
