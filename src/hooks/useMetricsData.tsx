@@ -91,15 +91,6 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         });
       }
       
-      // Add valet service
-      if (monthly.valetsByWeek) {
-        const totalValets = Object.values(monthly.valetsByWeek).reduce((sum: number, val: any) => sum + Number(val), 0);
-        serviceBreakdown.push({
-          name: 'Valets',
-          value: totalValets
-        });
-      }
-      
       // Prepare client type breakdown
       const clientTypeBreakdown = [
         { name: 'Regulares', value: 60 },
@@ -107,7 +98,13 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         { name: 'Nuevos', value: 10 }
       ];
       
-      // Set all the metrics data
+      // Calculate totalTickets and ensure it's a number
+      const totalTickets = 120; // Mock data
+      
+      // Ensure totalMonthlyRevenue is a number before division
+      const totalMonthlyRevenueNum = Number(totalMonthlyRevenue) || 0;
+      
+      // Set all the metrics data, ensuring proper numeric types
       setData({
         daily,
         weekly,
@@ -115,10 +112,10 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         revenueByDate,
         serviceBreakdown,
         clientTypeBreakdown,
-        totalRevenue: totalMonthlyRevenue,
-        totalTickets: 120, // Mock data
+        totalRevenue: totalMonthlyRevenueNum,
+        totalTickets,
         uniqueCustomers: 45, // Mock data
-        averageTicket: totalMonthlyRevenue > 0 ? totalMonthlyRevenue / 120 : 0
+        averageTicket: totalTickets > 0 ? totalMonthlyRevenueNum / totalTickets : 0
       });
       
       console.log("Metrics data refreshed successfully:", {
