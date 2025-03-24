@@ -22,3 +22,20 @@ export const getNextTicketNumber = async (): Promise<string> => {
     return randomNum.toString().padStart(8, '0');
   }
 };
+
+/**
+ * Reset the ticket numbering sequence to start from 1
+ */
+export const resetTicketNumbering = async (): Promise<boolean> => {
+  try {
+    const { error } = await supabase.rpc('reset_ticket_sequence');
+    
+    if (error) throw error;
+    
+    console.log('Ticket numbering reset successfully');
+    return true;
+  } catch (error) {
+    console.error('Error resetting ticket numbering:', error);
+    return false;
+  }
+};

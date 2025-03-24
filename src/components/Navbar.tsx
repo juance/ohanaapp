@@ -1,190 +1,63 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  Receipt,
-  Users,
-  Package,
-  Truck,
-  CheckSquare,
-  BarChart,
-  PieChart,
-  DollarSign,
-  Menu,
-  X,
-  LogOut,
-  MessageSquare,
-  Settings
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText } from 'lucide-react';
 
-const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const Navbar: React.FC = () => {
   const location = useLocation();
-  const isMobile = useIsMobile();
-  
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
   };
-  
-  const handleLogout = () => {
-    // In a real app, this would clear auth state
-    // For now, just redirect to login page
-    window.location.href = '/';
-  };
-  
-  const menuLinks = [
-    { 
-      href: '/dashboard', 
-      label: 'Panel Principal', 
-      icon: <LayoutDashboard className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/tickets', 
-      label: 'Tickets', 
-      icon: <Receipt className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/clients', 
-      label: 'Clientes', 
-      icon: <Users className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/inventory', 
-      label: 'Inventario', 
-      icon: <Package className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/pickup-orders', 
-      label: 'Órdenes de recogida', 
-      icon: <Truck className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/delivered-orders', 
-      label: 'Órdenes entregadas', 
-      icon: <CheckSquare className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/ticket-analysis', 
-      label: 'Análisis de tickets', 
-      icon: <BarChart className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/metrics', 
-      label: 'Métricas', 
-      icon: <PieChart className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/expenses', 
-      label: 'Gastos', 
-      icon: <DollarSign className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/feedback', 
-      label: 'Comentarios y Fidelidad', 
-      icon: <MessageSquare className="h-5 w-5 mr-3" /> 
-    },
-    { 
-      href: '/administration', 
-      label: 'Administración', 
-      icon: <Settings className="h-5 w-5 mr-3" /> 
-    }
+
+  const navItems = [
+    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" /> },
+    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" /> },
+    { path: '/pickup-orders', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
+    { path: '/delivered-orders', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
+    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
+    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
+    { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" /> },
+    { path: '/ticket-analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
+    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
+    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
   ];
-  
-  // Base navbar JSX
-  const navbarContent = (
-    <>
-      <div className="flex items-center justify-between h-16 px-4 border-b bg-white">
-        <Link to="/dashboard" className="text-lg font-semibold text-primary">
-          LaundrySystem
-        </Link>
-        
-        {isMobile && (
-          <Button variant="ghost" size="icon" onClick={toggleMenu}>
-            {isOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-        )}
-      </div>
-      
-      <ScrollArea className="flex-1">
-        <nav className="flex-1 px-2 py-4">
+
+  return (
+    <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b">
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="font-bold text-xl text-blue-600">Lavandería Ohana</span>
+          </Link>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto p-4">
           <ul className="space-y-1">
-            {menuLinks.map((link) => (
-              <li key={link.href}>
+            {navItems.map((item) => (
+              <li key={item.path}>
                 <Link
-                  to={link.href}
-                  className={`flex items-center px-3 py-2 rounded-md text-sm ${
-                    location.pathname === link.href
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                  to={item.path}
+                  className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive(item.path)
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`}
-                  onClick={isMobile ? toggleMenu : undefined}
                 >
-                  {link.icon}
-                  {link.label}
+                  <span className="mr-2">{item.icon}</span>
+                  {item.name}
                 </Link>
               </li>
             ))}
           </ul>
         </nav>
-      </ScrollArea>
-      
-      <div className="p-4 border-t">
-        <Button 
-          variant="destructive" 
-          className="w-full flex items-center justify-center"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Cerrar Sesión
-        </Button>
-      </div>
-    </>
-  );
-  
-  // Return different layouts based on screen size
-  if (isMobile) {
-    return (
-      <>
-        <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b">
-          <div className="flex items-center justify-between h-16 px-4">
-            <Link to="/dashboard" className="text-lg font-semibold text-primary">
-              LaundrySystem
-            </Link>
-            <Button variant="ghost" size="icon" onClick={toggleMenu}>
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
-        </div>
-        
-        {/* Mobile drawer menu that slides in */}
-        <div 
-          className={`fixed inset-0 z-30 transform ${
-            isOpen ? 'translate-x-0' : '-translate-x-full'
-          } transition-transform duration-300 ease-in-out pt-16 bg-white`}
-        >
-          <div className="h-full flex flex-col">
-            {navbarContent}
-          </div>
-        </div>
-        
-        {/* Add top padding to content when on mobile */}
-        <div className="h-16"></div>
-      </>
-    );
-  }
 
-  // Desktop sidebar
-  return (
-    <div className="fixed top-0 left-0 bottom-0 w-64 bg-white border-r z-30 flex flex-col">
-      {navbarContent}
+        <div className="p-4 border-t">
+          <div className="text-xs text-gray-500">
+            © 2023 Lavandería Ohana
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -210,6 +210,27 @@ export type Database = {
         }
         Relationships: []
       }
+      ticket_sequence_resets: {
+        Row: {
+          id: string
+          notes: string | null
+          reset_by: string
+          reset_date: string
+        }
+        Insert: {
+          id?: string
+          notes?: string | null
+          reset_by: string
+          reset_date?: string
+        }
+        Update: {
+          id?: string
+          notes?: string | null
+          reset_by?: string
+          reset_date?: string
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           basket_ticket_number: number | null
@@ -308,6 +329,10 @@ export type Database = {
       get_next_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      reset_ticket_sequence: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
