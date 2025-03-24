@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMetricsData } from '@/hooks/useMetricsData';
 import { DateRangeSelector } from '@/components/metrics/DateRangeSelector';
@@ -11,6 +11,7 @@ import { ServiceBreakdownChart } from '@/components/metrics/ServiceBreakdownChar
 import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
+import { Button } from '@/components/ui/button';
 
 interface MetricsProps {
   embedded?: boolean;
@@ -22,19 +23,35 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
     isLoading, 
     error, 
     dateRange, 
-    setDateRange 
+    setDateRange,
+    refreshData
   } = useMetricsData();
+  
+  const handleRefresh = async () => {
+    await refreshData();
+  };
   
   const content = (
     <>
       {!embedded && (
-        <header className="mb-8">
-          <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            <span>Volver al Inicio</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
-          <p className="text-gray-500">Métricas</p>
+        <header className="mb-8 flex justify-between items-center">
+          <div>
+            <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              <span>Volver al Inicio</span>
+            </Link>
+            <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
+            <p className="text-gray-500">Métricas</p>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Actualizar Datos
+          </Button>
         </header>
       )}
       
@@ -43,7 +60,12 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
       {isLoading ? (
         <Loading />
       ) : error ? (
-        <ErrorMessage message={error.message} />
+        <div className="space-y-4">
+          <ErrorMessage message={error.message} />
+          <Button onClick={handleRefresh} variant="destructive">
+            Reintentar
+          </Button>
+        </div>
       ) : (
         <div className="space-y-6">
           <MetricsCards data={data} />

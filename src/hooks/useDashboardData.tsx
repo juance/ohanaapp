@@ -1,10 +1,11 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMetricsData } from './useMetricsData';
 import { useExpensesData } from './useExpensesData';
 import { useClientData } from './useClientData';
 import { useChartData } from './useChartData';
 import { ClientVisit } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface UseDashboardDataReturn {
   isLoading: boolean;
@@ -57,11 +58,18 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         expensesData.refreshData(),
         clientData.refreshData()
       ]);
+      toast.success("Datos actualizados correctamente");
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
+      toast.error("Error al actualizar los datos");
     }
   };
+  
+  // Initial load of data
+  useEffect(() => {
+    refreshData();
+  }, []);
   
   // Combine data for component consumption
   const combinedData = {

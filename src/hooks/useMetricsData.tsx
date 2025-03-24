@@ -7,6 +7,8 @@ import {
   syncOfflineData
 } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
@@ -33,31 +35,33 @@ export const useMetricsData = (): UseMetricsDataReturn => {
     setError(null);
     
     try {
-      // Try to sync any offline data
+      // Try to sync any offline data first
       await syncOfflineData();
       
-      // Fetch data based on selected period
-      const period = determinePeriod(dateRange.from, dateRange.to);
-      let metricsData;
+      // Fetch all metrics for different time periods in parallel
+      const [dailyMetrics, weeklyMetrics, monthlyMetrics] = await Promise.all([
+        getDailyMetrics(),
+        getWeeklyMetrics(),
+        getMonthlyMetrics()
+      ]);
       
-      switch(period) {
-        case 'daily':
-          metricsData = await getDailyMetrics();
-          break;
-        case 'weekly':
-          metricsData = await getWeeklyMetrics();
-          break;
-        case 'monthly':
-          metricsData = await getMonthlyMetrics();
-          break;
-        default:
-          metricsData = await getDailyMetrics();
-      }
+      // Set all the metrics data
+      setData({
+        daily: dailyMetrics,
+        weekly: weeklyMetrics,
+        monthly: monthlyMetrics
+      });
       
-      setData(metricsData);
+      console.log("Metrics data refreshed successfully:", {
+        daily: dailyMetrics,
+        weekly: weeklyMetrics,
+        monthly: monthlyMetrics
+      });
+      
     } catch (err) {
       console.error("Error fetching metrics data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
+      toast.error("Error al cargar los datos de métricas");
     } finally {
       setIsLoading(false);
     }
@@ -72,9 +76,35 @@ export const useMetricsData = (): UseMetricsDataReturn => {
     return 'monthly';
   };
   
+  // Refresh data when dateRange changes
   useEffect(() => {
     refreshData();
   }, [dateRange.from, dateRange.to]);
+  
+  // Set up subscription to database changes for real-time updates
+  useEffect(() => {
+    // Create a subscription to the tickets table
+    const channel = supabase
+      .channel('metrics-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tickets'
+        },
+        (payload) => {
+          console.log('Tickets table changed, refreshing metrics data:', payload);
+          refreshData();
+        }
+      )
+      .subscribe();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
   
   return {
     data,
