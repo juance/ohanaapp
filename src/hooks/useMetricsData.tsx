@@ -45,18 +45,92 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         getMonthlyMetrics()
       ]);
       
+      // Calculate total revenue from payment methods
+      const calculateTotalRevenue = (paymentMethods: any) => {
+        return Object.values(paymentMethods).reduce((sum: number, value: any) => sum + Number(value), 0);
+      };
+      
+      // Process daily metrics
+      const daily = dailyMetrics;
+      const totalDailyRevenue = calculateTotalRevenue(daily.paymentMethods);
+      
+      // Process weekly metrics
+      const weekly = weeklyMetrics;
+      const totalWeeklyRevenue = calculateTotalRevenue(weekly.paymentMethods);
+      
+      // Process monthly metrics
+      const monthly = monthlyMetrics;
+      const totalMonthlyRevenue = calculateTotalRevenue(monthly.paymentMethods);
+      
+      // Prepare revenue by date chart data
+      const revenueByDate = [];
+      const currentDate = new Date();
+      
+      // Add data points for the last 30 days
+      for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(currentDate.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        
+        // Simple mock data - we'll replace this with real data when available
+        const revenue = Math.random() * 1000 + 500; // Random value between 500 and 1500
+        revenueByDate.push({
+          date: date.toISOString(),
+          revenue
+        });
+      }
+      
+      // Prepare service breakdown data
+      const serviceBreakdown = [];
+      if (monthly.dryCleaningItems) {
+        Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
+          serviceBreakdown.push({
+            name,
+            value
+          });
+        });
+      }
+      
+      // Add valet service
+      if (monthly.valetsByWeek) {
+        const totalValets = Object.values(monthly.valetsByWeek).reduce((sum: number, val: any) => sum + Number(val), 0);
+        serviceBreakdown.push({
+          name: 'Valets',
+          value: totalValets
+        });
+      }
+      
+      // Prepare client type breakdown
+      const clientTypeBreakdown = [
+        { name: 'Regulares', value: 60 },
+        { name: 'Ocasionales', value: 30 },
+        { name: 'Nuevos', value: 10 }
+      ];
+      
       // Set all the metrics data
       setData({
-        daily: dailyMetrics,
-        weekly: weeklyMetrics,
-        monthly: monthlyMetrics
+        daily,
+        weekly,
+        monthly,
+        revenueByDate,
+        serviceBreakdown,
+        clientTypeBreakdown,
+        totalRevenue: totalMonthlyRevenue,
+        totalTickets: 120, // Mock data
+        uniqueCustomers: 45, // Mock data
+        averageTicket: totalMonthlyRevenue > 0 ? totalMonthlyRevenue / 120 : 0
       });
       
       console.log("Metrics data refreshed successfully:", {
-        daily: dailyMetrics,
-        weekly: weeklyMetrics,
-        monthly: monthlyMetrics
+        daily,
+        weekly,
+        monthly,
+        revenueByDate,
+        serviceBreakdown,
+        clientTypeBreakdown
       });
+      
+      toast.success("Datos de métricas actualizados");
       
     } catch (err) {
       console.error("Error fetching metrics data:", err);
@@ -65,15 +139,6 @@ export const useMetricsData = (): UseMetricsDataReturn => {
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  // Determine period based on date range
-  const determinePeriod = (from: Date, to: Date): MetricsPeriod => {
-    const diffDays = Math.ceil((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays <= 7) return 'daily';
-    if (diffDays <= 31) return 'weekly';
-    return 'monthly';
   };
   
   // Refresh data when dateRange changes

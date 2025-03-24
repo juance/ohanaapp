@@ -20,27 +20,33 @@ export const RevenueChart: React.FC<RevenueChartProps> = ({ data }) => {
       </CardHeader>
       <CardContent className="pl-2">
         <div className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="date" 
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return `${date.getDate()}/${date.getMonth() + 1}`;
-                }}
-              />
-              <YAxis />
-              <Tooltip 
-                formatter={(value) => [`$${value}`, 'Ingresos']}
-                labelFormatter={(label) => {
-                  const date = new Date(label);
-                  return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-                }}
-              />
-              <Bar dataKey="revenue" fill="#3b82f6" name="Ingresos" />
-            </BarChart>
-          </ResponsiveContainer>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="date" 
+                  tickFormatter={(value) => {
+                    const date = new Date(value);
+                    return `${date.getDate()}/${date.getMonth() + 1}`;
+                  }}
+                />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Ingresos']}
+                  labelFormatter={(label) => {
+                    const date = new Date(label);
+                    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+                  }}
+                />
+                <Bar dataKey="revenue" fill="#3b82f6" name="Ingresos" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">No hay datos disponibles para mostrar</p>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

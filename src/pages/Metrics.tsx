@@ -12,6 +12,7 @@ import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface MetricsProps {
   embedded?: boolean;
@@ -28,8 +29,11 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
   } = useMetricsData();
   
   const handleRefresh = async () => {
+    toast.info("Actualizando datos...");
     await refreshData();
   };
+  
+  console.log("Current metrics data:", data);
   
   const content = (
     <>
@@ -58,12 +62,22 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
       <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
 
       {isLoading ? (
-        <Loading />
+        <div className="my-8">
+          <Loading className="mx-auto" />
+          <p className="text-center text-muted-foreground mt-4">Cargando datos de métricas...</p>
+        </div>
       ) : error ? (
-        <div className="space-y-4">
-          <ErrorMessage message={error.message} />
-          <Button onClick={handleRefresh} variant="destructive">
+        <div className="space-y-4 my-8">
+          <ErrorMessage message={`Error al cargar métricas: ${error.message}`} />
+          <Button onClick={handleRefresh} variant="destructive" className="mx-auto block">
             Reintentar
+          </Button>
+        </div>
+      ) : !data ? (
+        <div className="text-center my-8">
+          <p className="text-lg text-muted-foreground">No hay datos disponibles</p>
+          <Button onClick={handleRefresh} className="mt-4">
+            Cargar Datos
           </Button>
         </div>
       ) : (
