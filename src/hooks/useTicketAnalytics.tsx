@@ -64,6 +64,8 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
           status, 
           date,
           is_canceled,
+          is_paid,
+          valet_quantity,
           dry_cleaning_items (id, name, quantity, price)
         `)
         .gte('date', dateRange.from.toISOString())
@@ -96,6 +98,12 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       const totalTickets = tickets.length;
       const totalRevenue = tickets.reduce((sum, ticket) => sum + (Number(ticket.total) || 0), 0);
       const averageTicketValue = totalTickets > 0 ? totalRevenue / totalTickets : 0;
+
+      // Count of free valets
+      const freeValets = tickets.filter(ticket => ticket.valet_quantity > 0 && ticket.total === 0).length;
+      
+      // Count of paid tickets
+      const paidTickets = tickets.filter(ticket => ticket.is_paid).length;
 
       // Distribution by status
       const ticketsByStatus = {
@@ -175,7 +183,9 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         topServices,
         revenueByMonth,
         itemTypeDistribution,
-        paymentMethodDistribution
+        paymentMethodDistribution,
+        freeValets, // Add the free valets count
+        paidTickets // Add the paid tickets count
       });
     } catch (err) {
       console.error("Error fetching ticket analytics:", err);

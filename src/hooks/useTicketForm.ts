@@ -1,5 +1,6 @@
 
 import { Ticket, LaundryOption } from '@/lib/types';
+import { useState } from 'react';
 import { useCustomerForm } from './ticket/useCustomerForm';
 import { useValetForm } from './ticket/useValetForm';
 import { useDryCleaningForm } from './ticket/useDryCleaningForm';
@@ -7,6 +8,9 @@ import { useTicketFormState } from './ticket/useTicketFormState';
 import { useTicketFormSubmit } from './ticket/useTicketFormSubmit';
 
 export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void) => {
+  // New state for paid in advance option
+  const [isPaidInAdvance, setIsPaidInAdvance] = useState<boolean>(false);
+  
   // Import all smaller hooks
   const customerForm = useCustomerForm();
   const valetForm = useValetForm();
@@ -28,7 +32,8 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     resetCustomerForm: customerForm.resetCustomerForm,
     resetValetForm: valetForm.resetValetForm,
     resetDryCleaningForm: dryCleaningForm.resetDryCleaningForm,
-    resetTicketFormState: ticketFormState.resetTicketFormState
+    resetTicketFormState: ticketFormState.resetTicketFormState,
+    isPaidInAdvance // Add the new field
   };
   
   // Use the submit handler
@@ -46,6 +51,10 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     
     // Ticket form state
     ...ticketFormState,
+    
+    // Paid in advance option
+    isPaidInAdvance,
+    setIsPaidInAdvance,
     
     // Form submission
     handleSubmit

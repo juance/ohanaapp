@@ -26,6 +26,7 @@ export const storeTicketData = async (
     valetQuantity: number;
     customDate?: Date;
     usesFreeValet?: boolean;
+    isPaidInAdvance?: boolean; // Add the new field
   },
   customer: { name: string; phoneNumber: string },
   dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
@@ -80,7 +81,8 @@ export const storeTicketData = async (
         valet_quantity: ticket.valetQuantity,
         customer_id: customerId,
         status: 'ready', // Set status to ready by default
-        date: ticketDate
+        date: ticketDate,
+        is_paid: ticket.isPaidInAdvance || false // Set paid status based on the isPaidInAdvance flag
       })
       .select('*')
       .single();
@@ -147,7 +149,8 @@ export const storeTicketData = async (
         createdAt: ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString(),
         pendingSync: true,
         ticketNumber: Math.floor(Math.random() * 1000) + 1, // Local ticket number as fallback
-        basketTicketNumber: Math.floor(Math.random() * 1000) + 1 // Fallback random basket number
+        basketTicketNumber: Math.floor(Math.random() * 1000) + 1, // Fallback random basket number
+        isPaid: ticket.isPaidInAdvance || false // Set paid status
       };
       
       localTickets.push(newTicket);

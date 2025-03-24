@@ -25,16 +25,22 @@ export interface LaundryService {
 export interface Ticket {
   id: string;
   ticketNumber?: string;
-  basketTicketNumber?: number;
+  basketTicketNumber?: string;
   clientName: string;
   phoneNumber: string;
-  services: LaundryService[];
+  services: {
+    id?: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
   paymentMethod: PaymentMethod;
   totalPrice: number;
   status: 'pending' | 'processing' | 'ready' | 'delivered';
   createdAt: string;
   updatedAt: string;
   deliveredDate?: string;
+  isPaid?: boolean; // New field to track if ticket is paid
 }
 
 export interface Metrics {

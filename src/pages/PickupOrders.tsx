@@ -1,10 +1,9 @@
-
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle } from 'lucide-react';
+import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Ticket } from '@/lib/types';
 import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
@@ -71,9 +70,10 @@ const PickupOrders = () => {
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
+      queryClient.invalidateQueries({ queryKey: ['metrics'] }); // Refresh metrics data
       setSelectedTicket(null);
       refetch(); // Refetch the tickets list to update UI
-      toast.success('Ticket marcado como entregado exitosamente');
+      toast.success('Ticket marcado como entregado y pagado exitosamente');
     }
   };
 
@@ -179,7 +179,7 @@ const PickupOrders = () => {
           @media print {
             .no-print {
               display: none;
-            }
+              }
           }
         </style>
       </head>
@@ -416,26 +416,36 @@ const PickupOrders = () => {
               <div className="md:col-span-2 space-y-4 border rounded-lg p-4 bg-gray-50 max-h-[calc(100vh-300px)] overflow-y-auto">
                 {filteredTickets.length > 0 ? (
                   filteredTickets.map(ticket => (
-                    <div 
+                    <Card 
                       key={ticket.id}
                       className={`
-                        p-3 border rounded-lg bg-white cursor-pointer transition-all
-                        ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:bg-gray-50'}
+                        cursor-pointer transition-all
+                        ${selectedTicket === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : 'hover:border-blue-200'}
                       `}
                       onClick={() => setSelectedTicket(ticket.id)}
                     >
-                      <div className="font-medium">
-                        {ticket.clientName}
-                        <span className="ml-2 text-xs text-gray-500">
-                          Ticket #{ticket.ticketNumber || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
-                      <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
-                      <div className="mt-2 flex justify-between items-center">
-                        <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
-                      </div>
-                    </div>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <div className="font-medium">{ticket.clientName}</div>
+                            <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+                          </div>
+                          <div className="flex flex-col gap-1 items-end">
+                            <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">
+                              {ticket.isPaid ? "Pagado" : "Pendiente de pago"}
+                            </Badge>
+                            <div className="flex items-center gap-1 text-yellow-600 text-sm font-medium bg-yellow-50 px-2 py-1 rounded-full">
+                              <Clock className="h-3 w-3" />
+                              <span>Por retirar</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
+                        <div className="mt-2 flex justify-between items-center">
+                          <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))
                 ) : (
                   <div className="text-center p-6 text-gray-500">

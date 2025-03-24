@@ -1,4 +1,3 @@
-
 import { toast } from 'sonner';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
@@ -21,6 +20,7 @@ interface TicketFormState {
   resetValetForm: () => void;
   resetDryCleaningForm: () => void;
   resetTicketFormState: () => void;
+  isPaidInAdvance?: boolean; // Add the new optional field
 }
 
 export const useTicketFormSubmit = (
@@ -44,7 +44,8 @@ export const useTicketFormSubmit = (
       resetCustomerForm,
       resetValetForm,
       resetDryCleaningForm,
-      resetTicketFormState
+      resetTicketFormState,
+      isPaidInAdvance
     } = formState;
     
     if (!customerName || !phoneNumber) {
@@ -73,11 +74,12 @@ export const useTicketFormSubmit = (
     try {
       // Prepare ticket data
       const ticketData = {
-        totalPrice,
+        totalPrice: useFreeValet ? 0 : totalPrice, // If it's free, set price to 0
         paymentMethod: paymentMethod as any,
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
         customDate: date, // Now all users can set a custom date
-        usesFreeValet: useFreeValet // Indicamos si se está usando un valet gratis
+        usesFreeValet: useFreeValet, // Indicamos si se está usando un valet gratis
+        isPaidInAdvance: isPaidInAdvance // Add the paid in advance flag
       };
       
       // Prepare customer data
@@ -112,6 +114,8 @@ export const useTicketFormSubmit = (
       if (success) {
         if (useFreeValet) {
           toast.success('Ticket de valet gratis generado correctamente');
+        } else if (isPaidInAdvance) {
+          toast.success('Ticket generado correctamente (Pagado por adelantado)');
         } else {
           toast.success('Ticket generado correctamente');
         }
@@ -143,10 +147,11 @@ export const useTicketFormSubmit = (
             phoneNumber,
             services,
             paymentMethod: paymentMethod as any,
-            totalPrice,
+            totalPrice: useFreeValet ? 0 : totalPrice, // If it's a free valet, set price to 0
             status: 'ready',
             createdAt: date.toISOString(),
-            updatedAt: date.toISOString()
+            updatedAt: date.toISOString(),
+            isPaid: isPaidInAdvance // Add the paid status
           };
           
           onTicketGenerated(ticketForPrint, laundryOptions);
