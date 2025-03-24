@@ -31,9 +31,10 @@ serve(async (req) => {
         valets_count: 0,
         valets_redeemed: 0
       })
-      .eq('id', 'not-null')  // This ensures we update all records
+      .neq('id', '')  // This ensures we update all records
 
     if (loyaltyError) {
+      console.error('Error resetting loyalty data:', loyaltyError)
       throw loyaltyError
     }
 
@@ -41,9 +42,10 @@ serve(async (req) => {
     const { error: optionsError } = await supabaseClient
       .from('ticket_laundry_options')
       .delete()
-      .neq('id', 'placeholder')
+      .neq('id', '')
 
     if (optionsError) {
+      console.error('Error deleting ticket_laundry_options:', optionsError)
       throw optionsError
     }
 
@@ -51,9 +53,10 @@ serve(async (req) => {
     const { error: itemsError } = await supabaseClient
       .from('dry_cleaning_items')
       .delete()
-      .neq('id', 'placeholder')
+      .neq('id', '')
 
     if (itemsError) {
+      console.error('Error deleting dry_cleaning_items:', itemsError)
       throw itemsError
     }
 
@@ -61,9 +64,10 @@ serve(async (req) => {
     const { error: ticketsError } = await supabaseClient
       .from('tickets')
       .delete()
-      .neq('id', 'placeholder')
+      .neq('id', '')
 
     if (ticketsError) {
+      console.error('Error deleting tickets:', ticketsError)
       throw ticketsError
     }
 
@@ -71,9 +75,10 @@ serve(async (req) => {
     const { error: expensesError } = await supabaseClient
       .from('expenses')
       .delete()
-      .neq('id', 'placeholder')
+      .neq('id', '')
 
     if (expensesError) {
+      console.error('Error deleting expenses:', expensesError)
       throw expensesError
     }
 
@@ -84,6 +89,7 @@ serve(async (req) => {
       .eq('id', 1)
 
     if (sequenceError) {
+      console.error('Error resetting ticket sequence:', sequenceError)
       throw sequenceError
     }
 
@@ -95,8 +101,8 @@ serve(async (req) => {
         message: 'All application data has been reset successfully'
       }),
       {
-        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
       }
     )
   } catch (error) {
@@ -108,8 +114,8 @@ serve(async (req) => {
         error: error.message || 'An error occurred during the data reset process'
       }),
       {
-        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
       }
     )
   }
