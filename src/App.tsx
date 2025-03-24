@@ -14,6 +14,7 @@ import Metrics from './pages/Metrics';
 import Expenses from './pages/Expenses';
 import Feedback from './pages/Feedback';
 import Administration from './pages/Administration';
+import { Toaster } from "@/components/ui/toaster";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/administration" element={<Administration />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster />
       </Router>
     </QueryClientProvider>
   );
