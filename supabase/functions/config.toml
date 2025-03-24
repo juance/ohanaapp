@@ -4,3 +4,7 @@ project_id = "pqedcaxtvonpjrdzwnxq"
 [reset_monthly_loyalty]
 verify_jwt = false
 path = "/reset_monthly_loyalty"
+
+[reset_all_data]
+verify_jwt = false
+path = "/reset_all_data"

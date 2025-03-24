@@ -25,7 +25,8 @@ export const syncOfflineData = async (): Promise<boolean> => {
         ticketNumber: ticket.ticketNumber,
         totalPrice: ticket.totalPrice,
         paymentMethod: ticket.paymentMethod,
-        valetQuantity: ticket.valetQuantity
+        valetQuantity: ticket.valetQuantity,
+        isPaidInAdvance: ticket.isPaid // Make sure we sync the paid status
       };
       
       // Call the storeTicketData function but skip localStorage fallback
@@ -61,6 +62,24 @@ export const syncOfflineData = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error synchronizing offline data:', error);
+    return false;
+  }
+};
+
+/**
+ * Reset local storage data
+ */
+export const resetLocalData = (): boolean => {
+  try {
+    // Reset tickets in localStorage
+    saveToLocalStorage(TICKETS_STORAGE_KEY, []);
+    
+    // Reset expenses in localStorage
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, []);
+    
+    return true;
+  } catch (error) {
+    console.error('Error resetting local data:', error);
     return false;
   }
 };
