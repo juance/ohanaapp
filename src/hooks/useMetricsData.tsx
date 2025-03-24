@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getDailyMetrics, 
@@ -72,17 +71,12 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         });
       }
       
-      const serviceBreakdown: Array<{ name: string; value: number }> = [];
-      if (monthly.dryCleaningItems) {
-        Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
-          // Aseguramos que el valor sea un número
-          const numericValue = Number(value || 0);
-          serviceBreakdown.push({
-            name,
-            value: numericValue // Conversión explícita a número
-          });
-        });
-      }
+      const serviceBreakdown = Object.entries(monthly.dryCleaningItems || {}).map(([name, rawValue]) => {
+        return {
+          name,
+          value: Number(rawValue || 0)
+        };
+      });
       
       const clientTypeBreakdown: Array<{ name: string; value: number }> = [
         { name: 'Regulares', value: 60 },
