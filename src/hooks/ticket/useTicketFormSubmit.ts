@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';
-import { getNextTicketNumber } from '@/lib/data/ticketNumberService';
+import { getNextTicketNumber } from '@/lib/data/ticket/ticketNumberService';
 
 // Types for the combined form state
 interface TicketFormState {

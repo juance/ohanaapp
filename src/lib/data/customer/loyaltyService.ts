@@ -52,7 +52,7 @@ export const redeemLoyaltyPoints = async (customerId: string, points: number): P
       .from('customers')
       .update({ 
         loyalty_points: currentPoints - points,
-        valets_redeemed: supabase.sql`valets_redeemed + 1` // Increment redemptions counter
+        valets_redeemed: customer.valets_redeemed ? customer.valets_redeemed + 1 : 1
       })
       .eq('id', customerId);
     

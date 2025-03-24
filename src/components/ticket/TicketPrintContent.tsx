@@ -93,7 +93,10 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Cantidad:</span>
-          <span>{ticket.services.reduce((sum, service) => sum + ('quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1), 0)}</span>
+          <span>{ticket.services.reduce((sum, service) => {
+            const quantity = 'quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1;
+            return sum + quantity;
+          }, 0)}</span>
         </div>
         
         <div className="flex justify-between">
