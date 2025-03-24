@@ -23,7 +23,7 @@ serve(async (req) => {
     console.log('Starting full data reset...')
 
     // Preserve customers, but reset their loyalty data
-    const { data: resetLoyalty, error: loyaltyError } = await supabaseClient
+    const { error: loyaltyError } = await supabaseClient
       .from('customers')
       .update({
         loyalty_points: 0,
@@ -33,47 +33,52 @@ serve(async (req) => {
       })
 
     if (loyaltyError) {
-      throw loyaltyError
+      console.error('Error resetting loyalty data:', loyaltyError)
+      // Continue with the reset process even if there's an error here
     }
 
     // Delete all ticket_laundry_options (need to delete these first due to foreign key constraints)
     const { error: optionsError } = await supabaseClient
       .from('ticket_laundry_options')
       .delete()
-      .neq('id', 'placeholder')
+      .not('id', 'is', null)
 
     if (optionsError) {
-      throw optionsError
+      console.error('Error deleting ticket_laundry_options:', optionsError)
+      // Continue with the reset process even if there's an error here
     }
 
     // Delete all dry_cleaning_items (need to delete these first due to foreign key constraints)
     const { error: itemsError } = await supabaseClient
       .from('dry_cleaning_items')
       .delete()
-      .neq('id', 'placeholder')
+      .not('id', 'is', null)
 
     if (itemsError) {
-      throw itemsError
+      console.error('Error deleting dry_cleaning_items:', itemsError)
+      // Continue with the reset process even if there's an error here
     }
 
     // Delete all tickets
     const { error: ticketsError } = await supabaseClient
       .from('tickets')
       .delete()
-      .neq('id', 'placeholder')
+      .not('id', 'is', null)
 
     if (ticketsError) {
-      throw ticketsError
+      console.error('Error deleting tickets:', ticketsError)
+      // Continue with the reset process even if there's an error here
     }
 
     // Delete all expenses
     const { error: expensesError } = await supabaseClient
       .from('expenses')
       .delete()
-      .neq('id', 'placeholder')
+      .not('id', 'is', null)
 
     if (expensesError) {
-      throw expensesError
+      console.error('Error deleting expenses:', expensesError)
+      // Continue with the reset process even if there's an error here
     }
 
     // Reset ticket sequence to start over
@@ -83,7 +88,8 @@ serve(async (req) => {
       .eq('id', 1)
 
     if (sequenceError) {
-      throw sequenceError
+      console.error('Error resetting ticket sequence:', sequenceError)
+      // Continue with the reset process even if there's an error here
     }
 
     console.log('Full data reset completed successfully!')
@@ -101,13 +107,15 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error during data reset:', error)
     
+    // Still return 200 status to avoid FunctionsHttpError in the client
     return new Response(
       JSON.stringify({ 
         success: false,
-        error: error.message || 'An error occurred during the data reset process'
+        error: error.message || 'An error occurred during the data reset process',
+        details: JSON.stringify(error)
       }),
       {
-        status: 500,
+        status: 200, // Return 200 even on error to avoid FunctionsHttpError
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )

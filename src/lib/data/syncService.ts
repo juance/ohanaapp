@@ -29,11 +29,16 @@ export const syncOfflineData = async (): Promise<boolean> => {
         isPaidInAdvance: ticket.isPaid // Make sure we sync the paid status
       };
       
-      // Call the storeTicketData function but skip localStorage fallback
-      await storeTicketData(ticketData, customer, ticket.dryCleaningItems, ticket.laundryOptions);
-      
-      // Mark as synced in localStorage
-      ticket.pendingSync = false;
+      try {
+        // Call the storeTicketData function but skip localStorage fallback
+        await storeTicketData(ticketData, customer, ticket.dryCleaningItems, ticket.laundryOptions);
+        
+        // Mark as synced in localStorage
+        ticket.pendingSync = false;
+      } catch (syncError) {
+        console.error(`Error syncing ticket ${ticket.ticketNumber}:`, syncError);
+        // Continue with other tickets
+      }
     }
     
     // Update localStorage
@@ -51,8 +56,13 @@ export const syncOfflineData = async (): Promise<boolean> => {
           date: expense.date
         };
         
-        await storeExpense(expenseData);
-        expense.pendingSync = false;
+        try {
+          await storeExpense(expenseData);
+          expense.pendingSync = false;
+        } catch (syncError) {
+          console.error(`Error syncing expense:`, syncError);
+          // Continue with other expenses
+        }
       }
       
       // Update localStorage
@@ -77,6 +87,7 @@ export const resetLocalData = (): boolean => {
     // Reset expenses in localStorage
     saveToLocalStorage(EXPENSES_STORAGE_KEY, []);
     
+    console.log('Local data reset successfully');
     return true;
   } catch (error) {
     console.error('Error resetting local data:', error);
