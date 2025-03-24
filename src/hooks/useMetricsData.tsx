@@ -64,7 +64,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       const totalMonthlyRevenue = calculateTotalRevenue(monthly.paymentMethods);
       
       // Prepare revenue by date chart data
-      const revenueByDate = [];
+      const revenueByDate: Array<{ date: string; revenue: number }> = [];
       const currentDate = new Date();
       
       // Add data points for the last 30 days
@@ -93,7 +93,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       }
       
       // Prepare client type breakdown
-      const clientTypeBreakdown = [
+      const clientTypeBreakdown: Array<{ name: string; value: number }> = [
         { name: 'Regulares', value: 60 },
         { name: 'Ocasionales', value: 30 },
         { name: 'Nuevos', value: 10 }
