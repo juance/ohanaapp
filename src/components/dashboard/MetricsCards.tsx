@@ -22,9 +22,12 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
   const currentMetrics = metrics ? metrics[viewType] || {} : {};
   const currentExpenses = expenses ? expenses[viewType] || 0 : 0;
   
-  // Calculate profit
-  const revenue = currentMetrics.revenue || 0;
-  const profit = revenue - currentExpenses;
+  // Calculate metrics safely
+  const revenue = Number(metrics?.totalRevenue || 0);
+  const profit = revenue - Number(currentExpenses || 0);
+  const totalTickets = Number(metrics?.totalTickets || 0);
+  const paidTickets = Number(currentMetrics?.paidTickets || 0);
+  const freeValets = Number(currentMetrics?.freeValets || 0);
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -75,7 +78,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           <ShoppingBag className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{currentMetrics.ticketCount || 0}</div>
+          <div className="text-2xl font-bold">{totalTickets}</div>
           <p className="text-xs text-muted-foreground">
             {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
           </p>
@@ -88,7 +91,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{currentMetrics.paidTickets || 0}</div>
+          <div className="text-2xl font-bold">{paidTickets}</div>
           <p className="text-xs text-muted-foreground">
             {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
           </p>
@@ -101,7 +104,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           <Award className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{currentMetrics.freeValets || 0}</div>
+          <div className="text-2xl font-bold">{freeValets}</div>
           <p className="text-xs text-muted-foreground">
             {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
           </p>

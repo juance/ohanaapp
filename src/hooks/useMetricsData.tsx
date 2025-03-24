@@ -46,8 +46,9 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       ]);
       
       // Calculate total revenue from payment methods
-      const calculateTotalRevenue = (paymentMethods: any) => {
-        return Object.values(paymentMethods).reduce((sum: number, value: any) => sum + Number(value), 0);
+      const calculateTotalRevenue = (paymentMethods: any): number => {
+        if (!paymentMethods) return 0;
+        return Object.values(paymentMethods).reduce((sum: number, value: any) => sum + Number(value || 0), 0);
       };
       
       // Process daily metrics
@@ -86,7 +87,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
           serviceBreakdown.push({
             name,
-            value
+            value: Number(value)
           });
         });
       }
@@ -99,7 +100,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       ];
       
       // Calculate totalTickets and ensure it's a number
-      const totalTickets = 120; // Mock data
+      const totalTickets = 120; // Mock data for now
       
       // Ensure totalMonthlyRevenue is a number before division
       const totalMonthlyRevenueNum = Number(totalMonthlyRevenue) || 0;

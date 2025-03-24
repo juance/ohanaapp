@@ -8,6 +8,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface DashboardProps {
   embedded?: boolean;
@@ -17,7 +18,13 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   const { data, isLoading, error, refreshData } = useDashboardData();
   
   const handleRefresh = async () => {
-    await refreshData();
+    try {
+      toast.info("Actualizando panel de control...");
+      await refreshData();
+    } catch (err) {
+      console.error("Error refreshing dashboard:", err);
+      toast.error("Error al actualizar el panel de control");
+    }
   };
   
   const content = (
@@ -59,21 +66,31 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             Reintentar
           </Button>
         </div>
+      ) : !data || Object.keys(data.metrics).length === 0 ? (
+        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+          <h3 className="text-lg font-medium text-yellow-800">No hay datos disponibles</h3>
+          <p className="text-yellow-700">No se encontraron datos para mostrar en el panel de control.</p>
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="sm"
+            className="mt-2"
+          >
+            Cargar Datos
+          </Button>
+        </div>
       ) : (
         <>
           <MetricsCards 
-            metrics={data?.metrics} 
-            expenses={data?.expenses} 
+            metrics={data.metrics} 
+            expenses={data.expenses} 
             viewType="monthly" 
           />
+          <div className="h-6"></div>
           <ChartSection 
-            chartData={data?.chartData || {
-              barData: [],
-              lineData: [],
-              pieData: []
-            }} 
+            chartData={data.chartData} 
             viewType="monthly"
-            frequentClients={data?.clients || []}
+            frequentClients={data.clients}
           />
         </>
       )}
