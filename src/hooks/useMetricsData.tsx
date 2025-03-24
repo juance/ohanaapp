@@ -100,10 +100,10 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       ];
       
       // Calculate totalTickets and ensure it's a number
-      const totalTickets = 120; // Mock data for now
+      const totalTickets: number = 120; // Mock data for now
       
       // Ensure totalMonthlyRevenue is a number before division
-      const totalMonthlyRevenueNum = Number(totalMonthlyRevenue) || 0;
+      const totalMonthlyRevenueNum: number = Number(totalMonthlyRevenue) || 0;
       
       // Set all the metrics data, ensuring proper numeric types
       setData({

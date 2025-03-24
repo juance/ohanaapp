@@ -41,9 +41,9 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       monthly: metricsData.data?.monthly || null
     },
     {
-      daily: expensesData.expenses?.daily || 0,
-      weekly: expensesData.expenses?.weekly || 0,
-      monthly: expensesData.expenses?.monthly || 0
+      daily: Number(expensesData.expenses?.daily || 0),
+      weekly: Number(expensesData.expenses?.weekly || 0),
+      monthly: Number(expensesData.expenses?.monthly || 0)
     }
   );
   
