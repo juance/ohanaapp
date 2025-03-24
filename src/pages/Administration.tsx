@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -77,7 +76,6 @@ const Administration = () => {
               <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
               <div className="flex items-center">
                 <p className="text-gray-500">Administración</p>
-                <Badge variant="destructive" className="ml-2">Área Restringida</Badge>
               </div>
             </div>
           </header>

@@ -38,14 +38,24 @@ const Navbar = () => {
   
   const menuLinks = [
     { 
-      href: '/administration', 
-      label: 'Administración', 
-      icon: <Settings className="h-5 w-5 mr-3" /> 
+      href: '/dashboard', 
+      label: 'Panel Principal', 
+      icon: <LayoutDashboard className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/tickets', 
       label: 'Tickets', 
       icon: <Receipt className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/clients', 
+      label: 'Clientes', 
+      icon: <Users className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/inventory', 
+      label: 'Inventario', 
+      icon: <Package className="h-5 w-5 mr-3" /> 
     },
     { 
       href: '/pickup-orders', 
@@ -58,6 +68,16 @@ const Navbar = () => {
       icon: <CheckSquare className="h-5 w-5 mr-3" /> 
     },
     { 
+      href: '/ticket-analysis', 
+      label: 'Análisis de tickets', 
+      icon: <BarChart className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/metrics', 
+      label: 'Métricas', 
+      icon: <PieChart className="h-5 w-5 mr-3" /> 
+    },
+    { 
       href: '/expenses', 
       label: 'Gastos', 
       icon: <DollarSign className="h-5 w-5 mr-3" /> 
@@ -66,6 +86,11 @@ const Navbar = () => {
       href: '/feedback', 
       label: 'Comentarios y Fidelidad', 
       icon: <MessageSquare className="h-5 w-5 mr-3" /> 
+    },
+    { 
+      href: '/administration', 
+      label: 'Administración', 
+      icon: <Settings className="h-5 w-5 mr-3" /> 
     }
   ];
   
