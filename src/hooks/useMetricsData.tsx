@@ -82,7 +82,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       }
       
       // Prepare service breakdown data
-      const serviceBreakdown = [];
+      const serviceBreakdown: Array<{ name: string; value: number }> = [];
       if (monthly.dryCleaningItems) {
         Object.entries(monthly.dryCleaningItems).forEach(([name, value]) => {
           serviceBreakdown.push({
@@ -116,7 +116,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         totalRevenue: totalMonthlyRevenueNum,
         totalTickets,
         uniqueCustomers: 45, // Mock data
-        averageTicket: totalTickets > 0 ? totalMonthlyRevenueNum / totalTickets : 0
+        averageTicket: totalTickets > 0 ? (totalMonthlyRevenueNum / totalTickets) : 0
       });
       
       console.log("Metrics data refreshed successfully:", {
