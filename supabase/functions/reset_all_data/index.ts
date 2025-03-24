@@ -31,6 +31,7 @@ serve(async (req) => {
         valets_count: 0,
         valets_redeemed: 0
       })
+      .not('id', 'is', null) // Add this to avoid UPDATE without WHERE clause error
 
     if (loyaltyError) {
       console.error('Error resetting loyalty data:', loyaltyError)
