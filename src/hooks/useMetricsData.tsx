@@ -79,7 +79,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
           const numericValue = Number(value || 0);
           serviceBreakdown.push({
             name,
-            value: numericValue // Now it's definitely a number
+            value: numericValue // Explicitly cast to number type
           });
         });
       }
