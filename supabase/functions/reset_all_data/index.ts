@@ -23,7 +23,7 @@ serve(async (req) => {
     console.log('Starting full data reset...')
 
     // Preserve customers, but reset their loyalty data
-    const { data: resetLoyalty, error: loyaltyError } = await supabaseClient
+    const { error: loyaltyError } = await supabaseClient
       .from('customers')
       .update({
         loyalty_points: 0,
@@ -31,6 +31,7 @@ serve(async (req) => {
         valets_count: 0,
         valets_redeemed: 0
       })
+      .eq('id', 'not-null')  // This ensures we update all records
 
     if (loyaltyError) {
       throw loyaltyError

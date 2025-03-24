@@ -16,30 +16,46 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { resetLocalData } from '@/lib/data/syncService';
 
 const DataReset = () => {
   const { toast } = useToast();
   const [isResetting, setIsResetting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleResetData = async () => {
     try {
       setIsResetting(true);
       
       // Call the Supabase edge function to reset all data
-      const { data, error } = await supabase.functions.invoke('reset_all_data');
+      const { data, error } = await supabase.functions.invoke('reset_all_data', {
+        method: 'POST',
+      });
       
       if (error) {
-        throw error;
+        console.error("Error calling reset_all_data function:", error);
+        throw new Error(`Error resetting data: ${error.message}`);
+      }
+      
+      if (!data.success) {
+        console.error("Reset function returned error:", data.error);
+        throw new Error(`Error from server: ${data.error}`);
       }
       
       // Reset local storage data
-      localStorage.removeItem('tickets');
-      localStorage.removeItem('expenses');
+      const localResetSuccessful = resetLocalData();
+      
+      if (!localResetSuccessful) {
+        console.warn("Local data reset may have been incomplete");
+      }
       
       toast({
         title: "Datos reiniciados",
         description: "Todos los datos han sido reiniciados exitosamente.",
       });
+      
+      // Close the dialog
+      setIsOpen(false);
       
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
@@ -84,7 +100,7 @@ const DataReset = () => {
         </p>
       </CardContent>
       <CardFooter>
-        <AlertDialog>
+        <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
           <AlertDialogTrigger asChild>
             <Button variant="destructive" className="w-full">
               <RotateCcw className="h-4 w-4 mr-2" />
