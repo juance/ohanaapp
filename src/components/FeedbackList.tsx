@@ -6,6 +6,7 @@ import { CustomerFeedback } from '@/lib/types';
 import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { Star, Trash2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/components/ui/use-toast';
 
 const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [feedback, setFeedback] = useState<CustomerFeedback[]>([]);
@@ -29,6 +30,16 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const success = await deleteFeedback(id);
       if (success) {
         setFeedback(feedback.filter(item => item.id !== id));
+        toast({
+          title: "Success", 
+          description: "Comentario eliminado exitosamente"
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Error al eliminar el comentario"
+        });
       }
     }
   };

@@ -1,4 +1,4 @@
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';
@@ -49,22 +49,38 @@ export const useTicketFormSubmit = (
     } = formState;
     
     if (!customerName || !phoneNumber) {
-      toast.error('Por favor complete los datos del cliente');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Por favor complete los datos del cliente'
+      });
       return;
     }
     
     if (phoneNumber.length < 8) {
-      toast.error('Por favor ingrese un número de teléfono válido');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Por favor ingrese un número de teléfono válido'
+      });
       return;
     }
     
     if (activeTab === 'valet' && valetQuantity <= 0 && !useFreeValet) {
-      toast.error('La cantidad de valets debe ser mayor a cero');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'La cantidad de valets debe ser mayor a cero'
+      });
       return;
     }
     
     if (activeTab === 'tintoreria' && selectedDryCleaningItems.length === 0) {
-      toast.error('Por favor seleccione al menos un artículo de tintorería');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Por favor seleccione al menos un artículo de tintorería'
+      });
       return;
     }
     
@@ -113,11 +129,20 @@ export const useTicketFormSubmit = (
       
       if (success) {
         if (useFreeValet) {
-          toast.success('Ticket de valet gratis generado correctamente');
+          toast({
+            title: "Success",
+            description: 'Ticket de valet gratis generado correctamente'
+          });
         } else if (isPaidInAdvance) {
-          toast.success('Ticket generado correctamente (Pagado por adelantado)');
+          toast({
+            title: "Success",
+            description: 'Ticket generado correctamente (Pagado por adelantado)'
+          });
         } else {
-          toast.success('Ticket generado correctamente');
+          toast({
+            title: "Success",
+            description: 'Ticket generado correctamente'
+          });
         }
         
         // Create a ticket object for printing
@@ -163,11 +188,19 @@ export const useTicketFormSubmit = (
         resetDryCleaningForm();
         resetTicketFormState();
       } else {
-        toast.error('Error al generar el ticket');
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: 'Error al generar el ticket'
+        });
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast.error('Error al generar el ticket');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Error al generar el ticket'
+      });
     }
   };
 
