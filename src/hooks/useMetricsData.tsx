@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getDailyMetrics, 
@@ -86,6 +87,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       
       const totalTickets: number = 120;
       
+      // Explicitly convert totalMonthlyRevenue to number to ensure type safety
       const totalMonthlyRevenueNum: number = Number(totalMonthlyRevenue) || 0;
       
       setData({
