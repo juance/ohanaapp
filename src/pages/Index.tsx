@@ -23,13 +23,13 @@ const Index: React.FC = () => {
       title: 'Ordenes Pendientes',
       description: 'Gestiona las órdenes pendientes de entrega',
       icon: <ShoppingBag className="h-8 w-8 text-yellow-500" />,
-      path: '/pickup-orders',
+      path: '/pickup',
     },
     {
       title: 'Ordenes Entregadas',
       description: 'Revisa el historial de órdenes entregadas',
       icon: <FileText className="h-8 w-8 text-green-500" />,
-      path: '/delivered-orders',
+      path: '/delivered',
     },
     {
       title: 'Clientes',
@@ -53,7 +53,7 @@ const Index: React.FC = () => {
       title: 'Análisis de Tickets',
       description: 'Reportes y analíticas sobre los tickets',
       icon: <FileText className="h-8 w-8 text-cyan-500" />,
-      path: '/ticket-analysis',
+      path: '/analysis',
     },
     {
       title: 'Gastos',
@@ -66,6 +66,12 @@ const Index: React.FC = () => {
       description: 'Configuraciones y herramientas del sistema',
       icon: <Settings className="h-8 w-8 text-gray-500" />,
       path: '/administration',
+    },
+    {
+      title: 'Comentarios',
+      description: 'Gestiona comentarios de clientes',
+      icon: <FileText className="h-8 w-8 text-blue-500" />,
+      path: '/feedback',
     },
   ];
 

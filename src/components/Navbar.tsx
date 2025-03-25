@@ -13,14 +13,15 @@ const Navbar: React.FC = () => {
   const navItems = [
     { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" /> },
     { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" /> },
-    { path: '/pickup-orders', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
-    { path: '/delivered-orders', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
+    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
+    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
     { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
     { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
     { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" /> },
-    { path: '/ticket-analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
+    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
     { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
     { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
+    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" /> },
   ];
 
   return (
