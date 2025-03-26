@@ -211,10 +211,12 @@ export function GeneralSettings() {
                         Español
                       </FormDescription>
                     </div>
-                    <FormControl>
-                      <Input type="hidden" {...field} />
+                    <div className="flex items-center">
+                      <FormControl>
+                        <Input type="hidden" {...field} />
+                      </FormControl>
                       <Badge>Predeterminado</Badge>
-                    </FormControl>
+                    </div>
                   </FormItem>
                 )}
               />
