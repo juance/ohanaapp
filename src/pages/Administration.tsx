@@ -1,13 +1,20 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
+import { ErrorLogList } from '@/components/admin/ErrorLogList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { setupGlobalErrorHandling } from '@/lib/errorService';
 
 const Administration = () => {
+  useEffect(() => {
+    // Inicializar el sistema de captura de errores
+    setupGlobalErrorHandling();
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
@@ -24,9 +31,10 @@ const Administration = () => {
           </header>
           
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
+            <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="tickets">Tickets</TabsTrigger>
+              <TabsTrigger value="errors">Errores</TabsTrigger>
               <TabsTrigger value="system">Sistema</TabsTrigger>
             </TabsList>
             
@@ -46,6 +54,10 @@ const Administration = () => {
             
             <TabsContent value="tickets" className="space-y-6">
               <ResetTicketNumbers />
+            </TabsContent>
+            
+            <TabsContent value="errors" className="space-y-6">
+              <ErrorLogList />
             </TabsContent>
             
             <TabsContent value="system" className="space-y-6">

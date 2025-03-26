@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
+import { setupGlobalErrorHandling } from './lib/errorService.ts';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
@@ -28,6 +29,9 @@ if (!rootElement) {
 
 // Performance timing
 const startTime = performance.now();
+
+// Inicializar sistema de captura de errores global
+setupGlobalErrorHandling();
 
 // Create and render the root
 try {
