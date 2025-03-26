@@ -24,6 +24,7 @@ const queryClient = new QueryClient({
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("Fatal: Root element not found in the DOM");
+  document.body.innerHTML = '<div style="padding: 20px; text-align: center;"><h1>Error al iniciar la aplicación</h1><p>No se encontró el elemento raíz.</p></div>';
   throw new Error('Root element not found');
 }
 
@@ -36,13 +37,13 @@ setupGlobalErrorHandling();
 // Create and render the root
 try {
   createRoot(rootElement).render(
-    <ErrorBoundary>
+    <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <ErrorBoundary>
           <App />
-        </BrowserRouter>
+        </ErrorBoundary>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </BrowserRouter>
   );
   
   const loadTime = Math.round(performance.now() - startTime);
