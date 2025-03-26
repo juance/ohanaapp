@@ -1,5 +1,5 @@
 
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
 import Index from '@/pages/Index';
 import Dashboard from '@/pages/Dashboard';
@@ -16,9 +16,31 @@ import DeliveredOrders from '@/pages/DeliveredOrders';
 import TicketAnalysis from '@/pages/TicketAnalysis';
 import NotFound from '@/pages/NotFound';
 import './App.css';
+import { useEffect } from 'react';
 
 function App() {
+  const location = useLocation();
+  
+  useEffect(() => {
+    console.log("App mounted, available routes:");
+    console.log("/ → Index");
+    console.log("/dashboard → Dashboard");
+    console.log("/tickets → Tickets");
+    console.log("/metrics → Metrics");
+    console.log("/pickup → PickupOrders");
+    console.log("/delivered → DeliveredOrders");
+    console.log("/inventory → Inventory");
+    console.log("/expenses → Expenses");
+    console.log("/feedback → Feedback");
+    console.log("/administration → Administration");
+    console.log("/clients → Clients");
+    console.log("/loyalty → Loyalty");
+    console.log("/analysis → TicketAnalysis");
+    console.log("Current location:", location.pathname);
+  }, [location]);
+  
   console.log("App component rendering - checking routes");
+  
   return (
     <>
       <Routes>
