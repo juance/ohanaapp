@@ -25,6 +25,7 @@ const Feedback = () => {
       return await getCustomerByPhone(phoneNumber);
     },
     enabled: false, // Don't run automatically
+    retry: false, // Don't retry failed queries
   });
   
   const handleSearch = async () => {
@@ -37,13 +38,22 @@ const Feedback = () => {
       return;
     }
     
-    await refetch();
-    
-    if (!customer) {
+    try {
+      await refetch();
+      
+      if (!customer) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: 'Cliente no encontrado'
+        });
+      }
+    } catch (error) {
+      console.error("Error al buscar cliente:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: 'Cliente no encontrado'
+        description: 'Error al buscar el cliente'
       });
     }
   };
