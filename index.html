@@ -8,12 +8,63 @@
     <meta name="description" content="Sistema de gestión para Lavandería Ohana" />
     <meta name="theme-color" content="#ffffff" />
     <meta http-equiv="Content-Security-Policy" content="default-src * 'self' 'unsafe-inline' 'unsafe-eval' data: gap: content: blob:">
-    <base href="/">
     <title>Lavandería Ohana</title>
+    <style>
+      #loading-indicator {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: #f9fafb;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 9999;
+      }
+      #loading-indicator.hidden {
+        display: none;
+      }
+      .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #e5e7eb;
+        border-top: 5px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-bottom: 1rem;
+      }
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
+    <div id="loading-indicator">
+      <div class="loading-spinner"></div>
+      <p>Cargando Lavandería Ohana...</p>
+    </div>
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Hide loading indicator when app is loaded
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const loadingIndicator = document.getElementById('loading-indicator');
+          if (loadingIndicator) loadingIndicator.classList.add('hidden');
+        }, 500);
+      });
+      
+      // Error handling for script loading failures
+      window.addEventListener('error', (e) => {
+        console.error('Script loading error:', e);
+        const errorMsg = document.createElement('div');
+        errorMsg.innerHTML = '<p style="color: red">Error cargando la aplicación. Por favor recarga la página.</p>';
+        document.getElementById('loading-indicator').appendChild(errorMsg);
+      });
+    </script>
   </body>
 </html>

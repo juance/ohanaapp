@@ -22,4 +22,16 @@ export default defineConfig(({ mode }) => ({
   },
   // Ensure base path is correctly set for all environments
   base: '/',
+  build: {
+    // Add source maps for better debugging
+    sourcemap: true,
+    // Make sure we handle async component loading better
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+        },
+      },
+    },
+  }
 }));

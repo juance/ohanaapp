@@ -36,7 +36,7 @@ createRoot(rootElement).render(
   <StrictMode>
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <BrowserRouter>
           <App />
         </BrowserRouter>
       </QueryClientProvider>
@@ -45,3 +45,8 @@ createRoot(rootElement).render(
 );
 
 console.log("React application mounted");
+
+// Handle unhandled promise rejections
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+});
