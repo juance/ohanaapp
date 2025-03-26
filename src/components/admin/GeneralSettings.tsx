@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
@@ -9,6 +9,10 @@ import { Switch } from '@/components/ui/switch';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
+import { saveToLocalStorage, getFromLocalStorage } from '@/lib/data/coreUtils';
+
+// Storage key para los ajustes generales
+const SETTINGS_STORAGE_KEY = 'laundry_general_settings';
 
 interface GeneralSettingsFormValues {
   businessName: string;
@@ -24,7 +28,7 @@ interface GeneralSettingsFormValues {
 export function GeneralSettings() {
   const [isSaving, setIsSaving] = useState(false);
   
-  // En una aplicación real, cargaríamos estos valores desde localStorage o una base de datos
+  // Valores predeterminados que se usarán si no hay datos guardados
   const defaultValues: GeneralSettingsFormValues = {
     businessName: 'Lavandería Ohana',
     address: 'Calle Principal #123, Ciudad',
@@ -36,30 +40,83 @@ export function GeneralSettings() {
     language: 'es',
   };
 
+  // Cargar configuración desde localStorage al iniciar
+  const getSavedSettings = (): GeneralSettingsFormValues => {
+    const savedData = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    return savedData ? JSON.parse(savedData) : defaultValues;
+  };
+
   const form = useForm<GeneralSettingsFormValues>({
-    defaultValues,
+    defaultValues: getSavedSettings(),
   });
+
+  // Aplicar modo oscuro si está habilitado
+  useEffect(() => {
+    const savedSettings = getSavedSettings();
+    if (savedSettings.enableDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  // Escuchar cambios en el modo oscuro
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'enableDarkMode') {
+        if (value.enableDarkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      }
+    });
+    
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   const onSubmit = (data: GeneralSettingsFormValues) => {
     setIsSaving(true);
     
-    // Simular una operación asíncrona
-    setTimeout(() => {
-      // En una aplicación real, guardaríamos estos datos en localStorage o una base de datos
-      console.log('Guardando configuración:', data);
+    try {
+      // Guardar en localStorage
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data));
+      
+      // Aplicar modo oscuro inmediatamente
+      if (data.enableDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
       
       // Mostrar notificación de éxito
       toast({
         title: "Configuración guardada",
         description: "Los ajustes generales se han actualizado correctamente.",
       });
-      
+    } catch (error) {
+      console.error('Error al guardar configuración:', error);
+      toast({
+        title: "Error al guardar",
+        description: "No se pudieron guardar los ajustes. Intente nuevamente.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSaving(false);
-    }, 1000);
+    }
   };
 
   const resetForm = () => {
     form.reset(defaultValues);
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(defaultValues));
+    
+    // Actualizar modo oscuro según valores predeterminados
+    if (defaultValues.enableDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
     toast({
       title: "Formulario restablecido",
       description: "Se han restaurado los valores predeterminados.",

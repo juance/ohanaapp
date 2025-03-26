@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -14,6 +13,17 @@ const Administration = () => {
   useEffect(() => {
     // Inicializar el sistema de captura de errores
     setupGlobalErrorHandling();
+    
+    // Comprobar si el modo oscuro está activado en la configuración
+    const savedSettings = localStorage.getItem('laundry_general_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      if (settings.enableDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   }, []);
 
   return (

@@ -45,6 +45,17 @@ function App() {
     if (loadingIndicator) {
       loadingIndicator.classList.add('hidden');
     }
+    
+    // Comprobar configuración de tema oscuro al iniciar la aplicación
+    const savedSettings = localStorage.getItem('laundry_general_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      if (settings.enableDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   }, [location]);
   
   return (
