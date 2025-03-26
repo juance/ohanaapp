@@ -1,3 +1,4 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -41,14 +42,14 @@ export default defineConfig(({ mode }) => ({
         },
       },
     },
-    // Minify for production
-    minify: 'terser',
-    terserOptions: {
+    // More flexible minification configuration
+    minify: mode === 'production' ? 'terser' : false,
+    terserOptions: mode === 'production' ? {
       compress: {
-        drop_console: mode === 'production',
-        drop_debugger: mode === 'production',
-      },
-    },
+        drop_console: true,
+        drop_debugger: true,
+      }
+    } : undefined,
   },
   optimizeDeps: {
     include: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
