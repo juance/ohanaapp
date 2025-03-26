@@ -7,33 +7,31 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 
-// Debug environment
-console.log("Environment:", import.meta.env.MODE);
-console.log("Base URL:", import.meta.env.BASE_URL);
-console.log("Initializing application...");
-
-// Create a client
+// Create a client with optimized settings for production
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
+      retry: false,
       refetchOnWindowFocus: false,
+      staleTime: 10 * 60 * 1000, // 10 minutes
+      gcTime: 15 * 60 * 1000, // 15 minutes
     },
   },
 });
 
-// Find the root element
+// Find the root element with better error handling
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("Fatal: Root element not found in the DOM");
   throw new Error('Root element not found');
 }
 
-console.log("Root element found, mounting React application");
+// Performance timing
+const startTime = performance.now();
 
 // Create and render the root
-createRoot(rootElement).render(
-  <StrictMode>
+try {
+  createRoot(rootElement).render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
@@ -41,10 +39,23 @@ createRoot(rootElement).render(
         </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
-  </StrictMode>
-);
-
-console.log("React application mounted");
+  );
+  
+  const loadTime = Math.round(performance.now() - startTime);
+  console.log(`Application rendered in ${loadTime}ms`);
+} catch (error) {
+  console.error("Fatal error during application rendering:", error);
+  // Show error in the UI
+  document.body.innerHTML = `
+    <div style="padding: 20px; text-align: center;">
+      <h1>Error al iniciar la aplicación</h1>
+      <p>Por favor, recarga la página o intenta más tarde.</p>
+      <button onclick="window.location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;">
+        Recargar
+      </button>
+    </div>
+  `;
+}
 
 // Handle unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {

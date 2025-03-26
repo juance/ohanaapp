@@ -1,10 +1,10 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -12,17 +12,43 @@ import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
+import { Loading } from '@/components/ui/loading';
 
 const Feedback = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [phoneNumber, setPhoneNumber] = useState('');
   const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+
+  // Initialize loading state
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate page load completion after components mount
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Make sure query client is available
+  useEffect(() => {
+    if (!queryClient) {
+      console.error("QueryClient not available in Feedback component");
+    }
+  }, [queryClient]);
   
   const { data: customer, refetch, isLoading } = useQuery({
     queryKey: ['customer', phoneNumber],
     queryFn: async () => {
       if (!phoneNumber) return null;
-      return await getCustomerByPhone(phoneNumber);
+      try {
+        return await getCustomerByPhone(phoneNumber);
+      } catch (error) {
+        console.error("Error fetching customer:", error);
+        return null;
+      }
     },
     enabled: false, // Don't run automatically
     retry: false, // Don't retry failed queries
@@ -61,6 +87,14 @@ const Feedback = () => {
   const handleFeedbackAdded = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  if (isPageLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

@@ -1,30 +1,30 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from "@/components/ui/toaster";
-import Index from '@/pages/Index';
-import Dashboard from '@/pages/Dashboard';
-import Tickets from '@/pages/Tickets';
-import Metrics from '@/pages/Metrics';
-import PickupOrders from '@/pages/PickupOrders';
-import Inventory from '@/pages/Inventory';
-import Expenses from '@/pages/Expenses';
-import Feedback from '@/pages/Feedback';
-import Administration from '@/pages/Administration';
-import Clients from '@/pages/Clients';
-import Loyalty from '@/pages/Loyalty';
-import DeliveredOrders from '@/pages/DeliveredOrders';
-import TicketAnalysis from '@/pages/TicketAnalysis';
+import { Suspense, lazy, useEffect } from 'react';
+import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
-import './App.css';
-import { useEffect, Suspense } from 'react';
 
-// Loading fallback
+// Implement code splitting with lazy loading for each page
+const Index = lazy(() => import('@/pages/Index'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Tickets = lazy(() => import('@/pages/Tickets'));
+const Metrics = lazy(() => import('@/pages/Metrics'));
+const PickupOrders = lazy(() => import('@/pages/PickupOrders'));
+const Inventory = lazy(() => import('@/pages/Inventory'));
+const Expenses = lazy(() => import('@/pages/Expenses'));
+const Feedback = lazy(() => import('@/pages/Feedback'));
+const Administration = lazy(() => import('@/pages/Administration'));
+const Clients = lazy(() => import('@/pages/Clients'));
+const Loyalty = lazy(() => import('@/pages/Loyalty'));
+const DeliveredOrders = lazy(() => import('@/pages/DeliveredOrders'));
+const TicketAnalysis = lazy(() => import('@/pages/TicketAnalysis'));
+
+// Loading fallback with optimized rendering
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
-    <div className="text-center">
-      <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      <p className="text-gray-600">Cargando...</p>
-    </div>
+    <Loading className="scale-150" />
+    <p className="text-gray-600 ml-4">Cargando...</p>
   </div>
 );
 
@@ -32,24 +32,20 @@ function App() {
   const location = useLocation();
   
   useEffect(() => {
-    console.log("App mounted, available routes:");
-    console.log("/ → Index");
-    console.log("/dashboard → Dashboard");
-    console.log("/tickets → Tickets");
-    console.log("/metrics → Metrics");
-    console.log("/pickup → PickupOrders");
-    console.log("/delivered → DeliveredOrders");
-    console.log("/inventory → Inventory");
-    console.log("/expenses → Expenses");
-    console.log("/feedback → Feedback");
-    console.log("/administration → Administration");
-    console.log("/clients → Clients");
-    console.log("/loyalty → Loyalty");
-    console.log("/analysis → TicketAnalysis");
+    // Log current route for debugging
     console.log("Current location:", location.pathname);
+    
+    // Report to browser timing API for performance monitoring
+    if (window.performance && 'mark' in window.performance) {
+      window.performance.mark('app-rendered');
+    }
+    
+    // Hide loading indicator when app is loaded
+    const loadingIndicator = document.getElementById('loading-indicator');
+    if (loadingIndicator) {
+      loadingIndicator.classList.add('hidden');
+    }
   }, [location]);
-  
-  console.log("App component rendering - checking routes");
   
   return (
     <>
