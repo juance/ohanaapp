@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText } from 'lucide-react';
+import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -42,6 +42,12 @@ const Index: React.FC = () => {
       description: 'Gestiona puntos y recompensas para clientes',
       icon: <Award className="h-8 w-8 text-orange-500" />,
       path: '/loyalty',
+    },
+    {
+      title: 'Inventario',
+      description: 'Control y gestión de productos e insumos',
+      icon: <Package className="h-8 w-8 text-emerald-500" />,
+      path: '/inventory',
     },
     {
       title: 'Métricas',

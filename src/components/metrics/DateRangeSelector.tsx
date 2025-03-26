@@ -11,13 +11,22 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface DateRangeSelectorProps {
   dateRange: { from: Date; to: Date };
   setDateRange: (range: { from: Date; to: Date }) => void;
+  minDate?: Date;
 }
 
 export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({ 
   dateRange, 
-  setDateRange 
+  setDateRange,
+  minDate
 }) => {
   const isMobile = useIsMobile();
+  
+  // Calcular fecha mínima predeterminada (90 días atrás)
+  const defaultMinDate = new Date();
+  defaultMinDate.setDate(defaultMinDate.getDate() - 90);
+  
+  // Usar la fecha mínima proporcionada o la predeterminada
+  const effectiveMinDate = minDate || defaultMinDate;
 
   return (
     <div className="mb-4">
@@ -54,6 +63,7 @@ export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
               }
             }}
             numberOfMonths={isMobile ? 1 : 2}
+            fromDate={effectiveMinDate} // Permitir seleccionar desde la fecha mínima
           />
         </PopoverContent>
       </Popover>
