@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
 import { ErrorLogList } from '@/components/admin/ErrorLogList';
+import { GeneralSettings } from '@/components/admin/GeneralSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
@@ -39,17 +40,7 @@ const Administration = () => {
             </TabsList>
             
             <TabsContent value="general" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ajustes Generales</CardTitle>
-                  <CardDescription>Configuración básica del sistema</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <p className="text-muted-foreground">
-                    Esta sección está en desarrollo. Próximamente podrá configurar aspectos generales del sistema.
-                  </p>
-                </CardContent>
-              </Card>
+              <GeneralSettings />
             </TabsContent>
             
             <TabsContent value="tickets" className="space-y-6">
