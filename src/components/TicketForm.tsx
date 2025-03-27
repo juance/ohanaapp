@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -155,7 +154,7 @@ const TicketForm = () => {
           ticketNumber,
           totalPrice: calculateTotal(),
           paymentMethod,
-          valetQuantity: 1 // Default to 1, could be made configurable
+          ...(selectedServices.length > 0 ? { valetQuantity: 1 } : {})
         },
         {
           name: clientName,

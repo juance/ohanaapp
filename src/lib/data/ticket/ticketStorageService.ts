@@ -82,9 +82,11 @@ export const storeTicketData = async (
       ticketNumber,
       clientName: customerDetails.name,
       phoneNumber: customerDetails.phoneNumber,
+      services: [], // Initialize with empty array
       totalPrice: ticketDetails.totalPrice || 0,
       paymentMethod: ticketDetails.paymentMethod || 'cash',
       createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       status: 'pending',
       isPaid: ticketDetails.isPaid || false,
       valetQuantity: ticketDetails.valetQuantity || 1
