@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DateRangeSelector from '@/components/analysis/DateRangeSelector';
+import DateRangeSelector from '@/components/shared/DateRangeSelector';
 import ActionButtons from '@/components/analysis/ActionButtons';
 import MetricsSection from '@/components/analytics/MetricsSection';
 import ChartTabs from '@/components/analytics/ChartTabs';

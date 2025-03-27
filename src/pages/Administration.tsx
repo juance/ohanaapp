@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -5,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
 import { ErrorLogList } from '@/components/admin/ErrorLogList';
 import { GeneralSettings } from '@/components/admin/GeneralSettings';
+import { SystemVersionInfo } from '@/components/admin/SystemVersionInfo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
@@ -62,22 +64,7 @@ const Administration = () => {
             </TabsContent>
             
             <TabsContent value="system" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Información del Sistema</CardTitle>
-                  <CardDescription>Detalles técnicos y versión</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  <div className="flex flex-col space-y-1.5">
-                    <h3 className="text-sm font-medium">Versión</h3>
-                    <p className="text-sm text-muted-foreground">1.0.0</p>
-                  </div>
-                  <div className="flex flex-col space-y-1.5">
-                    <h3 className="text-sm font-medium">Base de Datos</h3>
-                    <p className="text-sm text-muted-foreground">Supabase PostgreSQL</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <SystemVersionInfo />
             </TabsContent>
           </Tabs>
         </div>
