@@ -19,16 +19,24 @@ export const storeTicketData = async (
     const ticketNumber = ticketDetails.ticketNumber || await getNextTicketNumber();
     
     // Store customer data and get customer ID
-    const customerId = await storeCustomer(customerDetails.name, customerDetails.phoneNumber);
+    const customerResult = await storeCustomer({
+      name: customerDetails.name,
+      phoneNumber: customerDetails.phoneNumber,
+      loyaltyPoints: 0,
+      valetsCount: 0,
+      freeValets: 0
+    });
     
-    if (!customerId) {
+    if (!customerResult || !customerResult.id) {
       throw new Error('Failed to store customer data');
     }
+    
+    const customerId = customerResult.id;
     
     // Prepare ticket data for database
     const ticketData = {
       ticket_number: ticketNumber,
-      customer_id: customerId,
+      customer_id: customerId, // Now using the string ID
       total: ticketDetails.totalPrice || 0,
       payment_method: ticketDetails.paymentMethod || 'cash' as PaymentMethod,
       valet_quantity: ticketDetails.valetQuantity || 1,
