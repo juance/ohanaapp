@@ -23,7 +23,7 @@ export interface DateRange {
   to: Date;
 }
 
-// Export with a renamed type alias
+// Export with a renamed type alias using the new 'export type' syntax
 export type { DateRange as AnalyticsDateRange };
 
 export interface UseTicketAnalyticsReturn {
