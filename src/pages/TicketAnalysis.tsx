@@ -17,6 +17,16 @@ interface TicketAnalysisProps {
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
   const [exporting, setExporting] = useState(false);
 
+  // Get analytics data
+  const {
+    data,
+    isLoading,
+    error,
+    dateRange,
+    setDateRange,
+    exportData
+  } = useTicketAnalytics();
+
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -27,16 +37,6 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
       setExporting(false);
     }
   };
-
-  // Get analytics data
-  const {
-    data,
-    isLoading,
-    error,
-    dateRange,
-    setDateRange,
-    exportData
-  } = useTicketAnalytics();
 
   // Handler for date range changes
   const handleDateRangeChange = (from: Date, to: Date) => {
