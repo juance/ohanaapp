@@ -1,4 +1,5 @@
 
+// Export types for analytics
 export interface TicketAnalytics {
   totalTickets: number;
   averageTicketValue: number;
@@ -21,6 +22,9 @@ export interface DateRange {
   from: Date;
   to: Date;
 }
+
+export type { DateRange as AnalyticsDateRange };
+export type { TicketAnalytics };
 
 export interface UseTicketAnalyticsReturn {
   data: TicketAnalytics;

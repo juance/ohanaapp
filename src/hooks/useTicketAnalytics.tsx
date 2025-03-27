@@ -2,9 +2,9 @@
 import { useState, useEffect } from 'react';
 import { fetchTicketAnalytics } from './analytics/fetchTicketAnalytics';
 import { exportTicketAnalytics } from './analytics/exportAnalytics';
-import { TicketAnalytics, DateRange, UseTicketAnalyticsReturn } from './analytics/types';
+import type { TicketAnalytics, DateRange, UseTicketAnalyticsReturn } from './analytics/types';
 
-export { TicketAnalytics, DateRange } from './analytics/types';
+export type { TicketAnalytics, DateRange } from './analytics/types';
 
 export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const [isLoading, setIsLoading] = useState(false);
