@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, DryCleaningItem, LaundryOption, PaymentMethod, Ticket } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from '../coreUtils';
+import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, formatPaymentMethod } from '../coreUtils';
 import { storeCustomer } from '../customerService';
 import { getNextTicketNumber } from './ticketNumberService';
 
@@ -33,12 +33,15 @@ export const storeTicketData = async (
     
     const customerId = customerResult.id;
     
+    // Format payment method to match database enum format
+    const formattedPaymentMethod = formatPaymentMethod(ticketDetails.paymentMethod || 'cash');
+    
     // Prepare ticket data for database
     const ticketData = {
       ticket_number: ticketNumber,
-      customer_id: customerId, // Now using the string ID
+      customer_id: customerId,
       total: ticketDetails.totalPrice || 0,
-      payment_method: ticketDetails.paymentMethod || 'cash' as PaymentMethod,
+      payment_method: formattedPaymentMethod,
       valet_quantity: ticketDetails.valetQuantity || 1,
       is_paid: ticketDetails.isPaid || false
     };
