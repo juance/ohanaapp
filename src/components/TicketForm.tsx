@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { PaymentMethod, LaundryOption } from '@/lib/types';
@@ -6,7 +5,7 @@ import { toast } from 'sonner';
 import { storeTicketData } from '@/lib/dataService';
 import { SelectedDryCleaningItem } from './ticket-form/types';
 
-// Import our new components
+// Import our components
 import ClientInformation from './ticket-form/ClientInformation';
 import LaundryServices from './ticket-form/LaundryServices';
 import DryCleaningItems from './ticket-form/DryCleaningItems';
@@ -119,7 +118,7 @@ const TicketForm = () => {
       const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
       
       // Prepare dry cleaning items
-      const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
+      const dryCleaningItems = selectedDryCleaningItems.map(item => {
         const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
         return {
           name: itemDetails?.name || '',
