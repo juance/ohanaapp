@@ -29,7 +29,7 @@ export const storeTicketData = async (
     const ticketData = {
       ticket_number: ticketNumber,
       customer_id: customerId,
-      total: ticketDetails.totalPrice,
+      total: ticketDetails.totalPrice || 0,
       payment_method: ticketDetails.paymentMethod || 'cash' as PaymentMethod,
       valet_quantity: ticketDetails.valetQuantity || 1,
       is_paid: ticketDetails.isPaid || false
@@ -93,7 +93,7 @@ export const storeTicketData = async (
     };
     
     // Update local storage
-    const existingTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY);
+    const existingTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
     saveToLocalStorage(TICKETS_STORAGE_KEY, [...existingTickets, newTicket]);
     
     return true;
