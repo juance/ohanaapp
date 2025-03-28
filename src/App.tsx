@@ -1,6 +1,6 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "sonner";
 import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
@@ -78,7 +78,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <Toaster />
+      <Toaster richColors position="top-right" />
     </>
   );
 }
