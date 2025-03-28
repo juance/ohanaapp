@@ -1,55 +1,40 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 import { ClientVisit } from '@/lib/types';
-import { useToast } from '@/components/ui/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Save } from 'lucide-react';
+import { Loading } from '@/components/ui/loading';
 
 interface ClientNotesProps {
   client: ClientVisit | null;
   clientNotes: string;
+  isLoading?: boolean;
   onSaveNotes: (notes: string) => Promise<void>;
 }
 
-const ClientNotes: React.FC<ClientNotesProps> = ({ client, clientNotes, onSaveNotes }) => {
+const ClientNotes: React.FC<ClientNotesProps> = ({ 
+  client, 
+  clientNotes, 
+  isLoading = false,
+  onSaveNotes 
+}) => {
   const [notes, setNotes] = useState(clientNotes);
   const [isSaving, setIsSaving] = useState(false);
-  const { toast } = useToast();
 
-  if (!client) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Notas del Cliente</CardTitle>
-          <CardDescription>Seleccione un cliente para ver o agregar notas</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex h-32 items-center justify-center text-center text-muted-foreground">
-            No hay cliente seleccionado
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  useEffect(() => {
+    setNotes(clientNotes);
+  }, [clientNotes]);
 
-  const handleSaveNotes = async () => {
+  const handleSave = async () => {
     if (!client) return;
     
     setIsSaving(true);
     try {
       await onSaveNotes(notes);
-      toast({
-        title: "Notas guardadas",
-        description: "Las notas del cliente han sido guardadas con éxito.",
-      });
     } catch (error) {
       console.error("Error saving notes:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron guardar las notas. Inténtelo de nuevo.",
-      });
     } finally {
       setIsSaving(false);
     }
@@ -59,20 +44,43 @@ const ClientNotes: React.FC<ClientNotesProps> = ({ client, clientNotes, onSaveNo
     <Card>
       <CardHeader>
         <CardTitle>Notas del Cliente</CardTitle>
-        <CardDescription>Agregar notas importantes sobre {client.clientName}</CardDescription>
+        <CardDescription>
+          {client ? `Notas para ${client.clientName}` : 'Seleccione un cliente para ver sus notas'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <Textarea
-            placeholder="Escriba notas sobre el cliente aquí..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="min-h-32"
-          />
-          <Button onClick={handleSaveNotes} disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Guardar Notas'}
-          </Button>
-        </div>
+        {isLoading ? (
+          <div className="flex justify-center p-6">
+            <Loading />
+          </div>
+        ) : (
+          <>
+            <Textarea
+              className="mb-4 min-h-32"
+              placeholder={client ? "Escriba notas sobre este cliente..." : "Seleccione un cliente primero"}
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              disabled={!client || isSaving}
+            />
+            <Button
+              onClick={handleSave}
+              disabled={!client || isSaving}
+              className="w-full"
+            >
+              {isSaving ? (
+                <>
+                  <Loading className="mr-2 h-4 w-4" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Guardar Notas
+                </>
+              )}
+            </Button>
+          </>
+        )}
       </CardContent>
     </Card>
   );

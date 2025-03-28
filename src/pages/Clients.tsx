@@ -12,6 +12,8 @@ import ClientNotes from '@/components/clients/ClientNotes';
 import ClientListSkeleton from '@/components/clients/ClientListSkeleton';
 import { useClientsList } from '@/hooks/useClientsList';
 import { useLoyaltyProgram } from '@/hooks/useLoyaltyProgram';
+import { Button } from '@/components/ui/button';
+import { Download, RefreshCw } from 'lucide-react';
 
 const Clients = () => {
   const { 
@@ -34,6 +36,7 @@ const Clients = () => {
     clientNotes,
     isLoadingNotes,
     selectedClient,
+    isExporting,
     handleAddClient,
     handleEditClient,
     handleSaveClient,
@@ -42,6 +45,7 @@ const Clients = () => {
     handlePageChange,
     handleSelectClient,
     saveClientNotes,
+    handleExportClients,
     refreshData
   } = useClientsList();
 
@@ -60,7 +64,30 @@ const Clients = () => {
       <Navbar />
       <div className="flex-1 p-6 md:ml-64">
         <div className="container mx-auto max-w-6xl pt-6">
-          <ClientHeader />
+          <div className="flex justify-between items-center mb-6">
+            <ClientHeader />
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refreshData}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExportClients}
+                disabled={isExporting || loading}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exportando...' : 'Exportar CSV'}
+              </Button>
+            </div>
+          </div>
 
           {/* Search bar */}
           <div className="mb-6">
@@ -76,6 +103,14 @@ const Clients = () => {
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="text-lg font-medium text-red-800">Error al cargar clientes</h3>
               <p className="text-red-700">{error.message}</p>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={refreshData} 
+                className="mt-2"
+              >
+                Reintentar
+              </Button>
             </div>
           ) : (
             <div className="space-y-6">
@@ -116,6 +151,7 @@ const Clients = () => {
                     client={selectedClient}
                     clientNotes={clientNotes}
                     onSaveNotes={saveClientNotes}
+                    isLoading={isLoadingNotes}
                   />
                 </div>
               </div>
