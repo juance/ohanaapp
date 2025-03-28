@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { getErrors, resolveError, deleteError, clearResolvedErrors, SystemError } from '@/lib/errorService';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Loader2, CheckCircle, Trash2, AlertTriangle, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ export function ErrorLogList() {
 
   const handleResolveError = (errorId: string) => {
     if (resolveError(errorId)) {
-      toast("Error resuelto", {
+      toast.success("Error resuelto", {
         description: "El error ha sido marcado como resuelto."
       });
       refreshErrors();
@@ -34,7 +34,7 @@ export function ErrorLogList() {
 
   const handleDeleteError = (errorId: string) => {
     if (deleteError(errorId)) {
-      toast("Error eliminado", {
+      toast.success("Error eliminado", {
         description: "El error ha sido eliminado del registro."
       });
       refreshErrors();
@@ -43,7 +43,7 @@ export function ErrorLogList() {
 
   const handleClearResolved = () => {
     const clearedCount = clearResolvedErrors();
-    toast("Limpieza completada", {
+    toast.success("Limpieza completada", {
       description: `Se eliminaron ${clearedCount} errores resueltos.`
     });
     refreshErrors();

@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Define la estructura de un error en el sistema
