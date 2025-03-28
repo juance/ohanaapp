@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { BusinessInfoFields } from './fields/BusinessInfoFields';
 import { MessageField } from './fields/MessageField';
 import { ToggleFields } from './fields/ToggleFields';
@@ -50,16 +50,13 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     setIsSaving(true);
     try {
       onSave(data);
-      toast({
-        title: "Configuración guardada",
+      toast.success("Configuración guardada", {
         description: "Los ajustes generales se han actualizado correctamente.",
       });
     } catch (error) {
       console.error('Error al guardar configuración:', error);
-      toast({
-        title: "Error al guardar",
+      toast.error("Error al guardar", {
         description: "No se pudieron guardar los ajustes. Intente nuevamente.",
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -77,10 +74,8 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
       document.documentElement.classList.remove('dark');
     }
     
-    toast({
-      title: "Formulario restablecido",
+    toast.error("Formulario restablecido", {
       description: "Se han restaurado los valores predeterminados.",
-      variant: "destructive",
     });
   };
 
