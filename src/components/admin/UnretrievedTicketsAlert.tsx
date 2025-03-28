@@ -21,7 +21,7 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { WhatsappIcon, AlertTriangle, Clock } from 'lucide-react';
+import { AlertTriangle, Clock, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -147,7 +147,7 @@ export function UnretrievedTicketsAlert() {
                 onClick={() => handleOpenMessageDialog(ticket, days >= 90 ? '90days' : '45days')}
                 className="flex items-center gap-1"
               >
-                <WhatsappIcon className="w-4 h-4" />
+                <MessageSquare className="w-4 h-4" />
                 <span>WhatsApp</span>
               </Button>
             </TableCell>
@@ -257,7 +257,7 @@ export function UnretrievedTicketsAlert() {
               onClick={sendWhatsAppMessage}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
-              <WhatsappIcon className="mr-2 h-4 w-4" />
+              <MessageSquare className="mr-2 h-4 w-4" />
               Enviar por WhatsApp
             </Button>
           </DialogFooter>
