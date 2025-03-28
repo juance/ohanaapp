@@ -8,6 +8,7 @@ import { BusinessInfoFields } from './fields/BusinessInfoFields';
 import { MessageField } from './fields/MessageField';
 import { ToggleFields } from './fields/ToggleFields';
 import { GeneralSettingsFormValues } from './types';
+import { defaultSettings } from './GeneralSettingsContext';
 
 interface GeneralSettingsFormProps {
   defaultValues: GeneralSettingsFormValues;
@@ -20,7 +21,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     defaultValues,
   });
 
-  // Aplicar modo oscuro cuando cambia en el formulario
+  // Apply dark mode when it changes in the form
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'enableDarkMode') {
@@ -35,7 +36,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  // Inicializar el modo oscuro según la configuración guardada
+  // Initialize dark mode based on saved configuration
   useEffect(() => {
     const isDarkMode = defaultValues.enableDarkMode;
     if (isDarkMode) {
@@ -66,11 +67,11 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
   };
 
   const resetForm = () => {
-    form.reset(defaultValues);
-    onSave(defaultValues);
+    form.reset(defaultSettings);
+    onSave(defaultSettings);
     
-    // Actualizar modo oscuro según valores predeterminados
-    if (defaultValues.enableDarkMode) {
+    // Update dark mode according to default values
+    if (defaultSettings.enableDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
