@@ -1,8 +1,8 @@
 
-// Direct import of sonner toast API
+// Importación directa de la API de toast de sonner
 import { toast as sonnerToast } from "sonner";
 
-// Create a toast object that can be imported anywhere without hooks
+// Objeto de toast que puede ser importado en cualquier lugar sin hooks
 export const toast = {
   info: (message: string, options?: any) => 
     sonnerToast.info(message, options),
@@ -22,7 +22,7 @@ export const toast = {
   raw: sonnerToast
 };
 
-// Helper function that doesn't use any React hooks
+// Función auxiliar que no usa ningún hook de React
 export function useToast() {
   return { toast };
 }

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
   const handleGoHome = () => {
-    // Use direct navigation instead of React Router hooks
+    // Usar navegación directa en lugar de hooks de React Router
     window.location.href = '/';
   };
 
