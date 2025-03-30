@@ -1,6 +1,6 @@
 
 import { useCallback } from 'react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 /**
  * Hook for client data error handling

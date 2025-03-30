@@ -1,12 +1,15 @@
 
+import { StrictMode } from "react";
 import { Toaster as SonnerToaster } from "sonner";
 
 export function Toaster() {
   return (
-    <SonnerToaster 
-      position="top-right"
-      richColors
-      closeButton
-    />
+    <StrictMode>
+      <SonnerToaster 
+        position="top-right"
+        richColors
+        closeButton
+      />
+    </StrictMode>
   );
 }

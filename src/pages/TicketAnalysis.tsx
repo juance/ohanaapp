@@ -43,6 +43,19 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     setDateRange({ from, to });
   };
 
+  if (!data && isLoading) {
+    return (
+      <div className={embedded ? "" : "flex min-h-screen flex-col md:flex-row"}>
+        {!embedded && <Navbar />}
+        <div className={embedded ? "" : "flex-1 p-6 md:ml-64"}>
+          <div className="flex h-96 items-center justify-center">
+            <Loading />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const content = (
     <>
       {!embedded && (
@@ -76,8 +89,8 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
         </div>
       ) : (
         <div className="space-y-8">
-          <MetricsSection metrics={data} />
-          <ChartTabs chartData={data} />
+          <MetricsSection metrics={data} loading={isLoading} analytics={data} />
+          <ChartTabs chartData={data} loading={isLoading} analytics={data} />
         </div>
       )}
     </>
