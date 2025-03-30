@@ -9,45 +9,92 @@ type ToastProps = {
   duration?: number;
 };
 
+// Options type for toast functions
+type ToastOptions = {
+  description?: string;
+  duration?: number;
+  [key: string]: any;
+};
+
 // Implementación simplificada que no usa hooks de React
 export const toast = {
   // Implementación básica de toast
-  default: (message: string, title?: string, duration: number = 5000) => {
-    return sonnerToast(title || message, {
-      description: title ? message : undefined,
-      duration
+  default: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+    if (typeof options === 'string') {
+      // If options is a string, it's the old title parameter
+      return sonnerToast(options, {
+        description: message,
+        duration
+      });
+    }
+    
+    return sonnerToast(message, {
+      ...(options || {}),
+      duration: options?.duration || duration
     });
   },
 
   // Toast de éxito
-  success: (message: string, title?: string, duration: number = 5000) => {
-    return sonnerToast.success(title || message, {
-      description: title ? message : undefined,
-      duration
+  success: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+    if (typeof options === 'string') {
+      // If options is a string, it's the old title parameter
+      return sonnerToast.success(options, {
+        description: message,
+        duration
+      });
+    }
+    
+    return sonnerToast.success(message, {
+      ...(options || {}),
+      duration: options?.duration || duration
     });
   },
 
   // Toast de error
-  error: (message: string, title?: string, duration: number = 5000) => {
-    return sonnerToast.error(title || message, {
-      description: title ? message : undefined,
-      duration
+  error: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+    if (typeof options === 'string') {
+      // If options is a string, it's the old title parameter
+      return sonnerToast.error(options, {
+        description: message,
+        duration
+      });
+    }
+    
+    return sonnerToast.error(message, {
+      ...(options || {}),
+      duration: options?.duration || duration
     });
   },
 
   // Toast de advertencia
-  warning: (message: string, title?: string, duration: number = 5000) => {
-    return sonnerToast.warning(title || message, {
-      description: title ? message : undefined,
-      duration
+  warning: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+    if (typeof options === 'string') {
+      // If options is a string, it's the old title parameter
+      return sonnerToast.warning(options, {
+        description: message,
+        duration
+      });
+    }
+    
+    return sonnerToast.warning(message, {
+      ...(options || {}),
+      duration: options?.duration || duration
     });
   },
 
   // Toast informativo
-  info: (message: string, title?: string, duration: number = 5000) => {
-    return sonnerToast.info(title || message, {
-      description: title ? message : undefined,
-      duration
+  info: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+    if (typeof options === 'string') {
+      // If options is a string, it's the old title parameter
+      return sonnerToast.info(options, {
+        description: message,
+        duration
+      });
+    }
+    
+    return sonnerToast.info(message, {
+      ...(options || {}),
+      duration: options?.duration || duration
     });
   },
 
