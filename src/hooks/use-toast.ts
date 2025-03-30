@@ -1,11 +1,11 @@
 
-// Import the toast function directly from sonner
+// Importamos la función toast directamente de sonner
 import { toast as sonnerToast } from "sonner";
 
-// Create a custom toast function to avoid conflicts
-// and provide a consistent interface
+// Creamos una función toast personalizada para evitar conflictos
+// y proporcionar una interfaz consistente
 export const toast = {
-  // Basic toast types
+  // Tipos básicos de toast
   info: (message: string, options?: any) => 
     sonnerToast.info(message, options),
   
@@ -18,16 +18,16 @@ export const toast = {
   error: (message: string, options?: any) => 
     sonnerToast.error(message, options),
   
-  // Default toast
+  // Toast predeterminado
   default: (message: string, options?: any) => 
     sonnerToast(message, options),
   
-  // Allow direct access to the original function
+  // Permitir acceso directo a la función original
   raw: sonnerToast
 };
 
-// Export a function that returns the toast object
-// This doesn't use React hooks at all
+// Exportamos una función que devuelve el objeto toast
+// Esta no usa hooks de React en absoluto
 export function useToast() {
   return { toast };
 }

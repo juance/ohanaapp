@@ -2,8 +2,8 @@
 import React from "react";
 import { Toaster as SonnerToaster } from "sonner";
 
-// Simple component that renders the Sonner Toaster
-// without using any React hooks
+// Componente simple que renderiza el Toaster de Sonner
+// sin usar ningún hook de React
 export function Toaster() {
   return (
     <SonnerToaster 
