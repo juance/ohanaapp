@@ -73,7 +73,7 @@ export const login = (email: string, password: string): Promise<User> => {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: 'user',
+            role: 'user' as Role,  // Fix the type issue by explicitly casting to Role
           });
         } else {
           reject(new Error('Credenciales inválidas'));
@@ -115,7 +115,7 @@ export const registerUser = (
           email,
           password,
           phone,
-          role: 'user',
+          role: 'user' as Role,  // Fix the type issue by explicitly casting to Role
           createdAt: new Date().toISOString(),
         };
         

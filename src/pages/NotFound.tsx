@@ -1,15 +1,22 @@
-import { useLocation } from "react-router-dom";
+
+import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const NotFound = () => {
-  const location = useLocation();
+  // Safely try to get location information if available
+  let pathname = "";
+  try {
+    pathname = window.location.pathname;
+  } catch (e) {
+    console.error("Could not access location:", e);
+  }
 
   useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
-      location.pathname
+      pathname
     );
-  }, [location.pathname]);
+  }, [pathname]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
