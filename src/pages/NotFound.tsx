@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 const NotFound: React.FC = () => {
-  // Usamos window.location para navegación directa sin hooks
+  // Using window.location for navigation instead of router hooks
   const handleGoHome = () => {
     window.location.href = '/';
   };

@@ -107,7 +107,7 @@ export const toast = {
   }
 };
 
-// Export a useToast function that doesn't use React hooks
+// Export a useToast function that returns the toast object without using React hooks
 export const useToast = () => {
   return { toast };
 };
