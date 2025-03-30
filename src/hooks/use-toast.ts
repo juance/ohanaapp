@@ -1,5 +1,5 @@
 
-// Using sonner directly without React hooks
+// Import sonner toast directly
 import { toast as sonnerToast } from "sonner";
 
 // Create a non-hook based toast object that can be imported anywhere
@@ -25,9 +25,7 @@ export const toast = {
   raw: sonnerToast
 };
 
-// Export a compatibility function that returns the toast object
-// WITHOUT using any React hooks
+// No React hooks used! This is just a plain function that returns an object
 export function useToast() {
-  // Simply return the toast object without any React hook calls
   return { toast };
 }

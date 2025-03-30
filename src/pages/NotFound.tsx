@@ -3,6 +3,11 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
+  // Use a regular function instead of react-router hooks
+  const handleGoHome = () => {
+    window.location.href = '/';
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="text-center">
@@ -12,7 +17,7 @@ const NotFound = () => {
           Lo sentimos, la página que estás buscando no existe o ha sido movida.
         </p>
         <Button 
-          onClick={() => window.location.href = '/'}
+          onClick={handleGoHome}
           className="bg-blue-600 hover:bg-blue-700"
         >
           Volver al inicio
