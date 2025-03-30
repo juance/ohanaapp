@@ -1,5 +1,5 @@
 
-// We'll simplify this file to just use Sonner's Toaster directly
+// Use Sonner's Toaster directly without any custom React hooks
 import { Toaster as SonnerToaster } from "sonner";
 
 export function Toaster() {

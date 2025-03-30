@@ -1,12 +1,11 @@
 
-// Simplify this file to just re-export directly from sonner
-// This avoids any potential React context issues
+// Direct re-export of Sonner's toast functionality
 import { toast } from "sonner";
 
-// Export the toast function directly from sonner
+// Export the toast function directly
 export { toast };
 
-// Export a simplified useToast hook for backward compatibility
+// Simple hook implementation for backwards compatibility
 export function useToast() {
   return { toast };
 }
