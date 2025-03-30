@@ -26,7 +26,7 @@ export const toast = {
   raw: sonnerToast
 };
 
-// Export a hook-like function for backward compatibility
+// Export a simplified useToast function that doesn't rely on React hooks
 export function useToast() {
   return { toast };
 }
