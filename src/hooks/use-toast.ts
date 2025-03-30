@@ -27,7 +27,7 @@ export const toast = {
 };
 
 // Exportamos una función que devuelve el objeto toast
-// Ahora no usamos hooks de React en absoluto
+// para compatibilidad con código existente, pero no usamos hooks de React
 export function useToast() {
   return { toast };
 }
