@@ -26,8 +26,8 @@ export const toast = {
   raw: sonnerToast
 };
 
-// Exportamos una función que devuelve el objeto toast
-// para compatibilidad con código existente, pero no usamos hooks de React
+// Proporcionamos una función para compatibilidad con código existente
+// pero no usa ningún hook de React
 export function useToast() {
   return { toast };
 }
