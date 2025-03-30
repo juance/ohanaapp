@@ -1,13 +1,13 @@
 
 // Importamos directamente la función toast de sonner
-import { toast } from "sonner";
+import { toast as sonnerToast } from "sonner";
 
-// Exportamos la función toast para uso directo
-export { toast };
+// Creamos una función wrapper para evitar conflictos
+export const toast = sonnerToast;
 
-// Simple función para mantener compatibilidad con la API anterior
+// Función para mantener compatibilidad con la API anterior
 export function useToast() {
   return {
-    toast
+    toast: sonnerToast
   };
 }
