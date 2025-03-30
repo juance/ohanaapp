@@ -2,7 +2,7 @@
 // Importamos la función toast directamente de sonner
 import { toast as sonnerToast } from "sonner";
 
-// Creamos una función toast personalizada para evitar conflictos
+// Creamos una objeto toast personalizado para evitar conflictos
 // y proporcionar una interfaz consistente
 export const toast = {
   // Tipos básicos de toast
