@@ -1,10 +1,9 @@
 
-// Import sonner toast directly
+// Direct import of sonner toast API
 import { toast as sonnerToast } from "sonner";
 
-// Create a non-hook based toast object that can be imported anywhere
+// Create a toast object that can be imported anywhere without hooks
 export const toast = {
-  // Basic toast types
   info: (message: string, options?: any) => 
     sonnerToast.info(message, options),
   
@@ -17,15 +16,13 @@ export const toast = {
   error: (message: string, options?: any) => 
     sonnerToast.error(message, options),
   
-  // Default toast
   default: (message: string, options?: any) => 
     sonnerToast(message, options),
   
-  // Allow direct access to original function
   raw: sonnerToast
 };
 
-// No React hooks used! This is just a plain function that returns an object
+// Helper function that doesn't use any React hooks
 export function useToast() {
   return { toast };
 }

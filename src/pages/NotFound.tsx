@@ -3,8 +3,8 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 const NotFound = () => {
-  // Use a regular function instead of react-router hooks
   const handleGoHome = () => {
+    // Use direct navigation instead of React Router hooks
     window.location.href = '/';
   };
 

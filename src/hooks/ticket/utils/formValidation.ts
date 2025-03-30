@@ -1,5 +1,5 @@
 
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast'; // Updated import
 import { TicketFormState } from '../types/ticketFormTypes';
 
 export const validateTicketForm = (formState: TicketFormState): boolean => {
