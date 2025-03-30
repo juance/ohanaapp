@@ -1,5 +1,7 @@
 
-// Re-exportación desde nuestra implementación simplificada sin hooks
-import { toast, useToast } from "@/hooks/use-toast";
+// Import directly from sonner
+import { toast } from "sonner";
 
-export { toast, useToast };
+// Re-export for consistency
+export { toast };
+export const useToast = () => ({ toast });
