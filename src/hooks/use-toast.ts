@@ -1,7 +1,7 @@
 
 import { toast as sonnerToast } from 'sonner';
 
-// Tipos para nuestro sistema de toast
+// Types for our toast system
 type ToastProps = {
   title?: string;
   message: string;
@@ -16,7 +16,7 @@ type ToastOptions = {
   [key: string]: any;
 };
 
-// Simplified implementation that uses Sonner directly
+// Simplified implementation that uses Sonner directly without React hooks
 export const toast = {
   default: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
@@ -127,7 +127,7 @@ export const toast = {
   }
 };
 
-// Export a mock useToast function for compatibility with existing code
+// Export a useToast function that doesn't use React hooks
 export const useToast = () => {
   return {
     toast,
