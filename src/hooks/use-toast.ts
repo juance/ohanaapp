@@ -16,76 +16,56 @@ type ToastOptions = {
   [key: string]: any;
 };
 
-// Create a wrapper around sonner that doesn't use React hooks directly
+// Create a wrapper around sonner that doesn't use React hooks
 export const toast = {
-  default: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+  default: (message: string, options?: ToastOptions | string) => {
     if (typeof options === 'string') {
       return sonnerToast(options, {
-        description: message,
-        duration
+        description: message
       });
     }
     
-    return sonnerToast(message, {
-      ...(options || {}),
-      duration: options?.duration || duration
-    });
+    return sonnerToast(message, options);
   },
 
-  success: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+  success: (message: string, options?: ToastOptions | string) => {
     if (typeof options === 'string') {
       return sonnerToast.success(options, {
-        description: message,
-        duration
+        description: message
       });
     }
     
-    return sonnerToast.success(message, {
-      ...(options || {}),
-      duration: options?.duration || duration
-    });
+    return sonnerToast.success(message, options);
   },
 
-  error: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+  error: (message: string, options?: ToastOptions | string) => {
     if (typeof options === 'string') {
       return sonnerToast.error(options, {
-        description: message,
-        duration
+        description: message
       });
     }
     
-    return sonnerToast.error(message, {
-      ...(options || {}),
-      duration: options?.duration || duration
-    });
+    return sonnerToast.error(message, options);
   },
 
-  warning: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+  warning: (message: string, options?: ToastOptions | string) => {
     if (typeof options === 'string') {
       return sonnerToast.warning(options, {
-        description: message,
-        duration
+        description: message
       });
     }
     
-    return sonnerToast.warning(message, {
-      ...(options || {}),
-      duration: options?.duration || duration
-    });
+    return sonnerToast.warning(message, options);
   },
 
-  info: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
+  info: (message: string, options?: ToastOptions | string) => {
     if (typeof options === 'string') {
       return sonnerToast.info(options, {
-        description: message,
-        duration
+        description: message
       });
     }
     
-    return sonnerToast.info(message, {
-      ...(options || {}),
-      duration: options?.duration || duration
-    });
+    return sonnerToast.info(message, options);
   },
 
   custom: ({ title, message, type = 'default', duration = 5000 }: ToastProps) => {
