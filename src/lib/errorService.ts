@@ -1,4 +1,5 @@
-import { toast } from "sonner";
+
+import { toast } from "@/hooks/use-toast";
 
 // Define la estructura de un error en el sistema
 export interface SystemError {
