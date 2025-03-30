@@ -16,7 +16,7 @@ type ToastOptions = {
   [key: string]: any;
 };
 
-// Simplified implementation that uses Sonner directly without React hooks
+// Create a wrapper around sonner that doesn't use React hooks directly
 export const toast = {
   default: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
@@ -129,7 +129,5 @@ export const toast = {
 
 // Export a useToast function that doesn't use React hooks
 export const useToast = () => {
-  return {
-    toast,
-  };
+  return { toast };
 };

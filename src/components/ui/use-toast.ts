@@ -6,4 +6,6 @@ import { toast } from "sonner";
 export { toast };
 
 // For backwards compatibility
-export const useToast = () => ({ toast });
+export const useToast = () => {
+  return { toast };
+};

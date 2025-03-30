@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { addFeedback } from '@/lib/feedbackService';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Star } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
