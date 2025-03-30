@@ -2,9 +2,6 @@
 import { Link } from "react-router-dom";
 
 const NotFound = () => {
-  // Remove useNavigate and useEffect that depend on location
-  // Instead, use a simple static 404 page with a link back home
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">
