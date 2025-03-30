@@ -1,11 +1,6 @@
 
-// Import directly from sonner
-import { toast } from "sonner";
+// Import directly from our main toast implementation
+import { toast, useToast } from "@/hooks/use-toast";
 
 // Re-export for consistency
-export { toast };
-
-// For backwards compatibility - doesn't use React hooks
-export const useToast = () => {
-  return { toast };
-};
+export { toast, useToast };
