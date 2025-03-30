@@ -5,8 +5,8 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DateRangeSelector from '@/components/shared/DateRangeSelector';
 import ActionButtons from '@/components/analysis/ActionButtons';
-import MetricsSection from '@/components/analytics/MetricsSection';
-import ChartTabs from '@/components/analytics/ChartTabs';
+import MetricsSection from '@/components/analysis/MetricsSection';
+import ChartTabs from '@/components/analysis/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
 
@@ -89,8 +89,8 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
         </div>
       ) : (
         <div className="space-y-8">
-          <MetricsSection loading={isLoading} analytics={data} />
-          <ChartTabs loading={isLoading} analytics={data} />
+          <MetricsSection analytics={data} />
+          <ChartTabs analytics={data} />
         </div>
       )}
     </>
