@@ -1,7 +1,5 @@
 
 import React from "react";
-// Remove the Link which uses React Router context
-// and replace with a regular anchor tag
 
 const NotFound: React.FC = () => {
   return (
