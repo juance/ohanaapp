@@ -1,14 +1,6 @@
 
 import { toast as sonnerToast } from 'sonner';
 
-// Types for our toast system
-type ToastProps = {
-  title?: string;
-  message: string;
-  type?: 'default' | 'success' | 'error' | 'warning' | 'info';
-  duration?: number;
-};
-
 // Options type for toast functions
 type ToastOptions = {
   description?: string;
@@ -68,33 +60,19 @@ export const toast = {
     return sonnerToast.info(message, options);
   },
 
-  custom: ({ title, message, type = 'default', duration = 5000 }: ToastProps) => {
+  // Custom toast function without using hooks
+  custom: (title: string, message: string, type = 'default', duration = 5000) => {
     switch (type) {
       case 'success':
-        return sonnerToast.success(title || message, {
-          description: title ? message : undefined,
-          duration
-        });
+        return sonnerToast.success(title, { description: message, duration });
       case 'error':
-        return sonnerToast.error(title || message, {
-          description: title ? message : undefined,
-          duration
-        });
+        return sonnerToast.error(title, { description: message, duration });
       case 'warning':
-        return sonnerToast.warning(title || message, {
-          description: title ? message : undefined,
-          duration
-        });
+        return sonnerToast.warning(title, { description: message, duration });
       case 'info':
-        return sonnerToast.info(title || message, {
-          description: title ? message : undefined,
-          duration
-        });
+        return sonnerToast.info(title, { description: message, duration });
       default:
-        return sonnerToast(title || message, {
-          description: title ? message : undefined,
-          duration
-        });
+        return sonnerToast(title, { description: message, duration });
     }
   },
 
