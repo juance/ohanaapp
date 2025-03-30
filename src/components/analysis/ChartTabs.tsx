@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
-import { TicketAnalytics } from '@/lib/analyticsService';
+import { TicketAnalytics } from '@/hooks/analytics/types';
 
 interface ChartTabsProps {
   analytics: TicketAnalytics | null;

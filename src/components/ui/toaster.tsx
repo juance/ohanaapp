@@ -4,12 +4,10 @@ import { Toaster as SonnerToaster } from "sonner";
 
 export function Toaster() {
   return (
-    <StrictMode>
-      <SonnerToaster 
-        position="top-right"
-        richColors
-        closeButton
-      />
-    </StrictMode>
+    <SonnerToaster 
+      position="top-right"
+      richColors
+      closeButton
+    />
   );
 }

@@ -9,6 +9,7 @@ import MetricsSection from '@/components/analysis/MetricsSection';
 import ChartTabs from '@/components/analysis/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
+import { toast } from 'sonner';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
@@ -31,8 +32,10 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     setExporting(true);
     try {
       await exportData();
+      toast.success("Datos exportados correctamente");
     } catch (error) {
       console.error('Export failed:', error);
+      toast.error("Error al exportar datos");
     } finally {
       setExporting(false);
     }
