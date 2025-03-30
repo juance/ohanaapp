@@ -11,10 +11,9 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-// Form validation schema
+// Form validation schema - simplified to only name, phone and password
 const registerSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  email: z.string().email('Correo electrónico inválido'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
   confirmPassword: z.string(),
   phone: z.string().min(8, 'Ingrese un número de teléfono válido')
@@ -33,7 +32,6 @@ const Register = () => {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       name: "",
-      email: "",
       password: "",
       confirmPassword: "",
       phone: ""
@@ -44,7 +42,8 @@ const Register = () => {
     setIsLoading(true);
     
     try {
-      await registerUser(values.name, values.email, values.password, values.phone);
+      // Use the name as email since we don't collect email anymore
+      await registerUser(values.name, values.name, values.password, values.phone);
       
       toast.success('Registro exitoso', {
         description: 'Ya puedes iniciar sesión con tu cuenta',
@@ -81,25 +80,6 @@ const Register = () => {
                     <FormControl>
                       <Input
                         placeholder="Su nombre"
-                        {...field}
-                        className="h-12 rounded-xl px-4"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Correo electrónico</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="correo@ejemplo.com"
                         {...field}
                         className="h-12 rounded-xl px-4"
                       />

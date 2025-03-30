@@ -46,7 +46,7 @@ const AuthForm = () => {
             <Input
               id="username"
               type="text"
-              placeholder="Usuario o Correo"
+              placeholder="Nombre o Teléfono"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
