@@ -1,31 +1,18 @@
 
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const NotFound = () => {
-  // Safely try to get location information if available
-  let pathname = "";
-  try {
-    pathname = window.location.pathname;
-  } catch (e) {
-    console.error("Could not access location:", e);
-  }
-
-  useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      pathname
-    );
-  }, [pathname]);
+  // Remove useNavigate and useEffect that depend on location
+  // Instead, use a simple static 404 page with a link back home
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+        <p className="text-xl text-gray-600 mb-4">Oops! Página no encontrada</p>
+        <Link to="/" className="text-blue-500 hover:text-blue-700 underline">
+          Volver al inicio
+        </Link>
       </div>
     </div>
   );
