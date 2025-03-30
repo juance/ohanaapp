@@ -1,11 +1,13 @@
 
-// Direct re-export of Sonner's toast functionality
+// Importamos directamente la función toast de sonner
 import { toast } from "sonner";
 
-// Export the toast function directly
+// Exportamos la función toast para uso directo
 export { toast };
 
-// Simple hook implementation for backwards compatibility
+// Simple función para mantener compatibilidad con la API anterior
 export function useToast() {
-  return { toast };
+  return {
+    toast
+  };
 }
