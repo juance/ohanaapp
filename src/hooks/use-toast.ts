@@ -26,7 +26,8 @@ export const toast = {
   raw: sonnerToast
 };
 
-// Export a simplified useToast function that doesn't rely on React hooks
+// Export a function that returns the toast object
+// This doesn't use React hooks at all
 export function useToast() {
   return { toast };
 }
