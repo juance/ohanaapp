@@ -2,8 +2,8 @@
 // Importamos la función toast directamente de sonner
 import { toast as sonnerToast } from "sonner";
 
-// Creamos una objeto toast personalizado para evitar conflictos
-// y proporcionar una interfaz consistente
+// Creamos un objeto toast personalizado para evitar conflictos
+// y proporcionar una interfaz consistente sin usar hooks de React
 export const toast = {
   // Tipos básicos de toast
   info: (message: string, options?: any) => 
