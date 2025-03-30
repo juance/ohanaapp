@@ -16,12 +16,10 @@ type ToastOptions = {
   [key: string]: any;
 };
 
-// Implementación simplificada que no usa hooks de React
+// Simplified implementation that uses Sonner directly
 export const toast = {
-  // Implementación básica de toast
   default: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
-      // If options is a string, it's the old title parameter
       return sonnerToast(options, {
         description: message,
         duration
@@ -34,10 +32,8 @@ export const toast = {
     });
   },
 
-  // Toast de éxito
   success: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
-      // If options is a string, it's the old title parameter
       return sonnerToast.success(options, {
         description: message,
         duration
@@ -50,10 +46,8 @@ export const toast = {
     });
   },
 
-  // Toast de error
   error: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
-      // If options is a string, it's the old title parameter
       return sonnerToast.error(options, {
         description: message,
         duration
@@ -66,10 +60,8 @@ export const toast = {
     });
   },
 
-  // Toast de advertencia
   warning: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
-      // If options is a string, it's the old title parameter
       return sonnerToast.warning(options, {
         description: message,
         duration
@@ -82,10 +74,8 @@ export const toast = {
     });
   },
 
-  // Toast informativo
   info: (message: string, options?: ToastOptions | string, duration: number = 5000) => {
     if (typeof options === 'string') {
-      // If options is a string, it's the old title parameter
       return sonnerToast.info(options, {
         description: message,
         duration
@@ -98,7 +88,6 @@ export const toast = {
     });
   },
 
-  // Función personalizada que acepta más opciones
   custom: ({ title, message, type = 'default', duration = 5000 }: ToastProps) => {
     switch (type) {
       case 'success':
@@ -129,7 +118,6 @@ export const toast = {
     }
   },
 
-  // Función de dismiss para compatibilidad con el API anterior
   dismiss: (toastId?: string) => {
     if (toastId) {
       sonnerToast.dismiss(toastId);
@@ -139,7 +127,7 @@ export const toast = {
   }
 };
 
-// Exportamos una función mock de useToast para mantener compatibilidad con código existente
+// Export a mock useToast function for compatibility with existing code
 export const useToast = () => {
   return {
     toast,
