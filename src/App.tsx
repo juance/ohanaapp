@@ -81,7 +81,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-       <Toaster position="top-right" richColors closeButton />
+      <Toaster position="top-right" richColors closeButton />
     </>
   );
 }

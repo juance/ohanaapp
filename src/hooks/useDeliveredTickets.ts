@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDeliveredTickets, getTicketServices } from '@/lib/tickets';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Ticket } from '@/lib/types';
 
 export function useDeliveredTickets() {
