@@ -19,7 +19,6 @@ const Administration = lazy(() => import('@/pages/Administration'));
 const Clients = lazy(() => import('@/pages/Clients'));
 const Loyalty = lazy(() => import('@/pages/Loyalty'));
 const DeliveredOrders = lazy(() => import('@/pages/DeliveredOrders'));
-const TicketAnalysis = lazy(() => import('@/pages/TicketAnalysis'));
 
 // Loading fallback with optimized rendering
 const LoadingFallback = () => (
@@ -76,7 +75,6 @@ function App() {
           <Route path="/administration" element={<Administration />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/loyalty" element={<Loyalty />} />
-          <Route path="/analysis" element={<TicketAnalysis />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
