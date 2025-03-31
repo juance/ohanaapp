@@ -1,17 +1,15 @@
-
-
 import { useNavigate, Link } from 'react-router-dom';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { registerUser } from '@/lib/auth';
-import { Toaster } from "sonner";; // Updated import to use our custom toast
+import { toast } from "@/components/ui/use-toast";
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
-// Form validation schema - simplified to only name, phone and password
 const registerSchema = z.object({
   name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),

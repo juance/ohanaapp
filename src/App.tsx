@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from "sonner";
 import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
+import { Toaster } from "@/components/ui/toaster";
 
 // Implement code splitting with lazy loading for each page
 const Index = lazy(() => import('@/pages/Index'));
@@ -81,7 +80,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster />
     </>
   );
 }
