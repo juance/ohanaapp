@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -9,7 +10,7 @@ import { SystemVersionInfo } from '@/components/admin/SystemVersionInfo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
-import { UnretrievedTicketsAlert } from '@/components/admin/unretrieved-tickets';
+import { UnretrievedTicketsAlert } from '@/components/admin/UnretrievedTicketsAlert';
 
 const Administration = () => {
   useEffect(() => {
