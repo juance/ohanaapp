@@ -51,7 +51,6 @@ export type Database = {
           id: string
           loyalty_points: number
           name: string
-          notes: string | null
           phone: string
           valets_count: number
           valets_redeemed: number | null
@@ -62,7 +61,6 @@ export type Database = {
           id?: string
           loyalty_points?: number
           name: string
-          notes?: string | null
           phone: string
           valets_count?: number
           valets_redeemed?: number | null
@@ -73,7 +71,6 @@ export type Database = {
           id?: string
           loyalty_points?: number
           name?: string
-          notes?: string | null
           phone?: string
           valets_count?: number
           valets_redeemed?: number | null
