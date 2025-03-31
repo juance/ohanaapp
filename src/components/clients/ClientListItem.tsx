@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Edit, Save, X, MessageSquare } from 'lucide-react';
+import { Edit, Save, X } from 'lucide-react';
 import { ClientVisit } from '@/lib/types';
 
 interface ClientListItemProps {
@@ -32,18 +32,6 @@ const ClientListItem: React.FC<ClientListItemProps> = ({
   onEditNameChange,
   onEditPhoneChange
 }) => {
-  const handleWhatsAppClick = (e: React.MouseEvent, phone: string) => {
-    e.stopPropagation();
-    // Formatear el número correctamente para WhatsApp
-    let formattedPhone = phone;
-    // Si comienza con +549, está listo para WhatsApp
-    if (!formattedPhone.startsWith('+')) {
-      formattedPhone = '+549' + formattedPhone.replace(/\D/g, '');
-    }
-    // Redirigir a WhatsApp
-    window.open(`https://wa.me/${formattedPhone.replace(/\D/g, '')}`, '_blank');
-  };
-
   return (
     <div
       key={client.id || client.phoneNumber}
@@ -101,28 +89,17 @@ const ClientListItem: React.FC<ClientListItemProps> = ({
             <span className="text-xs text-muted-foreground">
               Última visita: {client.lastVisit ? new Date(client.lastVisit).toLocaleDateString() : 'N/A'}
             </span>
-            <div className="flex space-x-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(client);
-                }}
-              >
-                <Edit className="h-3 w-3 mr-1" />
-                <span className="text-xs">Editar</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-green-500 text-white hover:bg-green-600"
-                onClick={(e) => handleWhatsAppClick(e, client.phoneNumber)}
-              >
-                <MessageSquare className="h-3 w-3 mr-1" />
-                <span className="text-xs">WhatsApp</span>
-              </Button>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(client);
+              }}
+            >
+              <Edit className="h-3 w-3 mr-1" />
+              <span className="text-xs">Editar</span>
+            </Button>
           </div>
         </>
       )}

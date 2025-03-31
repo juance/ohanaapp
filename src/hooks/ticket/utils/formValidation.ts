@@ -1,5 +1,5 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { TicketFormState } from '../types/ticketFormTypes';
 
 export const validateTicketForm = (formState: TicketFormState): boolean => {
@@ -13,22 +13,38 @@ export const validateTicketForm = (formState: TicketFormState): boolean => {
   } = formState;
   
   if (!customerName || !phoneNumber) {
-    toast.error('Por favor complete los datos del cliente');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Por favor complete los datos del cliente'
+    });
     return false;
   }
   
   if (phoneNumber.length < 8) {
-    toast.error('Por favor ingrese un número de teléfono válido');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Por favor ingrese un número de teléfono válido'
+    });
     return false;
   }
   
   if (activeTab === 'valet' && valetQuantity <= 0 && !useFreeValet) {
-    toast.error('La cantidad de valets debe ser mayor a cero');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'La cantidad de valets debe ser mayor a cero'
+    });
     return false;
   }
   
   if (activeTab === 'tintoreria' && selectedDryCleaningItems.length === 0) {
-    toast.error('Por favor seleccione al menos un artículo de tintorería');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Por favor seleccione al menos un artículo de tintorería'
+    });
     return false;
   }
   

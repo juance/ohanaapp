@@ -17,8 +17,8 @@ import { Card, CardContent } from '@/components/ui/card';
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');

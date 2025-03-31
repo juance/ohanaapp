@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/hooks/use-toast";
+import { toast } from '@/components/ui/use-toast';
 
 export interface TicketAnalytics {
   totalTickets: number;
@@ -101,7 +102,11 @@ export const getTicketAnalytics = async (
     };
   } catch (error) {
     console.error('Error fetching ticket analytics:', error);
-    toast.error("Failed to export analytics data");
+    toast({
+      variant: "destructive", 
+      title: "Error", 
+      description: 'Error al obtener análisis de tickets'
+    });
     
     // Return default empty values
     return {
@@ -113,53 +118,5 @@ export const getTicketAnalytics = async (
       ticketsByStatus: {},
       revenueByMonth: []
     };
-  }
-};
-
-export const getMetrics = async (dateRange?: { from: Date; to: Date }) => {
-  try {
-    // This is a placeholder implementation - real implementation would fetch from your API
-    // Build query parameters for date range if provided
-    const params = new URLSearchParams();
-    if (dateRange) {
-      params.append('from', dateRange.from.toISOString());
-      params.append('to', dateRange.to.toISOString());
-    }
-
-    // Sample return data structure
-    return {
-      revenueByDate: [
-        { date: '2023-09-01', revenue: 1200 },
-        { date: '2023-09-02', revenue: 980 },
-        { date: '2023-09-03', revenue: 1450 },
-        { date: '2023-09-04', revenue: 1100 },
-        { date: '2023-09-05', revenue: 1300 },
-      ],
-      serviceBreakdown: [
-        { name: 'Lavado', value: 35 },
-        { name: 'Secado', value: 25 },
-        { name: 'Planchado', value: 20 },
-        { name: 'Tintorería', value: 15 },
-        { name: 'Otros', value: 5 }
-      ],
-      clientTypeBreakdown: [
-        { name: 'Frecuente', value: 60 },
-        { name: 'Ocasional', value: 30 },
-        { name: 'Nuevo', value: 10 }
-      ],
-      totalTickets: 125,
-      averageTicketValue: 37.50,
-      totalRevenue: 4687.50,
-      ticketsByStatus: {
-        pending: 15,
-        processing: 30,
-        ready: 25,
-        delivered: 55
-      }
-    };
-  } catch (error) {
-    console.error("Error fetching metrics:", error);
-    toast.error("Error al cargar las métricas");
-    throw error;
   }
 };

@@ -1,5 +1,5 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { TicketFormState } from '../types/ticketFormTypes';
@@ -41,11 +41,20 @@ export const handleFormSubmission = async (
     
     if (success) {
       if (useFreeValet) {
-        toast.success('Ticket de valet gratis generado correctamente');
+        toast({
+          title: "Success",
+          description: 'Ticket de valet gratis generado correctamente'
+        });
       } else if (isPaidInAdvance) {
-        toast.success('Ticket generado correctamente (Pagado por adelantado)');
+        toast({
+          title: "Success",
+          description: 'Ticket generado correctamente (Pagado por adelantado)'
+        });
       } else {
-        toast.success('Ticket generado correctamente');
+        toast({
+          title: "Success",
+          description: 'Ticket generado correctamente'
+        });
       }
       
       // Create a ticket object for printing
@@ -62,12 +71,20 @@ export const handleFormSubmission = async (
       
       return true;
     } else {
-      toast.error('Error al generar el ticket');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Error al generar el ticket'
+      });
       return false;
     }
   } catch (error) {
     console.error('Error submitting ticket:', error);
-    toast.error('Error al generar el ticket');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Error al generar el ticket'
+    });
     return false;
   }
 };
