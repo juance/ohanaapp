@@ -9,6 +9,8 @@ export function Toaster() {
       position="top-right"
       richColors
       closeButton
+      expand={false}
+      theme="light"
     />
   );
 }
