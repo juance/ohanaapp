@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -8,7 +9,7 @@ import MetricsSection from '@/components/analysis/MetricsSection';
 import ChartTabs from '@/components/analysis/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
