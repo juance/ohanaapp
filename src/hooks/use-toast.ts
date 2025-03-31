@@ -1,4 +1,5 @@
 
+// Direct import of sonner toast
 import { toast as sonnerToast } from "sonner";
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
@@ -8,8 +9,9 @@ interface ToastOptions {
   duration?: number;
 }
 
-// Create a proper toast implementation using sonner
-const toast = {
+// Create a toast implementation using sonner without React hooks
+// This is a simple wrapper around sonner's toast functions
+export const toast = {
   success: (message: string, options?: ToastOptions) => {
     return sonnerToast.success(message, {
       duration: options?.duration || 3000,
@@ -36,12 +38,11 @@ const toast = {
   },
 };
 
-// Export the toast functions
-export { toast };
-
-// The useToast hook is maintained for backward compatibility
+// The useToast hook is maintained for backward compatibility with shadcn/ui
 export const useToast = () => {
   return {
+    toast,
+    // For compatibility with components expecting the old API
     toasts: [],
     addToast: (message: string, type: ToastType = 'info') => {
       switch (type) {
