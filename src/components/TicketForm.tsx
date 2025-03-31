@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { PaymentMethod, LaundryOption } from '@/lib/types';
-import { toast } from '@/hooks/use-toast'; // Updated import
+import { Toaster } from "sonner";
 import { storeTicketData } from '@/lib/dataService';
 import { SelectedDryCleaningItem } from './ticket-form/types';
 
