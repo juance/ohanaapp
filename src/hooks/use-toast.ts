@@ -11,7 +11,7 @@ export type ToastFunction = {
   info: (message: ReactNode, opts?: ExternalToast) => string | number;
   loading: (message: ReactNode, opts?: ExternalToast) => string | number;
   dismiss: (toastId?: string | number) => void;
-  custom: any; // Using any type for custom method to avoid type incompatibility
+  custom: any;
   promise: typeof sonnerToast.promise;
 };
 
