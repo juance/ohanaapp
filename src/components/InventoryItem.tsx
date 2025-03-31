@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { InventoryItem as InventoryItemType } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Package, Trash, Plus, Minus, Save, X, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
