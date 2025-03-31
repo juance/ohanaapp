@@ -1,9 +1,9 @@
 
 import { Card, CardContent } from '@/components/ui/card';
-import { Check } from 'lucide-react';
 import { Ticket } from '@/lib/types';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { StatusBadge } from './StatusBadge';
 
 interface TicketCardProps {
   ticket: Ticket;
@@ -34,10 +34,7 @@ export function TicketCard({ ticket, isSelected, onClick }: TicketCardProps) {
             <div className="font-medium">{ticket.clientName}</div>
             <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
           </div>
-          <div className="flex items-center gap-1 text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-full">
-            <Check className="h-3 w-3" />
-            <span>Entregado</span>
-          </div>
+          <StatusBadge status={ticket.status} />
         </div>
         <div className="text-sm mb-3">
           <div className="flex justify-between mb-1">
