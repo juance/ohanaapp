@@ -6,7 +6,7 @@ import { ExternalToast } from "sonner";
 // Create a function with additional properties
 type ToastFunction = {
   (message: string): string | number;
-  (options: { title: string; description: string }): string | number;
+  (options: { title: string; description: string; variant?: string }): string | number;
   custom: typeof sonnerToast;
   success: (message: string) => void;
   error: (message: string) => void;
@@ -15,13 +15,17 @@ type ToastFunction = {
 
 // Create the base function
 const toastFn = (
-  message: string | { title: string; description: string }
+  message: string | { title: string; description: string; variant?: string }
 ): string | number => {
   if (typeof message === "string") {
     return sonnerToast(message);
   } else {
-    return sonnerToast(message.title, {
-      description: message.description
+    // Extract variant if it exists and use it as part of options
+    const { title, description, variant } = message;
+    return sonnerToast(title, {
+      description,
+      // If there's a variant, pass it as a class name
+      className: variant === "destructive" ? "bg-destructive text-destructive-foreground" : undefined
     });
   }
 };
