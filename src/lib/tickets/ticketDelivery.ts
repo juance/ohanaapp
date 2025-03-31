@@ -34,11 +34,6 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       deliveredDate: ticket.delivered_date
     }));
     
-    // Get services for each ticket
-    for (const ticket of tickets) {
-      ticket.services = await getTicketServices(ticket.id);
-    }
-    
     return tickets;
   } catch (error) {
     console.error('Error fetching delivered tickets:', error);

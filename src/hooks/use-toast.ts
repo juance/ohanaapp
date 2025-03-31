@@ -1,26 +1,66 @@
-import { useState, useCallback } from 'react';
 
-interface Toast {
-  id: string;
-  message: string;
-  type: 'success' | 'error' | 'info' | 'warning';
+import { toast as sonnerToast } from "sonner";
+
+type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+interface ToastOptions {
+  description?: string;
+  duration?: number;
 }
 
+// Create a proper toast implementation using sonner
+const toast = {
+  success: (message: string, options?: ToastOptions) => {
+    return sonnerToast.success(message, {
+      duration: options?.duration || 3000,
+      description: options?.description,
+    });
+  },
+  error: (message: string, options?: ToastOptions) => {
+    return sonnerToast.error(message, {
+      duration: options?.duration || 3000,
+      description: options?.description,
+    });
+  },
+  info: (message: string, options?: ToastOptions) => {
+    return sonnerToast.info(message, {
+      duration: options?.duration || 3000,
+      description: options?.description,
+    });
+  },
+  warning: (message: string, options?: ToastOptions) => {
+    return sonnerToast.warning(message, {
+      duration: options?.duration || 3000,
+      description: options?.description,
+    });
+  },
+};
+
+// Export the toast functions
+export { toast };
+
+// The useToast hook is maintained for backward compatibility
 export const useToast = () => {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const addToast = useCallback((message: string, type: Toast['type'] = 'info') => {
-    const id = Math.random().toString(36).substr(2, 9);
-    setToasts((prevToasts) => [...prevToasts, { id, message, type }]);
-  }, []);
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
-  }, []);
-
   return {
-    toasts,
-    addToast,
-    removeToast,
+    toasts: [],
+    addToast: (message: string, type: ToastType = 'info') => {
+      switch (type) {
+        case 'success':
+          toast.success(message);
+          break;
+        case 'error':
+          toast.error(message);
+          break;
+        case 'info':
+          toast.info(message);
+          break;
+        case 'warning':
+          toast.warning(message);
+          break;
+      }
+    },
+    removeToast: () => {
+      // This is a no-op since sonner handles this internally
+    },
   };
 };
