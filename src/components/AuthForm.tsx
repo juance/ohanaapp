@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { login } from '@/lib/auth';
-import { toast } from '@/hooks/use-toast'; // Updated import to use our custom toast
+import { toast } from '@/hooks/use-toast'; // Updated import
 
 const AuthForm = () => {
   const [username, setUsername] = useState('');
