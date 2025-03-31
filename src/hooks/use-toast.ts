@@ -1,35 +1,26 @@
+import { useState, useCallback } from 'react';
 
-// Import sonner functions
-import { toast as sonnerToast } from "sonner";
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+}
 
-// Simple interface for basic toast options
-type ToastOptions = {
-  description?: string;
-  duration?: number;
-};
-
-// Re-export sonner toast with our simplified interface
-const toast = {
-  success: (message: string, options?: ToastOptions) => {
-    return sonnerToast.success(message, options);
-  },
-  error: (message: string, options?: ToastOptions) => {
-    return sonnerToast.error(message, options);
-  },
-  warning: (message: string, options?: ToastOptions) => {
-    return sonnerToast.warning(message, options);
-  },
-  info: (message: string, options?: ToastOptions) => {
-    return sonnerToast.message(message, options);
-  }
-};
-
-// Export the toast functions
-export { toast };
-
-// For compatibility with existing code, create a useToast hook that returns the same interface
 export const useToast = () => {
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = useCallback((message: string, type: Toast['type'] = 'info') => {
+    const id = Math.random().toString(36).substr(2, 9);
+    setToasts((prevToasts) => [...prevToasts, { id, message, type }]);
+  }, []);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prevToasts) => prevToasts.filter((toast) => toast.id !== id));
+  }, []);
+
   return {
-    toast
+    toasts,
+    addToast,
+    removeToast,
   };
 };
