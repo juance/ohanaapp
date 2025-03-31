@@ -11,10 +11,9 @@ export type ToastFunction = {
   info: (message: ReactNode, opts?: ExternalToast) => string | number;
   loading: (message: ReactNode, opts?: ExternalToast) => string | number;
   dismiss: (toastId?: string | number) => void;
-  custom: (message: ReactNode, opts?: ExternalToast) => string | number;
+  custom: any; // Using any type for custom method to avoid type incompatibility
   promise: typeof sonnerToast.promise;
-  update: typeof sonnerToast.update;
-}
+};
 
 // Create the base toast function
 const toastFunction = (message: ReactNode, opts?: ExternalToast): string | number => {
@@ -31,13 +30,13 @@ export const toast: ToastFunction = Object.assign(toastFunction, {
   dismiss: (toastId?: string | number) => sonnerToast.dismiss(toastId),
   custom: sonnerToast.custom,
   promise: sonnerToast.promise,
-  update: sonnerToast.update,
 });
 
-// Don't use React hooks here - move them to the component level
+// Export ToastT type for components that need it
 export type { ToastT };
 
 // Simple function to get the toast in components that need direct access
+// No React hooks here - just return the toast object
 export function useToast() {
   return {
     toast,
