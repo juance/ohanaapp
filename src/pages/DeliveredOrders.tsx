@@ -10,6 +10,7 @@ import { getDeliveredTickets, getTicketServices } from '@/lib/ticketService';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { toast } from '@/hooks/use-toast';
 
 const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +23,15 @@ const DeliveredOrders = () => {
     queryFn: getDeliveredTickets
   });
 
+  // Update the error handling to use our toast
+  useEffect(() => {
+    if (error) {
+      toast.error('Error al cargar tickets', { 
+        description: 'No se pudieron cargar los tickets entregados.' 
+      });
+    }
+  }, [error]);
+
   useEffect(() => {
     if (selectedTicket) {
       loadTicketServices(selectedTicket);
@@ -31,8 +41,15 @@ const DeliveredOrders = () => {
   }, [selectedTicket]);
 
   const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services);
+    try {
+      const services = await getTicketServices(ticketId);
+      setTicketServices(services);
+    } catch (err) {
+      console.error("Error loading ticket services:", err);
+      toast.error('Error al cargar servicios', {
+        description: 'No se pudieron cargar los detalles del ticket.'
+      });
+    }
   };
   
   const filteredTickets = searchQuery.trim() 
