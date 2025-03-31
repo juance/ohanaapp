@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { PaymentMethod, LaundryOption } from '@/lib/types';
 import { Toaster } from "sonner";
+import { toast } from "sonner";
 import { storeTicketData } from '@/lib/dataService';
 import { SelectedDryCleaningItem } from './ticket-form/types';
 
