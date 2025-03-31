@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -7,7 +7,7 @@ import DateRangeSelector from '@/components/shared/DateRangeSelector';
 import ActionButtons from '@/components/analysis/ActionButtons';
 import MetricsSection from '@/components/analysis/MetricsSection';
 import ChartTabs from '@/components/analysis/ChartTabs';
-import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
+
 import { Loading } from '@/components/ui/loading';
 
 
