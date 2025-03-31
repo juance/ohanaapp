@@ -1,11 +1,5 @@
 
-import { toast as sonnerToast } from "sonner";
+// This file is kept for compatibility but delegates to the hooks version
+import { toast, useToast } from "@/hooks/use-toast";
 
-// Create a toast implementation using sonner without React hooks
-export const toast = sonnerToast;
-
-export const useToast = () => {
-  return {
-    toast,
-  };
-};
+export { toast, useToast };

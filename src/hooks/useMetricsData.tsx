@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { getMetrics } from '@/lib/analyticsService';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
