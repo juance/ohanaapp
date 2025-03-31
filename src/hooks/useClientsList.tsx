@@ -1,110 +1,40 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
+import { useClientSearch } from './clients/useClientSearch';
+import { useClientForm } from './clients/useClientForm';
+import { useClientNotes } from './clients/useClientNotes';
+import { useClientExport } from './clients/useClientExport';
+import { useClientSelection } from './clients/useClientSelection';
 import { ClientVisit } from '@/lib/types';
 
 export const useClientsList = () => {
-  const { toast } = useToast();
   const { frequentClients, refreshData, loading, error } = useClientData();
-  const [newClientName, setNewClientName] = useState('');
-  const [newClientPhone, setNewClientPhone] = useState('');
-  const [isAddingClient, setIsAddingClient] = useState(false);
-  const [isEditingClient, setIsEditingClient] = useState<string | null>(null);
-  const [editClientName, setEditClientName] = useState('');
-  const [editClientPhone, setEditClientPhone] = useState('');
-
-  const handleAddClient = async () => {
-    if (!newClientName || !newClientPhone) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Nombre y teléfono son campos obligatorios.",
-      });
-      return;
-    }
-    
-    setIsAddingClient(true);
-    try {
-      const { error } = await supabase
-        .from('customers')
-        .insert({
-          name: newClientName,
-          phone: newClientPhone,
-          loyalty_points: 0,
-          valets_count: 0,
-          free_valets: 0
-        });
-        
-      if (error) throw error;
-      
-      // Show success message
-      toast({
-        title: "Cliente agregado",
-        description: "El cliente ha sido agregado exitosamente.",
-      });
-      
-      // Refresh data
-      await refreshData();
-      
-      // Clear form
-      setNewClientName('');
-      setNewClientPhone('');
-    } catch (err: any) {
-      console.error("Error adding client:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.message || "Hubo un error al agregar el cliente.",
-      });
-    } finally {
-      setIsAddingClient(false);
-    }
-  };
-
-  const handleEditClient = (client: ClientVisit) => {
-    setIsEditingClient(client.id);
-    setEditClientName(client.clientName);
-    setEditClientPhone(client.phoneNumber);
-  };
-
-  const handleSaveClient = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('customers')
-        .update({
-          name: editClientName,
-          phone: editClientPhone
-        })
-        .eq('id', id);
-        
-      if (error) throw error;
-      
-      toast({
-        title: "Cliente actualizado",
-        description: "Los datos del cliente han sido actualizados.",
-      });
-      
-      setIsEditingClient(null);
-      await refreshData();
-    } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.message || "Error al actualizar el cliente.",
-      });
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingClient(null);
-  };
-
-  return {
-    frequentClients,
-    loading,
-    error,
+  
+  // Use smaller, focused hooks
+  const {
+    clientNotes,
+    isLoadingNotes,
+    loadClientNotes,
+    saveClientNotes
+  } = useClientNotes();
+  
+  const {
+    selectedClient,
+    handleSelectClient
+  } = useClientSelection(loadClientNotes);
+  
+  const {
+    searchQuery,
+    currentPage,
+    totalPages,
+    filteredClients,
+    currentClients,
+    handleSearchChange,
+    handlePageChange
+  } = useClientSearch(frequentClients);
+  
+  const {
     newClientName,
     setNewClientName,
     newClientPhone,
@@ -117,8 +47,61 @@ export const useClientsList = () => {
     setEditClientPhone,
     handleAddClient,
     handleEditClient,
+    handleSaveClient: saveClient,
+    handleCancelEdit
+  } = useClientForm(refreshData);
+  
+  const {
+    isExporting,
+    handleExportClients
+  } = useClientExport();
+  
+  // Wrapper to pass selectedClient to saveClient
+  const handleSaveClient = (id: string) => {
+    return saveClient(id, selectedClient);
+  };
+  
+  // Wrapper to pass selectedClient to saveClientNotes
+  const handleSaveClientNotes = (notes: string) => {
+    return saveClientNotes(notes, selectedClient);
+  };
+  
+  // Wrapper to pass filteredClients to handleExportClients
+  const handleExportClientData = () => {
+    return handleExportClients(filteredClients);
+  };
+
+  return {
+    filteredClients,
+    currentClients,
+    totalPages,
+    currentPage,
+    loading,
+    error,
+    newClientName,
+    setNewClientName,
+    newClientPhone,
+    setNewClientPhone,
+    isAddingClient,
+    isEditingClient,
+    editClientName,
+    setEditClientName,
+    editClientPhone,
+    setEditClientPhone,
+    searchQuery,
+    clientNotes,
+    isLoadingNotes,
+    selectedClient,
+    isExporting,
+    handleAddClient,
+    handleEditClient,
     handleSaveClient,
     handleCancelEdit,
+    handleSearchChange,
+    handlePageChange,
+    handleSelectClient,
+    saveClientNotes: handleSaveClientNotes,
+    handleExportClients: handleExportClientData,
     refreshData
   };
 };

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Ticket } from '../types';
 import { getTicketServices } from './ticketServices';
 
@@ -33,11 +33,6 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       updatedAt: ticket.updated_at,
       deliveredDate: ticket.delivered_date
     }));
-    
-    // Get services for each ticket
-    for (const ticket of tickets) {
-      ticket.services = await getTicketServices(ticket.id);
-    }
     
     return tickets;
   } catch (error) {

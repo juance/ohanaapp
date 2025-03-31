@@ -1,14 +1,14 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DateRangeSelector from '@/components/analysis/DateRangeSelector';
+import DateRangeSelector from '@/components/shared/DateRangeSelector';
 import ActionButtons from '@/components/analysis/ActionButtons';
-import MetricsSection from '@/components/analytics/MetricsSection';
-import ChartTabs from '@/components/analytics/ChartTabs';
+import MetricsSection from '@/components/analysis/MetricsSection';
+import ChartTabs from '@/components/analysis/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
+import { toast } from '@/components/ui/use-toast';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
@@ -31,8 +31,10 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     setExporting(true);
     try {
       await exportData();
+      toast.success("Datos exportados correctamente");
     } catch (error) {
       console.error('Export failed:', error);
+      toast.error("Error al exportar datos");
     } finally {
       setExporting(false);
     }
@@ -42,6 +44,19 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
   const handleDateRangeChange = (from: Date, to: Date) => {
     setDateRange({ from, to });
   };
+
+  if (!data && isLoading) {
+    return (
+      <div className={embedded ? "" : "flex min-h-screen flex-col md:flex-row"}>
+        {!embedded && <Navbar />}
+        <div className={embedded ? "" : "flex-1 p-6 md:ml-64"}>
+          <div className="flex h-96 items-center justify-center">
+            <Loading />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const content = (
     <>
@@ -76,8 +91,8 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
         </div>
       ) : (
         <div className="space-y-8">
-          <MetricsSection metrics={data} />
-          <ChartTabs chartData={data} />
+          <MetricsSection analytics={data} />
+          <ChartTabs analytics={data} />
         </div>
       )}
     </>

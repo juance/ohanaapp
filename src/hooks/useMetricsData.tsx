@@ -1,136 +1,43 @@
 
 import { useState, useEffect } from 'react';
-import { 
-  getDailyMetrics, 
-  getWeeklyMetrics, 
-  getMonthlyMetrics,
-  syncOfflineData
-} from '@/lib/dataService';
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { toast } from '@/components/ui/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { getMetrics } from '@/lib/analyticsService';
+import { toast } from '@/hooks/use-toast';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
-interface MetricsData {
-  daily: DailyMetrics;
-  weekly: WeeklyMetrics;
-  monthly: MonthlyMetrics;
-  revenueByDate: Array<{ date: string; revenue: number }>;
-  serviceBreakdown: Array<{ name: string; value: number }>;
-  clientTypeBreakdown: Array<{ name: string; value: number }>;
-  totalRevenue: number;
-  totalTickets: number;
-  uniqueCustomers: number;
-  averageTicket: number;
+interface DateRange {
+  from: Date;
+  to: Date;
 }
 
 interface UseMetricsDataReturn {
-  data: MetricsData | null;
   isLoading: boolean;
   error: Error | null;
-  dateRange: { from: Date; to: Date };
-  setDateRange: (range: { from: Date; to: Date }) => void;
+  data: any | null;
   refreshData: () => Promise<void>;
+  dateRange: DateRange;
+  setDateRange: (range: DateRange) => void;
 }
 
 export const useMetricsData = (): UseMetricsDataReturn => {
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [data, setData] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const [data, setData] = useState<MetricsData | null>(null);
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().setDate(new Date().getDate() - 30)),
     to: new Date()
   });
   
   const refreshData = async () => {
     setIsLoading(true);
-    setError(null);
-    
     try {
-      await syncOfflineData();
-      
-      const [dailyMetrics, weeklyMetrics, monthlyMetrics] = await Promise.all([
-        getDailyMetrics(),
-        getWeeklyMetrics(),
-        getMonthlyMetrics()
-      ]);
-      
-      const calculateTotalRevenue = (paymentMethods: Record<string, number | undefined>): number => {
-        if (!paymentMethods) return 0;
-        return Object.values(paymentMethods).reduce((sum: number, value) => sum + Number(value || 0), 0);
-      };
-      
-      const daily = dailyMetrics;
-      const totalDailyRevenue = calculateTotalRevenue(daily.paymentMethods);
-      
-      const weekly = weeklyMetrics;
-      const totalWeeklyRevenue = calculateTotalRevenue(weekly.paymentMethods);
-      
-      const monthly = monthlyMetrics;
-      const totalMonthlyRevenue = calculateTotalRevenue(monthly.paymentMethods);
-      
-      const revenueByDate: Array<{ date: string; revenue: number }> = [];
-      const currentDate = new Date();
-      
-      for (let i = 0; i < 30; i++) {
-        const date = new Date();
-        date.setDate(currentDate.getDate() - i);
-        date.setHours(0, 0, 0, 0);
-        
-        const revenue = Math.random() * 1000 + 500;
-        revenueByDate.push({
-          date: date.toISOString(),
-          revenue
-        });
-      }
-      
-      const serviceBreakdown = Object.entries(monthly.dryCleaningItems || {}).map(([name, rawValue]) => {
-        return {
-          name,
-          value: Number(rawValue || 0)
-        };
-      });
-      
-      const clientTypeBreakdown: Array<{ name: string; value: number }> = [
-        { name: 'Regulares', value: 60 },
-        { name: 'Ocasionales', value: 30 },
-        { name: 'Nuevos', value: 10 }
-      ];
-      
-      const totalTickets = 120;
-      
-      // Use the properly typed calculated revenue
-      const totalMonthlyRevenueNumber = Number(totalMonthlyRevenue) || 0;
-      
-      setData({
-        daily,
-        weekly,
-        monthly,
-        revenueByDate,
-        serviceBreakdown,
-        clientTypeBreakdown,
-        totalRevenue: totalMonthlyRevenueNumber,
-        totalTickets,
-        uniqueCustomers: 45,
-        averageTicket: totalTickets > 0 ? (totalMonthlyRevenueNumber / totalTickets) : 0
-      });
-      
-      console.log("Metrics data refreshed successfully:", {
-        daily,
-        weekly,
-        monthly,
-        revenueByDate,
-        serviceBreakdown,
-        clientTypeBreakdown
-      });
-      
-      toast.success("Datos de métricas actualizados");
-      
+      const metricsData = await getMetrics(dateRange);
+      setData(metricsData);
+      setError(null);
     } catch (err) {
       console.error("Error fetching metrics data:", err);
-      setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
-      toast.error("Error al cargar los datos de métricas");
+      setError(err instanceof Error ? err : new Error('Unknown error fetching metrics'));
+      toast.error("Error al cargar las métricas. Por favor, inténtelo de nuevo.");
     } finally {
       setIsLoading(false);
     }
@@ -138,36 +45,14 @@ export const useMetricsData = (): UseMetricsDataReturn => {
   
   useEffect(() => {
     refreshData();
-  }, [dateRange.from, dateRange.to]);
-  
-  useEffect(() => {
-    const channel = supabase
-      .channel('metrics-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'tickets'
-        },
-        (payload) => {
-          console.log('Tickets table changed, refreshing metrics data:', payload);
-          refreshData();
-        }
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+  }, [dateRange]);
   
   return {
-    data,
     isLoading,
     error,
+    data,
+    refreshData,
     dateRange,
-    setDateRange,
-    refreshData
+    setDateRange
   };
 };

@@ -4,7 +4,7 @@ export interface TicketAnalytics {
   totalTickets: number;
   averageTicketValue: number;
   totalRevenue: number;
-  ticketsByStatus?: {
+  ticketsByStatus: {
     pending: number;
     processing: number;
     ready: number;

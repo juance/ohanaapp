@@ -1,7 +1,7 @@
 
 import { Download, RefreshCw, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 

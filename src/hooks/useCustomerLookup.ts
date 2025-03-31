@@ -1,5 +1,5 @@
 
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { Customer } from '@/lib/types';
 import { getCustomerByPhone } from '@/lib/dataService';
 
@@ -13,11 +13,7 @@ export const useCustomerLookup = (
 ) => {
   const handleCustomerLookup = async (lookupPhone: string) => {
     if (!lookupPhone || lookupPhone.length < 8) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: 'Por favor ingrese un número de teléfono válido'
-      });
+      toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
     
@@ -34,29 +30,18 @@ export const useCustomerLookup = (
           setShowFreeValetDialog(true);
         } else {
           setUseFreeValet(false);
-          toast({
-            title: "Success",
-            description: `Cliente encontrado: ${customer.name}`
-          });
+          toast.success(`Cliente encontrado: ${customer.name}`);
         }
       } else {
         setFoundCustomer(null);
         setUseFreeValet(false);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: 'Cliente no encontrado'
-        });
+        toast.error('Cliente no encontrado');
       }
     } catch (error) {
       console.error('Error looking up customer:', error);
       setFoundCustomer(null);
       setUseFreeValet(false);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: 'Error al buscar cliente'
-      });
+      toast.error('Error al buscar cliente');
     }
   };
 

@@ -40,10 +40,8 @@ export const logError = (
   console.error("Error logged:", systemError);
   errorStore = [systemError, ...errorStore];
   
-  // Opcionalmente notificar al usuario
-  toast({
-    variant: "destructive",
-    title: "Error detectado",
+  // Notify user using toast
+  toast.error("Error detectado", {
     description: "Se ha registrado un error en el sistema."
   });
   

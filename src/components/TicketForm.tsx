@@ -2,7 +2,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { PaymentMethod, LaundryOption } from '@/lib/types';
-import { toast } from '@/components/ui/use-toast';
+import { Toaster } from "sonner";
+import { toast } from "sonner";
 import { storeTicketData } from '@/lib/dataService';
 import { SelectedDryCleaningItem } from './ticket-form/types';
 
@@ -149,7 +150,9 @@ const TicketForm = () => {
       
       if (success) {
         // Show success message
-        toast.success('Ticket created successfully');
+        toast.success('Ticket created successfully', {
+          description: `Ticket #${ticketNumber} for ${clientData.clientName}`,
+        });
         
         // Reset form
         setClientData({ clientName: '', phoneNumber: '' });
@@ -158,11 +161,15 @@ const TicketForm = () => {
         setSelectedLaundryOptions([]);
         setPaymentMethod('cash');
       } else {
-        toast.error('Failed to create ticket');
+        toast.error('Failed to create ticket', {
+          description: 'Please try again or check your connection',
+        });
       }
     } catch (error) {
       console.error('Error creating ticket:', error);
-      toast.error('Error creating ticket');
+      toast.error('Error creating ticket', {
+        description: 'An unexpected error occurred',
+      });
     } finally {
       setIsSubmitting(false);
     }

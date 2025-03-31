@@ -5,7 +5,7 @@ import { InventoryItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 // Import the new components
 import SearchBar from './inventory/SearchBar';
