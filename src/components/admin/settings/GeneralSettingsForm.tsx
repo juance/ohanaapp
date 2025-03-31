@@ -20,7 +20,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     defaultValues,
   });
 
-  // Aplicar modo oscuro cuando cambia en el formulario
+  // Escuchar cambios en el modo oscuro
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'enableDarkMode') {
@@ -34,16 +34,6 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     
     return () => subscription.unsubscribe();
   }, [form.watch]);
-
-  // Inicializar el modo oscuro según la configuración guardada
-  useEffect(() => {
-    const isDarkMode = defaultValues.enableDarkMode;
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [defaultValues.enableDarkMode]);
 
   const onSubmit = (data: GeneralSettingsFormValues) => {
     setIsSaving(true);
