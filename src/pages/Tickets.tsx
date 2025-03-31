@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+
 import Navbar from '@/components/Navbar';
 import SimpleTicketForm from '@/components/SimpleTicketForm';
 import TicketPrint from '@/components/TicketPrint';
