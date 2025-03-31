@@ -3,39 +3,45 @@ import { toast as sonnerToast } from "sonner";
 import { ReactNode } from "react";
 import { ExternalToast } from "sonner";
 
-// Re-export sonner toast with our desired interface
-export const toast = {
-  // Basic toast function - this allows direct calling
-  // Now toast can be called directly with a string message
-  (message: string): string | number {
+// Create a function with additional properties
+type ToastFunction = {
+  (message: string): string | number;
+  (options: { title: string; description: string }): string | number;
+  custom: typeof sonnerToast;
+  success: (message: string) => void;
+  error: (message: string) => void;
+  info: (message: string) => void;
+};
+
+// Create the base function
+const toastFn = (
+  message: string | { title: string; description: string }
+): string | number => {
+  if (typeof message === "string") {
     return sonnerToast(message);
-  },
-  
-  // Support for object parameter with title and description
-  ({ title, description }: { title: string; description: string }) {
-    return sonnerToast(title, {
-      description
+  } else {
+    return sonnerToast(message.title, {
+      description: message.description
     });
-  },
-  
-  // Expose the original sonner toast for direct access
+  }
+};
+
+// Add properties to create our composite toast object
+export const toast = Object.assign(toastFn, {
   custom: sonnerToast,
   
-  // Success variant
   success: (message: string) => {
     sonnerToast.success(message);
   },
   
-  // Error variant
   error: (message: string) => {
     sonnerToast.error(message);
   },
   
-  // Info variant
   info: (message: string) => {
     sonnerToast.info(message);
   }
-};
+}) as ToastFunction;
 
 // For compatibility with the existing useToast interface
 export const useToast = () => {
