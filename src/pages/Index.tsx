@@ -1,54 +1,109 @@
 
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import AuthForm from '@/components/AuthForm';
-import { getCurrentUser } from '@/lib/auth';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Package,
+  Ticket,
+  Users,
+  CheckSquare,
+  BarChart3,
+  DollarSign,
+  Trash2
+} from 'lucide-react';
 
 const Index = () => {
-  const navigate = useNavigate();
-  
-  useEffect(() => {
-    const checkUser = async () => {
-      const user = await getCurrentUser();
-      if (user) {
-        navigate('/dashboard');
-      }
-    };
-    
-    checkUser();
-  }, [navigate]);
-  
   return (
-    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-laundry-50 to-white p-4">
-      <div className="absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-laundry-100/50 blur-3xl" />
-      
-      <div className="relative z-10 mb-8 text-center">
-        <div className="flex flex-col items-center">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-laundry-500 text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
-              <path d="M12 22a9.94 9.94 0 0 1-3.64-.68 10.06 10.06 0 0 1-5.68-5.68A9.94 9.94 0 0 1 2 12c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10z" />
-              <path d="M8 9.05v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a3 3 0 0 1-6 0" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <circle cx="12" cy="16" r="1" />
-            </svg>
-          </div>
-          <h1 className="mb-2 text-4xl font-bold tracking-tight text-laundry-900">Lavandería</h1>
-          <p className="text-muted-foreground">Sistema de gestión para lavandería</p>
-        </div>
-      </div>
-      
-      <div className="w-full max-w-md">
-        <AuthForm />
-      </div>
-      
-      <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 transform flex-col items-center gap-4 text-sm text-muted-foreground">
-        <p className="text-center">
-          Optimiza las operaciones de tu lavandería.<br />
-          Eficiente. Simple. Confiable.
-        </p>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <header className="mb-8 text-center">
+        <h1 className="text-3xl font-bold text-blue-600">Lavandería Ohana</h1>
+        <p className="text-gray-500">Sistema de Gestión</p>
+      </header>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+        <MenuCard
+          title="Crear Ticket"
+          icon={<Ticket />}
+          href="/tickets"
+          description="Registrar nuevo servicio"
+        />
+        
+        <MenuCard
+          title="Pendientes de Entrega"
+          icon={<CheckSquare />}
+          href="/orders/pickup"
+          description="Gestionar órdenes listas"
+        />
+        
+        <MenuCard
+          title="Órdenes Entregadas"
+          icon={<CheckSquare />}
+          href="/orders/delivered"
+          description="Ver historial de entregas"
+        />
+        
+        <MenuCard
+          title="Inventario"
+          icon={<Package />}
+          href="/inventory"
+          description="Gestionar productos"
+        />
+        
+        <MenuCard
+          title="Clientes"
+          icon={<Users />}
+          href="/clients"
+          description="Ver directorio de clientes"
+        />
+        
+        <MenuCard
+          title="Dashboard"
+          icon={<BarChart3 />}
+          href="/dashboard"
+          description="Estadísticas y reportes"
+        />
+        
+        <MenuCard
+          title="Gastos"
+          icon={<DollarSign />}
+          href="/expenses"
+          description="Registro de gastos"
+        />
+        
+        <MenuCard
+          title="Reiniciar Datos"
+          icon={<Trash2 />}
+          href="/reset"
+          description="Eliminar todos los datos"
+          className="border-red-200 hover:border-red-300"
+          iconClass="text-red-500"
+        />
       </div>
     </div>
   );
 };
+
+interface MenuCardProps {
+  title: string;
+  icon: React.ReactNode;
+  href: string;
+  description: string;
+  className?: string;
+  iconClass?: string;
+}
+
+const MenuCard = ({ title, icon, href, description, className, iconClass }: MenuCardProps) => (
+  <Link to={href}>
+    <Card className={`hover:shadow-md transition-all duration-200 ${className || ''}`}>
+      <CardContent className="p-6 flex flex-col items-center text-center">
+        <div className={`mb-4 p-3 rounded-full bg-blue-100 ${iconClass || 'text-blue-600'}`}>
+          {icon}
+        </div>
+        <h3 className="font-medium text-lg mb-1">{title}</h3>
+        <p className="text-sm text-gray-500">{description}</p>
+      </CardContent>
+    </Card>
+  </Link>
+);
 
 export default Index;
