@@ -117,7 +117,7 @@ export {
   ToastAction,
 };
 
-// Import from our custom hook to avoid circular dependencies
+// Import from our custom hook
 import { useToast } from "@/hooks/use-toast";
 
 export function Toaster() {
