@@ -1,109 +1,132 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Package,
-  Ticket,
-  Users,
-  CheckSquare,
-  BarChart3,
-  DollarSign,
-  Trash2
-} from 'lucide-react';
+import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
-const Index = () => {
+const Index: React.FC = () => {
+  const features = [
+    {
+      title: 'Panel de Control',
+      description: 'Visualiza métricas y estadísticas importantes',
+      icon: <BarChart className="h-8 w-8 text-blue-500" />,
+      path: '/dashboard',
+    },
+    {
+      title: 'Tickets',
+      description: 'Genera y gestiona tickets de servicio',
+      icon: <Ticket className="h-8 w-8 text-indigo-500" />,
+      path: '/tickets',
+    },
+    {
+      title: 'Ordenes Pendientes',
+      description: 'Gestiona las órdenes pendientes de entrega',
+      icon: <ShoppingBag className="h-8 w-8 text-yellow-500" />,
+      path: '/pickup',
+    },
+    {
+      title: 'Ordenes Entregadas',
+      description: 'Revisa el historial de órdenes entregadas',
+      icon: <FileText className="h-8 w-8 text-green-500" />,
+      path: '/delivered',
+    },
+    {
+      title: 'Clientes',
+      description: 'Administra la información de los clientes',
+      icon: <Users className="h-8 w-8 text-purple-500" />,
+      path: '/clients',
+    },
+    {
+      title: 'Programa de Fidelidad',
+      description: 'Gestiona puntos y recompensas para clientes',
+      icon: <Award className="h-8 w-8 text-orange-500" />,
+      path: '/loyalty',
+    },
+    {
+      title: 'Inventario',
+      description: 'Control y gestión de productos e insumos',
+      icon: <Package className="h-8 w-8 text-emerald-500" />,
+      path: '/inventory',
+    },
+    {
+      title: 'Métricas',
+      description: 'Análisis detallado de ventas y operaciones',
+      icon: <BarChart className="h-8 w-8 text-teal-500" />,
+      path: '/metrics',
+    },
+    {
+      title: 'Análisis de Tickets',
+      description: 'Reportes y analíticas sobre los tickets',
+      icon: <FileText className="h-8 w-8 text-cyan-500" />,
+      path: '/analysis',
+    },
+    {
+      title: 'Gastos',
+      description: 'Control y registro de gastos del negocio',
+      icon: <DollarSign className="h-8 w-8 text-red-500" />,
+      path: '/expenses',
+    },
+    {
+      title: 'Administración',
+      description: 'Configuraciones y herramientas del sistema',
+      icon: <Settings className="h-8 w-8 text-gray-500" />,
+      path: '/administration',
+    },
+    {
+      title: 'Comentarios',
+      description: 'Gestiona comentarios de clientes',
+      icon: <FileText className="h-8 w-8 text-blue-500" />,
+      path: '/feedback',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-blue-600">Lavandería Ohana</h1>
-        <p className="text-gray-500">Sistema de Gestión</p>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
+          </div>
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-        <MenuCard
-          title="Crear Ticket"
-          icon={<Ticket />}
-          href="/tickets"
-          description="Registrar nuevo servicio"
-        />
-        
-        <MenuCard
-          title="Pendientes de Entrega"
-          icon={<CheckSquare />}
-          href="/orders/pickup"
-          description="Gestionar órdenes listas"
-        />
-        
-        <MenuCard
-          title="Órdenes Entregadas"
-          icon={<CheckSquare />}
-          href="/orders/delivered"
-          description="Ver historial de entregas"
-        />
-        
-        <MenuCard
-          title="Inventario"
-          icon={<Package />}
-          href="/inventory"
-          description="Gestionar productos"
-        />
-        
-        <MenuCard
-          title="Clientes"
-          icon={<Users />}
-          href="/clients"
-          description="Ver directorio de clientes"
-        />
-        
-        <MenuCard
-          title="Dashboard"
-          icon={<BarChart3 />}
-          href="/dashboard"
-          description="Estadísticas y reportes"
-        />
-        
-        <MenuCard
-          title="Gastos"
-          icon={<DollarSign />}
-          href="/expenses"
-          description="Registro de gastos"
-        />
-        
-        <MenuCard
-          title="Reiniciar Datos"
-          icon={<Trash2 />}
-          href="/reset"
-          description="Eliminar todos los datos"
-          className="border-red-200 hover:border-red-300"
-          iconClass="text-red-500"
-        />
-      </div>
+      <main className="container mx-auto px-4 py-8">
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-center mb-12">Sistema de Gestión</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature) => (
+              <Card key={feature.path} className="overflow-hidden transition-all duration-200 hover:shadow-md">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    {feature.icon}
+                    <span>{feature.title}</span>
+                  </CardTitle>
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardHeader>
+                <CardFooter className="pt-3">
+                  <Button asChild className="w-full">
+                    <Link to={feature.path} className="flex items-center justify-center">
+                      Acceder
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <footer className="bg-white border-t py-6">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-gray-500 text-sm">
+            © 2023 Lavandería Ohana. Todos los derechos reservados.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
-
-interface MenuCardProps {
-  title: string;
-  icon: React.ReactNode;
-  href: string;
-  description: string;
-  className?: string;
-  iconClass?: string;
-}
-
-const MenuCard = ({ title, icon, href, description, className, iconClass }: MenuCardProps) => (
-  <Link to={href}>
-    <Card className={`hover:shadow-md transition-all duration-200 ${className || ''}`}>
-      <CardContent className="p-6 flex flex-col items-center text-center">
-        <div className={`mb-4 p-3 rounded-full bg-blue-100 ${iconClass || 'text-blue-600'}`}>
-          {icon}
-        </div>
-        <h3 className="font-medium text-lg mb-1">{title}</h3>
-        <p className="text-sm text-gray-500">{description}</p>
-      </CardContent>
-    </Card>
-  </Link>
-);
 
 export default Index;

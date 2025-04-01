@@ -1,144 +1,173 @@
 
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import Navbar from '@/components/Navbar';
+import { Loading } from '@/components/ui/loading';
+import ClientHeader from '@/components/clients/ClientHeader';
+import ClientList from '@/components/clients/ClientList';
+import AddClientForm from '@/components/clients/AddClientForm';
+import LoyaltyProgram from '@/components/clients/LoyaltyProgram';
+import ClientSearch from '@/components/clients/ClientSearch';
+import ClientListPagination from '@/components/clients/ClientListPagination';
+import ClientNotes from '@/components/clients/ClientNotes';
+import ClientListSkeleton from '@/components/clients/ClientListSkeleton';
+import { useClientsList } from '@/hooks/useClientsList';
+import { useLoyaltyProgram } from '@/hooks/useLoyaltyProgram';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Calendar, Search, User, Phone } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { getAllCustomers } from '@/lib/customerService';
-import { Customer } from '@/lib/types';
+import { Download, RefreshCw } from 'lucide-react';
 
 const Clients = () => {
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  
-  // Fetch all customers
-  const { data: customers, isLoading } = useQuery({
-    queryKey: ['customers'],
-    queryFn: getAllCustomers
-  });
-  
-  // Filter customers based on search term
-  const filteredCustomers = customers?.filter(customer => {
-    const searchTermLower = searchTerm.toLowerCase();
-    return (
-      customer.name.toLowerCase().includes(searchTermLower) ||
-      customer.phoneNumber.toLowerCase().includes(searchTermLower)
-    );
-  }) || [];
-  
+  const { 
+    currentClients,
+    totalPages,
+    currentPage,
+    loading,
+    error,
+    newClientName,
+    setNewClientName,
+    newClientPhone,
+    setNewClientPhone,
+    isAddingClient,
+    isEditingClient,
+    editClientName,
+    setEditClientName,
+    editClientPhone,
+    setEditClientPhone,
+    searchQuery,
+    clientNotes,
+    isLoadingNotes,
+    selectedClient,
+    isExporting,
+    handleAddClient,
+    handleEditClient,
+    handleSaveClient,
+    handleCancelEdit,
+    handleSearchChange,
+    handlePageChange,
+    handleSelectClient,
+    saveClientNotes,
+    handleExportClients,
+    refreshData
+  } = useClientsList();
+
+  const {
+    pointsToAdd,
+    setPointsToAdd,
+    pointsToRedeem,
+    setPointsToRedeem,
+    isAddingPoints,
+    handleAddPoints,
+    handleRedeemPoints
+  } = useLoyaltyProgram(refreshData);
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <header className="mb-8 flex justify-between items-center">
-            <div>
-              <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                <span>Volver al Inicio</span>
-              </Link>
-              <h1 className="text-2xl font-bold text-blue-600">Clientes</h1>
-              <p className="text-gray-500">Directorio de clientes registrados</p>
+      <div className="flex-1 p-6 md:ml-64">
+        <div className="container mx-auto max-w-6xl pt-6">
+          <div className="flex justify-between items-center mb-6">
+            <ClientHeader />
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={refreshData}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Actualizar
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleExportClients}
+                disabled={isExporting || loading}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Exportando...' : 'Exportar CSV'}
+              </Button>
             </div>
-          </header>
-          
-          <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Search className="h-5 w-5" />
-                Buscar Cliente
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por nombre o teléfono..."
-                    className="pl-8"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+          </div>
+
+          {/* Search bar */}
+          <div className="mb-6">
+            <ClientSearch 
+              searchQuery={searchQuery} 
+              onSearchChange={handleSearchChange} 
+            />
+          </div>
+
+          {loading ? (
+            <ClientListSkeleton />
+          ) : error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <h3 className="text-lg font-medium text-red-800">Error al cargar clientes</h3>
+              <p className="text-red-700">{error.message}</p>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                onClick={refreshData} 
+                className="mt-2"
+              >
+                Reintentar
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <ClientList 
+                clients={currentClients}
+                isEditingClient={isEditingClient}
+                editClientName={editClientName}
+                editClientPhone={editClientPhone}
+                selectedClient={selectedClient}
+                onEditClient={handleEditClient}
+                onSaveClient={handleSaveClient}
+                onCancelEdit={handleCancelEdit}
+                onSelectClient={handleSelectClient}
+                onEditNameChange={(e) => setEditClientName(e.target.value)}
+                onEditPhoneChange={(e) => setEditClientPhone(e.target.value)}
+              />
+
+              {/* Pagination */}
+              <ClientListPagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <AddClientForm 
+                    newClientName={newClientName}
+                    newClientPhone={newClientPhone}
+                    isAddingClient={isAddingClient}
+                    onNameChange={(e) => setNewClientName(e.target.value)}
+                    onPhoneChange={(e) => setNewClientPhone(e.target.value)}
+                    onAddClient={handleAddClient}
+                  />
+                </div>
+                <div>
+                  <ClientNotes 
+                    client={selectedClient}
+                    clientNotes={clientNotes}
+                    onSaveNotes={saveClientNotes}
+                    isLoading={isLoadingNotes}
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <User className="h-5 w-5" />
-                Listado de Clientes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="text-center py-4">Cargando clientes...</div>
-              ) : filteredCustomers.length === 0 ? (
-                <div className="text-center py-4 text-gray-500">
-                  {searchTerm ? 'No se encontraron clientes con ese criterio de búsqueda' : 'No hay clientes registrados'}
-                </div>
-              ) : (
-                <div className="overflow-auto max-h-[600px]">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Nombre</TableHead>
-                        <TableHead>Teléfono</TableHead>
-                        <TableHead>Fecha de Registro</TableHead>
-                        <TableHead>Última Visita</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredCustomers.map((customer) => (
-                        <TableRow key={customer.id} className="hover:bg-muted/50">
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-gray-500" />
-                              <span>{customer.name}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Phone className="h-4 w-4 text-gray-500" />
-                              <span>{customer.phoneNumber}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-gray-500" />
-                              <span>{format(new Date(customer.createdAt), 'dd/MM/yyyy')}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-gray-500" />
-                              <span>
-                                {customer.lastVisit ? format(new Date(customer.lastVisit), 'dd/MM/yyyy') : 'N/A'}
-                              </span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+
+              <LoyaltyProgram 
+                selectedClient={selectedClient}
+                pointsToAdd={pointsToAdd}
+                pointsToRedeem={pointsToRedeem}
+                isAddingPoints={isAddingPoints}
+                onPointsToAddChange={(e) => setPointsToAdd(parseInt(e.target.value) || 0)}
+                onPointsToRedeemChange={(e) => setPointsToRedeem(parseInt(e.target.value) || 0)}
+                onAddPoints={handleAddPoints}
+                onRedeemPoints={handleRedeemPoints}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

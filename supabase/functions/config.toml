@@ -1,0 +1,13 @@
+
+# Project-level configuration
+project_id = "pqedcaxtvonpjrdzwnxq"
+
+[[functions]]
+name = "reset_monthly_loyalty"
+verify_jwt = false
+path = "/reset_monthly_loyalty"
+
+[[functions]]
+name = "reset_all_data"
+verify_jwt = false
+path = "/reset_all_data"

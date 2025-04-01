@@ -1,171 +1,115 @@
 
-import React from 'react';
-import MetricsCard from '@/components/MetricsCard';
-import { DollarSign, TrendingUp, BarChart3, UsersRound, BanknoteIcon } from 'lucide-react';
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShoppingBag, DollarSign, CalendarDays, TrendingUp, Award, CheckCircle } from 'lucide-react';
 
 interface MetricsCardsProps {
+  metrics: any;
+  expenses: any;
   viewType: 'daily' | 'weekly' | 'monthly';
-  metrics: {
-    daily: DailyMetrics | null;
-    weekly: WeeklyMetrics | null;
-    monthly: MonthlyMetrics | null;
-  };
-  expenses: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-  };
 }
 
-const MetricsCards: React.FC<MetricsCardsProps> = ({ viewType, metrics, expenses }) => {
-  // Helper to format currency
-  const formatCurrency = (amount: number) => `$${amount.toLocaleString()}`;
-  
-  if (viewType === 'daily') {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricsCard
-          title="Ingresos Totales"
-          value={formatCurrency(metrics.daily?.totalSales || 0)}
-          description="Ganancias de hoy"
-          icon={<DollarSign className="h-4 w-4" />}
-          trend={{ value: 12, isPositive: true }}
-        />
-        <MetricsCard
-          title="Valets"
-          value={metrics.daily?.valetCount || 0}
-          description="Valets procesados hoy"
-          icon={<TrendingUp className="h-4 w-4" />}
-          trend={{ value: 8, isPositive: true }}
-        />
-        <MetricsCard
-          title="Pagos en Efectivo"
-          value={formatCurrency(metrics.daily?.paymentMethods.cash || 0)}
-          description="Ingresos en efectivo de hoy"
-          icon={<BarChart3 className="h-4 w-4" />}
-          trend={{ value: 5, isPositive: true }}
-        />
-        <MetricsCard
-          title="Pagos Digitales"
-          value={formatCurrency(
-            (metrics.daily?.paymentMethods.debit || 0) + 
-            (metrics.daily?.paymentMethods.mercadopago || 0) + 
-            (metrics.daily?.paymentMethods.cuentaDni || 0)
-          )}
-          description="Ingresos digitales de hoy"
-          icon={<UsersRound className="h-4 w-4" />}
-          trend={{ value: 15, isPositive: true }}
-        />
-        <MetricsCard
-          title="Gastos"
-          value={formatCurrency(expenses.daily || 0)}
-          description="Gastos de hoy"
-          icon={<BanknoteIcon className="h-4 w-4" />}
-          trend={{ value: 5, isPositive: false }}
-        />
-      </div>
-    );
-  }
-  
-  if (viewType === 'weekly') {
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-        <MetricsCard
-          title="Ingresos Totales"
-          value={formatCurrency(
-            Object.values(metrics.weekly?.salesByDay || {}).reduce((acc, val) => acc + val, 0)
-          )}
-          description="Ganancias de esta semana"
-          icon={<DollarSign className="h-4 w-4" />}
-          trend={{ value: 8, isPositive: true }}
-        />
-        <MetricsCard
-          title="Valets"
-          value={
-            Object.values(metrics.weekly?.valetsByDay || {}).reduce((acc, val) => acc + val, 0)
-          }
-          description="Valets procesados esta semana"
-          icon={<TrendingUp className="h-4 w-4" />}
-          trend={{ value: 12, isPositive: true }}
-        />
-        <MetricsCard
-          title="Pagos en Efectivo"
-          value={formatCurrency(metrics.weekly?.paymentMethods.cash || 0)}
-          description="Ingresos en efectivo de esta semana"
-          icon={<BarChart3 className="h-4 w-4" />}
-          trend={{ value: 3, isPositive: true }}
-        />
-        <MetricsCard
-          title="Pagos Digitales"
-          value={formatCurrency(
-            (metrics.weekly?.paymentMethods.debit || 0) + 
-            (metrics.weekly?.paymentMethods.mercadopago || 0) + 
-            (metrics.weekly?.paymentMethods.cuentaDni || 0)
-          )}
-          description="Ingresos digitales de esta semana"
-          icon={<UsersRound className="h-4 w-4" />}
-          trend={{ value: 10, isPositive: true }}
-        />
-        <MetricsCard
-          title="Gastos"
-          value={formatCurrency(expenses.weekly || 0)}
-          description="Gastos de esta semana"
-          icon={<BanknoteIcon className="h-4 w-4" />}
-          trend={{ value: 7, isPositive: false }}
-        />
-      </div>
-    );
-  }
-  
-  // Monthly view
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-      <MetricsCard
-        title="Ingresos Totales"
-        value={formatCurrency(
-          Object.values(metrics.monthly?.salesByWeek || {}).reduce((acc, val) => acc + val, 0)
-        )}
-        description="Ganancias de este mes"
-        icon={<DollarSign className="h-4 w-4" />}
-        trend={{ value: 15, isPositive: true }}
-      />
-      <MetricsCard
-        title="Valets"
-        value={
-          Object.values(metrics.monthly?.valetsByWeek || {}).reduce((acc, val) => acc + val, 0)
-        }
-        description="Valets procesados este mes"
-        icon={<TrendingUp className="h-4 w-4" />}
-        trend={{ value: 20, isPositive: true }}
-      />
-      <MetricsCard
-        title="Pagos en Efectivo"
-        value={formatCurrency(metrics.monthly?.paymentMethods.cash || 0)}
-        description="Ingresos en efectivo de este mes"
-        icon={<BarChart3 className="h-4 w-4" />}
-        trend={{ value: 18, isPositive: true }}
-      />
-      <MetricsCard
-        title="Pagos Digitales"
-        value={formatCurrency(
-          (metrics.monthly?.paymentMethods.debit || 0) + 
-          (metrics.monthly?.paymentMethods.mercadopago || 0) + 
-          (metrics.monthly?.paymentMethods.cuentaDni || 0)
-        )}
-        description="Ingresos digitales de este mes"
-        icon={<UsersRound className="h-4 w-4" />}
-        trend={{ value: 25, isPositive: true }}
-      />
-      <MetricsCard
-        title="Gastos"
-        value={formatCurrency(expenses.monthly || 0)}
-        description="Gastos de este mes"
-        icon={<BanknoteIcon className="h-4 w-4" />}
-        trend={{ value: 10, isPositive: false }}
-      />
-    </div>
-  );
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('es-AR', {
+    style: 'currency',
+    currency: 'ARS',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 };
 
-export default MetricsCards;
+export default function MetricsCards({ metrics, expenses, viewType }: MetricsCardsProps) {
+  // Select metrics for current view
+  const currentMetrics = metrics ? metrics[viewType] || {} : {};
+  const currentExpenses = expenses ? expenses[viewType] || 0 : 0;
+  
+  // Calculate metrics safely
+  const revenue = Number(metrics?.totalRevenue || 0);
+  const profit = revenue - Number(currentExpenses || 0);
+  const totalTickets = Number(metrics?.totalTickets || 0);
+  const paidTickets = Number(currentMetrics?.paidTickets || 0);
+  const freeValets = Number(currentMetrics?.freeValets || 0);
+  
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Ingresos</CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{formatCurrency(revenue)}</div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Gastos</CardTitle>
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{formatCurrency(currentExpenses)}</div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Ganancia</CardTitle>
+          <DollarSign className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className={`text-2xl font-bold ${profit < 0 ? 'text-red-500' : ''}`}>
+            {formatCurrency(profit)}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Tickets</CardTitle>
+          <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{totalTickets}</div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Tickets Pagados</CardTitle>
+          <CheckCircle className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{paidTickets}</div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Valets Gratis</CardTitle>
+          <Award className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl font-bold">{freeValets}</div>
+          <p className="text-xs text-muted-foreground">
+            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

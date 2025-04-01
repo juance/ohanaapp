@@ -1,4 +1,3 @@
-
 export type Role = 'admin' | 'cashier' | 'operator';
 
 export interface User {
@@ -20,20 +19,29 @@ export interface LaundryService {
   id: string;
   name: string;
   price: number;
+  quantity?: number;
 }
 
 export interface Ticket {
   id: string;
-  ticketNumber: string;
+  ticketNumber?: string;
+  basketTicketNumber?: string;
   clientName: string;
   phoneNumber: string;
-  services: LaundryService[];
+  services: {
+    id?: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }[];
   paymentMethod: PaymentMethod;
   totalPrice: number;
   status: 'pending' | 'processing' | 'ready' | 'delivered';
   createdAt: string;
   updatedAt: string;
   deliveredDate?: string;
+  isPaid?: boolean;
+  valetQuantity?: number;
 }
 
 export interface Metrics {
@@ -61,13 +69,16 @@ export type InventoryItem = {
 };
 
 export interface ClientVisit {
+  id: string;
   phoneNumber: string;
   clientName: string;
   visitCount: number;
   lastVisit: string;
+  valetsCount?: number;
+  freeValets?: number;
+  visitFrequency?: string;
+  loyaltyPoints?: number;
 }
-
-// New interfaces for enhanced functionality
 
 export type LaundryOption = 'separateByColor' | 'delicateDry' | 'stainRemoval' | 'bleach' | 'noFragrance' | 'noDry';
 
@@ -94,6 +105,9 @@ export interface Customer {
   phoneNumber: string;
   createdAt: string;
   lastVisit?: string;
+  loyaltyPoints: number;
+  valetsCount: number;
+  freeValets: number;
 }
 
 export interface Expense {
@@ -138,4 +152,21 @@ export interface MonthlyMetrics {
     cuentaDni: number;
   };
   dryCleaningItems: Record<string, number>;
+}
+
+export interface LoyaltyReward {
+  id: string;
+  name: string;
+  description: string;
+  pointsCost: number;
+  isAvailable: boolean;
+}
+
+export interface CustomerFeedback {
+  id: string;
+  customerId: string;
+  customerName: string;
+  comment: string;
+  rating: number;
+  createdAt: string;
 }

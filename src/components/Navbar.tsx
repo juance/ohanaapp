@@ -1,196 +1,66 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  LayoutDashboard,
-  Receipt,
-  Package2,
-  PackageCheck,
-  Users,
-  Settings,
-  Menu,
-  X,
-  Warehouse,
-  BanknoteIcon,
-  User,
-  LogOut,
-} from 'lucide-react';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { cn } from '@/lib/utils';
-import { getCurrentUser } from '@/lib/auth';
-import { toast } from 'sonner';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText } from 'lucide-react';
 
-// Define the NavbarProps interface
-interface NavbarProps {
-  // Add any props if needed
-}
-
-const Navbar: React.FC<NavbarProps> = () => {
+const Navbar: React.FC = () => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const isMobile = useIsMobile();
-  const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
-    };
-    loadUser();
-  }, []);
+  console.log("Current route:", location.pathname);
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const toggleMenu = () => {
-    setIsOpen(!isOpen);
-  };
-
-  const closeMenu = () => {
-    if (isMobile) {
-      setIsOpen(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      localStorage.removeItem('user');
-      toast.success('Sesión cerrada correctamente');
-      navigate('/');
-      closeMenu();
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast.error('Error al cerrar sesión');
-    }
-  };
-
-  const isAdmin = user && user.role === 'admin';
-
   const navItems = [
-    { 
-      path: "/tickets", 
-      label: "Crear Tickets", 
-      icon: <Receipt className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/orders/pickup", 
-      label: "Pedidos a Retirar", 
-      icon: <Package2 className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/orders/delivered", 
-      label: "Pedidos Entregados", 
-      icon: <PackageCheck className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/inventory", 
-      label: "Inventario", 
-      icon: <Warehouse className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/clients", 
-      label: "Clientes", 
-      icon: <User className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/dashboard", 
-      label: "Dashboard", 
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/expenses", 
-      label: "Gastos", 
-      icon: <BanknoteIcon className="h-5 w-5" />,
-      showFor: "all" 
-    },
-    { 
-      path: "/users", 
-      label: "Usuarios", 
-      icon: <Users className="h-5 w-5" />,
-      showFor: "admin" 
-    },
-    { 
-      path: "/settings", 
-      label: "Configuración", 
-      icon: <Settings className="h-5 w-5" />,
-      showFor: "admin" 
-    }
+    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" /> },
+    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" /> },
+    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
+    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
+    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
+    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
+    { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" /> },
+    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
+    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
+    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
+    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" /> },
   ];
 
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="fixed top-4 left-4 z-50 md:hidden"
-        onClick={toggleMenu}
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </Button>
-
-      <div
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out",
-          {
-            "translate-x-0": isOpen || !isMobile,
-            "-translate-x-full": !isOpen && isMobile,
-          }
-        )}
-      >
-        <div className="p-6">
-          <Link to="/" className="flex items-center space-x-2" onClick={closeMenu}>
-            <Receipt className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold">Lavandería Ohana</span>
+    <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
+      <div className="flex flex-col h-full">
+        <div className="p-4 border-b">
+          <Link to="/" className="flex items-center space-x-2">
+            <span className="font-bold text-xl text-blue-600">Lavandería Ohana</span>
           </Link>
         </div>
 
-        <nav className="space-y-1 px-4 flex flex-col h-[calc(100%-180px)]">
-          {navItems.map((item, index) => (
-            ((item.showFor === "all") || (item.showFor === "admin" && isAdmin)) && (
-              <Link
-                key={index}
-                to={item.path}
-                className={cn(
-                  "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
-                  isActive(item.path) ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
-                )}
-                onClick={closeMenu}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            )
-          ))}
-          
-          <div className="mt-auto">
-            <Button
-              variant="ghost"
-              className="w-full flex items-center justify-start space-x-2 px-4 py-3 rounded-md text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Cerrar Sesión</span>
-            </Button>
-          </div>
+        <nav className="flex-1 overflow-y-auto p-4">
+          <ul className="space-y-1">
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <Link
+                  to={item.path}
+                  className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
+                    isActive(item.path)
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                >
+                  <span className="mr-2">{item.icon}</span>
+                  {item.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </nav>
-      </div>
 
-      {isMobile && isOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black/50"
-          onClick={closeMenu}
-        />
-      )}
-    </>
+        <div className="p-4 border-t">
+          <div className="text-xs text-gray-500">
+            © 2023 Lavandería Ohana
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

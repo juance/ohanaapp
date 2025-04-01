@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { storeExpense, getStoredExpenses } from '@/lib/expenseService';
+import { storeExpense, getStoredExpenses } from '@/lib/dataService';
 import { format } from 'date-fns';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -36,7 +35,6 @@ const Expenses = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
   
-  // Check if user is admin
   useEffect(() => {
     const checkAdmin = async () => {
       const user = await getCurrentUser();
@@ -45,22 +43,18 @@ const Expenses = () => {
     checkAdmin();
   }, []);
   
-  // Fetch expenses data
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['expenses'],
     queryFn: () => getStoredExpenses()
   });
   
-  // Add expense mutation
   const addExpenseMutation = useMutation({
-    mutationFn: storeExpense,
+    mutationFn: (expenseData: {description: string; amount: number; date: string}) => storeExpense(expenseData),
     onSuccess: () => {
       toast.success('Gasto agregado correctamente');
-      // Reset form
       setDescription('');
       setAmount('');
       setDate(new Date());
-      // Refetch expenses
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
     onError: (error) => {
@@ -138,7 +132,6 @@ const Expenses = () => {
                       />
                     </div>
                     
-                    {/* Date selector for all users now */}
                     <div className="space-y-2">
                       <Label htmlFor="date">Fecha</Label>
                       <Popover>
