@@ -1,6 +1,6 @@
 
 import { useNavigate, Link } from 'react-router-dom';
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,8 +23,28 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
+// Definimos el tipo para nuestro estado
+type RegisterState = {
+  isLoading: boolean;
+};
+
+// Definimos las acciones para nuestro reducer
+type RegisterAction = 
+  | { type: 'SET_LOADING'; payload: boolean };
+
+// Definimos el reducer
+const registerReducer = (state: RegisterState, action: RegisterAction): RegisterState => {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload };
+    default:
+      return state;
+  }
+};
+
 const Register = () => {
-  const [isLoading, setIsLoading] = useState(false);
+  // Reemplazamos useState con useReducer
+  const [state, dispatch] = useReducer(registerReducer, { isLoading: false });
   const navigate = useNavigate();
   
   const form = useForm<RegisterFormValues>({
@@ -38,7 +58,7 @@ const Register = () => {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    setIsLoading(true);
+    dispatch({ type: 'SET_LOADING', payload: true });
     
     try {
       // Use the name as email since we don't collect email anymore
@@ -54,7 +74,7 @@ const Register = () => {
         description: error.message || 'Por favor intente nuevamente',
       });
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
@@ -148,9 +168,9 @@ const Register = () => {
               <Button
                 type="submit"
                 className="h-12 w-full rounded-xl bg-blue-500 text-white transition-all hover:bg-blue-600"
-                disabled={isLoading}
+                disabled={state.isLoading}
               >
-                {isLoading ? (
+                {state.isLoading ? (
                   <span className="flex items-center gap-2">
                     <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
