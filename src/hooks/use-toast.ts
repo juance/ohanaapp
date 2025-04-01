@@ -148,12 +148,9 @@ interface ToastOptions {
   variant?: "default" | "destructive" | "success";
 }
 
-// Define toast API functions
-const toastFunctions = {
-  /**
-   * Display a toast notification
-   */
-  show: (props: ToastOptions) => {
+// Define toast API using a unified approach to avoid duplicate identifier issues
+class ToastManager {
+  show(props: ToastOptions) {
     const id = genId();
 
     const update = (props: ToasterToast) =>
@@ -188,69 +185,56 @@ const toastFunctions = {
       dismiss,
       update,
     };
-  },
-  
-  /**
-   * Show a success toast notification
-   */
-  success: (message: string, opts?: any) => 
-    toastFunctions.show({ title: message, variant: "success", ...opts }),
-  
-  /**
-   * Show an error toast notification
-   */
-  error: (message: string, opts?: any) => 
-    toastFunctions.show({ title: message, variant: "destructive", ...opts }),
-  
-  /**
-   * Show a warning toast notification
-   */
-  warning: (message: string, opts?: any) => 
-    toastFunctions.show({ title: message, variant: "default", ...opts }),
-  
-  /**
-   * Show an info toast notification
-   */
-  info: (message: string, opts?: any) => 
-    toastFunctions.show({ title: message, variant: "default", ...opts }),
-  
-  /**
-   * Show a loading toast notification
-   */
-  loading: (message: string, opts?: any) => 
-    toastFunctions.show({ title: message, variant: "default", ...opts }),
-  
-  /**
-   * Dismiss a toast by ID or all toasts
-   */
-  dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
-  
-  /**
-   * Show a custom toast with JSX content
-   */
-  custom: (jsx: React.ReactNode, opts?: any) => 
-    toastFunctions.show({ title: undefined, description: undefined, action: jsx, ...opts }),
-  
-  /**
-   * Handle a promise with toast notifications for loading, success, and error states
-   */
-  promise: async <T extends Promise<any>>(promise: T, msgs: { loading?: string; success: string; error?: string }) => {
-    const id = toastFunctions.loading(msgs.loading || "Loading...");
+  }
+
+  success(message: string, opts: ToastOptions = {}) {
+    return this.show({ title: message, variant: "success", ...opts });
+  }
+
+  error(message: string, opts: ToastOptions = {}) {
+    return this.show({ title: message, variant: "destructive", ...opts });
+  }
+
+  warning(message: string, opts: ToastOptions = {}) {
+    return this.show({ title: message, variant: "default", ...opts });
+  }
+
+  info(message: string, opts: ToastOptions = {}) {
+    return this.show({ title: message, variant: "default", ...opts });
+  }
+
+  loading(message: string, opts: ToastOptions = {}) {
+    return this.show({ title: message, variant: "default", ...opts });
+  }
+
+  dismiss(toastId?: string) {
+    dispatch({ type: "DISMISS_TOAST", toastId });
+  }
+
+  custom(jsx: React.ReactNode, opts: ToastOptions = {}) {
+    return this.show({ title: undefined, description: undefined, action: jsx, ...opts });
+  }
+
+  async promise<T extends Promise<any>>(
+    promise: T,
+    msgs: { loading?: string; success: string; error?: string }
+  ) {
+    const id = this.loading(msgs.loading || "Loading...");
     try {
       const data = await promise;
-      toastFunctions.success(msgs.success);
+      this.success(msgs.success);
       return data;
     } catch (error) {
-      toastFunctions.error(msgs.error || "An error occurred");
+      this.error(msgs.error || "An error occurred");
       throw error;
     } finally {
-      toastFunctions.dismiss(id.id);
+      this.dismiss(id.id);
     }
   }
-};
+}
 
-// Export the toast functions
-export const toast = toastFunctions;
+// Export a singleton instance
+export const toast = new ToastManager();
 
 export type ToastFunction = typeof toast;
 
