@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUnretrievedTickets } from '@/lib/tickets/ticketStatus';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export function useUnretrievedTickets() {
   const [tickets45Days, setTickets45Days] = useState<any[]>([]);
@@ -24,7 +24,11 @@ export function useUnretrievedTickets() {
       setTickets90Days(tickets90Days);
     } catch (error) {
       console.error('Error al cargar tickets no retirados:', error);
-      toast.error('Error al cargar tickets no retirados');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Error al cargar tickets no retirados'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +60,10 @@ export function useUnretrievedTickets() {
     
     window.open(whatsappUrl, '_blank');
     
-    toast.success(`Mensaje preparado para enviar a ${selectedTicket.clientName}`);
+    toast({
+      title: "Success",
+      description: `Mensaje preparado para enviar a ${selectedTicket.clientName}`
+    });
     setMessageDialogOpen(false);
   };
 

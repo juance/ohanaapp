@@ -1,5 +1,5 @@
 
-import { StrictMode } from 'react';
+import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -31,12 +31,15 @@ if (!rootElement) {
 // Performance timing
 const startTime = performance.now();
 
-// Inicializar sistema de captura de errores global
+// Initialize global error handling system
 setupGlobalErrorHandling();
 
-// Create and render the root
-try {
-  createRoot(rootElement).render(
+// Create the root first, and then render to it - this ensures React context is properly established
+const root = createRoot(rootElement);
+
+// Render the app using strict mode to catch potential issues
+root.render(
+  <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ErrorBoundary>
@@ -44,23 +47,11 @@ try {
         </ErrorBoundary>
       </QueryClientProvider>
     </BrowserRouter>
-  );
-  
-  const loadTime = Math.round(performance.now() - startTime);
-  console.log(`Application rendered in ${loadTime}ms`);
-} catch (error) {
-  console.error("Fatal error during application rendering:", error);
-  // Show error in the UI
-  document.body.innerHTML = `
-    <div style="padding: 20px; text-align: center;">
-      <h1>Error al iniciar la aplicación</h1>
-      <p>Por favor, recarga la página o intenta más tarde.</p>
-      <button onclick="window.location.reload()" style="padding: 10px 20px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 20px;">
-        Recargar
-      </button>
-    </div>
-  `;
-}
+  </React.StrictMode>
+);
+
+const loadTime = Math.round(performance.now() - startTime);
+console.log(`Application rendered in ${loadTime}ms`);
 
 // Handle unhandled promise rejections
 window.addEventListener('unhandledrejection', (event) => {
