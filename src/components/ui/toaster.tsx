@@ -2,8 +2,8 @@
 "use client";
 
 import React from 'react';
+import { Toaster as ToastComponent } from "@/components/ui/toast";
 
 export function Toaster(): JSX.Element {
-  // Return an empty fragment since we'll be using a different toast implementation
-  return <></>;
+  return <ToastComponent />;
 }
