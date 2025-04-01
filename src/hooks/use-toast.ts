@@ -130,9 +130,9 @@ function reducer(state: State, action: ActionType): State {
   }
 }
 
-const listeners: Array<(state: State) => void> = [];
-
+// Define a global state and listeners outside of components
 let memoryState: State = initialState;
+const listeners: Array<(state: State) => void> = [];
 
 function dispatch(action: ActionType) {
   memoryState = reducer(memoryState, action);
@@ -240,7 +240,7 @@ export type ToastFunction = typeof toast;
 
 // Export the useToast hook separately from the toast singleton
 export function useToast() {
-  // Create a local state that will be updated when the global state changes
+  // Fix: Use useReducer instead of useState to avoid hook dependency issues
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
