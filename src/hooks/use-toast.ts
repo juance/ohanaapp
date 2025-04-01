@@ -143,78 +143,101 @@ function dispatch(action: ActionType) {
 
 type Toast = Omit<ToasterToast, "id">;
 
-function toast({ ...props }: Toast) {
-  const id = genId();
+export const toast = {
+  /**
+   * Display a toast notification
+   */
+  show: (props: Toast) => {
+    const id = genId();
 
-  const update = (props: ToasterToast) =>
+    const update = (props: ToasterToast) =>
+      dispatch({
+        type: "UPDATE_TOAST",
+        toast: props,
+        toastId: id,
+      });
+
+    const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+
     dispatch({
-      type: "UPDATE_TOAST",
-      toast: props,
-      toastId: id,
+      type: "ADD_TOAST",
+      toast: {
+        ...props,
+        id,
+        title: props.title,
+        description: props.description,
+        action: props.action,
+      },
     });
 
-  const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id });
+    // Also log to console for now
+    if (props.variant === "destructive" || props.title === "Error") {
+      console.error(`[Toast Error] ${props.title || props.description || id}`);
+    } else {
+      console.log(`[Toast] ${props.title || props.description || id}`);
+    }
 
-  dispatch({
-    type: "ADD_TOAST",
-    toast: {
-      ...props,
-      id,
-      title: props.title,
-      description: props.description,
-      action: props.action,
-    },
-  });
-
-  // Also log to console for now
-  if (props.variant === "destructive" || props.title === "Error") {
-    console.error(`[Toast Error] ${props.title || props.description || id}`);
-  } else {
-    console.log(`[Toast] ${props.title || props.description || id}`);
-  }
-
-  return {
-    id: id,
-    dismiss,
-    update,
-  };
-}
-
-// Helper functions for different types of toasts
-toast.success = (message: string, opts?: any) => toast({ title: message, variant: "success", ...opts });
-toast.error = (message: string, opts?: any) => toast({ title: message, variant: "destructive", ...opts });
-toast.warning = (message: string, opts?: any) => toast({ title: message, variant: "default", ...opts });
-toast.info = (message: string, opts?: any) => toast({ title: message, variant: "default", ...opts });
-toast.loading = (message: string, opts?: any) => toast({ title: message, variant: "default", ...opts });
-toast.dismiss = (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId });
-toast.custom = (jsx: React.ReactNode, opts?: any) => toast({ title: undefined, description: undefined, action: jsx, ...opts });
-toast.promise = async (promise: Promise<any>, msgs: any) => {
-  const id = toast.loading(msgs.loading || "Loading...");
-  try {
-    const data = await promise;
-    toast.success(msgs.success);
-    return data;
-  } catch (error) {
-    toast.error(msgs.error || "An error occurred");
-    throw error;
-  } finally {
-    toast.dismiss(id.id);
+    return {
+      id: id,
+      dismiss,
+      update,
+    };
+  },
+  
+  /**
+   * Show a success toast notification
+   */
+  success: (message: string, opts?: any) => toast.show({ title: message, variant: "success", ...opts }),
+  
+  /**
+   * Show an error toast notification
+   */
+  error: (message: string, opts?: any) => toast.show({ title: message, variant: "destructive", ...opts }),
+  
+  /**
+   * Show a warning toast notification
+   */
+  warning: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  
+  /**
+   * Show an info toast notification
+   */
+  info: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  
+  /**
+   * Show a loading toast notification
+   */
+  loading: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  
+  /**
+   * Dismiss a toast by ID or all toasts
+   */
+  dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+  
+  /**
+   * Show a custom toast with JSX content
+   */
+  custom: (jsx: React.ReactNode, opts?: any) => toast.show({ title: undefined, description: undefined, action: jsx, ...opts }),
+  
+  /**
+   * Handle a promise with toast notifications for loading, success, and error states
+   */
+  promise: async <T extends Promise<any>>(promise: T, msgs: { loading?: string; success: string; error?: string }) => {
+    const id = toast.loading(msgs.loading || "Loading...");
+    try {
+      const data = await promise;
+      toast.success(msgs.success);
+      return data;
+    } catch (error) {
+      toast.error(msgs.error || "An error occurred");
+      throw error;
+    } finally {
+      toast.dismiss(id.id);
+    }
   }
 };
 
-export type ToastFunction = {
-  (props: Toast): { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  success: (message: string, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  error: (message: string, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  warning: (message: string, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  info: (message: string, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  loading: (message: string, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  dismiss: (toastId?: string) => void;
-  custom: (jsx: React.ReactNode, opts?: any) => { id: string; dismiss: () => void; update: (props: ToasterToast) => void };
-  promise: <T extends Promise<any>>(promise: T, msgs: { loading?: string; success: string; error?: string }) => T;
-};
-
-export const toast = toast as ToastFunction;
+export type ToastFunction = typeof toast;
 
 export function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
