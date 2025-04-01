@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
+import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const DataReset = () => {
@@ -35,7 +35,8 @@ const DataReset = () => {
       localStorage.removeItem('tickets');
       localStorage.removeItem('expenses');
       
-      toast.success("Datos reiniciados", {
+      toast({
+        title: "Datos reiniciados",
         description: "Todos los datos han sido reiniciados exitosamente."
       });
       
@@ -46,7 +47,9 @@ const DataReset = () => {
       
     } catch (err) {
       console.error("Error resetting data:", err);
-      toast.error("Error", {
+      toast({
+        variant: "destructive",
+        title: "Error",
         description: "Hubo un problema al reiniciar los datos. Intente nuevamente."
       });
     } finally {

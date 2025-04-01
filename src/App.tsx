@@ -1,13 +1,12 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
 
 // Implement code splitting with lazy loading for each page
 const Index = lazy(() => import('@/pages/Index'));
-const Register = lazy(() => import('@/pages/Register'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
 const Metrics = lazy(() => import('@/pages/Metrics'));
@@ -64,7 +63,6 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/tickets" element={<Tickets />} />
           <Route path="/metrics" element={<Metrics />} />
@@ -80,7 +78,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <Toaster richColors position="top-right" closeButton />
+      <Toaster />
     </>
   );
 }

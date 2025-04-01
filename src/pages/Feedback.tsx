@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
@@ -7,7 +8,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from "sonner";
+import { toast } from '@/components/ui/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
@@ -19,9 +20,11 @@ const Feedback = () => {
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
+  // Initialize loading state
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
+    // Simulate page load completion after components mount
     const timer = setTimeout(() => {
       setIsPageLoading(false);
     }, 500);
@@ -29,6 +32,7 @@ const Feedback = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  // Make sure query client is available
   useEffect(() => {
     if (!queryClient) {
       console.error("QueryClient not available in Feedback component");
@@ -46,13 +50,17 @@ const Feedback = () => {
         return null;
       }
     },
-    enabled: false,
-    retry: false,
+    enabled: false, // Don't run automatically
+    retry: false, // Don't retry failed queries
   });
   
   const handleSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast.error("Por favor ingrese un número de teléfono");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Por favor ingrese un número de teléfono'
+      });
       return;
     }
     
@@ -60,11 +68,19 @@ const Feedback = () => {
       await refetch();
       
       if (!customer) {
-        toast.error("Cliente no encontrado");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: 'Cliente no encontrado'
+        });
       }
     } catch (error) {
       console.error("Error al buscar cliente:", error);
-      toast.error("Error al buscar el cliente");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Error al buscar el cliente'
+      });
     }
   };
   

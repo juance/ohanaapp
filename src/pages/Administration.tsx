@@ -5,16 +5,25 @@ import { Link } from 'react-router-dom';
 import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
 import { ErrorLogList } from '@/components/admin/ErrorLogList';
 import { GeneralSettings } from '@/components/admin/GeneralSettings';
-import { SystemVersionInfo } from '@/components/admin/SystemVersionInfo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
-import { UnretrievedTicketsAlert } from '@/components/admin/unretrieved-tickets';
 
 const Administration = () => {
   useEffect(() => {
     // Inicializar el sistema de captura de errores
     setupGlobalErrorHandling();
+    
+    // Comprobar si el modo oscuro está activado en la configuración
+    const savedSettings = localStorage.getItem('laundry_general_settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      if (settings.enableDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
   }, []);
 
   return (
@@ -45,7 +54,6 @@ const Administration = () => {
             </TabsContent>
             
             <TabsContent value="tickets" className="space-y-6">
-              <UnretrievedTicketsAlert />
               <ResetTicketNumbers />
             </TabsContent>
             
@@ -54,7 +62,22 @@ const Administration = () => {
             </TabsContent>
             
             <TabsContent value="system" className="space-y-6">
-              <SystemVersionInfo />
+              <Card>
+                <CardHeader>
+                  <CardTitle>Información del Sistema</CardTitle>
+                  <CardDescription>Detalles técnicos y versión</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex flex-col space-y-1.5">
+                    <h3 className="text-sm font-medium">Versión</h3>
+                    <p className="text-sm text-muted-foreground">1.0.0</p>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <h3 className="text-sm font-medium">Base de Datos</h3>
+                    <p className="text-sm text-muted-foreground">Supabase PostgreSQL</p>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         </div>

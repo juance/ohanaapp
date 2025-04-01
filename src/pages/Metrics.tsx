@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMetricsData } from '@/hooks/useMetricsData';
-import DateRangeSelector from '@/components/shared/DateRangeSelector';
+import { DateRangeSelector } from '@/components/metrics/DateRangeSelector';
 import { MetricsCards } from '@/components/metrics/MetricsCards';
 import { RevenueChart } from '@/components/metrics/RevenueChart';
 import { ServiceBreakdownChart } from '@/components/metrics/ServiceBreakdownChart';
@@ -33,10 +33,6 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
     await refreshData();
   };
   
-  const handleDateRangeChange = (from: Date, to: Date) => {
-    setDateRange({ from, to });
-  };
-  
   console.log("Current metrics data:", data);
   
   const content = (
@@ -63,11 +59,7 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
         </header>
       )}
       
-      <DateRangeSelector 
-        from={dateRange.from} 
-        to={dateRange.to} 
-        onUpdate={handleDateRangeChange} 
-      />
+      <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
 
       {isLoading ? (
         <div className="my-8">
