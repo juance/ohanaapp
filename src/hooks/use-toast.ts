@@ -148,7 +148,7 @@ interface ToastOptions {
   variant?: "default" | "destructive" | "success";
 }
 
-// Define toast API using a class-based approach to avoid React hook issues
+// Use a non-hook based approach for the toast manager
 class ToastManager {
   show(props: ToastOptions) {
     const id = genId();
@@ -240,17 +240,21 @@ export type ToastFunction = typeof toast;
 
 // Export the useToast hook separately from the toast singleton
 export function useToast() {
+  // Create a local state that will be updated when the global state changes
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
+    // Subscribe to state changes
     listeners.push(setState);
+    
+    // Return a cleanup function to unsubscribe
     return () => {
       const index = listeners.indexOf(setState);
       if (index > -1) {
         listeners.splice(index, 1);
       }
     };
-  }, [state]);
+  }, []);
 
   return {
     ...state,

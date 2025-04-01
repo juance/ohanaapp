@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 
 const NotFound: React.FC = () => {
   // Using window.location for navigation instead of router hooks
+  // This avoids the useContext error since it doesn't rely on React Router context
   const handleGoHome = () => {
     window.location.href = '/';
   };
