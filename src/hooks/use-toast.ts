@@ -141,13 +141,19 @@ function dispatch(action: ActionType) {
   });
 }
 
-type Toast = Omit<ToasterToast, "id">;
+interface ToastOptions {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  variant?: "default" | "destructive" | "success";
+}
 
-export const toast = {
+// Define toast API functions
+const toastFunctions = {
   /**
    * Display a toast notification
    */
-  show: (props: Toast) => {
+  show: (props: ToastOptions) => {
     const id = genId();
 
     const update = (props: ToasterToast) =>
@@ -187,27 +193,32 @@ export const toast = {
   /**
    * Show a success toast notification
    */
-  success: (message: string, opts?: any) => toast.show({ title: message, variant: "success", ...opts }),
+  success: (message: string, opts?: any) => 
+    toastFunctions.show({ title: message, variant: "success", ...opts }),
   
   /**
    * Show an error toast notification
    */
-  error: (message: string, opts?: any) => toast.show({ title: message, variant: "destructive", ...opts }),
+  error: (message: string, opts?: any) => 
+    toastFunctions.show({ title: message, variant: "destructive", ...opts }),
   
   /**
    * Show a warning toast notification
    */
-  warning: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  warning: (message: string, opts?: any) => 
+    toastFunctions.show({ title: message, variant: "default", ...opts }),
   
   /**
    * Show an info toast notification
    */
-  info: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  info: (message: string, opts?: any) => 
+    toastFunctions.show({ title: message, variant: "default", ...opts }),
   
   /**
    * Show a loading toast notification
    */
-  loading: (message: string, opts?: any) => toast.show({ title: message, variant: "default", ...opts }),
+  loading: (message: string, opts?: any) => 
+    toastFunctions.show({ title: message, variant: "default", ...opts }),
   
   /**
    * Dismiss a toast by ID or all toasts
@@ -217,25 +228,29 @@ export const toast = {
   /**
    * Show a custom toast with JSX content
    */
-  custom: (jsx: React.ReactNode, opts?: any) => toast.show({ title: undefined, description: undefined, action: jsx, ...opts }),
+  custom: (jsx: React.ReactNode, opts?: any) => 
+    toastFunctions.show({ title: undefined, description: undefined, action: jsx, ...opts }),
   
   /**
    * Handle a promise with toast notifications for loading, success, and error states
    */
   promise: async <T extends Promise<any>>(promise: T, msgs: { loading?: string; success: string; error?: string }) => {
-    const id = toast.loading(msgs.loading || "Loading...");
+    const id = toastFunctions.loading(msgs.loading || "Loading...");
     try {
       const data = await promise;
-      toast.success(msgs.success);
+      toastFunctions.success(msgs.success);
       return data;
     } catch (error) {
-      toast.error(msgs.error || "An error occurred");
+      toastFunctions.error(msgs.error || "An error occurred");
       throw error;
     } finally {
-      toast.dismiss(id.id);
+      toastFunctions.dismiss(id.id);
     }
   }
 };
+
+// Export the toast functions
+export const toast = toastFunctions;
 
 export type ToastFunction = typeof toast;
 
