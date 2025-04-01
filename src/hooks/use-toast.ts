@@ -148,7 +148,7 @@ interface ToastOptions {
   variant?: "default" | "destructive" | "success";
 }
 
-// Define toast API using a unified approach to avoid duplicate identifier issues
+// Define toast API using a class-based approach to avoid React hook issues
 class ToastManager {
   show(props: ToastOptions) {
     const id = genId();
@@ -238,6 +238,7 @@ export const toast = new ToastManager();
 
 export type ToastFunction = typeof toast;
 
+// Export the useToast hook separately from the toast singleton
 export function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
