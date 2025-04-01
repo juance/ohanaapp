@@ -1,10 +1,10 @@
 
-import { TooltipProvider } from "@/components/ui/tooltip";
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import LoadingState from "./components/dashboard/LoadingState";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "sonner";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
@@ -30,9 +30,9 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <BrowserRouter>
-      <TooltipProvider>
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <Toaster position="top-right" richColors closeButton />
         <Suspense fallback={<LoadingState />}>
           <Routes>
@@ -49,9 +49,9 @@ const App = () => (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-      </TooltipProvider>
-    </BrowserRouter>
-  </QueryClientProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 export default App;

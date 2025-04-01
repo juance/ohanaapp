@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -64,7 +63,6 @@ const Navbar = () => {
 
   const isAdmin = user && user.role === 'admin';
 
-  // Define navigation items for better organization
   const navItems = [
     { 
       path: "/tickets", 
