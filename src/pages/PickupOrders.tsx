@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Ticket } from '@/lib/types';
 import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
