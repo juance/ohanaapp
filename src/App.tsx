@@ -1,4 +1,3 @@
-
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -30,28 +29,26 @@ const queryClient = new QueryClient({
 });
 
 const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <Toaster position="top-right" richColors closeButton />
-        <Suspense fallback={<LoadingState />}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/orders/pickup" element={<PickupOrders />} />
-            <Route path="/orders/delivered" element={<DeliveredOrders />} />
-            <Route path="/inventory" element={<Inventory />} />
-            <Route path="/users" element={<UserManagement />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/clients" element={<Clients />} />
-            <Route path="/reset" element={<Reset />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>
+  <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <Toaster position="top-right" richColors closeButton />
+      <Suspense fallback={<LoadingState />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tickets" element={<Tickets />} />
+          <Route path="/orders/pickup" element={<PickupOrders />} />
+          <Route path="/orders/delivered" element={<DeliveredOrders />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/users" element={<UserManagement />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/reset" element={<Reset />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  </QueryClientProvider>
 );
 
 export default App;
