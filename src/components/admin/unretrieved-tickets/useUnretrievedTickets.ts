@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { getUnretrievedTickets } from '@/lib/tickets/ticketStatus';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export function useUnretrievedTickets() {
   const [tickets45Days, setTickets45Days] = useState<any[]>([]);

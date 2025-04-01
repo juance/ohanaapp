@@ -1,10 +1,11 @@
+
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { login } from '@/lib/auth';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const AuthForm = () => {
   const [username, setUsername] = useState('');
@@ -18,6 +19,7 @@ const AuthForm = () => {
     
     try {
       const user = await login(username, password);
+      // Save user to localStorage for persistence
       localStorage.setItem('user', JSON.stringify(user));
       
       toast.success(`¡Bienvenido/a, ${user.name}!`);
@@ -44,7 +46,7 @@ const AuthForm = () => {
             <Input
               id="username"
               type="text"
-              placeholder="Nombre o Teléfono"
+              placeholder="Usuario o Correo"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

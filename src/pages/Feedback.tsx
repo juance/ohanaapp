@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
@@ -8,7 +7,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';

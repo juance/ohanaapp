@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { InventoryItem } from './types';
 
 // Obtener todos los elementos del inventario

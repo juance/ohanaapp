@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 // Cancel a ticket
 export const cancelTicket = async (ticketId: string, reason: string): Promise<boolean> => {

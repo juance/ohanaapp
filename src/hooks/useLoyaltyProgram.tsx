@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { ClientVisit } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/dataService';
 import { supabase } from '@/integrations/supabase/client';
 

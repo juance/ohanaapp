@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, Package } from 'lucide-react';
@@ -53,6 +54,12 @@ const Index: React.FC = () => {
       description: 'Análisis detallado de ventas y operaciones',
       icon: <BarChart className="h-8 w-8 text-teal-500" />,
       path: '/metrics',
+    },
+    {
+      title: 'Análisis de Tickets',
+      description: 'Reportes y analíticas sobre los tickets',
+      icon: <FileText className="h-8 w-8 text-cyan-500" />,
+      path: '/analysis',
     },
     {
       title: 'Gastos',

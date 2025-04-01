@@ -1,10 +1,9 @@
 
-import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from "sonner";
 import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
-import { Toaster } from "@/components/ui/toaster";
 
 // Implement code splitting with lazy loading for each page
 const Index = lazy(() => import('@/pages/Index'));
@@ -20,6 +19,7 @@ const Administration = lazy(() => import('@/pages/Administration'));
 const Clients = lazy(() => import('@/pages/Clients'));
 const Loyalty = lazy(() => import('@/pages/Loyalty'));
 const DeliveredOrders = lazy(() => import('@/pages/DeliveredOrders'));
+const TicketAnalysis = lazy(() => import('@/pages/TicketAnalysis'));
 
 // Loading fallback with optimized rendering
 const LoadingFallback = () => (
@@ -76,10 +76,11 @@ function App() {
           <Route path="/administration" element={<Administration />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/loyalty" element={<Loyalty />} />
+          <Route path="/analysis" element={<TicketAnalysis />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
-      <Toaster />
+      <Toaster richColors position="top-right" closeButton />
     </>
   );
 }

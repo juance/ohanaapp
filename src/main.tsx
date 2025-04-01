@@ -37,15 +37,13 @@ setupGlobalErrorHandling();
 // Create and render the root
 try {
   createRoot(rootElement).render(
-    <StrictMode>
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
-          <ErrorBoundary>
-            <App />
-          </ErrorBoundary>
-        </QueryClientProvider>
-      </BrowserRouter>
-    </StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
   
   const loadTime = Math.round(performance.now() - startTime);

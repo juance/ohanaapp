@@ -1,4 +1,10 @@
 
-// Re-export everything from the new modular structure
-export { toast, useToast, type ToastFunction } from "./toast/index";
-export type { ToastT, ToastOptions } from "./toast/types";
+import { toast } from "sonner";
+
+// Export the toast function directly from sonner
+export { toast };
+
+// Export a simplified useToast hook for backward compatibility
+export function useToast() {
+  return { toast };
+}

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ClientVisit } from '@/lib/types';
 import { exportClientsToCSV } from '@/lib/exportUtils';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 /**
  * Hook for exporting client data
