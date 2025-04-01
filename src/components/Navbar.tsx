@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,12 @@ import { cn } from '@/lib/utils';
 import { getCurrentUser } from '@/lib/auth';
 import { toast } from 'sonner';
 
-const Navbar = () => {
+// Define the NavbarProps interface
+interface NavbarProps {
+  // Add any props if needed
+}
+
+const Navbar: React.FC<NavbarProps> = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
