@@ -32,7 +32,6 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
-      <Toaster position="top-right" richColors closeButton />
       <Suspense fallback={<LoadingState />}>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -48,6 +47,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      <Toaster position="top-right" richColors closeButton />
     </BrowserRouter>
   </QueryClientProvider>
 );

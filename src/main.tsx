@@ -8,7 +8,11 @@ import { TooltipProvider } from './components/ui/tooltip';
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error('Root element not found');
 
-createRoot(rootElement).render(
+// Create the root outside of the render call
+const root = createRoot(rootElement);
+
+// Then render to it
+root.render(
   <React.StrictMode>
     <TooltipProvider>
       <App />
