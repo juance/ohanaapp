@@ -1,203 +1,190 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Ticket, 
-  PackageOpen, 
-  BarChart3, 
-  LogOut,
+import {
+  LayoutDashboard,
+  Receipt,
+  Package2,
+  PackageCheck,
+  Users,
+  Settings,
   Menu,
   X,
-  User
+  Warehouse,
+  BanknoteIcon,
+  User,
+  LogOut,
 } from 'lucide-react';
-import { getCurrentUser, logout, hasPermission } from '@/lib/auth';
-import { User as UserType } from '@/lib/types';
-import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import { getCurrentUser } from '@/lib/auth';
+import { toast } from 'sonner';
 
 const Navbar = () => {
-  const [user, setUser] = useState<UserType | null>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
   useEffect(() => {
     const loadUser = async () => {
       const currentUser = await getCurrentUser();
       setUser(currentUser);
     };
-    
     loadUser();
   }, []);
-  
+
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeMenu = () => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  };
+
   const handleLogout = async () => {
-    await logout();
-    localStorage.removeItem('user');
-    toast.success('Logged out successfully');
-    navigate('/');
+    try {
+      localStorage.removeItem('user');
+      toast.success('Sesión cerrada correctamente');
+      navigate('/');
+      closeMenu();
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Error al cerrar sesión');
+    }
   };
-  
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-  
+
+  const isAdmin = user && user.role === 'admin';
+
+  // Define navigation items for better organization
   const navItems = [
-    {
-      name: 'Dashboard',
-      path: '/dashboard',
+    { 
+      path: "/tickets", 
+      label: "Crear Tickets", 
+      icon: <Receipt className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/orders/pickup", 
+      label: "Pedidos a Retirar", 
+      icon: <Package2 className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/orders/delivered", 
+      label: "Pedidos Entregados", 
+      icon: <PackageCheck className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/inventory", 
+      label: "Inventario", 
+      icon: <Warehouse className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/clients", 
+      label: "Clientes", 
+      icon: <User className="h-5 w-5" />,
+      showFor: "all" 
+    },
+    { 
+      path: "/dashboard", 
+      label: "Dashboard", 
       icon: <LayoutDashboard className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier', 'operator'] as const
+      showFor: "all" 
     },
-    {
-      name: 'Tickets',
-      path: '/tickets',
-      icon: <Ticket className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier'] as const
+    { 
+      path: "/expenses", 
+      label: "Gastos", 
+      icon: <BanknoteIcon className="h-5 w-5" />,
+      showFor: "all" 
     },
-    {
-      name: 'Inventory',
-      path: '/inventory',
-      icon: <PackageOpen className="h-5 w-5" />,
-      allowedRoles: ['admin'] as const
+    { 
+      path: "/users", 
+      label: "Usuarios", 
+      icon: <Users className="h-5 w-5" />,
+      showFor: "admin" 
     },
-    {
-      name: 'Orders',
-      path: '/orders',
-      icon: <BarChart3 className="h-5 w-5" />,
-      allowedRoles: ['admin', 'cashier', 'operator'] as const
+    { 
+      path: "/settings", 
+      label: "Configuración", 
+      icon: <Settings className="h-5 w-5" />,
+      showFor: "admin" 
     }
   ];
-  
+
   return (
     <>
-      {/* Desktop Navigation */}
-      <div className="fixed left-0 top-0 z-30 hidden h-full w-64 border-r border-border bg-card p-4 shadow-sm md:block">
-        <div className="flex flex-col space-y-8">
-          <div className="flex items-center justify-center py-4">
-            <h1 className="text-2xl font-semibold text-laundry-500">WashWise</h1>
-          </div>
-          
-          <nav className="flex flex-col space-y-1">
-            {navItems.map((item) => (
-              hasPermission(user, item.allowedRoles) && (
-                <Link 
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                    location.pathname === item.path 
-                      ? "bg-laundry-50 text-laundry-600"
-                      : "text-muted-foreground hover:bg-muted"
-                  )}
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </Link>
-              )
-            ))}
-          </nav>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={toggleMenu}
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out",
+          {
+            "translate-x-0": isOpen || !isMobile,
+            "-translate-x-full": !isOpen && isMobile,
+          }
+        )}
+      >
+        <div className="p-6">
+          <Link to="/" className="flex items-center space-x-2" onClick={closeMenu}>
+            <Receipt className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold">Lavandería Ohana</span>
+          </Link>
+        </div>
+
+        <nav className="space-y-1 px-4 flex flex-col h-[calc(100%-180px)]">
+          {navItems.map((item, index) => (
+            ((item.showFor === "all") || (item.showFor === "admin" && isAdmin)) && (
+              <Link
+                key={index}
+                to={item.path}
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+                  isActive(item.path) ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+                )}
+                onClick={closeMenu}
+              >
+                {item.icon}
+                <span>{item.label}</span>
+              </Link>
+            )
+          ))}
           
           <div className="mt-auto">
-            {user && (
-              <div className="mb-4 rounded-lg bg-muted/50 p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-laundry-100 text-laundry-500">
-                    <User className="h-5 w-5" />
-                  </div>
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            <Button 
-              variant="outline" 
-              className="w-full justify-start gap-2 border-muted-foreground/20"
+            <Button
+              variant="ghost"
+              className="w-full flex items-center justify-start space-x-2 px-4 py-3 rounded-md text-muted-foreground hover:text-blue-600 hover:bg-blue-50"
               onClick={handleLogout}
             >
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              <LogOut className="h-5 w-5" />
+              <span>Cerrar Sesión</span>
             </Button>
           </div>
-        </div>
+        </nav>
       </div>
-      
-      {/* Mobile Navigation */}
-      <div className="fixed left-0 top-0 z-40 w-full border-b border-border bg-card/80 backdrop-blur-md md:hidden">
-        <div className="flex h-16 items-center justify-between px-4">
-          <h1 className="text-xl font-semibold text-laundry-500">WashWise</h1>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-        </div>
-      </div>
-      
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm md:hidden" onClick={closeMobileMenu}>
-          <div 
-            className="fixed right-0 top-16 z-40 h-[calc(100vh-4rem)] w-64 animate-slide-left bg-card shadow-lg"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex h-full flex-col p-4">
-              <nav className="flex flex-col space-y-1">
-                {navItems.map((item) => (
-                  hasPermission(user, item.allowedRoles) && (
-                    <Link 
-                      key={item.path}
-                      to={item.path}
-                      className={cn(
-                        "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                        location.pathname === item.path 
-                          ? "bg-laundry-50 text-laundry-600"
-                          : "text-muted-foreground hover:bg-muted"
-                      )}
-                      onClick={closeMobileMenu}
-                    >
-                      {item.icon}
-                      <span>{item.name}</span>
-                    </Link>
-                  )
-                ))}
-              </nav>
-              
-              <div className="mt-auto">
-                {user && (
-                  <div className="mb-4 rounded-lg bg-muted/50 p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-laundry-100 text-laundry-500">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-sm font-medium">{user.name}</p>
-                        <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start gap-2 border-muted-foreground/20"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={closeMenu}
+        />
       )}
     </>
   );

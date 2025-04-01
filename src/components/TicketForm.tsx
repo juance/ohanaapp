@@ -6,9 +6,10 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { LaundryService, PaymentMethod } from '@/lib/types';
+import { LaundryService, PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { toast } from 'sonner';
 import { Check } from 'lucide-react';
+import { storeTicketData } from '@/lib/dataService';
 
 // Mock laundry services
 const laundryServices: LaundryService[] = [
@@ -18,6 +19,25 @@ const laundryServices: LaundryService[] = [
   { id: '4', name: 'Folding', price: 5 },
   { id: '5', name: 'Stain Removal', price: 25 },
   { id: '6', name: 'Blanket Cleaning', price: 35 },
+];
+
+// Dry cleaning items
+const dryCleaningOptions = [
+  { id: 'shirt', name: 'Shirt', price: 20 },
+  { id: 'pants', name: 'Pants', price: 25 },
+  { id: 'suit', name: 'Suit', price: 45 },
+  { id: 'dress', name: 'Dress', price: 35 },
+  { id: 'coat', name: 'Coat', price: 50 },
+  { id: 'blanket', name: 'Blanket', price: 40 },
+];
+
+// Laundry options
+const laundryOptionsList = [
+  { id: 'color_separation', label: 'Color Separation' },
+  { id: 'delicate_wash', label: 'Delicate Wash' },
+  { id: 'extra_rinse', label: 'Extra Rinse' },
+  { id: 'heavy_soil', label: 'Heavy Soil Treatment' },
+  { id: 'stain_treatment', label: 'Stain Treatment' },
 ];
 
 // Payment method options
@@ -32,14 +52,25 @@ const TicketForm = () => {
   const [clientName, setClientName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
+  const [selectedDryCleaningItems, setSelectedDryCleaningItems] = useState<{id: string, quantity: number}[]>([]);
+  const [selectedLaundryOptions, setSelectedLaundryOptions] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const calculateTotal = () => {
-    return selectedServices.reduce((total, serviceId) => {
+    // Calculate total for regular services
+    const servicesTotal = selectedServices.reduce((total, serviceId) => {
       const service = laundryServices.find(s => s.id === serviceId);
       return total + (service?.price || 0);
     }, 0);
+    
+    // Calculate total for dry cleaning items
+    const dryCleaningTotal = selectedDryCleaningItems.reduce((total, item) => {
+      const dryCleaningItem = dryCleaningOptions.find(dci => dci.id === item.id);
+      return total + ((dryCleaningItem?.price || 0) * item.quantity);
+    }, 0);
+    
+    return servicesTotal + dryCleaningTotal;
   };
   
   const handleServiceToggle = (serviceId: string) => {
@@ -50,7 +81,35 @@ const TicketForm = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleDryCleaningToggle = (itemId: string) => {
+    const existingItem = selectedDryCleaningItems.find(item => item.id === itemId);
+    
+    if (existingItem) {
+      // Remove the item
+      setSelectedDryCleaningItems(selectedDryCleaningItems.filter(item => item.id !== itemId));
+    } else {
+      // Add the item with quantity 1
+      setSelectedDryCleaningItems([...selectedDryCleaningItems, { id: itemId, quantity: 1 }]);
+    }
+  };
+  
+  const handleDryCleaningQuantityChange = (itemId: string, quantity: number) => {
+    setSelectedDryCleaningItems(
+      selectedDryCleaningItems.map(item => 
+        item.id === itemId ? { ...item, quantity } : item
+      )
+    );
+  };
+  
+  const handleLaundryOptionToggle = (optionId: string) => {
+    if (selectedLaundryOptions.includes(optionId)) {
+      setSelectedLaundryOptions(selectedLaundryOptions.filter(id => id !== optionId));
+    } else {
+      setSelectedLaundryOptions([...selectedLaundryOptions, optionId]);
+    }
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
@@ -67,28 +126,71 @@ const TicketForm = () => {
       return;
     }
     
-    if (selectedServices.length === 0) {
-      toast.error('Please select at least one service');
+    if (selectedServices.length === 0 && selectedDryCleaningItems.length === 0) {
+      toast.error('Please select at least one service or dry cleaning item');
       setIsSubmitting(false);
       return;
     }
     
-    // In a real app, we would make an API call to create the ticket here
-    setTimeout(() => {
+    try {
+      // Generate ticket number
       const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
       
-      // Show success message
-      toast.success('Ticket created successfully', {
-        description: `Ticket #${ticketNumber} for ${clientName}`,
+      // Prepare dry cleaning items
+      const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
+        const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
+        return {
+          name: itemDetails?.name || '',
+          quantity: item.quantity,
+          price: (itemDetails?.price || 0) * item.quantity
+        };
       });
       
-      // Reset form
-      setClientName('');
-      setPhoneNumber('');
-      setSelectedServices([]);
-      setPaymentMethod('cash');
+      // Prepare laundry options
+      const laundryOptions: LaundryOption[] = selectedLaundryOptions.map(option => option as LaundryOption);
+      
+      // Store the ticket data
+      const success = await storeTicketData(
+        {
+          ticketNumber,
+          totalPrice: calculateTotal(),
+          paymentMethod,
+          valetQuantity: 1 // Default to 1, could be made configurable
+        },
+        {
+          name: clientName,
+          phoneNumber
+        },
+        dryCleaningItems,
+        laundryOptions
+      );
+      
+      if (success) {
+        // Show success message
+        toast.success('Ticket created successfully', {
+          description: `Ticket #${ticketNumber} for ${clientName}`,
+        });
+        
+        // Reset form
+        setClientName('');
+        setPhoneNumber('');
+        setSelectedServices([]);
+        setSelectedDryCleaningItems([]);
+        setSelectedLaundryOptions([]);
+        setPaymentMethod('cash');
+      } else {
+        toast.error('Failed to create ticket', {
+          description: 'Please try again or check your connection',
+        });
+      }
+    } catch (error) {
+      console.error('Error creating ticket:', error);
+      toast.error('Error creating ticket', {
+        description: 'An unexpected error occurred',
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
   
   return (
@@ -150,6 +252,112 @@ const TicketForm = () => {
                       </label>
                     </div>
                     <span className="text-sm font-semibold">${service.price}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Dry Cleaning Items</h3>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {dryCleaningOptions.map((item) => {
+                  const selectedItem = selectedDryCleaningItems.find(i => i.id === item.id);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`flex cursor-pointer flex-col rounded-lg border p-3 transition-all ${
+                        selectedItem
+                          ? 'border-laundry-500 bg-laundry-50'
+                          : 'border-border'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={`drycleaning-${item.id}`}
+                            checked={!!selectedItem}
+                            onCheckedChange={() => handleDryCleaningToggle(item.id)}
+                            className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
+                          />
+                          <label
+                            htmlFor={`drycleaning-${item.id}`}
+                            className="text-sm font-medium"
+                          >
+                            {item.name}
+                          </label>
+                        </div>
+                        <span className="text-sm font-semibold">${item.price}</span>
+                      </div>
+                      
+                      {selectedItem && (
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-muted-foreground">Quantity:</span>
+                          <div className="flex items-center space-x-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (selectedItem.quantity > 1) {
+                                  handleDryCleaningQuantityChange(item.id, selectedItem.quantity - 1);
+                                }
+                              }}
+                            >
+                              -
+                            </Button>
+                            <span className="text-sm font-medium w-4 text-center">
+                              {selectedItem.quantity}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDryCleaningQuantityChange(item.id, selectedItem.quantity + 1);
+                              }}
+                            >
+                              +
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Laundry Options</h3>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {laundryOptionsList.map((option) => (
+                  <div
+                    key={option.id}
+                    className={`flex cursor-pointer items-center rounded-lg border p-3 transition-all ${
+                      selectedLaundryOptions.includes(option.id)
+                        ? 'border-laundry-500 bg-laundry-50'
+                        : 'border-border'
+                    }`}
+                    onClick={() => handleLaundryOptionToggle(option.id)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`option-${option.id}`}
+                        checked={selectedLaundryOptions.includes(option.id)}
+                        onCheckedChange={() => {}}
+                        className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
+                      />
+                      <label
+                        htmlFor={`option-${option.id}`}
+                        className="text-sm font-medium"
+                      >
+                        {option.label}
+                      </label>
+                    </div>
                   </div>
                 ))}
               </div>

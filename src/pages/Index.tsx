@@ -32,8 +32,8 @@ const Index = () => {
               <circle cx="12" cy="16" r="1" />
             </svg>
           </div>
-          <h1 className="mb-2 text-4xl font-bold tracking-tight text-laundry-900">WashWise</h1>
-          <p className="text-muted-foreground">Smart laundry management system</p>
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-laundry-900">Lavandería</h1>
+          <p className="text-muted-foreground">Sistema de gestión para lavandería</p>
         </div>
       </div>
       
@@ -43,8 +43,8 @@ const Index = () => {
       
       <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 transform flex-col items-center gap-4 text-sm text-muted-foreground">
         <p className="text-center">
-          Streamline your laundry operations with WashWise.<br />
-          Efficient. Simple. Reliable.
+          Optimiza las operaciones de tu lavandería.<br />
+          Eficiente. Simple. Confiable.
         </p>
       </div>
     </div>
