@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     defaultValues,
   });
 
-  // Escuchar cambios en el modo oscuro
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'enableDarkMode') {
@@ -46,9 +44,9 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     } catch (error) {
       console.error('Error al guardar configuración:', error);
       toast({
+        variant: "destructive",
         title: "Error al guardar",
         description: "No se pudieron guardar los ajustes. Intente nuevamente.",
-        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -59,7 +57,6 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     form.reset(defaultValues);
     onSave(defaultValues);
     
-    // Actualizar modo oscuro según valores predeterminados
     if (defaultValues.enableDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
@@ -67,9 +64,9 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     }
     
     toast({
+      variant: "destructive",
       title: "Formulario restablecido",
       description: "Se han restaurado los valores predeterminados.",
-      variant: "destructive",
     });
   };
 

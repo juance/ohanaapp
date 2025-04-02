@@ -1,12 +1,10 @@
-
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
 import { ClientVisit } from '@/lib/types';
 
 export const useClientsList = () => {
-  const { toast } = useToast();
   const { frequentClients, refreshData, loading, error } = useClientData();
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');

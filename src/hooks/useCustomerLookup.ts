@@ -1,5 +1,5 @@
 
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { Customer } from '@/lib/types';
 import { getCustomerByPhone } from '@/lib/dataService';
 

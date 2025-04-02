@@ -1,4 +1,5 @@
-import { toast } from '@/components/ui/use-toast';
+
+import { toast } from '@/hooks/use-toast';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';

@@ -6,7 +6,7 @@ import { CustomerFeedback } from '@/lib/types';
 import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { Star, Trash2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [feedback, setFeedback] = useState<CustomerFeedback[]>([]);

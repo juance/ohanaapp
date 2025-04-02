@@ -1,12 +1,10 @@
-
 import { useState } from 'react';
 import { ClientVisit } from '@/lib/types';
-import { useToast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/dataService';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
-  const { toast } = useToast();
   const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
   const [pointsToAdd, setPointsToAdd] = useState(0);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
@@ -17,7 +15,6 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
     setPointsToAdd(0);
     setPointsToRedeem(0);
     
-    // Load full client data including loyalty points
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -51,7 +48,6 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
           description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
         });
         
-        // Update selected client
         setSelectedClient({
           ...selectedClient,
           loyaltyPoints: (selectedClient.loyaltyPoints || 0) + pointsToAdd
@@ -92,7 +88,6 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
           description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
         });
         
-        // Update selected client
         setSelectedClient({
           ...selectedClient,
           loyaltyPoints: selectedClient.loyaltyPoints - pointsToRedeem
