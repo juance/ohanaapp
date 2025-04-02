@@ -30,7 +30,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
     
     // Fallback to localStorage
     try {
-      const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+      const localExpenses: Expense[] = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
       
       const newExpense: Expense = {
         id: crypto.randomUUID(),
@@ -76,7 +76,7 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
     if (error) throw error;
     
     // Map Supabase data to match our Expense type
-    return data.map(item => ({
+    return data.map((item: any) => ({
       id: item.id,
       description: item.description,
       amount: item.amount,
@@ -87,7 +87,7 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
     console.error('Error retrieving expenses from Supabase:', error);
     
     // Fallback to localStorage
-    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const localExpenses: Expense[] = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Filter by date if provided
     if (startDate || endDate) {
