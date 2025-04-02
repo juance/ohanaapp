@@ -1,13 +1,13 @@
 
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
-// Sonner doesn't export useToast anymore, so we're creating a compatible implementation
+// Re-export for backward compatibility with any code still using this import path
+export { toast };
+
+// A compatibility layer for code still using useToast
 export const useToast = () => {
   return {
     toast,
-    // For backwards compatibility with any code still using the old API
     dismiss: () => {},
   };
 };
-
-export { toast };

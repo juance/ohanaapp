@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const DataReset = () => {
@@ -35,10 +35,7 @@ const DataReset = () => {
       localStorage.removeItem('tickets');
       localStorage.removeItem('expenses');
       
-      toast({
-        title: "Datos reiniciados",
-        description: "Todos los datos han sido reiniciados exitosamente."
-      });
+      toast.success("Todos los datos han sido reiniciados exitosamente.");
       
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
@@ -47,11 +44,7 @@ const DataReset = () => {
       
     } catch (err) {
       console.error("Error resetting data:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Hubo un problema al reiniciar los datos. Intente nuevamente."
-      });
+      toast.error("Hubo un problema al reiniciar los datos. Intente nuevamente.");
     } finally {
       setIsResetting(false);
     }

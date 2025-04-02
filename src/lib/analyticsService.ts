@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 export interface TicketAnalytics {
   totalTickets: number;
@@ -102,11 +102,7 @@ export const getTicketAnalytics = async (
     };
   } catch (error) {
     console.error('Error fetching ticket analytics:', error);
-    toast({
-      variant: "destructive", 
-      title: "Error", 
-      description: 'Error al obtener análisis de tickets'
-    });
+    toast.error('Error al obtener análisis de tickets');
     
     // Return default empty values
     return {
