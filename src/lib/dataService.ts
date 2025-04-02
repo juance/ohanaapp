@@ -39,8 +39,8 @@ export {
 
 // Export expense service
 export {
-  storeExpense,
-  getStoredExpenses,
+  addExpense as storeExpense,
+  getExpenses as getStoredExpenses,
   getDailyExpenses,
   getWeeklyExpenses,
   getMonthlyExpenses

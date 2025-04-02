@@ -51,6 +51,9 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
   }
 };
 
+// Alias for storeExpense to maintain compatibility with existing code
+export const storeExpense = addExpense;
+
 /**
  * Get all expenses with optional date filtering
  */
@@ -72,7 +75,14 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
     
     if (error) throw error;
     
-    return data as Expense[];
+    // Map Supabase data to match our Expense type
+    return data.map(item => ({
+      id: item.id,
+      description: item.description,
+      amount: item.amount,
+      date: item.date,
+      createdAt: item.created_at
+    }));
   } catch (error) {
     console.error('Error retrieving expenses from Supabase:', error);
     
@@ -93,4 +103,38 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
     
     return localExpenses;
   }
+};
+
+// Alias for getStoredExpenses to maintain compatibility
+export const getStoredExpenses = async (): Promise<Expense[]> => {
+  return getExpenses();
+}
+
+// Get expenses for the current day
+export const getDailyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const expenses = await getExpenses(today);
+  return expenses.reduce((total, expense) => total + expense.amount, 0);
+};
+
+// Get expenses for the current week
+export const getWeeklyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const expenses = await getExpenses(startOfWeek);
+  return expenses.reduce((total, expense) => total + expense.amount, 0);
+};
+
+// Get expenses for the current month
+export const getMonthlyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  
+  const expenses = await getExpenses(startOfMonth);
+  return expenses.reduce((total, expense) => total + expense.amount, 0);
 };
