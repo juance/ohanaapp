@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Check } from 'lucide-react';
-import { getDeliveredTickets, getTicketServices } from '@/lib/ticketService';
+import { getDeliveredTickets, getTicketServices } from '@/lib/ticket';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';

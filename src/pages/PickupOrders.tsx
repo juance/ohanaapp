@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,12 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { Ticket } from '@/lib/types';
-import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
+import { 
+  getPickupTickets, 
+  getTicketServices, 
+  markTicketAsDelivered, 
+  cancelTicket 
+} from '@/lib/ticket';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
