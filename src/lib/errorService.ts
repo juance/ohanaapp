@@ -40,8 +40,10 @@ export const logError = (
   console.error("Error logged:", systemError);
   errorStore = [systemError, ...errorStore];
   
-  // Notify using Sonner toast
-  toast.error("Error detectado: Se ha registrado un error en el sistema.");
+  // Use updated toast API
+  toast.error("Error detectado", {
+    description: "Se ha registrado un error en el sistema."
+  });
   
   return systemError;
 };
