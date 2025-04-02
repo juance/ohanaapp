@@ -20,11 +20,15 @@ const Administration = () => {
     // Comprobar si el modo oscuro está activado en la configuración
     const savedSettings = localStorage.getItem('laundry_general_settings');
     if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      if (settings.enableDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
+      try {
+        const settings = JSON.parse(savedSettings);
+        if (settings.enableDarkMode) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (err) {
+        console.error("Error parsing settings:", err);
       }
     }
   }, []);

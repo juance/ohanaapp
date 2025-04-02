@@ -4,8 +4,10 @@ import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
 
+// Import synchronously to avoid lazy loading issues
+import Index from '@/pages/Index';
+
 // Implement code splitting with lazy loading for each page
-const Index = lazy(() => import('@/pages/Index'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
 const Metrics = lazy(() => import('@/pages/Metrics'));
@@ -61,18 +63,66 @@ function App() {
     <Suspense fallback={<LoadingFallback />}>
       <Routes>
         <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/metrics" element={<Metrics />} />
-        <Route path="/pickup" element={<PickupOrders />} />
-        <Route path="/delivered" element={<DeliveredOrders />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/administration" element={<Administration />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/loyalty" element={<Loyalty />} />
-        <Route path="/analysis" element={<TicketAnalysis />} />
+        <Route path="/dashboard" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Dashboard />
+          </Suspense>
+        } />
+        <Route path="/tickets" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Tickets />
+          </Suspense>
+        } />
+        <Route path="/metrics" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Metrics />
+          </Suspense>
+        } />
+        <Route path="/pickup" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <PickupOrders />
+          </Suspense>
+        } />
+        <Route path="/delivered" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <DeliveredOrders />
+          </Suspense>
+        } />
+        <Route path="/inventory" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Inventory />
+          </Suspense>
+        } />
+        <Route path="/expenses" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Expenses />
+          </Suspense>
+        } />
+        <Route path="/feedback" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Feedback />
+          </Suspense>
+        } />
+        <Route path="/administration" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Administration />
+          </Suspense>
+        } />
+        <Route path="/clients" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Clients />
+          </Suspense>
+        } />
+        <Route path="/loyalty" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <Loyalty />
+          </Suspense>
+        } />
+        <Route path="/analysis" element={
+          <Suspense fallback={<LoadingFallback />}>
+            <TicketAnalysis />
+          </Suspense>
+        } />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

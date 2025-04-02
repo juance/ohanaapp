@@ -1,58 +1,33 @@
 
-import * as React from "react"
-import { toast as sonnerToast, type ToastT } from "sonner"
+// Re-export the toast function from sonner with proper TypeScript types
+import { toast as sonnerToast } from 'sonner';
 
-export type ExternalToast = Parameters<typeof sonnerToast>[1]
+type ToastProps = Parameters<typeof sonnerToast>[1];
 
-const toast = ({
-  title,
-  description,
-  variant = "default",
-  ...props
-}: {
-  title?: React.ReactNode
-  description?: React.ReactNode
-  variant?: "default" | "destructive"
-} & ExternalToast) => {
-  if (variant === "destructive") {
-    return sonnerToast.error(title as string, {
-      description,
-      ...props,
-    })
-  }
+export const toast = {
+  // Main toast function
+  ...sonnerToast,
   
-  return sonnerToast(title as string, {
-    description,
-    ...props,
-  })
-}
-
-// Add success, error, and other common toast types as methods
-toast.success = (title: string, props?: ExternalToast) => {
-  return sonnerToast.success(title, props);
-};
-
-toast.error = (title: string, props?: ExternalToast) => {
-  return sonnerToast.error(title, props);
-};
-
-toast.info = (title: string, props?: ExternalToast) => {
-  return sonnerToast.info(title, props);
-};
-
-toast.warning = (title: string, props?: ExternalToast) => {
-  return sonnerToast.warning(title, props);
-};
-
-toast.loading = (title: string, props?: ExternalToast) => {
-  return sonnerToast.loading(title, props);
-};
-
-export { toast, sonnerToast }
-
-export function useToast() {
-  return {
-    toast,
-    dismiss: sonnerToast.dismiss
+  // Helper methods with proper typing
+  success: (title: string, props?: ToastProps) => {
+    return sonnerToast.success(title, props);
+  },
+  
+  error: (title: string, props?: ToastProps) => {
+    return sonnerToast.error(title, props);
+  },
+  
+  info: (title: string, props?: ToastProps) => {
+    return sonnerToast.info(title, props);
+  },
+  
+  warning: (title: string, props?: ToastProps) => {
+    return sonnerToast.warning(title, props);
+  },
+  
+  loading: (title: string, props?: ToastProps) => {
+    return sonnerToast.loading(title, props);
   }
-}
+};
+
+export { useToast } from 'sonner';
