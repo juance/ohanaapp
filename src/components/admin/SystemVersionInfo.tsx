@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
@@ -92,7 +91,7 @@ export const SystemVersionInfo: React.FC = () => {
     // Simulación de rollback (aquí se implementaría la lógica real de rollback)
     setTimeout(() => {
       setIsRollingBack(false);
-      toast(`Sistema restaurado a la versión ${version}`);
+      toast.success(`Sistema restaurado a la versión ${version}`);
     }, 1500);
   };
 

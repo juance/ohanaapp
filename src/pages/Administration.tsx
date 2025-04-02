@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -6,16 +7,11 @@ import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
 import { ErrorLogList } from '@/components/admin/ErrorLogList';
 import { GeneralSettings } from '@/components/admin/GeneralSettings';
 import { SystemVersionInfo } from '@/components/admin/SystemVersionInfo';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { setupGlobalErrorHandling } from '@/lib/errorService';
 import { UnretrievedTicketsAlert } from '@/components/admin/unretrieved-tickets';
 
 const Administration = () => {
-  useEffect(() => {
-    // Inicializar el sistema de captura de errores
-    setupGlobalErrorHandling();
-  }, []);
+  // Removed the useEffect hook that was causing the error
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">

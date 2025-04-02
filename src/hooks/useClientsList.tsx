@@ -1,11 +1,11 @@
 
 import { useState, useCallback } from 'react';
-import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
 import { ClientVisit } from '@/lib/types';
 import { formatPhoneNumber } from '@/lib/data/customer/phoneUtils';
 import { exportClientsToCSV } from '@/lib/exportUtils';
+import { toast } from '@/hooks/use-toast';
 
 export const useClientsList = () => {
   const { frequentClients, refreshData, loading, error } = useClientData();

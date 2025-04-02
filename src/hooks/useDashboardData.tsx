@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from 'react';
 import { useMetricsData } from './useMetricsData';
 import { useExpensesData } from './useExpensesData';
 import { useClientData } from './useClientData';
 import { useChartData } from './useChartData';
 import { ClientVisit } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface UseDashboardDataReturn {
   isLoading: boolean;
