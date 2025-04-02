@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getDailyMetrics, 
@@ -7,7 +6,7 @@ import {
   syncOfflineData
 } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
@@ -100,7 +99,6 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       
       const totalTickets = 120;
       
-      // Use the properly typed calculated revenue
       const totalMonthlyRevenueNumber = Number(totalMonthlyRevenue) || 0;
       
       setData({
@@ -125,12 +123,19 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         clientTypeBreakdown
       });
       
-      toast.success("Datos de métricas actualizados");
+      toast({
+        title: "Success",
+        description: "Datos de métricas actualizados"
+      });
       
     } catch (err) {
       console.error("Error fetching metrics data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
-      toast.error("Error al cargar los datos de métricas");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al cargar los datos de métricas"
+      });
     } finally {
       setIsLoading(false);
     }

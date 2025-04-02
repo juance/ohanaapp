@@ -27,6 +27,27 @@ const toast = ({
   })
 }
 
+// Add success, error, and other common toast types as methods
+toast.success = (title: string, props?: ExternalToast) => {
+  return sonnerToast.success(title, props);
+};
+
+toast.error = (title: string, props?: ExternalToast) => {
+  return sonnerToast.error(title, props);
+};
+
+toast.info = (title: string, props?: ExternalToast) => {
+  return sonnerToast.info(title, props);
+};
+
+toast.warning = (title: string, props?: ExternalToast) => {
+  return sonnerToast.warning(title, props);
+};
+
+toast.loading = (title: string, props?: ExternalToast) => {
+  return sonnerToast.loading(title, props);
+};
+
 export { toast, sonnerToast }
 
 export function useToast() {

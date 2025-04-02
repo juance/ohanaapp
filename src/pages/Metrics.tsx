@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
@@ -12,7 +11,7 @@ import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface MetricsProps {
   embedded?: boolean;
@@ -29,7 +28,10 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
   } = useMetricsData();
   
   const handleRefresh = async () => {
-    toast.info("Actualizando datos...");
+    toast({
+      title: "Info",
+      description: "Actualizando datos..."
+    });
     await refreshData();
   };
   
