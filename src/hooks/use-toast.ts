@@ -1,6 +1,7 @@
 
 import { toast as sonnerToast } from 'sonner';
 import type { ExternalToast } from 'sonner';
+import * as React from 'react';
 
 type ToastProps = Parameters<typeof sonnerToast.success>[1];
 
