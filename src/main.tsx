@@ -1,12 +1,14 @@
 
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 import { setupGlobalErrorHandling } from './lib/errorService.ts';
+import { Toaster } from './components/ui/sonner.tsx';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
@@ -37,13 +39,18 @@ setupGlobalErrorHandling();
 // Create and render the root
 try {
   createRoot(rootElement).render(
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <ErrorBoundary>
-          <App />
-        </ErrorBoundary>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <StrictMode>
+      <BrowserRouter>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <QueryClientProvider client={queryClient}>
+            <ErrorBoundary>
+              <App />
+              <Toaster />
+            </ErrorBoundary>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </BrowserRouter>
+    </StrictMode>
   );
   
   const loadTime = Math.round(performance.now() - startTime);
