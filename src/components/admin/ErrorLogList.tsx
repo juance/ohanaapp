@@ -1,17 +1,20 @@
+
 import React, { useState } from 'react';
 import { getErrors, resolveError, deleteError, clearResolvedErrors, SystemError } from '@/lib/errorService';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, CheckCircle, Trash2, Filter } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { Loader2, CheckCircle, Trash2, AlertTriangle, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { toast } from '@/hooks/use-toast';
 
 export function ErrorLogList() {
   const [errors, setErrors] = useState<SystemError[]>(getErrors());
   const [showResolved, setShowResolved] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const { toast } = useToast();
 
   const refreshErrors = () => {
     setIsRefreshing(true);
@@ -24,7 +27,8 @@ export function ErrorLogList() {
 
   const handleResolveError = (errorId: string) => {
     if (resolveError(errorId)) {
-      toast.success("Error resuelto", {
+      toast({
+        title: "Error resuelto",
         description: "El error ha sido marcado como resuelto."
       });
       refreshErrors();
@@ -33,7 +37,8 @@ export function ErrorLogList() {
 
   const handleDeleteError = (errorId: string) => {
     if (deleteError(errorId)) {
-      toast.success("Error eliminado", {
+      toast({
+        title: "Error eliminado",
         description: "El error ha sido eliminado del registro."
       });
       refreshErrors();
@@ -42,7 +47,8 @@ export function ErrorLogList() {
 
   const handleClearResolved = () => {
     const clearedCount = clearResolvedErrors();
-    toast.success("Limpieza completada", {
+    toast({
+      title: "Limpieza completada",
       description: `Se eliminaron ${clearedCount} errores resueltos.`
     });
     refreshErrors();

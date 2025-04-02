@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { SelectedDryCleaningItem } from '@/components/ticket-form/types';
+import { SelectedDryCleaningItem } from '@/components/DryCleaningOptions';
 
 export const useDryCleaningForm = () => {
   // Dry cleaning items

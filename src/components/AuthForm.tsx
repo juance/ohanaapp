@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { login } from '@/lib/auth';
-import { toast } from "sonner";
+import { toast } from '@/components/ui/use-toast';
 
 const AuthForm = () => {
   const [email, setEmail] = useState('');
@@ -22,11 +22,18 @@ const AuthForm = () => {
       // Save user to localStorage for persistence
       localStorage.setItem('user', JSON.stringify(user));
       
-      toast.success(`Welcome back, ${user.name}`);
+      toast({
+        title: "Success",
+        description: `Welcome back, ${user.name}`
+      });
       
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Please check your credentials and try again');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: 'Please check your credentials and try again'
+      });
     } finally {
       setIsLoading(false);
     }

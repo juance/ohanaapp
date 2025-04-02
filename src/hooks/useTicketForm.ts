@@ -33,14 +33,11 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     resetValetForm: valetForm.resetValetForm,
     resetDryCleaningForm: dryCleaningForm.resetDryCleaningForm,
     resetTicketFormState: ticketFormState.resetTicketFormState,
-    isPaidInAdvance
+    isPaidInAdvance // Add the new field
   };
   
   // Use the submit handler
-  const { handleSubmit, isSubmitting } = useTicketFormSubmit({
-    formState,
-    onTicketGenerated
-  });
+  const { handleSubmit } = useTicketFormSubmit(formState, onTicketGenerated);
   
   return {
     // Customer form data
@@ -60,7 +57,6 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     setIsPaidInAdvance,
     
     // Form submission
-    handleSubmit,
-    isSubmitting
+    handleSubmit
   };
 };

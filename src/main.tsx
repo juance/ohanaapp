@@ -1,9 +1,8 @@
 
-import React from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from "next-themes";
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
@@ -37,19 +36,14 @@ setupGlobalErrorHandling();
 
 // Create and render the root
 try {
-  const root = createRoot(rootElement);
-  root.render(
-    <React.StrictMode>
-      <BrowserRouter>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <QueryClientProvider client={queryClient}>
-            <ErrorBoundary>
-              <App />
-            </ErrorBoundary>
-          </QueryClientProvider>
-        </ThemeProvider>
-      </BrowserRouter>
-    </React.StrictMode>
+  createRoot(rootElement).render(
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
   
   const loadTime = Math.round(performance.now() - startTime);

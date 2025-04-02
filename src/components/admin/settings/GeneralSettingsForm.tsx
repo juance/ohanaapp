@@ -3,12 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { BusinessInfoFields } from './fields/BusinessInfoFields';
 import { MessageField } from './fields/MessageField';
 import { ToggleFields } from './fields/ToggleFields';
 import { GeneralSettingsFormValues } from './types';
-import { defaultSettings } from './GeneralSettingsContext';
 
 interface GeneralSettingsFormProps {
   defaultValues: GeneralSettingsFormValues;
@@ -21,7 +20,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     defaultValues,
   });
 
-  // Apply dark mode when it changes in the form
+  // Escuchar cambios en el modo oscuro
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'enableDarkMode') {
@@ -36,27 +35,20 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
-  // Initialize dark mode based on saved configuration
-  useEffect(() => {
-    const isDarkMode = defaultValues.enableDarkMode;
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [defaultValues.enableDarkMode]);
-
   const onSubmit = (data: GeneralSettingsFormValues) => {
     setIsSaving(true);
     try {
       onSave(data);
-      toast.success("Configuración guardada", {
-        description: "Los ajustes generales se han actualizado correctamente."
+      toast({
+        title: "Configuración guardada",
+        description: "Los ajustes generales se han actualizado correctamente.",
       });
     } catch (error) {
       console.error('Error al guardar configuración:', error);
-      toast.error("Error al guardar", {
-        description: "No se pudieron guardar los ajustes. Intente nuevamente."
+      toast({
+        title: "Error al guardar",
+        description: "No se pudieron guardar los ajustes. Intente nuevamente.",
+        variant: "destructive",
       });
     } finally {
       setIsSaving(false);
@@ -64,18 +56,20 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
   };
 
   const resetForm = () => {
-    form.reset(defaultSettings);
-    onSave(defaultSettings);
+    form.reset(defaultValues);
+    onSave(defaultValues);
     
-    // Update dark mode according to default values
-    if (defaultSettings.enableDarkMode) {
+    // Actualizar modo oscuro según valores predeterminados
+    if (defaultValues.enableDarkMode) {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
     
-    toast.error("Formulario restablecido", {
-      description: "Se han restaurado los valores predeterminados."
+    toast({
+      title: "Formulario restablecido",
+      description: "Se han restaurado los valores predeterminados.",
+      variant: "destructive",
     });
   };
 
