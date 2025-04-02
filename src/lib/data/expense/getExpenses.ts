@@ -39,12 +39,12 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
     console.error('Error retrieving expenses from Supabase:', error);
     
     // Fallback to localStorage
-   
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Filter by date if provided
     if (startDate || endDate) {
-      
-        
+      return localExpenses.filter(expense => {
+        const expenseDate = new Date(expense.date);
         
         if (startDate && expenseDate < startDate) return false;
         if (endDate && expenseDate > endDate) return false;
@@ -53,7 +53,7 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
       });
     }
     
-    
+    return localExpenses;
   }
 };
 

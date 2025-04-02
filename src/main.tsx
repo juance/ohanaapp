@@ -39,7 +39,7 @@ setupGlobalErrorHandling();
 // Create and render the root
 try {
   createRoot(rootElement).render(
-    <React.StrictMode>
+    <StrictMode>
       <BrowserRouter>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <QueryClientProvider client={queryClient}>
@@ -50,7 +50,7 @@ try {
           </QueryClientProvider>
         </ThemeProvider>
       </BrowserRouter>
-    </React.StrictMode>
+    </StrictMode>
   );
   
   const loadTime = Math.round(performance.now() - startTime);
