@@ -1,5 +1,5 @@
 
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 // Define la estructura de un error en el sistema
 export interface SystemError {
@@ -40,7 +40,7 @@ export const logError = (
   console.error("Error logged:", systemError);
   errorStore = [systemError, ...errorStore];
   
-  // Opcionalmente notificar al usuario
+  // Notify using Sonner toast
   toast.error("Error detectado: Se ha registrado un error en el sistema.");
   
   return systemError;

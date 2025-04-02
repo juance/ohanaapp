@@ -1,7 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 type VersionChange = {
   description: string;
@@ -80,11 +84,47 @@ const versionHistory: VersionInfo[] = [
 const currentVersion = versionHistory[versionHistory.length - 1].version;
 
 export const SystemVersionInfo: React.FC = () => {
+  const [isRollingBack, setIsRollingBack] = useState(false);
+
+  const handleRollbackToVersion = (version: string) => {
+    setIsRollingBack(true);
+    
+    // Simulación de rollback (aquí se implementaría la lógica real de rollback)
+    setTimeout(() => {
+      setIsRollingBack(false);
+      toast(`Sistema restaurado a la versión ${version}`);
+    }, 1500);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Información del Sistema</CardTitle>
-        <CardDescription>Detalles técnicos y versión</CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle>Información del Sistema</CardTitle>
+            <CardDescription>Detalles técnicos y versión</CardDescription>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1" disabled={isRollingBack}>
+                {isRollingBack ? "Restaurando..." : "Restaurar versión"}
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {versionHistory.slice().reverse().map((version) => (
+                <DropdownMenuItem
+                  key={version.version}
+                  disabled={version.version === currentVersion}
+                  onClick={() => handleRollbackToVersion(version.version)}
+                  className="cursor-pointer"
+                >
+                  Versión {version.version}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col space-y-1.5">
