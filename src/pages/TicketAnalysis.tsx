@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DateRangeSelector from '@/components/analysis/DateRangeSelector';
-import ActionButtons from '@/components/analysis/ActionButtons';
+import { ActionButtons } from '@/components/analysis/ActionButtons';
 import MetricsSection from '@/components/analytics/MetricsSection';
 import ChartTabs from '@/components/analytics/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
@@ -59,7 +59,7 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
           to={dateRange.to} 
           onUpdate={handleDateRangeChange} 
         />
-        <ActionButtons onExportData={handleExport} />
+        <ActionButtons onRefresh={async () => await refreshData()} onReset={undefined} />
       </div>
 
       {isLoading ? (
