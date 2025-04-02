@@ -1,4 +1,13 @@
 
-import { useToast, toast } from "sonner";
+import { toast } from "sonner";
 
-export { useToast, toast };
+// Sonner doesn't export useToast anymore, so we're creating a compatible implementation
+export const useToast = () => {
+  return {
+    toast,
+    // For backwards compatibility with any code still using the old API
+    dismiss: () => {},
+  };
+};
+
+export { toast };
