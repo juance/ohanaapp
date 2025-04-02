@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import React from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,9 +13,10 @@ interface DateRangeSelectorProps {
   to: Date;
   onUpdate: (from: Date, to: Date) => void;
   minDate?: Date;
+  className?: string;
 }
 
-const DateRangeSelector = ({ from, to, onUpdate, minDate }: DateRangeSelectorProps) => {
+const DateRangeSelector = ({ from, to, onUpdate, minDate, className }: DateRangeSelectorProps) => {
   const isMobile = useIsMobile();
   
   // Calcular fecha mínima predeterminada (90 días atrás)
@@ -26,43 +27,45 @@ const DateRangeSelector = ({ from, to, onUpdate, minDate }: DateRangeSelectorPro
   const effectiveMinDate = minDate || defaultMinDate;
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="w-full justify-start text-left sm:w-auto">
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {from ? (
-            to ? (
-              <>
-                {format(from, 'dd/MM/yy', { locale: es })} -{' '}
-                {format(to, 'dd/MM/yy', { locale: es })}
-              </>
+    <div className={className}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" className="w-full justify-start text-left sm:w-auto">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {from ? (
+              to ? (
+                <>
+                  {format(from, 'dd/MM/yy', { locale: es })} -{' '}
+                  {format(to, 'dd/MM/yy', { locale: es })}
+                </>
+              ) : (
+                format(from, 'PP', { locale: es })
+              )
             ) : (
-              format(from, 'PP', { locale: es })
-            )
-          ) : (
-            <span>Seleccionar rango</span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end">
-        <Calendar
-          initialFocus
-          mode="range"
-          defaultMonth={from}
-          selected={{
-            from: from,
-            to: to,
-          }}
-          onSelect={(range) => {
-            if (range?.from && range?.to) {
-              onUpdate(range.from, range.to);
-            }
-          }}
-          numberOfMonths={isMobile ? 1 : 2}
-          fromDate={effectiveMinDate} // Permitir seleccionar desde la fecha mínima
-        />
-      </PopoverContent>
-    </Popover>
+              <span>Seleccionar rango</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="end">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={from}
+            selected={{
+              from: from,
+              to: to,
+            }}
+            onSelect={(range) => {
+              if (range?.from && range?.to) {
+                onUpdate(range.from, range.to);
+              }
+            }}
+            numberOfMonths={isMobile ? 1 : 2}
+            fromDate={effectiveMinDate} // Permitir seleccionar desde la fecha mínima
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 };
 
