@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -15,20 +16,6 @@ interface TicketAnalysisProps {
 }
 
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
-  // Handler function for exporting data
-  const handleExport = async () => {
-    try {
-      toast("Exportando datos...");
-      await exportData();
-      toast("Datos exportados correctamente");
-    } catch (error) {
-      console.error("Error exporting data:", error);
-      toast("Error al exportar los datos", {
-        style: { backgroundColor: 'red', color: 'white' }
-      });
-    }
-  };
-
   // Get analytics data
   const {
     data,
@@ -42,6 +29,15 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
   // Handler for date range changes
   const handleDateRangeChange = (from: Date, to: Date) => {
     setDateRange({ from, to });
+  };
+
+  // Handler function for exporting data
+  const handleExport = async () => {
+    try {
+      await exportData();
+    } catch (error) {
+      console.error("Error exporting data:", error);
+    }
   };
 
   const content = (
