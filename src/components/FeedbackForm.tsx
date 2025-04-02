@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { addFeedback } from '@/lib/feedbackService';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Star } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
@@ -21,9 +20,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
 
   const handleCustomerSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Por favor ingrese un número de teléfono'
       });
       return;
@@ -34,14 +31,11 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       if (customer) {
         setCustomerId(customer.id);
         setCustomerName(customer.name);
-        toast({
-          title: "Success",
+        toast.success('Cliente encontrado', {
           description: `Cliente encontrado: ${customer.name}`
         });
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
+        toast.error('Error', {
           description: 'Cliente no encontrado'
         });
         setCustomerId(null);
@@ -49,9 +43,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       }
     } catch (error) {
       console.error('Error al buscar cliente:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Error al buscar cliente'
       });
     }
@@ -61,18 +53,14 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     e.preventDefault();
     
     if (!customerId) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Por favor busque un cliente primero'
       });
       return;
     }
     
     if (!comment.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Por favor ingrese un comentario'
       });
       return;
@@ -89,8 +77,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       });
       
       if (result) {
-        toast({
-          title: "Success",
+        toast.success('Comentario agregado correctamente', {
           description: 'Comentario agregado correctamente'
         });
         setPhoneNumber('');
@@ -100,17 +87,13 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
         setCustomerName('');
         onFeedbackAdded();
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
+        toast.error('Error', {
           description: 'Error al agregar comentario'
         });
       }
     } catch (error) {
       console.error('Error al enviar comentario:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Error al enviar comentario'
       });
     } finally {

@@ -1,10 +1,27 @@
 
-// Re-export the toast function from sonner with proper TypeScript types
 import { toast as sonnerToast } from 'sonner';
+import type { ExternalToast } from 'sonner';
 
-type ToastProps = Parameters<typeof sonnerToast>[1];
+type ToastProps = Parameters<typeof sonnerToast.success>[1];
 
-export const toast = {
+// Create a callable wrapper function for the toast
+function toastWrapper(props: {
+  title?: string;
+  description?: string;
+  variant?: 'default' | 'destructive';
+  [key: string]: unknown;
+}) {
+  const { title, description, variant, ...rest } = props;
+  
+  if (variant === 'destructive') {
+    return sonnerToast.error(title || '', { description, ...rest });
+  }
+  
+  return sonnerToast(title || '', { description, ...rest });
+}
+
+// Add all the methods from sonner toast to our wrapper
+const toast = Object.assign(toastWrapper, {
   // Main toast function
   ...sonnerToast,
   
@@ -28,6 +45,11 @@ export const toast = {
   loading: (title: string, props?: ToastProps) => {
     return sonnerToast.loading(title, props);
   }
+});
+
+// Create a useToast hook for compatibility
+const useToast = () => {
+  return { toast };
 };
 
-export { useToast } from 'sonner';
+export { toast, useToast };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,14 +29,9 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const success = await deleteFeedback(id);
       if (success) {
         setFeedback(feedback.filter(item => item.id !== id));
-        toast({
-          title: "Success", 
-          description: "Comentario eliminado exitosamente"
-        });
+        toast.success("Comentario eliminado exitosamente");
       } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
+        toast.error("Error", {
           description: "Error al eliminar el comentario"
         });
       }

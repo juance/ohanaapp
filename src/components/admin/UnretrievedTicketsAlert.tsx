@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -30,14 +29,12 @@ const UnretrievedTicketsAlert = () => {
       
       const now = new Date();
       
-      // Calculate dates for 45 and 90 days ago
       const date45DaysAgo = new Date();
       date45DaysAgo.setDate(now.getDate() - 45);
       
       const date90DaysAgo = new Date();
       date90DaysAgo.setDate(now.getDate() - 90);
       
-      // Get tickets that are ready (not delivered) and created more than 45 days ago
       const { data, error } = await supabase
         .from('tickets')
         .select(`
@@ -53,7 +50,6 @@ const UnretrievedTicketsAlert = () => {
       
       if (error) throw error;
       
-      // Process the data
       const processedTickets = data.map((ticket: any) => ({
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
@@ -62,7 +58,6 @@ const UnretrievedTicketsAlert = () => {
         daysAgo: Math.floor((now.getTime() - new Date(ticket.created_at).getTime()) / (1000 * 60 * 60 * 24))
       }));
       
-      // Split into two categories based on days
       const over90Days = processedTickets.filter(ticket => ticket.daysAgo >= 90);
       const between45And90Days = processedTickets.filter(ticket => ticket.daysAgo >= 45 && ticket.daysAgo < 90);
       
@@ -80,10 +75,7 @@ const UnretrievedTicketsAlert = () => {
   const handleRefresh = async () => {
     setRefreshing(true);
     await fetchUnretrievedTickets();
-    toast({
-      title: "Éxito",
-      description: "Datos de tickets actualizados correctamente"
-    });
+    toast.success("Datos de tickets actualizados correctamente");
     setRefreshing(false);
   };
 

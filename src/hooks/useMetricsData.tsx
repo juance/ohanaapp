@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { 
   getDailyMetrics, 
@@ -124,17 +123,12 @@ export const useMetricsData = (): UseMetricsDataReturn => {
         clientTypeBreakdown
       });
       
-      toast({
-        title: "Success",
-        description: "Datos de métricas actualizados"
-      });
+      toast.success("Datos de métricas actualizados");
       
     } catch (err) {
       console.error("Error fetching metrics data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching data'));
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: "Error al cargar los datos de métricas"
       });
     } finally {

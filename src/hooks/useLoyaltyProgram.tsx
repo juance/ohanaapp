@@ -43,8 +43,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
       const success = await addLoyaltyPoints(selectedClient.id, pointsToAdd);
       
       if (success) {
-        toast({
-          title: "Puntos agregados",
+        toast.success("Puntos agregados", {
           description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
         });
         
@@ -59,9 +58,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
         throw new Error("No se pudieron agregar los puntos");
       }
     } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: err.message || "Error al agregar puntos",
       });
     } finally {
@@ -71,9 +68,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
   
   const handleRedeemPoints = async () => {
     if (!selectedClient || !selectedClient.loyaltyPoints || pointsToRedeem <= 0 || pointsToRedeem > selectedClient.loyaltyPoints) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: "La cantidad de puntos a canjear no es válida",
       });
       return;
@@ -83,8 +78,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
       const success = await redeemLoyaltyPoints(selectedClient.id, pointsToRedeem);
       
       if (success) {
-        toast({
-          title: "Puntos canjeados",
+        toast.success("Puntos canjeados", {
           description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
         });
         
@@ -99,9 +93,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
         throw new Error("No se pudieron canjear los puntos");
       }
     } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: err.message || "Error al canjear puntos",
       });
     }

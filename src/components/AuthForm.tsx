@@ -21,16 +21,11 @@ const AuthForm = () => {
       // Save user to localStorage for persistence
       localStorage.setItem('user', JSON.stringify(user));
       
-      toast({
-        title: "Success",
-        description: `Welcome back, ${user.name}`
-      });
+      toast.success(`Welcome back, ${user.name}`);
       
       navigate('/dashboard');
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Please check your credentials and try again'
       });
     } finally {

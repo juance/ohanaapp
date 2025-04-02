@@ -17,16 +17,11 @@ export const ResetTicketNumbers = () => {
       
       if (error) throw error;
       
-      toast({
-        title: "Success",
-        description: 'Numeración de tickets reiniciada exitosamente'
-      });
+      toast.success('Numeración de tickets reiniciada exitosamente');
       setShowConfirmation(false);
     } catch (error) {
       console.error('Error al reiniciar la numeración de tickets:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error('Error', {
         description: 'Error al reiniciar la numeración de tickets'
       });
     } finally {

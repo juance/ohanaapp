@@ -37,15 +37,12 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     setIsSaving(true);
     try {
       onSave(data);
-      toast({
-        title: "Configuración guardada",
+      toast.success("Configuración guardada", {
         description: "Los ajustes generales se han actualizado correctamente.",
       });
     } catch (error) {
       console.error('Error al guardar configuración:', error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
+      toast.error("Error al guardar", {
         description: "No se pudieron guardar los ajustes. Intente nuevamente.",
       });
     } finally {
@@ -63,9 +60,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
       document.documentElement.classList.remove('dark');
     }
     
-    toast({
-      variant: "destructive",
-      title: "Formulario restablecido",
+    toast.error("Formulario restablecido", {
       description: "Se han restaurado los valores predeterminados.",
     });
   };

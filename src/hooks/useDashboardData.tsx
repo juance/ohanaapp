@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useMetricsData } from './useMetricsData';
 import { useExpensesData } from './useExpensesData';
@@ -26,13 +25,11 @@ interface UseDashboardDataReturn {
 export const useDashboardData = (): UseDashboardDataReturn => {
   const [error, setError] = useState<Error | null>(null);
   
-  // Use our separated hooks
   const metricsData = useMetricsData();
   const expensesData = useExpensesData();
   const clientData = useClientData();
   
-  // Calculate chart data based on metrics data and the current period
-  const period = 'monthly'; // Default to monthly
+  const period = 'monthly';
   const chartData = useChartData(
     period,
     {
@@ -47,16 +44,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     }
   );
   
-  // Determine overall loading state
   const isLoading = metricsData.isLoading || expensesData.loading || clientData.loading;
   
-  // Function to refresh all data
   const refreshData = async () => {
     try {
-      toast({
-        title: "Info",
-        description: "Actualizando datos del panel..."
-      });
+      toast.info("Actualizando datos del panel...");
       
       await Promise.all([
         metricsData.refreshData(),
@@ -64,27 +56,20 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         clientData.refreshData()
       ]);
       
-      toast({
-        title: "Success",
-        description: "Datos del panel actualizados correctamente"
-      });
+      toast.success("Datos del panel actualizados correctamente");
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: "Error al actualizar los datos del panel"
       });
     }
   };
   
-  // Initial load of data
   useEffect(() => {
     refreshData();
   }, []);
   
-  // Combine data for component consumption
   const combinedData = {
     metrics: metricsData.data || {},
     expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },

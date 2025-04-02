@@ -15,9 +15,7 @@ export const useClientsList = () => {
 
   const handleAddClient = async () => {
     if (!newClientName || !newClientPhone) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: "Nombre y teléfono son campos obligatorios.",
       });
       return;
@@ -37,23 +35,17 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      // Show success message
-      toast({
-        title: "Cliente agregado",
+      toast.success("Cliente agregado", {
         description: "El cliente ha sido agregado exitosamente.",
       });
       
-      // Refresh data
       await refreshData();
       
-      // Clear form
       setNewClientName('');
       setNewClientPhone('');
     } catch (err: any) {
       console.error("Error adding client:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: err.message || "Hubo un error al agregar el cliente.",
       });
     } finally {
@@ -79,17 +71,14 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      toast({
-        title: "Cliente actualizado",
+      toast.success("Cliente actualizado", {
         description: "Los datos del cliente han sido actualizados.",
       });
       
       setIsEditingClient(null);
       await refreshData();
     } catch (err: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
+      toast.error("Error", {
         description: err.message || "Error al actualizar el cliente.",
       });
     }

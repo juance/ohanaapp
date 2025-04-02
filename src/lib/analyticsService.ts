@@ -101,9 +101,7 @@ export const getTicketAnalytics = async (
     };
   } catch (error) {
     console.error('Error fetching ticket analytics:', error);
-    toast({
-      variant: "destructive", 
-      title: "Error", 
+    toast.error("Error", { 
       description: 'Error al obtener análisis de tickets'
     });
     
