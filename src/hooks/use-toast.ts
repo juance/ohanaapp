@@ -1,11 +1,10 @@
 
 import { toast as sonnerToast } from 'sonner';
-import type { ExternalToast } from 'sonner';
 
-// Exportamos directamente el toast de sonner para un uso más sencillo
+// Export the toast function directly
 export const toast = sonnerToast;
 
-// Hook simple para mantener compatibilidad con código existente
+// Create a simple hook for compatibility with existing code
 export const useToast = () => {
   return {
     toast: sonnerToast
