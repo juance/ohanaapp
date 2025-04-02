@@ -10,5 +10,3 @@ export const useToast = () => {
     toast: sonnerToast
   };
 };
-
-// Note: We don't re-export Toaster here, import it directly from sonner

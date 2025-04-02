@@ -1,6 +1,10 @@
 
-// Re-export toast from the simplified implementation
+// Re-export toast from sonner
 import { toast } from 'sonner';
-import { useToast } from '@/hooks/use-toast';
 
-export { toast, useToast };
+// Simple hook that returns the toast function
+export const useToast = () => {
+  return { toast };
+};
+
+export { toast };
