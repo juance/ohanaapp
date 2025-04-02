@@ -1,4 +1,3 @@
-
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
 import { storeTicketData } from './ticketService';
 import { addExpense } from './expenseService';

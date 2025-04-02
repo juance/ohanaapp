@@ -40,7 +40,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
         createdAt: new Date().toISOString()
       };
       
-      // Add to beginning of array
+      // Add to expenses array
       localExpenses.push(newExpense);
       saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
       return true;
@@ -51,7 +51,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
   }
 };
 
-// Alias for storeExpense to maintain compatibility with existing code
+// Alias for addExpense to maintain compatibility with existing code
 export const storeExpense = addExpense;
 
 /**
@@ -105,7 +105,7 @@ export const getExpenses = async (startDate?: Date, endDate?: Date): Promise<Exp
   }
 };
 
-// Alias for getStoredExpenses to maintain compatibility
+// Alias for getExpenses to maintain compatibility
 export const getStoredExpenses = async (): Promise<Expense[]> => {
   return getExpenses();
 }
