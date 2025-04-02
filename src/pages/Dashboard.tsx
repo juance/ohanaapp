@@ -45,8 +45,11 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       setIsResetting(true);
       toast("Reiniciando datos de tickets...");
       
-      // Reset tickets to zero using RPC function
-      const { error: resetError } = await supabase.rpc('reset_ticket_data');
+      // Reset tickets to zero using a direct database query since RPC isn't available
+      const { error: resetError } = await supabase
+        .from('tickets')
+        .update({ is_canceled: true, cancel_reason: 'Reset por administrador' })
+        .gt('id', '0');
       
       if (resetError) throw resetError;
       
