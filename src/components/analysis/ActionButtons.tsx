@@ -1,42 +1,91 @@
 
-import { Download, RefreshCw, Users, Star } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
-import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { RefreshCw, RotateCcw } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface ActionButtonsProps {
-  onExportData: () => void;
+  onRefresh: () => Promise<void>;
+  onReset?: () => Promise<void>;
 }
 
-const ActionButtons = ({ onExportData }: ActionButtonsProps) => {
+export const ActionButtons: React.FC<ActionButtonsProps> = ({ 
+  onRefresh, 
+  onReset 
+}) => {
+  const [isResetting, setIsResetting] = React.useState(false);
+  
+  const handleRefresh = async () => {
+    toast("Actualizando datos...");
+    await onRefresh();
+  };
+  
+  const handleReset = async () => {
+    try {
+      setIsResetting(true);
+      await onReset?.();
+      toast("Datos reiniciados correctamente");
+      await onRefresh();
+    } catch (err) {
+      console.error("Error resetting data:", err);
+      toast("Error al reiniciar los datos");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+  
   return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Button variant="outline" onClick={() => window.location.reload()}>
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Actualizar
-      </Button>
+    <div className="flex gap-2">
+      {onReset && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="destructive" 
+              size="sm"
+              className="flex items-center gap-2"
+              disabled={isResetting}
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reiniciar Datos
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Reiniciar datos?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción reiniciará todos los datos a cero. Esta acción no puede deshacerse.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction onClick={handleReset}>
+                Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
       
-      <Button variant="outline" onClick={onExportData}>
-        <Download className="mr-2 h-4 w-4" />
-        Exportar
-      </Button>
-      
-      <Link to="/clients">
-        <Button variant="outline">
-          <Users className="mr-2 h-4 w-4" />
-          Gestionar Clientes
-        </Button>
-      </Link>
-      
-      <Button variant="default" asChild>
-        <Link to="/loyalty">
-          <Star className="mr-2 h-4 w-4" />
-          Programa de Fidelidad
-        </Link>
+      <Button 
+        onClick={handleRefresh} 
+        variant="outline" 
+        size="sm"
+        className="flex items-center gap-2"
+      >
+        <RefreshCw className="h-4 w-4" />
+        Actualizar Datos
       </Button>
     </div>
   );
 };
-
-export default ActionButtons;
