@@ -1,6 +1,11 @@
-
 import { useState, useEffect } from 'react';
-import { getExpenses, addExpense, getDailyExpenses, getWeeklyExpenses, getMonthlyExpenses } from '@/lib/data/expenseService';
+import { 
+  getExpenses, 
+  addExpense, 
+  getDailyExpenses, 
+  getWeeklyExpenses, 
+  getMonthlyExpenses 
+} from '@/lib/data/expense';
 import { Expense } from '@/lib/types';
 
 interface UseExpensesDataReturn {
