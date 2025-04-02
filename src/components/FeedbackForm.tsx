@@ -20,9 +20,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
 
   const handleCustomerSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast.error('Error', {
-        description: 'Por favor ingrese un número de teléfono'
-      });
+      toast("Por favor ingrese un número de teléfono");
       return;
     }
 
@@ -31,21 +29,15 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       if (customer) {
         setCustomerId(customer.id);
         setCustomerName(customer.name);
-        toast.success('Cliente encontrado', {
-          description: `Cliente encontrado: ${customer.name}`
-        });
+        toast("Cliente encontrado: " + customer.name);
       } else {
-        toast.error('Error', {
-          description: 'Cliente no encontrado'
-        });
+        toast("Cliente no encontrado");
         setCustomerId(null);
         setCustomerName('');
       }
     } catch (error) {
       console.error('Error al buscar cliente:', error);
-      toast.error('Error', {
-        description: 'Error al buscar cliente'
-      });
+      toast("Error al buscar cliente");
     }
   };
 
@@ -53,16 +45,12 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     e.preventDefault();
     
     if (!customerId) {
-      toast.error('Error', {
-        description: 'Por favor busque un cliente primero'
-      });
+      toast("Por favor busque un cliente primero");
       return;
     }
     
     if (!comment.trim()) {
-      toast.error('Error', {
-        description: 'Por favor ingrese un comentario'
-      });
+      toast("Por favor ingrese un comentario");
       return;
     }
     
@@ -77,9 +65,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       });
       
       if (result) {
-        toast.success('Comentario agregado correctamente', {
-          description: 'Comentario agregado correctamente'
-        });
+        toast("Comentario agregado correctamente");
         setPhoneNumber('');
         setComment('');
         setRating(5);
@@ -87,15 +73,11 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
         setCustomerName('');
         onFeedbackAdded();
       } else {
-        toast.error('Error', {
-          description: 'Error al agregar comentario'
-        });
+        toast("Error al agregar comentario");
       }
     } catch (error) {
       console.error('Error al enviar comentario:', error);
-      toast.error('Error', {
-        description: 'Error al enviar comentario'
-      });
+      toast("Error al enviar comentario");
     } finally {
       setIsSubmitting(false);
     }

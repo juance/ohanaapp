@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useMetricsData } from './useMetricsData';
 import { useExpensesData } from './useExpensesData';
@@ -48,7 +49,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   const refreshData = async () => {
     try {
-      toast.info("Actualizando datos del panel...");
+      toast("Actualizando datos del panel...");
       
       await Promise.all([
         metricsData.refreshData(),
@@ -56,13 +57,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         clientData.refreshData()
       ]);
       
-      toast.success("Datos del panel actualizados correctamente");
+      toast("Datos del panel actualizados correctamente");
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast.error("Error", {
-        description: "Error al actualizar los datos del panel"
-      });
+      toast("Error al actualizar los datos del panel");
     }
   };
   

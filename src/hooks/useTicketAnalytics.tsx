@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface TicketAnalytics {
   totalTickets: number;
@@ -16,8 +16,8 @@ interface TicketAnalytics {
   revenueByMonth: Array<{ month: string; revenue: number }>;
   itemTypeDistribution: Record<string, number>;
   paymentMethodDistribution: Record<string, number>;
-  freeValets?: number; // Add this optional property
-  paidTickets?: number; // Add this optional property
+  freeValets?: number;
+  paidTickets?: number;
 }
 
 export interface UseTicketAnalyticsReturn {
@@ -58,7 +58,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Get tickets within date range from Supabase
       const { data: tickets, error: ticketsError } = await supabase
         .from('tickets')
         .select(`
@@ -100,18 +99,14 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         return;
       }
 
-      // Calculate metrics
       const totalTickets = tickets.length;
       const totalRevenue = tickets.reduce((sum, ticket) => sum + (Number(ticket.total) || 0), 0);
       const averageTicketValue = totalTickets > 0 ? totalRevenue / totalTickets : 0;
 
-      // Count of free valets
       const freeValets = tickets.filter(ticket => ticket.valet_quantity > 0 && ticket.total === 0).length;
       
-      // Count of paid tickets
       const paidTickets = tickets.filter(ticket => ticket.is_paid).length;
 
-      // Distribution by status
       const ticketsByStatus = {
         pending: 0,
         processing: 0,
@@ -126,14 +121,12 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         }
       });
 
-      // Distribution by payment method
       const paymentMethodDistribution: Record<string, number> = {};
       tickets.forEach(ticket => {
         const method = ticket.payment_method;
         paymentMethodDistribution[method] = (paymentMethodDistribution[method] || 0) + 1;
       });
 
-      // Item type distribution
       const itemTypeDistribution: Record<string, number> = {};
       tickets.forEach(ticket => {
         if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
@@ -144,7 +137,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         }
       });
 
-      // Top services analysis
       const servicesMap = new Map<string, number>();
       tickets.forEach(ticket => {
         if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
@@ -152,7 +144,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
             servicesMap.set(item.name, (servicesMap.get(item.name) || 0) + (item.quantity || 1));
           });
         } else {
-          // Handle valet tickets
           servicesMap.set('Valet', (servicesMap.get('Valet') || 0) + 1);
         }
       });
@@ -162,7 +153,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         .sort((a, b) => b.count - a.count)
         .slice(0, 5);
 
-      // Revenue by month
       const revenueByMonthMap = new Map<string, number>();
       const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -206,7 +196,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   }, [dateRange]);
 
   const exportData = async () => {
-    // Implement CSV export logic
     try {
       const csvContent = [
         ['Métrica', 'Valor'],
@@ -230,7 +219,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
       const csvString = csvContent.map(row => row.join(',')).join('\n');
       
-      // Create a download link
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

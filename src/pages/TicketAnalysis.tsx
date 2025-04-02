@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -19,21 +18,13 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
   // Handler function for exporting data
   const handleExport = async () => {
     try {
-      toast({
-        title: "Info",
-        description: "Exportando datos..."
-      });
+      toast("Exportando datos...");
       await exportData();
-      toast({
-        title: "Success",
-        description: "Datos exportados correctamente"
-      });
+      toast("Datos exportados correctamente");
     } catch (error) {
       console.error("Error exporting data:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error al exportar los datos"
+      toast("Error al exportar los datos", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
     }
   };

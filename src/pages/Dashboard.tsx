@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import MetricsCards from '@/components/dashboard/MetricsCards';
@@ -19,17 +18,12 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   
   const handleRefresh = async () => {
     try {
-      toast({
-        title: "Info",
-        description: "Actualizando panel de control..."
-      });
+      toast("Actualizando panel de control...");
       await refreshData();
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error al actualizar el panel de control"
+      toast("Error al actualizar el panel de control", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
     }
   };

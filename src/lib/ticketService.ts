@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { Ticket } from './types';
@@ -18,7 +17,6 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       
     if (error) throw error;
     
-    // Transform data to match the Ticket type
     const tickets = data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
@@ -41,7 +39,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     return tickets;
   } catch (error) {
     console.error('Error fetching pickup tickets:', error);
-    toast.error('Error fetching tickets for pickup');
+    toast("Error fetching tickets for pickup");
     return [];
   }
 };
@@ -84,7 +82,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     return tickets;
   } catch (error) {
     console.error('Error fetching delivered tickets:', error);
-    toast.error('Error fetching delivered tickets');
+    toast("Error fetching delivered tickets");
     return [];
   }
 };
@@ -104,11 +102,11 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
       
     if (error) throw error;
     
-    toast.success('Ticket marcado como entregado y pagado');
+    toast("Ticket marcado como entregado y pagado");
     return true;
   } catch (error) {
     console.error('Error marking ticket as delivered:', error);
-    toast.error('Error al marcar el ticket como entregado');
+    toast("Error al marcar el ticket como entregado");
     return false;
   }
 };
@@ -126,11 +124,11 @@ export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boole
       
     if (error) throw error;
     
-    toast.success('Ticket marcado como pagado por adelantado');
+    toast("Ticket marcado como pagado por adelantado");
     return true;
   } catch (error) {
     console.error('Error marking ticket as paid:', error);
-    toast.error('Error al marcar el ticket como pagado');
+    toast("Error al marcar el ticket como pagado");
     return false;
   }
 };
@@ -149,11 +147,11 @@ export const cancelTicket = async (ticketId: string, reason: string): Promise<bo
       
     if (error) throw error;
     
-    toast.success('Ticket anulado correctamente');
+    toast("Ticket anulado correctamente");
     return true;
   } catch (error) {
     console.error('Error canceling ticket:', error);
-    toast.error('Error al anular el ticket');
+    toast("Error al anular el ticket");
     return false;
   }
 };

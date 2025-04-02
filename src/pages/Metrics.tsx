@@ -28,10 +28,7 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
   } = useMetricsData();
   
   const handleRefresh = async () => {
-    toast({
-      title: "Info",
-      description: "Actualizando datos..."
-    });
+    toast("Actualizando datos...");
     await refreshData();
   };
   

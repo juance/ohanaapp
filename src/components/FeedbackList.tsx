@@ -29,10 +29,10 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const success = await deleteFeedback(id);
       if (success) {
         setFeedback(feedback.filter(item => item.id !== id));
-        toast.success("Comentario eliminado exitosamente");
+        toast("Comentario eliminado exitosamente");
       } else {
-        toast.error("Error", {
-          description: "Error al eliminar el comentario"
+        toast("Error al eliminar el comentario", {
+          style: { backgroundColor: 'red', color: 'white' }
         });
       }
     }

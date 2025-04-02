@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -73,19 +72,15 @@ const Expenses = () => {
   
   const handleAddExpense = () => {
     if (!description) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debe ingresar una descripción"
+      toast("Debe ingresar una descripción", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
       return;
     }
     
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debe ingresar un monto válido"
+      toast("Debe ingresar un monto válido", {
+        style: { backgroundColor: 'red', color: 'white' }
       });
       return;
     }
