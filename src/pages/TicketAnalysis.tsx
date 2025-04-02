@@ -40,6 +40,14 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     }
   };
 
+  // Fixed function to return a Promise
+  const handleRefreshData = async (): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      setDateRange({...dateRange});
+      resolve();
+    });
+  };
+
   const content = (
     <>
       {!embedded && (
@@ -60,7 +68,7 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
           onUpdate={handleDateRangeChange} 
         />
         <ActionButtons 
-          onRefresh={() => setDateRange({...dateRange})} 
+          onRefresh={handleRefreshData} 
           onReset={undefined} 
         />
       </div>

@@ -40,7 +40,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
         createdAt: new Date().toISOString()
       };
       
-      // Add to expenses array
+      // Add to expenses array - fixed: don't pass single expense as array
       localExpenses.push(newExpense);
       saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
       return true;
