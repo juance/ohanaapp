@@ -17,16 +17,7 @@ interface TicketAnalysisProps {
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
   const [exporting, setExporting] = useState(false);
 
-  const handleExport = async () => {
-    setExporting(true);
-    try {
-      await exportData();
-    } catch (error) {
-      console.error('Export failed:', error);
-    } finally {
-      setExporting(false);
-    }
-  };
+  
 
   // Get analytics data
   const {
