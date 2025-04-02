@@ -21,7 +21,7 @@ export const storeExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): 
     
     // Fallback to localStorage
     try {
-      const localExpenses = getFromLocalStorage<Expense>(EXPENSES_STORAGE_KEY);
+      const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
       
       const newExpense: Expense = {
         id: crypto.randomUUID(),
@@ -68,7 +68,7 @@ export const getStoredExpenses = async (startDate?: Date, endDate?: Date): Promi
     console.error('Error retrieving expenses from Supabase:', error);
     
     // Fallback to localStorage
-    const localExpenses = getFromLocalStorage<Expense>(EXPENSES_STORAGE_KEY);
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Filter by date if provided
     if (startDate || endDate) {
