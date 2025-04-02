@@ -1,6 +1,7 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMetricsData } from '@/hooks/useMetricsData';
 import { DateRangeSelector } from '@/components/metrics/DateRangeSelector';
@@ -11,7 +12,19 @@ import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MetricsProps {
   embedded?: boolean;
@@ -27,9 +40,30 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
     refreshData
   } = useMetricsData();
   
+  const [isResetting, setIsResetting] = useState(false);
+  
   const handleRefresh = async () => {
     toast("Actualizando datos...");
     await refreshData();
+  };
+
+  const handleResetMetrics = async () => {
+    try {
+      setIsResetting(true);
+      
+      // Reset metrics data in database
+      const { error: resetError } = await supabase.rpc('reset_metrics_data');
+      
+      if (resetError) throw resetError;
+      
+      toast.success("Datos de métricas reiniciados correctamente");
+      await refreshData();
+    } catch (err) {
+      console.error("Error resetting metrics data:", err);
+      toast.error("Error al reiniciar los datos de métricas");
+    } finally {
+      setIsResetting(false);
+    }
   };
   
   console.log("Current metrics data:", data);
@@ -46,15 +80,46 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
             <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
             <p className="text-gray-500">Métricas</p>
           </div>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Actualizar Datos
-          </Button>
+          <div className="flex gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  className="flex items-center gap-2"
+                  disabled={isResetting}
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Reiniciar Métricas
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>¿Reiniciar datos de métricas?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta acción reiniciará todos los datos de métricas a cero. Esto incluye información de clientes, tickets, ingresos y servicios.
+                    Esta acción no puede deshacerse.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleResetMetrics}>
+                    Confirmar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Actualizar Datos
+            </Button>
+          </div>
         </header>
       )}
       

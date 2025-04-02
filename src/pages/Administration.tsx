@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
 import DataReset from '@/components/admin/DataReset';
 import UnretrievedTicketsAlert from '@/components/admin/UnretrievedTicketsAlert';
+import VersionHistory from '@/components/admin/VersionHistory';
 
 const Administration = () => {
   useEffect(() => {
@@ -49,12 +50,13 @@ const Administration = () => {
           </header>
           
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="tickets">Tickets</TabsTrigger>
               <TabsTrigger value="alerts">Alertas</TabsTrigger>
               <TabsTrigger value="errors">Errores</TabsTrigger>
               <TabsTrigger value="system">Sistema</TabsTrigger>
+              <TabsTrigger value="versions">Versiones</TabsTrigger>
             </TabsList>
             
             <TabsContent value="general" className="space-y-6">
@@ -82,7 +84,7 @@ const Administration = () => {
                 <CardContent className="space-y-2">
                   <div className="flex flex-col space-y-1.5">
                     <h3 className="text-sm font-medium">Versión</h3>
-                    <p className="text-sm text-muted-foreground">1.0.0</p>
+                    <p className="text-sm text-muted-foreground">1.3.0</p>
                   </div>
                   <div className="flex flex-col space-y-1.5">
                     <h3 className="text-sm font-medium">Base de Datos</h3>
@@ -92,6 +94,10 @@ const Administration = () => {
               </Card>
               
               <DataReset />
+            </TabsContent>
+
+            <TabsContent value="versions" className="space-y-6">
+              <VersionHistory />
             </TabsContent>
           </Tabs>
         </div>

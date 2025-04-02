@@ -31,6 +31,7 @@ export const storeExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): 
         createdAt: new Date().toISOString()
       };
       
+      // Corregido: Agregamos el elemento al array y luego lo guardamos
       localExpenses.push(newExpense);
       saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
       return true;

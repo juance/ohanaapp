@@ -5,7 +5,7 @@ import { useExpensesData } from './useExpensesData';
 import { useClientData } from './useClientData';
 import { useChartData } from './useChartData';
 import { ClientVisit } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface UseDashboardDataReturn {
   isLoading: boolean;
@@ -57,11 +57,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         clientData.refreshData()
       ]);
       
-      toast("Datos del panel actualizados correctamente");
+      toast.success("Datos del panel actualizados correctamente");
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast("Error al actualizar los datos del panel");
+      toast.error("Error al actualizar los datos del panel");
     }
   };
   
