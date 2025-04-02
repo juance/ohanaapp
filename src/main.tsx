@@ -14,7 +14,7 @@ import { Toaster } from './components/ui/sonner.tsx';
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
+      retry: 2,
       refetchOnWindowFocus: false,
       staleTime: 10 * 60 * 1000, // 10 minutes
       gcTime: 15 * 60 * 1000, // 15 minutes

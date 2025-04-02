@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import MetricsCards from '@/components/dashboard/MetricsCards';
@@ -7,7 +8,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast as sonnerToast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 interface DashboardProps {
   embedded?: boolean;
@@ -18,11 +19,18 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   
   const handleRefresh = async () => {
     try {
-      sonnerToast.info("Actualizando panel de control...");
+      toast({
+        title: "Info",
+        description: "Actualizando panel de control..."
+      });
       await refreshData();
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
-      sonnerToast.error("Error al actualizar el panel de control");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al actualizar el panel de control"
+      });
     }
   };
   

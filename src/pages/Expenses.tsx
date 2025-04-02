@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import {
   TableHeader, 
   TableRow
 } from '@/components/ui/table';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,26 +52,41 @@ const Expenses = () => {
   const addExpenseMutation = useMutation({
     mutationFn: (expenseData: {description: string; amount: number; date: string}) => storeExpense(expenseData),
     onSuccess: () => {
-      toast.success('Gasto agregado correctamente');
+      toast({
+        title: "Success",
+        description: "Gasto agregado correctamente"
+      });
       setDescription('');
       setAmount('');
       setDate(new Date());
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
     onError: (error) => {
-      toast.error('Error al agregar el gasto');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al agregar el gasto"
+      });
       console.error('Error adding expense:', error);
     }
   });
   
   const handleAddExpense = () => {
     if (!description) {
-      toast.error('Debe ingresar una descripción');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debe ingresar una descripción"
+      });
       return;
     }
     
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast.error('Debe ingresar un monto válido');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Debe ingresar un monto válido"
+      });
       return;
     }
     
