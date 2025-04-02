@@ -1,7 +1,7 @@
 
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
 import { storeTicketData } from './ticketService';
-import { storeExpense } from './expenseService';
+import { addExpense } from './expenseService';
 
 /**
  * Synchronize offline data with Supabase
@@ -57,7 +57,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
         };
         
         try {
-          await storeExpense(expenseData);
+          await addExpense(expenseData);
           expense.pendingSync = false;
         } catch (syncError) {
           console.error(`Error syncing expense:`, syncError);

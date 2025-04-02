@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getStoredExpenses, storeExpense, getDailyExpenses, getWeeklyExpenses, getMonthlyExpenses } from '@/lib/dataService';
+import { getExpenses, addExpense, getDailyExpenses, getWeeklyExpenses, getMonthlyExpenses } from '@/lib/data/expenseService';
 import { Expense } from '@/lib/types';
 
 interface UseExpensesDataReturn {
@@ -37,7 +37,7 @@ export const useExpensesData = (): UseExpensesDataReturn => {
       setLoading(true);
       
       // Get all expenses for the list
-      const allExpenses = await getStoredExpenses();
+      const allExpenses = await getExpenses();
       setExpenses(allExpenses);
       
       // Calculate total
@@ -69,9 +69,9 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     await fetchExpenses();
   };
   
-  const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
+  const handleAddExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
     try {
-      await storeExpense(expense);
+      await addExpense(expense);
       await fetchExpenses(); // Refresh the data after adding a new expense
     } catch (err) {
       console.error("Error adding expense:", err);
@@ -90,6 +90,6 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     totalExpenses,
     periodExpenses,
     refreshData,
-    addExpense
+    addExpense: handleAddExpense
   };
 };
