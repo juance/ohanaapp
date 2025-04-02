@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getStoredExpenses, storeExpense } from '@/lib/dataService';
+import { getStoredExpenses, storeExpense, getDailyExpenses, getWeeklyExpenses, getMonthlyExpenses } from '@/lib/dataService';
 import { Expense } from '@/lib/types';
 
 interface UseExpensesDataReturn {
@@ -8,6 +8,11 @@ interface UseExpensesDataReturn {
   error: Error | null;
   expenses: Expense[];
   totalExpenses: number;
+  periodExpenses: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
   refreshData: () => Promise<void>;
   addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => Promise<void>;
 }
@@ -17,17 +22,40 @@ export const useExpensesData = (): UseExpensesDataReturn => {
   const [error, setError] = useState<Error | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [totalExpenses, setTotalExpenses] = useState<number>(0);
+  const [periodExpenses, setPeriodExpenses] = useState<{
+    daily: number;
+    weekly: number;
+    monthly: number;
+  }>({
+    daily: 0,
+    weekly: 0,
+    monthly: 0
+  });
   
   const fetchExpenses = async () => {
     try {
-      // Get all expenses
-      const allExpenses = await getStoredExpenses();
+      setLoading(true);
       
+      // Get all expenses for the list
+      const allExpenses = await getStoredExpenses();
       setExpenses(allExpenses);
       
       // Calculate total
       const total = allExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       setTotalExpenses(total);
+      
+      // Get period expenses
+      const [daily, weekly, monthly] = await Promise.all([
+        getDailyExpenses(),
+        getWeeklyExpenses(),
+        getMonthlyExpenses()
+      ]);
+      
+      setPeriodExpenses({
+        daily,
+        weekly,
+        monthly
+      });
     } catch (err) {
       console.error("Error fetching expenses:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching expenses'));
@@ -60,6 +88,7 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     error,
     expenses,
     totalExpenses,
+    periodExpenses,
     refreshData,
     addExpense
   };

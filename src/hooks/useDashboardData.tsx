@@ -39,9 +39,9 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       monthly: metricsData.data?.monthly || null
     },
     {
-      daily: Number(expensesData.expenses?.daily || 0),
-      weekly: Number(expensesData.expenses?.weekly || 0),
-      monthly: Number(expensesData.expenses?.monthly || 0)
+      daily: Number(expensesData.periodExpenses?.daily || 0),
+      weekly: Number(expensesData.periodExpenses?.weekly || 0),
+      monthly: Number(expensesData.periodExpenses?.monthly || 0)
     }
   );
   
@@ -49,7 +49,9 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   const refreshData = async () => {
     try {
-      toast("Actualizando datos del panel...");
+      toast({
+        title: "Actualizando datos del panel...",
+      });
       
       await Promise.all([
         metricsData.refreshData(),
@@ -57,11 +59,16 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         clientData.refreshData()
       ]);
       
-      toast("Datos del panel actualizados correctamente");
+      toast({
+        title: "Datos del panel actualizados correctamente"
+      });
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast("Error al actualizar los datos del panel");
+      toast({
+        title: "Error al actualizar los datos del panel",
+        variant: "destructive"
+      });
     }
   };
   
@@ -71,7 +78,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   const combinedData = {
     metrics: metricsData.data || {},
-    expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
+    expenses: expensesData.periodExpenses || { daily: 0, weekly: 0, monthly: 0 },
     clients: clientData.frequentClients || [],
     chartData: chartData || { barData: [], lineData: [], pieData: [] }
   };

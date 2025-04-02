@@ -85,3 +85,40 @@ export const getStoredExpenses = async (startDate?: Date, endDate?: Date): Promi
     return localExpenses;
   }
 };
+
+// Utility functions to get expenses by time period
+export const getDailyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  const startOfDay = new Date(today);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(today);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  const expenses = await getStoredExpenses(startOfDay, endOfDay);
+  return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+};
+
+export const getWeeklyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+  startOfWeek.setHours(0, 0, 0, 0);
+  
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+  endOfWeek.setHours(23, 59, 59, 999);
+  
+  const expenses = await getStoredExpenses(startOfWeek, endOfWeek);
+  return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+};
+
+export const getMonthlyExpenses = async (): Promise<number> => {
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
+  
+  const expenses = await getStoredExpenses(startOfMonth, endOfMonth);
+  return expenses.reduce((sum, exp) => sum + exp.amount, 0);
+};
