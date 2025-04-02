@@ -41,9 +41,7 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
       };
       
       // Add to expenses array - fixed: push to array instead of passing as parameter
-      localExpenses.push(newExpense);
-      saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
-      return true;
+     
     } catch (localError) {
       console.error('Error saving expense to localStorage:', localError);
       return false;
