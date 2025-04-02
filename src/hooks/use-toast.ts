@@ -1,15 +1,15 @@
 
-import React from 'react';
-import { toast as sonnerToast, Toaster } from 'sonner';
+import { Toaster } from 'sonner';
 
-// Export the toast function directly
-export const toast = sonnerToast;
+// Export the toast function directly from sonner
+export { toast } from 'sonner';
 
 // Create a simple hook for compatibility with existing code
 export const useToast = () => {
   return {
-    toast: sonnerToast
+    toast
   };
 };
 
+// Re-export the Toaster component for convenience
 export { Toaster as SonnerToaster };

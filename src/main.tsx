@@ -1,3 +1,4 @@
+
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
@@ -7,7 +8,7 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 import { setupGlobalErrorHandling } from './lib/errorService.ts';
-import { Toaster } from './components/ui/toaster.tsx';
+import { Toaster } from 'sonner';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
@@ -44,7 +45,7 @@ try {
           <QueryClientProvider client={queryClient}>
             <ErrorBoundary>
               <App />
-              <Toaster />
+              <Toaster position="top-right" richColors closeButton />
             </ErrorBoundary>
           </QueryClientProvider>
         </ThemeProvider>

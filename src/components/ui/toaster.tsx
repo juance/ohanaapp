@@ -1,7 +1,7 @@
 
 "use client"
 
-import { SonnerToaster } from "@/hooks/use-toast";
+import { SonnerToaster } from 'sonner';
 
 export function Toaster() {
   return <SonnerToaster position="top-right" richColors closeButton />

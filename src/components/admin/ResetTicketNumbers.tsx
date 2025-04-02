@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export const ResetTicketNumbers = () => {
   const [isResetting, setIsResetting] = useState(false);
@@ -21,9 +21,7 @@ export const ResetTicketNumbers = () => {
       setShowConfirmation(false);
     } catch (error) {
       console.error('Error al reiniciar la numeración de tickets:', error);
-      toast.error('Error', {
-        description: 'Error al reiniciar la numeración de tickets'
-      });
+      toast.error('Error al reiniciar la numeración de tickets');
     } finally {
       setIsResetting(false);
     }
