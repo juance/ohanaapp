@@ -48,7 +48,7 @@ const toast = Object.assign(toastWrapper, {
   }
 });
 
-// Create a useToast hook for compatibility
+// Create a useToast hook for compatibility - but don't rely on React.useState
 const useToast = () => {
   return { toast };
 };
