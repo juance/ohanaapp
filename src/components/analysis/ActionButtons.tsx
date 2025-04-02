@@ -34,9 +34,11 @@ export const ActionButtons: React.FC<ActionButtonsProps> = ({
   const handleReset = async () => {
     try {
       setIsResetting(true);
-      await onReset?.();
-      toast("Datos reiniciados correctamente");
-      await onRefresh();
+      if (onReset) {
+        await onReset();
+        toast("Datos reiniciados correctamente");
+        await onRefresh();
+      }
     } catch (err) {
       console.error("Error resetting data:", err);
       toast("Error al reiniciar los datos");

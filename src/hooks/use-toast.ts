@@ -1,5 +1,5 @@
 
-import * as React from "react"; // Add explicit React import
+import * as React from "react";
 import { toast as sonnerToast } from 'sonner';
 
 // Export the toast function directly from sonner

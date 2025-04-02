@@ -40,7 +40,7 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     }
   };
 
-  // Fixed function to return a Promise
+  // Fixed function to properly return a Promise
   const handleRefreshData = async (): Promise<void> => {
     return new Promise<void>((resolve) => {
       setDateRange({...dateRange});
