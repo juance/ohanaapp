@@ -1,124 +1,92 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.21.0'
+// Supabase Edge Function: reset_all_data
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
-serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+serve(async (req: Request) => {
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Create a Supabase client for the function
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    // Get variables from environment
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 
-    console.log('Starting full data reset...')
+    // Initialize Supabase client with the service role key
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Preserve customers, but reset their loyalty data
-    const { error: loyaltyError } = await supabaseClient
-      .from('customers')
+    console.log("Starting data reset process...");
+
+    // Delete all tickets and related data
+    await supabase.from("dry_cleaning_items").delete().gt("id", "0");
+    await supabase.from("ticket_laundry_options").delete().gt("id", "0");
+    
+    console.log("Cleared ticket items and options");
+    
+    // Delete all tickets
+    await supabase.from("tickets").delete().gt("id", "0");
+    console.log("Cleared tickets");
+
+    // Reset customer loyalty points and valets
+    const { error: customerError } = await supabase
+      .from("customers")
       .update({
         loyalty_points: 0,
-        free_valets: 0,
         valets_count: 0,
+        free_valets: 0,
         valets_redeemed: 0
       })
-      .not('id', 'is', null) // Add this to avoid UPDATE without WHERE clause error
+      .gt("id", "0");
 
-    if (loyaltyError) {
-      console.error('Error resetting loyalty data:', loyaltyError)
-      // Continue with the reset process even if there's an error here
+    if (customerError) {
+      throw customerError;
     }
-
-    // Delete all ticket_laundry_options (need to delete these first due to foreign key constraints)
-    const { error: optionsError } = await supabaseClient
-      .from('ticket_laundry_options')
-      .delete()
-      .not('id', 'is', null)
-
-    if (optionsError) {
-      console.error('Error deleting ticket_laundry_options:', optionsError)
-      // Continue with the reset process even if there's an error here
-    }
-
-    // Delete all dry_cleaning_items (need to delete these first due to foreign key constraints)
-    const { error: itemsError } = await supabaseClient
-      .from('dry_cleaning_items')
-      .delete()
-      .not('id', 'is', null)
-
-    if (itemsError) {
-      console.error('Error deleting dry_cleaning_items:', itemsError)
-      // Continue with the reset process even if there's an error here
-    }
-
-    // Delete all tickets
-    const { error: ticketsError } = await supabaseClient
-      .from('tickets')
-      .delete()
-      .not('id', 'is', null)
-
-    if (ticketsError) {
-      console.error('Error deleting tickets:', ticketsError)
-      // Continue with the reset process even if there's an error here
-    }
+    console.log("Reset customer loyalty data");
 
     // Delete all expenses
-    const { error: expensesError } = await supabaseClient
-      .from('expenses')
-      .delete()
-      .not('id', 'is', null)
+    await supabase.from("expenses").delete().gt("id", "0");
+    console.log("Cleared expenses");
 
-    if (expensesError) {
-      console.error('Error deleting expenses:', expensesError)
-      // Continue with the reset process even if there's an error here
-    }
-
-    // Reset ticket sequence to start over
-    const { error: sequenceError } = await supabaseClient
-      .from('ticket_sequence')
-      .update({ last_number: 0 })
-      .eq('id', 1)
-
-    if (sequenceError) {
-      console.error('Error resetting ticket sequence:', sequenceError)
-      // Continue with the reset process even if there's an error here
-    }
-
-    console.log('Full data reset completed successfully!')
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: 'All application data has been reset successfully'
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    )
-  } catch (error) {
-    console.error('Error during data reset:', error)
+    // Reset the ticket sequence
+    await supabase.rpc("reset_ticket_sequence");
+    console.log("Reset ticket sequence");
     
-    // Still return 200 status to avoid FunctionsHttpError in the client
+    // Add log entry
+    await supabase
+      .from("ticket_sequence_resets")
+      .insert({
+        reset_by: "admin",
+        notes: "Full system reset via admin function",
+      });
+
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message || 'An error occurred during the data reset process',
-        details: JSON.stringify(error)
-      }),
+      JSON.stringify({ success: true, message: "All data has been reset" }),
       {
-        status: 200, // Return 200 even on error to avoid FunctionsHttpError
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
       }
-    )
+    );
+  } catch (error) {
+    console.error("Error in reset_all_data function:", error);
+    
+    return new Response(
+      JSON.stringify({ success: false, error: error.message }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      }
+    );
   }
-})
+});

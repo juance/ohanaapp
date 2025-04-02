@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
@@ -8,6 +9,8 @@ import { GeneralSettings } from '@/components/admin/GeneralSettings';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
+import DataReset from '@/components/admin/DataReset';
+import UnretrievedTicketsAlert from '@/components/admin/UnretrievedTicketsAlert';
 
 const Administration = () => {
   useEffect(() => {
@@ -42,9 +45,10 @@ const Administration = () => {
           </header>
           
           <Tabs defaultValue="general" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="general">General</TabsTrigger>
               <TabsTrigger value="tickets">Tickets</TabsTrigger>
+              <TabsTrigger value="alerts">Alertas</TabsTrigger>
               <TabsTrigger value="errors">Errores</TabsTrigger>
               <TabsTrigger value="system">Sistema</TabsTrigger>
             </TabsList>
@@ -55,6 +59,10 @@ const Administration = () => {
             
             <TabsContent value="tickets" className="space-y-6">
               <ResetTicketNumbers />
+            </TabsContent>
+            
+            <TabsContent value="alerts" className="space-y-6">
+              <UnretrievedTicketsAlert />
             </TabsContent>
             
             <TabsContent value="errors" className="space-y-6">
@@ -78,6 +86,8 @@ const Administration = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              <DataReset />
             </TabsContent>
           </Tabs>
         </div>
