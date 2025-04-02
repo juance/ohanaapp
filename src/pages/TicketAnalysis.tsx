@@ -59,7 +59,10 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
           to={dateRange.to} 
           onUpdate={handleDateRangeChange} 
         />
-        <ActionButtons onRefresh={async () => await refreshData()} onReset={undefined} />
+        <ActionButtons 
+          onRefresh={() => setDateRange({...dateRange})} 
+          onReset={undefined} 
+        />
       </div>
 
       {isLoading ? (
