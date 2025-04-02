@@ -8,7 +8,7 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 import { setupGlobalErrorHandling } from './lib/errorService.ts';
-import { Toaster } from 'sonner';
+import { Toaster } from './components/ui/toaster.tsx';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
@@ -45,7 +45,7 @@ try {
           <QueryClientProvider client={queryClient}>
             <ErrorBoundary>
               <App />
-              <Toaster position="top-right" richColors closeButton />
+              <Toaster />
             </ErrorBoundary>
           </QueryClientProvider>
         </ThemeProvider>
