@@ -49,9 +49,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   const refreshData = async () => {
     try {
-      toast({
-        description: "Actualizando datos del panel..."
-      });
+      toast("Actualizando datos del panel...");
       
       await Promise.all([
         metricsData.refreshData(),
@@ -59,16 +57,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         clientData.refreshData()
       ]);
       
-      toast({
-        description: "Datos del panel actualizados correctamente"
-      });
+      toast("Datos del panel actualizados correctamente");
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast({
-        description: "Error al actualizar los datos del panel",
-        variant: "destructive"
-      });
+      toast("Error al actualizar los datos del panel");
     }
   };
   
