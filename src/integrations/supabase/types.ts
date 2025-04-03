@@ -80,6 +80,27 @@ export type Database = {
         }
         Relationships: []
       }
+      dashboard_stats: {
+        Row: {
+          id: number
+          ingresos_diarios: number
+          tickets: number
+          total_clientes: number
+        }
+        Insert: {
+          id?: never
+          ingresos_diarios?: number
+          tickets?: number
+          total_clientes?: number
+        }
+        Update: {
+          id?: never
+          ingresos_diarios?: number
+          tickets?: number
+          total_clientes?: number
+        }
+        Relationships: []
+      }
       dry_cleaning_items: {
         Row: {
           created_at: string

@@ -1,20 +1,48 @@
 
-import { toast as originalToast, useToast as useToastContext } from '@/contexts/ToastContext';
+import React from 'react';
+import { useContext } from 'react';
+import { ToastContext } from '@/contexts/ToastContext';
 
-// Create a compatible toast interface
-const toast = Object.assign(
-  (message: string) => originalToast(message),
-  {
-    success: (title: string, description?: string) => 
-      originalToast.success(title, description),
-    error: (title: string, description?: string) => 
-      originalToast.error(title, description),
-    warning: (title: string, description?: string) => 
-      originalToast.warning(title, description),
-    info: (title: string, description?: string) => 
-      originalToast.info(title, description),
+// Create a custom hook to use the toast context
+export const useToast = () => {
+  const context = useContext(ToastContext);
+  if (context === undefined) {
+    throw new Error('useToast must be used within a ToastContextProvider');
   }
-);
+  
+  return context;
+};
 
-export { toast };
-export const useToast = useToastContext;
+// Export toast function directly for convenience
+export const toast = {
+  // Default toast with optional description
+  (title: string, description?: string) {
+    const context = React.useContext(ToastContext);
+    if (context) context.toast(title, description);
+    return;
+  },
+  
+  // Success toast
+  success: (title: string, description?: string) => {
+    const context = React.useContext(ToastContext);
+    if (context) context.success(title, description);
+  },
+  
+  // Error toast
+  error: (title: string, description?: string) => {
+    const context = React.useContext(ToastContext);
+    if (context) context.error(title, description);
+  },
+  
+  // Warning toast
+  warning: (title: string, description?: string) => {
+    const context = React.useContext(ToastContext);
+    if (context) context.warning(title, description);
+  },
+  
+  // Info toast
+  info: (title: string, description?: string) => {
+    const context = React.useContext(ToastContext);
+    if (context) context.info(title, description);
+  }
+};

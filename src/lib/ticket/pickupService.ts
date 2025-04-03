@@ -42,8 +42,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     return tickets;
   } catch (error) {
     console.error('Error fetching pickup tickets:', error);
-    toast.error("Error al obtener tickets", 
-      "Error al cargar tickets para retiro");
+    toast.error("Error al obtener tickets", "Error al cargar tickets para retiro");
     return [];
   }
 };
@@ -63,13 +62,11 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
       
     if (error) throw error;
     
-    toast.success("Ticket entregado", 
-      "Ticket marcado como entregado y pagado");
+    toast.success("Ticket entregado", "Ticket marcado como entregado y pagado");
     return true;
   } catch (error) {
     console.error('Error marking ticket as delivered:', error);
-    toast.error("Error", 
-      "Error al marcar el ticket como entregado");
+    toast.error("Error", "Error al marcar el ticket como entregado");
     return false;
   }
 };
@@ -87,13 +84,11 @@ export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boole
       
     if (error) throw error;
     
-    toast.success("Pago registrado", 
-      "Ticket marcado como pagado por adelantado");
+    toast.success("Pago registrado", "Ticket marcado como pagado por adelantado");
     return true;
   } catch (error) {
     console.error('Error marking ticket as paid:', error);
-    toast.error("Error", 
-      "Error al marcar el ticket como pagado");
+    toast.error("Error", "Error al marcar el ticket como pagado");
     return false;
   }
 };
