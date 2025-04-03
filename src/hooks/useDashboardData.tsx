@@ -61,7 +61,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast.error("Error al actualizar los datos del panel");
+      toast.error("Error", { description: "Error al actualizar los datos del panel" });
     }
   };
   

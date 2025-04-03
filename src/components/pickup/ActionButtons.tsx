@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Bell, Printer, Share2, XCircle, CheckCircle } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Ticket } from '@/lib/types';
 
 interface ActionButtonsProps {
@@ -31,7 +31,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         className="flex items-center space-x-2"
         onClick={() => {
           if (ticket) onNotifyClient(ticket);
-          else toast.error('Seleccione un ticket primero');
+          else toast.error('Error', { description: 'Seleccione un ticket primero' });
         }}
         disabled={!selectedTicket}
       >
@@ -74,7 +74,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
         onClick={() => {
           if (selectedTicket) onMarkAsDelivered(selectedTicket);
-          else toast.error('Seleccione un ticket primero');
+          else toast.error('Error', { description: 'Seleccione un ticket primero' });
         }}
         disabled={!selectedTicket}
       >

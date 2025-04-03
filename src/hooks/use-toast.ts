@@ -1,13 +1,6 @@
 
-import * as React from "react";
-import { toast as sonnerToast } from 'sonner';
+import { toast, useToast as useToastContext } from '@/contexts/ToastContext';
 
-// Export the toast function directly from sonner
-export const toast = sonnerToast;
+export { toast };
 
-// Create a simple hook for compatibility with existing code
-export const useToast = () => {
-  return {
-    toast: sonnerToast
-  };
-};
+export const useToast = useToastContext;

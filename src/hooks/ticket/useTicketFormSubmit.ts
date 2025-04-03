@@ -1,5 +1,5 @@
 
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';
@@ -50,22 +50,22 @@ export const useTicketFormSubmit = (
     } = formState;
     
     if (!customerName || !phoneNumber) {
-      toast.error('Por favor complete los datos del cliente');
+      toast.error('Error', { description: 'Por favor complete los datos del cliente' });
       return;
     }
     
     if (phoneNumber.length < 8) {
-      toast.error('Por favor ingrese un número de teléfono válido');
+      toast.error('Error', { description: 'Por favor ingrese un número de teléfono válido' });
       return;
     }
     
     if (activeTab === 'valet' && valetQuantity <= 0 && !useFreeValet) {
-      toast.error('La cantidad de valets debe ser mayor a cero');
+      toast.error('Error', { description: 'La cantidad de valets debe ser mayor a cero' });
       return;
     }
     
     if (activeTab === 'tintoreria' && selectedDryCleaningItems.length === 0) {
-      toast.error('Por favor seleccione al menos un artículo de tintorería');
+      toast.error('Error', { description: 'Por favor seleccione al menos un artículo de tintorería' });
       return;
     }
     
@@ -164,11 +164,11 @@ export const useTicketFormSubmit = (
         resetDryCleaningForm();
         resetTicketFormState();
       } else {
-        toast.error('Error al generar el ticket');
+        toast.error('Error', { description: 'Error al generar el ticket' });
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast.error('Error al generar el ticket');
+      toast.error('Error', { description: 'Error al generar el ticket' });
     }
   };
 

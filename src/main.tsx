@@ -9,6 +9,7 @@ import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 import { setupGlobalErrorHandling } from './lib/errorService.ts';
 import { Toaster } from './components/ui/toaster.tsx';
+import { ToastContextProvider } from './contexts/ToastContext';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
@@ -44,8 +45,10 @@ try {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <QueryClientProvider client={queryClient}>
             <ErrorBoundary>
-              <App />
-              <Toaster />
+              <ToastContextProvider>
+                <App />
+                <Toaster />
+              </ToastContextProvider>
             </ErrorBoundary>
           </QueryClientProvider>
         </ThemeProvider>

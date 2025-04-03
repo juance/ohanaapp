@@ -2,8 +2,8 @@
 "use client"
 
 import * as React from "react";
-import { Toaster as SonnerToaster } from 'sonner';
+import { ToastContextProvider } from '@/contexts/ToastContext';
 
 export function Toaster() {
-  return <SonnerToaster position="top-right" richColors closeButton />;
+  return null; // No render needed, the ToastContextProvider handles everything
 }

@@ -1,6 +1,6 @@
 
 import { Ticket } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 export const formatDate = (dateString: string): string => {
   try {
@@ -27,13 +27,13 @@ export const handleNotifyClient = (ticket: Ticket) => {
       description: `Se notificó que su pedido está listo para retirar.`
     });
   } else {
-    toast.error('Seleccione un ticket primero');
+    toast.error('Error', { description: 'Seleccione un ticket primero' });
   }
 };
 
 export const handleShareWhatsApp = (ticket: Ticket | undefined, ticketServices: any[]) => {
   if (!ticket) {
-    toast.error('Seleccione un ticket primero');
+    toast.error('Error', { description: 'Seleccione un ticket primero' });
     return;
   }
 
