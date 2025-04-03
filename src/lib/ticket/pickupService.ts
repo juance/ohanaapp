@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Ticket } from '../types';
 import { getTicketServices } from './serviceDetails';
 
@@ -42,7 +42,9 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     return tickets;
   } catch (error) {
     console.error('Error fetching pickup tickets:', error);
-    toast("Error fetching tickets for pickup");
+    toast.error("Error al obtener tickets", {
+      description: "Error al cargar tickets para retiro"
+    });
     return [];
   }
 };
@@ -62,11 +64,15 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
       
     if (error) throw error;
     
-    toast("Ticket marcado como entregado y pagado");
+    toast.success("Ticket entregado", {
+      description: "Ticket marcado como entregado y pagado"
+    });
     return true;
   } catch (error) {
     console.error('Error marking ticket as delivered:', error);
-    toast("Error al marcar el ticket como entregado");
+    toast.error("Error", {
+      description: "Error al marcar el ticket como entregado"
+    });
     return false;
   }
 };
@@ -84,11 +90,15 @@ export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boole
       
     if (error) throw error;
     
-    toast("Ticket marcado como pagado por adelantado");
+    toast.success("Pago registrado", {
+      description: "Ticket marcado como pagado por adelantado"
+    });
     return true;
   } catch (error) {
     console.error('Error marking ticket as paid:', error);
-    toast("Error al marcar el ticket como pagado");
+    toast.error("Error", {
+      description: "Error al marcar el ticket como pagado"
+    });
     return false;
   }
 };
