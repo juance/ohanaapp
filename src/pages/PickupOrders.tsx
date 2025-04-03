@@ -1,66 +1,38 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CancelTicketDialog from '@/components/pickup/CancelTicketDialog';
 import PickupContainer from '@/components/pickup/PickupContainer';
 import PickupLoadingState from '@/components/pickup/PickupLoadingState';
 import PickupErrorState from '@/components/pickup/PickupErrorState';
-import { getPickupTickets, getTicketServices, cancelTicket } from '@/lib/ticket';
-import { toast } from '@/hooks/use-toast';
+import { getPickupTickets } from '@/lib/ticket';
+import { useTicketOperations } from '@/hooks/useTicketOperations';
 
 const PickupOrders = () => {
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
-  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   
-  const { data: tickets = [], isLoading, error, refetch } = useQuery({
+  const {
+    tickets,
+    isLoading,
+    error,
+    refetch,
+    selectedTicket,
+    setSelectedTicket,
+    ticketServices,
+    cancelDialogOpen,
+    setCancelDialogOpen,
+    cancelReason,
+    setCancelReason,
+    handleOpenCancelDialog,
+    handleCancelTicket,
+    handlePrintTicket,
+    handleMarkAsDelivered,
+    filterTickets,
+  } = useTicketOperations({
     queryKey: ['pickupTickets'],
-    queryFn: getPickupTickets,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: true
+    fetchFunction: getPickupTickets
   });
-
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketServices(selectedTicket);
-    } else {
-      setTicketServices([]);
-    }
-  }, [selectedTicket]);
-
-  const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services);
-  };
-
-  const handleOpenCancelDialog = useCallback(() => {
-    if (!selectedTicket) {
-      toast.error('Error', { description: 'Seleccione un ticket primero' });
-      return;
-    }
-    setCancelReason('');
-    setCancelDialogOpen(true);
-  }, [selectedTicket]);
-
-  const handleCancelTicket = async () => {
-    if (!selectedTicket) return;
-    
-    if (!cancelReason.trim()) {
-      toast.error('Error', { description: 'Por favor ingrese un motivo para anular el ticket' });
-      return;
-    }
-
-    const success = await cancelTicket(selectedTicket, cancelReason);
-    if (success) {
-      setCancelDialogOpen(false);
-      setSelectedTicket(null);
-      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
-      refetch();
-    }
-  };
 
   if (isLoading) {
     return <PickupLoadingState />;
@@ -70,18 +42,38 @@ const PickupOrders = () => {
     return <PickupErrorState onRetry={refetch} />;
   }
   
+  const filteredTickets = filterTickets(searchQuery, searchFilter);
+  
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
       
       <div className="flex-1 md:ml-64 p-6">
         <PickupContainer
-          tickets={tickets}
+          tickets={filteredTickets}
           onOpenCancelDialog={handleOpenCancelDialog}
+          onPrintTicket={handlePrintTicket}
+          onShareWhatsApp={() => {
+            const ticket = tickets.find(t => t.id === selectedTicket);
+            if (ticket) {
+              handleShareWhatsApp(ticket, ticketServices);
+            }
+          }}
+          onMarkAsDelivered={handleMarkAsDelivered}
+          onNotifyClient={() => {
+            const ticket = tickets.find(t => t.id === selectedTicket);
+            if (ticket) {
+              handleNotifyClient(ticket);
+            }
+          }}
           setCancelReason={setCancelReason}
           selectedTicket={selectedTicket}
           setSelectedTicket={setSelectedTicket}
           ticketServices={ticketServices}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchFilter={searchFilter}
+          setSearchFilter={setSearchFilter}
         />
       </div>
 

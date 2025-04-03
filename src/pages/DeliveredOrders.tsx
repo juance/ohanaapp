@@ -1,46 +1,35 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Check } from 'lucide-react';
-import { getDeliveredTickets, getTicketServices } from '@/lib/ticket';
-import { useQuery } from '@tanstack/react-query';
+import { getDeliveredTickets } from '@/lib/ticket';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useTicketOperations } from '@/hooks/useTicketOperations';
 
 const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   
-  // Fetch delivered tickets
-  const { data: tickets = [], isLoading, error } = useQuery({
+  const {
+    tickets,
+    isLoading,
+    error,
+    refetch,
+    selectedTicket,
+    setSelectedTicket,
+    ticketServices,
+    filterTickets,
+  } = useTicketOperations({
     queryKey: ['deliveredTickets'],
-    queryFn: getDeliveredTickets
+    fetchFunction: getDeliveredTickets
   });
 
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketServices(selectedTicket);
-    } else {
-      setTicketServices([]);
-    }
-  }, [selectedTicket]);
-
-  const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services);
-  };
-  
-  const filteredTickets = searchQuery.trim() 
-    ? tickets.filter(ticket => 
-        ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        ticket.phoneNumber.includes(searchQuery)
-      )
-    : tickets;
+  const filteredTickets = filterTickets(searchQuery, searchFilter);
 
   const formatDate = (dateString: string) => {
     try {
