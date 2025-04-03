@@ -7,7 +7,7 @@ import {
   syncOfflineData
 } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';

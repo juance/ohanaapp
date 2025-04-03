@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -18,8 +18,7 @@ const Feedback = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [phoneNumber, setPhoneNumber] = useState('');
   const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
-
+  
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +28,6 @@ const Feedback = () => {
     
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!queryClient) {
-      console.error("QueryClient not available in Feedback component");
-    }
-  }, [queryClient]);
   
   const { data: customer, refetch, isLoading } = useQuery({
     queryKey: ['customer', phoneNumber],
