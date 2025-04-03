@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Ticket } from '@/lib/types';
 import { 
   getPickupTickets, 
@@ -55,19 +55,19 @@ const PickupOrders = () => {
 
   const handlePrintTicket = () => {
     if (!selectedTicket) {
-      toast.error('Seleccione un ticket primero');
+      toast.error('Error', { description: 'Seleccione un ticket primero' });
       return;
     }
 
     const ticket = tickets.find(t => t.id === selectedTicket);
     if (!ticket) {
-      toast.error('Ticket no encontrado');
+      toast.error('Error', { description: 'Ticket no encontrado' });
       return;
     }
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      toast.error('El navegador bloqueó la apertura de la ventana de impresión');
+      toast.error('Error', { description: 'El navegador bloqueó la apertura de la ventana de impresión' });
       return;
     }
 
@@ -85,7 +85,7 @@ const PickupOrders = () => {
 
   const handleOpenCancelDialog = () => {
     if (!selectedTicket) {
-      toast.error('Seleccione un ticket primero');
+      toast.error('Error', { description: 'Seleccione un ticket primero' });
       return;
     }
     setCancelReason('');
@@ -96,7 +96,7 @@ const PickupOrders = () => {
     if (!selectedTicket) return;
     
     if (!cancelReason.trim()) {
-      toast.error('Por favor ingrese un motivo para anular el ticket');
+      toast.error('Error', { description: 'Por favor ingrese un motivo para anular el ticket' });
       return;
     }
 
