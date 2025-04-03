@@ -63,13 +63,13 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
   const exportData = async () => {
     try {
-      toast("Exportando datos...");
+      toast.toast("Exportando datos...");
       await exportAnalyticsToCSV(data);
-      toast("Datos exportados correctamente");
+      toast.success("Datos exportados correctamente");
       return Promise.resolve();
     } catch (error) {
       console.error('Error exporting data:', error);
-      toast("Error al exportar los datos");
+      toast.error("Error al exportar los datos");
       return Promise.reject(error);
     }
   };

@@ -44,6 +44,24 @@ export type Database = {
           },
         ]
       }
+      customer_types: {
+        Row: {
+          count: number
+          id: number
+          type_name: string
+        }
+        Insert: {
+          count?: number
+          id?: never
+          type_name: string
+        }
+        Update: {
+          count?: number
+          id?: never
+          type_name?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string

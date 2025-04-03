@@ -16,7 +16,7 @@ export const useToast = () => {
 // Export toast function directly for convenience
 export const toast = {
   // Default toast with optional description
-  (title: string, description?: string) {
+  toast: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (context) context.toast(title, description);
     return;
@@ -46,3 +46,9 @@ export const toast = {
     if (context) context.info(title, description);
   }
 };
+
+// Default toast function for convenience
+export default function(title: string, description?: string) {
+  const context = React.useContext(ToastContext);
+  if (context) context.toast(title, description);
+}
