@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { ActionButtons } from '@/components/analysis/ActionButtons';
@@ -59,8 +59,8 @@ const TicketAnalysis: React.FC = () => {
               </div>
             ) : (
               <>
-                <MetricsSection analytics={data} loading={isLoading} />
-                <ChartTabs analytics={data} loading={isLoading} />
+                {data && <MetricsSection analytics={data} loading={isLoading} />}
+                {data && <ChartTabs analytics={data} loading={isLoading} />}
               </>
             )}
           </div>

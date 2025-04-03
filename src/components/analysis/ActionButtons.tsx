@@ -25,7 +25,7 @@ export const ActionButtons = ({ onExport, isLoading }: ActionButtonsProps) => {
       toast.success("Datos actualizados correctamente");
     } catch (error) {
       console.error("Error refreshing data:", error);
-      toast.error("Error", "Error al actualizar los datos");
+      toast.error("Error al actualizar los datos");
     }
   };
 
@@ -40,7 +40,7 @@ export const ActionButtons = ({ onExport, isLoading }: ActionButtonsProps) => {
       // Toast is handled in the export function
     } catch (error) {
       console.error("Export error:", error);
-      toast.error("Error", "Error al exportar datos");
+      toast.error("Error al exportar datos");
     }
   };
 

@@ -1,53 +1,70 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { Expense } from '@/lib/types';
-import { 
-  saveToLocalStorage, 
-  getFromLocalStorage,
-  EXPENSES_STORAGE_KEY 
-} from '../coreUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Add a new expense
+ * Adds a new expense to the database
+ * 
+ * @param expense The expense object to add
+ * @returns The newly created expense if successful, null otherwise
  */
-export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Promise<boolean> => {
+export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense | null> => {
   try {
+    // Format the date to ISO string for storage
+    const formattedExpense = {
+      ...expense,
+      date: new Date(expense.date).toISOString(),
+    };
+    
+    // Add to Supabase
     const { data, error } = await supabase
       .from('expenses')
-      .insert({
-        description: expense.description,
-        amount: expense.amount,
-        date: expense.date
-      })
+      .insert(formattedExpense)
       .select()
       .single();
       
     if (error) throw error;
     
-    return true;
-  } catch (error) {
-    console.error('Error adding expense to Supabase:', error);
+    const newExpense: Expense = {
+      ...data,
+      date: new Date(data.date),
+      createdAt: new Date(data.created_at)
+    };
     
-    // Fallback to localStorage
-    try {
-      const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
-      
-      const newExpense: Expense = {
-        id: crypto.randomUUID(),
-        description: expense.description,
-        amount: expense.amount,
-        date: expense.date,
-        createdAt: new Date().toISOString()
-      };
-      
-      // Add to expenses array
-      localExpenses.push(newExpense);
-      saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
-      
-      return true;
-    } catch (localError) {
-      console.error('Error saving expense to localStorage:', localError);
-      return false;
-    }
+    // Cache locally if needed
+    const existingExpenses = getLocalExpenses();
+    saveLocalExpenses([...existingExpenses, newExpense]);
+    
+    return newExpense;
+    
+  } catch (error) {
+    console.error("Failed to add expense:", error);
+    toast.error("Error al agregar gasto");
+    return null;
+  }
+};
+
+// Helper functions for local storage
+const LOCAL_STORAGE_KEY = 'expenses';
+
+export const getLocalExpenses = (): Expense[] => {
+  try {
+    const storedExpenses = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (!storedExpenses) return [];
+    
+    const parsedExpenses = JSON.parse(storedExpenses);
+    return Array.isArray(parsedExpenses) ? parsedExpenses : [];
+  } catch (error) {
+    console.error("Failed to get local expenses:", error);
+    return [];
+  }
+};
+
+export const saveLocalExpenses = (expenses: Expense[]): void => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(expenses));
+  } catch (error) {
+    console.error("Failed to save local expenses:", error);
   }
 };

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useState, useCallback } from 'react';
 import { Toast, ToastProvider, ToastViewport } from '@/components/ui/toast';
 import { ToastAction } from '@/components/ui/toast';
 
@@ -121,31 +121,3 @@ export const ToastContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
     </ToastContext.Provider>
   );
 };
-
-// Exportamos el toast directamente para facilitar el uso
-export const toast = Object.assign(
-  (title: string, description?: string, type: ToastType = 'default') => {
-    const context = useContext(ToastContext);
-    if (context) {
-      return context.toast(title, description, type);
-    }
-  },
-  {
-    success: (title: string, description?: string) => {
-      const context = useContext(ToastContext);
-      if (context) return context.success(title, description);
-    },
-    error: (title: string, description?: string) => {
-      const context = useContext(ToastContext);
-      if (context) return context.error(title, description);
-    },
-    warning: (title: string, description?: string) => {
-      const context = useContext(ToastContext);
-      if (context) return context.warning(title, description);
-    },
-    info: (title: string, description?: string) => {
-      const context = useContext(ToastContext);
-      if (context) return context.info(title, description);
-    },
-  }
-);

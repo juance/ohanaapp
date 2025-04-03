@@ -1,5 +1,5 @@
 
-import React from 'react';
+import * as React from 'react';
 import { useContext } from 'react';
 import { ToastContext } from '@/contexts/ToastContext';
 
@@ -52,7 +52,7 @@ export const toast = {
 };
 
 // Default export for convenience
-export default function(title: string, description?: string) {
+export default function useToastHook(title: string, description?: string) {
   const context = React.useContext(ToastContext);
   if (!context) return;
   context.toast(title, description);
