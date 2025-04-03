@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
@@ -59,8 +58,24 @@ const TicketAnalysis: React.FC = () => {
               </div>
             ) : (
               <>
-                {data && <MetricsSection analytics={data} loading={isLoading} />}
-                {data && <ChartTabs analytics={data} loading={isLoading} />}
+                {data && <MetricsSection analytics={{
+                  ...data,
+                  ticketsByStatus: data.ticketsByStatus || {
+                    pending: 0,
+                    processing: 0,
+                    ready: 0,
+                    delivered: 0
+                  }
+                }} loading={isLoading} />}
+                {data && <ChartTabs analytics={{
+                  ...data,
+                  ticketsByStatus: data.ticketsByStatus || {
+                    pending: 0,
+                    processing: 0,
+                    ready: 0,
+                    delivered: 0
+                  }
+                }} loading={isLoading} />}
               </>
             )}
           </div>

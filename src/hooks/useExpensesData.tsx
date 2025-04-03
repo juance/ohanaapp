@@ -76,7 +76,12 @@ export const useExpensesData = (): UseExpensesDataReturn => {
   
   const handleAddExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
     try {
-      await addExpense(expense);
+      // Add createdAt for consistency with the interface
+      const expenseToAdd = {
+        ...expense,
+        createdAt: new Date().toISOString() // Add createdAt that the interface expects
+      };
+      await addExpense(expenseToAdd);
       await fetchExpenses(); // Refresh the data after adding a new expense
     } catch (err) {
       console.error("Error adding expense:", err);

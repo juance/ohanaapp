@@ -9,7 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
  * @param expense The expense object to add
  * @returns The newly created expense if successful, null otherwise
  */
-export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense | null> => {
+export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Promise<Expense | null> => {
   try {
     // Format the date to ISO string for storage
     const formattedExpense = {
@@ -28,8 +28,8 @@ export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense 
     
     const newExpense: Expense = {
       ...data,
-      date: new Date(data.date),
-      createdAt: new Date(data.created_at)
+      date: data.date, // Keep as string
+      createdAt: data.created_at // Map to createdAt
     };
     
     // Cache locally if needed

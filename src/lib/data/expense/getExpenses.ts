@@ -20,9 +20,11 @@ export const getExpenses = async (): Promise<Expense[]> => {
     
     // Convert to Expense type
     const expenses: Expense[] = data.map(expense => ({
-      ...expense,
-      date: new Date(expense.date),
-      createdAt: new Date(expense.created_at)
+      id: expense.id,
+      description: expense.description,
+      amount: expense.amount,
+      date: expense.date, // Keep as string
+      createdAt: expense.created_at // Map to createdAt
     }));
     
     // Cache locally
@@ -73,12 +75,8 @@ export const getLocalExpenses = (): Expense[] => {
     const parsedExpenses = JSON.parse(storedExpenses);
     if (!Array.isArray(parsedExpenses)) return [];
     
-    // Convert date strings to Date objects
-    return parsedExpenses.map(expense => ({
-      ...expense,
-      date: new Date(expense.date),
-      createdAt: expense.createdAt ? new Date(expense.createdAt) : new Date(),
-    }));
+    // Return as is since we're now using string dates consistently
+    return parsedExpenses;
     
   } catch (error) {
     console.error("Failed to get local expenses:", error);
@@ -93,3 +91,6 @@ export const saveLocalExpenses = (expenses: Expense[]): void => {
     console.error("Failed to save local expenses:", error);
   }
 };
+
+// Add missing export
+export const getStoredExpenses = getLocalExpenses;

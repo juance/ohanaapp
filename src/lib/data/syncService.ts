@@ -1,4 +1,3 @@
-
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
 import { storeTicketData } from './ticketService';
 import { addExpense } from './expense';
@@ -53,7 +52,8 @@ export const syncOfflineData = async (): Promise<boolean> => {
         const expenseData = {
           description: expense.description,
           amount: expense.amount,
-          date: expense.date
+          date: expense.date,
+          createdAt: expense.createdAt || new Date().toISOString() // Add missing createdAt property
         };
         
         try {
