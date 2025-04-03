@@ -1,106 +1,69 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
+import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
+import { ActionButtons } from '@/components/analysis/ActionButtons';
+import { ChartTabs } from '@/components/analysis/ChartTabs';
+import { DateRangeSelector } from '@/components/analysis/DateRangeSelector';
+import { MetricsSection } from '@/components/analysis/MetricsSection';
+import { Loading } from '@/components/ui/loading';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import DateRangeSelector from '@/components/analysis/DateRangeSelector';
-import { ActionButtons } from '@/components/analysis/ActionButtons';
-import MetricsSection from '@/components/analytics/MetricsSection';
-import ChartTabs from '@/components/analytics/ChartTabs';
-import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
-import { Loading } from '@/components/ui/loading';
-import { toast } from '@/hooks/use-toast';
 
-interface TicketAnalysisProps {
-  embedded?: boolean;
-}
-
-const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
-  // Get analytics data
+const TicketAnalysis: React.FC = () => {
   const {
     data,
-    isLoading,
-    error,
     dateRange,
     setDateRange,
+    isLoading,
+    error,
     exportData
   } = useTicketAnalytics();
-
-  // Handler for date range changes
-  const handleDateRangeChange = (from: Date, to: Date) => {
-    setDateRange({ from, to });
-  };
-
-  // Handler function for exporting data
-  const handleExport = async () => {
-    try {
-      await exportData();
-    } catch (error) {
-      console.error("Error exporting data:", error);
-    }
-  };
-
-  // Fixed function to properly return a Promise
-  const handleRefreshData = async (): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      setDateRange({...dateRange});
-      resolve();
-    });
-  };
-
-  const content = (
-    <>
-      {!embedded && (
-        <header className="mb-8">
-          <Link to="/" className="mb-2 flex items-center text-blue-600 hover:underline">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            <span>Volver al Inicio</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-blue-600">Análisis de Tickets</h1>
-          <p className="text-gray-500">Visualiza y analiza datos de ventas</p>
-        </header>
-      )}
-
-      <div className="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <DateRangeSelector 
-          from={dateRange.from} 
-          to={dateRange.to} 
-          onUpdate={handleDateRangeChange} 
-        />
-        <ActionButtons 
-          onRefresh={handleRefreshData} 
-          onReset={undefined} 
-        />
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-96 items-center justify-center">
-          <Loading />
-        </div>
-      ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
-          <p className="text-red-700">{error.message}</p>
-        </div>
-      ) : (
-        <div className="space-y-8">
-          <MetricsSection metrics={data} />
-          <ChartTabs chartData={data} />
-        </div>
-      )}
-    </>
-  );
-  
-  if (embedded) {
-    return content;
-  }
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      <div className="flex-1 p-6 md:ml-64">
-        <div className="container mx-auto pt-6">
-          {content}
+      
+      <div className="flex-1 p-4 md:p-6 md:ml-64">
+        <div className="container mx-auto">
+          <header className="mb-6">
+            <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
+              <ArrowLeft className="mr-1 h-4 w-4" />
+              <span>Volver al Inicio</span>
+            </Link>
+            <h1 className="text-2xl font-bold text-blue-600">Análisis de Tickets</h1>
+            <p className="text-gray-500">Visualiza estadísticas y tendencias de ventas</p>
+          </header>
+
+          <div className="space-y-6">
+            <div className="flex flex-col md:flex-row justify-between gap-4">
+              <DateRangeSelector 
+                dateRange={dateRange} 
+                onDateChange={setDateRange}
+              />
+              
+              <ActionButtons 
+                onExport={exportData}
+                isLoading={isLoading}
+              />
+            </div>
+            
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <Loading />
+              </div>
+            ) : error ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
+                <p className="text-red-700">{error.message || 'Hubo un error al cargar los datos de análisis'}</p>
+              </div>
+            ) : (
+              <>
+                <MetricsSection data={data} />
+                <ChartTabs data={data} />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>

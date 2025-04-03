@@ -32,18 +32,18 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   
   const handleRefresh = async () => {
     try {
-      toast("Actualizando panel de control...");
+      toast.toast("Actualizando panel de control...");
       await refreshData();
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
-      toast("Error al actualizar el panel de control");
+      toast.toast("Error al actualizar el panel de control");
     }
   };
   
   const handleResetTickets = async () => {
     try {
       setIsResetting(true);
-      toast("Reiniciando datos de tickets...");
+      toast.toast("Reiniciando datos de tickets...");
       
       // Reset tickets to zero using a direct database query since RPC isn't available
       const { error: resetError } = await supabase

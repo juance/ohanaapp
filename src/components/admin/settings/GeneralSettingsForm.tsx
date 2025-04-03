@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -37,14 +38,10 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
     setIsSaving(true);
     try {
       onSave(data);
-      toast.success("Configuración guardada", {
-        description: "Los ajustes generales se han actualizado correctamente.",
-      });
+      toast.success("Configuración guardada", "Los ajustes generales se han actualizado correctamente.");
     } catch (error) {
       console.error('Error al guardar configuración:', error);
-      toast.error("Error al guardar", {
-        description: "No se pudieron guardar los ajustes. Intente nuevamente.",
-      });
+      toast.error("Error al guardar", "No se pudieron guardar los ajustes. Intente nuevamente.");
     } finally {
       setIsSaving(false);
     }
@@ -60,9 +57,7 @@ export function GeneralSettingsForm({ defaultValues, onSave }: GeneralSettingsFo
       document.documentElement.classList.remove('dark');
     }
     
-    toast.error("Formulario restablecido", {
-      description: "Se han restaurado los valores predeterminados.",
-    });
+    toast.error("Formulario restablecido", "Se han restaurado los valores predeterminados.");
   };
 
   return (

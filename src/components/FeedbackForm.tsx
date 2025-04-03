@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
 
   const handleCustomerSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast("Por favor ingrese un número de teléfono");
+      toast.toast("Por favor ingrese un número de teléfono");
       return;
     }
 
@@ -29,15 +30,15 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       if (customer) {
         setCustomerId(customer.id);
         setCustomerName(customer.name);
-        toast("Cliente encontrado: " + customer.name);
+        toast.toast("Cliente encontrado: " + customer.name);
       } else {
-        toast("Cliente no encontrado");
+        toast.toast("Cliente no encontrado");
         setCustomerId(null);
         setCustomerName('');
       }
     } catch (error) {
       console.error('Error al buscar cliente:', error);
-      toast("Error al buscar cliente");
+      toast.toast("Error al buscar cliente");
     }
   };
 
@@ -45,12 +46,12 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     e.preventDefault();
     
     if (!customerId) {
-      toast("Por favor busque un cliente primero");
+      toast.toast("Por favor busque un cliente primero");
       return;
     }
     
     if (!comment.trim()) {
-      toast("Por favor ingrese un comentario");
+      toast.toast("Por favor ingrese un comentario");
       return;
     }
     
@@ -65,7 +66,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       });
       
       if (result) {
-        toast("Comentario agregado correctamente");
+        toast.toast("Comentario agregado correctamente");
         setPhoneNumber('');
         setComment('');
         setRating(5);
@@ -73,11 +74,11 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
         setCustomerName('');
         onFeedbackAdded();
       } else {
-        toast("Error al agregar comentario");
+        toast.toast("Error al agregar comentario");
       }
     } catch (error) {
       console.error('Error al enviar comentario:', error);
-      toast("Error al enviar comentario");
+      toast.toast("Error al enviar comentario");
     } finally {
       setIsSubmitting(false);
     }

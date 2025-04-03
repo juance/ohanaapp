@@ -1,92 +1,71 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshCw, RotateCcw } from 'lucide-react';
+import { Download, RefreshCcw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface ActionButtonsProps {
-  onRefresh: () => Promise<void>;
-  onReset?: () => Promise<void>;
+  onExport?: () => Promise<void>;
+  isLoading?: boolean;
 }
 
-export const ActionButtons: React.FC<ActionButtonsProps> = ({ 
-  onRefresh, 
-  onReset 
-}) => {
-  const [isResetting, setIsResetting] = React.useState(false);
-  
-  const handleRefresh = async () => {
-    toast("Actualizando datos...");
-    await onRefresh();
-  };
-  
-  const handleReset = async () => {
+export const ActionButtons = ({ onExport, isLoading }: ActionButtonsProps) => {
+  const queryClient = useQueryClient();
+
+  const handleRefresh = () => {
+    toast.toast("Actualizando datos...");
+    
     try {
-      setIsResetting(true);
-      if (onReset) {
-        await onReset();
-        toast("Datos reiniciados correctamente");
-        await onRefresh();
-      }
-    } catch (err) {
-      console.error("Error resetting data:", err);
-      toast("Error al reiniciar los datos");
-    } finally {
-      setIsResetting(false);
+      // Invalidate ticket analytics query
+      queryClient.invalidateQueries({
+        queryKey: ['ticketAnalytics'],
+      });
+      
+      toast.success("Datos actualizados correctamente");
+    } catch (error) {
+      console.error("Error refreshing data:", error);
+      toast.error("Error al actualizar los datos");
     }
   };
-  
+
+  const handleExport = async () => {
+    if (!onExport) {
+      toast.toast("Función de exportación no disponible");
+      return;
+    }
+
+    try {
+      await onExport();
+      // Toast is handled in the export function
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Error al exportar datos");
+    }
+  };
+
   return (
-    <div className="flex gap-2">
-      {onReset && (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button 
-              variant="destructive" 
-              size="sm"
-              className="flex items-center gap-2"
-              disabled={isResetting}
-            >
-              <RotateCcw className="h-4 w-4" />
-              Reiniciar Datos
-            </Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>¿Reiniciar datos?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta acción reiniciará todos los datos a cero. Esta acción no puede deshacerse.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction onClick={handleReset}>
-                Confirmar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-      
-      <Button 
-        onClick={handleRefresh} 
-        variant="outline" 
+    <div className="flex flex-wrap gap-2 md:gap-3">
+      <Button
+        variant="outline"
         size="sm"
         className="flex items-center gap-2"
+        onClick={handleRefresh}
+        disabled={isLoading}
       >
-        <RefreshCw className="h-4 w-4" />
-        Actualizar Datos
+        <RefreshCcw className="h-4 w-4" />
+        <span>Actualizar</span>
+      </Button>
+
+      <Button
+        variant="default"
+        size="sm"
+        className="flex items-center gap-2"
+        onClick={handleExport}
+        disabled={isLoading || !onExport}
+      >
+        <Download className="h-4 w-4" />
+        <span>Exportar CSV</span>
       </Button>
     </div>
   );

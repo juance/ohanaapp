@@ -50,22 +50,22 @@ export const useTicketFormSubmit = (
     } = formState;
     
     if (!customerName || !phoneNumber) {
-      toast.error('Error', { description: 'Por favor complete los datos del cliente' });
+      toast.error('Error', 'Por favor complete los datos del cliente');
       return;
     }
     
     if (phoneNumber.length < 8) {
-      toast.error('Error', { description: 'Por favor ingrese un número de teléfono válido' });
+      toast.error('Error', 'Por favor ingrese un número de teléfono válido');
       return;
     }
     
     if (activeTab === 'valet' && valetQuantity <= 0 && !useFreeValet) {
-      toast.error('Error', { description: 'La cantidad de valets debe ser mayor a cero' });
+      toast.error('Error', 'La cantidad de valets debe ser mayor a cero');
       return;
     }
     
     if (activeTab === 'tintoreria' && selectedDryCleaningItems.length === 0) {
-      toast.error('Error', { description: 'Por favor seleccione al menos un artículo de tintorería' });
+      toast.error('Error', 'Por favor seleccione al menos un artículo de tintorería');
       return;
     }
     
@@ -164,11 +164,11 @@ export const useTicketFormSubmit = (
         resetDryCleaningForm();
         resetTicketFormState();
       } else {
-        toast.error('Error', { description: 'Error al generar el ticket' });
+        toast.error('Error', 'Error al generar el ticket');
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast.error('Error', { description: 'Error al generar el ticket' });
+      toast.error('Error', 'Error al generar el ticket');
     }
   };
 

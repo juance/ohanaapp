@@ -19,13 +19,13 @@ const Expenses: React.FC = () => {
   } = useExpensesData();
   
   const handleRefreshData = async () => {
-    toast("Actualizando datos de gastos...");
+    toast.toast("Actualizando datos de gastos...");
     try {
       await refreshData();
-      toast("Datos actualizados correctamente");
+      toast.toast("Datos actualizados correctamente");
     } catch (error) {
       console.error("Error refreshing data:", error);
-      toast("Error al actualizar los datos");
+      toast.toast("Error al actualizar los datos");
     }
   };
   
@@ -37,12 +37,12 @@ const Expenses: React.FC = () => {
         date: new Date().toISOString()
       };
       
-      toast("Añadiendo gasto de ejemplo...");
+      toast.toast("Añadiendo gasto de ejemplo...");
       await addExpense(sampleExpense);
-      toast("Gasto añadido correctamente");
+      toast.toast("Gasto añadido correctamente");
     } catch (error) {
       console.error("Error adding expense:", error);
-      toast("Error al añadir el gasto");
+      toast.toast("Error al añadir el gasto");
     }
   };
   

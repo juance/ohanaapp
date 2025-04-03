@@ -13,42 +13,42 @@ export const useToast = () => {
   return context;
 };
 
-// Export toast function directly for convenience
+// Export toast functions directly for convenience
 export const toast = {
-  // Default toast with optional description
   toast: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
-    if (context) context.toast(title, description);
-    return;
+    if (!context) return;
+    context.toast(title, description);
   },
   
-  // Success toast
   success: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
-    if (context) context.success(title, description);
+    if (!context) return;
+    context.success(title, description);
   },
   
-  // Error toast
   error: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
-    if (context) context.error(title, description);
+    if (!context) return;
+    context.error(title, description);
   },
   
-  // Warning toast
   warning: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
-    if (context) context.warning(title, description);
+    if (!context) return;
+    context.warning(title, description);
   },
   
-  // Info toast
   info: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
-    if (context) context.info(title, description);
+    if (!context) return;
+    context.info(title, description);
   }
 };
 
-// Default toast function for convenience
+// Default export for convenience
 export default function(title: string, description?: string) {
   const context = React.useContext(ToastContext);
-  if (context) context.toast(title, description);
+  if (!context) return;
+  context.toast(title, description);
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
@@ -52,7 +53,7 @@ const Feedback = () => {
   
   const handleSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast.error("Error", { description: "Por favor ingrese un número de teléfono" });
+      toast.error("Error", "Por favor ingrese un número de teléfono");
       return;
     }
     
@@ -60,11 +61,11 @@ const Feedback = () => {
       await refetch();
       
       if (!customer) {
-        toast.error("Error", { description: "Cliente no encontrado" });
+        toast.error("Error", "Cliente no encontrado");
       }
     } catch (error) {
       console.error("Error al buscar cliente:", error);
-      toast.error("Error", { description: "Error al buscar el cliente" });
+      toast.error("Error", "Error al buscar el cliente");
     }
   };
   

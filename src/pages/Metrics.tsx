@@ -43,7 +43,7 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
   const [isResetting, setIsResetting] = useState(false);
   
   const handleRefresh = async () => {
-    toast("Actualizando datos...");
+    toast.toast("Actualizando datos...");
     await refreshData();
   };
 
