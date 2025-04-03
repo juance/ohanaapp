@@ -20,6 +20,8 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
+  const [serviceError, setServiceError] = useState<Error | null>(null);
   const queryClient = useQueryClient();
   
   const { 
@@ -43,8 +45,19 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
   }, [selectedTicket]);
 
   const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services);
+    setIsLoadingServices(true);
+    setServiceError(null);
+    
+    try {
+      const services = await getTicketServices(ticketId);
+      setTicketServices(services);
+    } catch (error) {
+      console.error('Error loading ticket services:', error);
+      setServiceError(error instanceof Error ? error : new Error('Failed to load ticket services'));
+      setTicketServices([]);
+    } finally {
+      setIsLoadingServices(false);
+    }
   };
 
   const handleOpenCancelDialog = useCallback(() => {
@@ -64,12 +77,19 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
       return;
     }
 
-    const success = await cancelTicket(selectedTicket, cancelReason);
-    if (success) {
-      setCancelDialogOpen(false);
-      setSelectedTicket(null);
-      queryClient.invalidateQueries({ queryKey });
-      refetch();
+    try {
+      const success = await cancelTicket(selectedTicket, cancelReason);
+      if (success) {
+        setCancelDialogOpen(false);
+        setSelectedTicket(null);
+        await queryClient.invalidateQueries({ queryKey });
+        refetch();
+      }
+    } catch (error) {
+      console.error('Error canceling ticket:', error);
+      toast.error('Error', { 
+        description: 'Hubo un problema al anular el ticket. Por favor, intente de nuevo.' 
+      });
     }
   };
 
@@ -85,31 +105,43 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
       return;
     }
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      toast.error('Error', { description: 'El navegador bloqueó la apertura de la ventana de impresión' });
-      return;
-    }
+    try {
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast.error('Error', { description: 'El navegador bloqueó la apertura de la ventana de impresión' });
+        return;
+      }
 
-    printWindow.document.write(generatePrintContent(ticket, ticketServices));
-    
-    printWindow.document.close();
-    
-    printWindow.onload = function() {
-      printWindow.focus();
-      printWindow.print();
-    };
-    
-    toast.success('Preparando impresión del ticket');
+      printWindow.document.write(generatePrintContent(ticket, ticketServices));
+      
+      printWindow.document.close();
+      
+      printWindow.onload = function() {
+        printWindow.focus();
+        printWindow.print();
+      };
+      
+      toast.success('Preparando impresión del ticket');
+    } catch (error) {
+      console.error('Error printing ticket:', error);
+      toast.error('Error', { description: 'Error al generar la impresión' });
+    }
   };
 
   const handleMarkAsDelivered = async (ticketId: string) => {
-    const success = await markTicketAsDelivered(ticketId);
-    if (success) {
-      setSelectedTicket(null);
-      queryClient.invalidateQueries({ queryKey });
-      refetch();
-      toast.success('Ticket marcado como entregado y pagado exitosamente');
+    try {
+      const success = await markTicketAsDelivered(ticketId);
+      if (success) {
+        setSelectedTicket(null);
+        await queryClient.invalidateQueries({ queryKey });
+        refetch();
+        toast.success('Ticket marcado como entregado y pagado exitosamente');
+      }
+    } catch (error) {
+      console.error('Error marking ticket as delivered:', error);
+      toast.error('Error', { 
+        description: 'Hubo un problema al marcar el ticket como entregado. Por favor, intente de nuevo.' 
+      });
     }
   };
 
@@ -134,6 +166,8 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
     selectedTicket,
     setSelectedTicket,
     ticketServices,
+    isLoadingServices,
+    serviceError,
     cancelDialogOpen,
     setCancelDialogOpen,
     cancelReason,

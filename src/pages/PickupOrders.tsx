@@ -20,6 +20,8 @@ const PickupOrders = () => {
     selectedTicket,
     setSelectedTicket,
     ticketServices,
+    isLoadingServices,
+    serviceError,
     cancelDialogOpen,
     setCancelDialogOpen,
     cancelReason,
@@ -34,11 +36,11 @@ const PickupOrders = () => {
     fetchFunction: getPickupTickets
   });
 
-  if (isLoading) {
+  if (isLoading && tickets.length === 0) {
     return <PickupLoadingState />;
   }
 
-  if (error) {
+  if (error && !isLoading && tickets.length === 0) {
     return <PickupErrorState onRetry={refetch} />;
   }
   
@@ -74,6 +76,10 @@ const PickupOrders = () => {
           setSearchQuery={setSearchQuery}
           searchFilter={searchFilter}
           setSearchFilter={setSearchFilter}
+          isLoading={isLoading}
+          isLoadingServices={isLoadingServices}
+          error={error}
+          serviceError={serviceError}
         />
       </div>
 
