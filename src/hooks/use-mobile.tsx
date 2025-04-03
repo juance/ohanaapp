@@ -2,13 +2,8 @@
 import { useState, useEffect } from 'react';
 
 export const useIsMobile = (): boolean => {
-  // Initialize with a safe default based on current window size if available
-  const [isMobile, setIsMobile] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return window.innerWidth < 768;
-    }
-    return false; // Default for SSR
-  });
+  // Initialize without using useState callback to avoid potential issues
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // Skip if not in a browser environment
@@ -20,7 +15,7 @@ export const useIsMobile = (): boolean => {
       setIsMobile(mobile);
     };
 
-    // Check immediately in case it wasn't set correctly initially
+    // Check immediately 
     checkIsMobile();
 
     // Add listener for resize events

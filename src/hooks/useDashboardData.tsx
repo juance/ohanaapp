@@ -66,15 +66,26 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   };
   
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchInitialData = async () => {
       try {
-        await refreshData();
+        if (isMounted) {
+          await refreshData();
+        }
       } catch (err) {
         console.error("Error in initial data fetch:", err);
+        if (isMounted) {
+          setError(err instanceof Error ? err : new Error('Unknown error in initial fetch'));
+        }
       }
     };
     
     fetchInitialData();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
   
   const combinedData = {
