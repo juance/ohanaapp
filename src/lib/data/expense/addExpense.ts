@@ -2,6 +2,7 @@
 import { toast } from '@/hooks/use-toast';
 import { Expense } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
+import { getLocalExpenses } from './getExpenses';
 
 /**
  * Adds a new expense to the database
@@ -9,12 +10,13 @@ import { supabase } from '@/integrations/supabase/client';
  * @param expense The expense object to add
  * @returns The newly created expense if successful, null otherwise
  */
-export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Promise<Expense | null> => {
+export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense | null> => {
   try {
     // Format the date to ISO string for storage
     const formattedExpense = {
       ...expense,
       date: new Date(expense.date).toISOString(),
+      // createdAt is already expected to be a string
     };
     
     // Add to Supabase
@@ -40,26 +42,13 @@ export const addExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>): Pr
     
   } catch (error) {
     console.error("Failed to add expense:", error);
-    toast.error("Error al agregar gasto");
+    toast.error("Error al agregar gasto", "No se pudo agregar el gasto");
     return null;
   }
 };
 
 // Helper functions for local storage
 const LOCAL_STORAGE_KEY = 'expenses';
-
-export const getLocalExpenses = (): Expense[] => {
-  try {
-    const storedExpenses = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!storedExpenses) return [];
-    
-    const parsedExpenses = JSON.parse(storedExpenses);
-    return Array.isArray(parsedExpenses) ? parsedExpenses : [];
-  } catch (error) {
-    console.error("Failed to get local expenses:", error);
-    return [];
-  }
-};
 
 export const saveLocalExpenses = (expenses: Expense[]): void => {
   try {

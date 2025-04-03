@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const DataReset = () => {
@@ -35,9 +34,7 @@ const DataReset = () => {
       localStorage.removeItem('tickets');
       localStorage.removeItem('expenses');
       
-      toast.success("Datos reiniciados", {
-        description: "Todos los datos han sido reiniciados exitosamente."
-      });
+      toast.success("Datos reiniciados", "Todos los datos han sido reiniciados exitosamente.");
       
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
@@ -46,9 +43,7 @@ const DataReset = () => {
       
     } catch (err) {
       console.error("Error resetting data:", err);
-      toast.error("Error", {
-        description: "Hubo un problema al reiniciar los datos. Intente nuevamente."
-      });
+      toast.error("Error", "Hubo un problema al reiniciar los datos. Intente nuevamente.");
     } finally {
       setIsResetting(false);
     }

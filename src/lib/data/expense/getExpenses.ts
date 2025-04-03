@@ -34,7 +34,7 @@ export const getExpenses = async (): Promise<Expense[]> => {
     
   } catch (error) {
     console.error("Failed to fetch expenses from Supabase:", error);
-    toast.error("Error al cargar gastos");
+    toast.error("Error al cargar gastos", "No se pudieron cargar los gastos");
     
     // Fallback to local storage
     return getLocalExpenses();
@@ -59,7 +59,7 @@ export const getExpensesByDateRange = async (startDate: Date, endDate: Date): Pr
     
   } catch (error) {
     console.error("Failed to filter expenses by date:", error);
-    toast.error("Error al filtrar gastos por fecha");
+    toast.error("Error al filtrar gastos por fecha", "No se pudieron filtrar los gastos por fecha");
     return [];
   }
 };
@@ -92,5 +92,5 @@ export const saveLocalExpenses = (expenses: Expense[]): void => {
   }
 };
 
-// Add missing export
+// Add this export explicitly
 export const getStoredExpenses = getLocalExpenses;

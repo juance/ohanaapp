@@ -1,12 +1,26 @@
 
 "use client"
 
-import * as React from "react"
-import { ToastContextProvider } from '@/contexts/ToastContext';
+import { Toaster as SonnerToaster } from "sonner"
 
-// This is kept for backwards compatibility but now uses our custom toast system
-const Toaster = ({ children }: { children?: React.ReactNode }) => {
-  return <ToastContextProvider>{children}</ToastContextProvider>;
-};
+interface ToasterProps {
+  children?: React.ReactNode;
+  // Add any additional props you need
+}
+
+// Use the actual sonner Toaster component 
+const Toaster = (props: ToasterProps) => {
+  return (
+    <>
+      {props.children}
+      <SonnerToaster 
+        position="bottom-right"
+        toastOptions={{
+          duration: 5000,
+        }}
+      />
+    </>
+  )
+}
 
 export { Toaster }

@@ -1,9 +1,18 @@
 
 "use client"
 
-import * as React from "react";
-import { ToastContextProvider } from '@/contexts/ToastContext';
+import { Toaster as SonnerToaster } from "sonner"
 
 export function Toaster({ children }: { children?: React.ReactNode }) {
-  return <ToastContextProvider>{children}</ToastContextProvider>;
+  return (
+    <>
+      {children}
+      <SonnerToaster 
+        position="bottom-right"
+        toastOptions={{
+          duration: 5000,
+        }}
+      />
+    </>
+  )
 }

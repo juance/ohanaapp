@@ -1,59 +1,27 @@
 
-import * as React from 'react';
-import { useContext } from 'react';
-import { ToastContext } from '@/contexts/ToastContext';
+import { toast as sonnerToast } from "sonner";
 
-// Create a custom hook to use the toast context
+// Create a custom hook that wraps sonner toast
 export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (context === undefined) {
-    throw new Error('useToast must be used within a ToastContextProvider');
-  }
-  
-  return context;
+  return {
+    toast: (title: string, description?: string) => sonnerToast(title, { description }),
+    success: (title: string, description?: string) => sonnerToast.success(title, { description }),
+    error: (title: string, description?: string) => sonnerToast.error(title, { description }),
+    warning: (title: string, description?: string) => sonnerToast.warning(title, { description }),
+    info: (title: string, description?: string) => sonnerToast.info(title, { description }),
+  };
 };
 
 // Export toast functions directly for convenience
 export const toast = {
-  // Basic toast notification
-  toast: (title: string, description?: string) => {
-    const context = React.useContext(ToastContext);
-    if (!context) return;
-    context.toast(title, description);
-  },
-  
-  // Success toast notification
-  success: (title: string, description?: string) => {
-    const context = React.useContext(ToastContext);
-    if (!context) return;
-    context.success(title, description);
-  },
-  
-  // Error toast notification
-  error: (title: string, description?: string) => {
-    const context = React.useContext(ToastContext);
-    if (!context) return;
-    context.error(title, description);
-  },
-  
-  // Warning toast notification
-  warning: (title: string, description?: string) => {
-    const context = React.useContext(ToastContext);
-    if (!context) return;
-    context.warning(title, description);
-  },
-  
-  // Info toast notification
-  info: (title: string, description?: string) => {
-    const context = React.useContext(ToastContext);
-    if (!context) return;
-    context.info(title, description);
-  }
+  toast: (title: string, description?: string) => sonnerToast(title, { description }),
+  success: (title: string, description?: string) => sonnerToast.success(title, { description }),
+  error: (title: string, description?: string) => sonnerToast.error(title, { description }),
+  warning: (title: string, description?: string) => sonnerToast.warning(title, { description }),
+  info: (title: string, description?: string) => sonnerToast.info(title, { description })
 };
 
 // Default export for convenience
 export default function useToastHook(title: string, description?: string) {
-  const context = React.useContext(ToastContext);
-  if (!context) return;
-  context.toast(title, description);
+  sonnerToast(title, { description });
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { 
   getExpenses, 
@@ -76,12 +77,13 @@ export const useExpensesData = (): UseExpensesDataReturn => {
   
   const handleAddExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
     try {
-      // Add createdAt for consistency with the interface
+      // Add createdAt for the interface
       const expenseToAdd = {
         ...expense,
-        createdAt: new Date().toISOString() // Add createdAt that the interface expects
+        createdAt: new Date().toISOString() // This will be properly formatted in addExpense
       };
-      await addExpense(expenseToAdd);
+      
+      await addExpense(expenseToAdd as Omit<Expense, 'id'>);
       await fetchExpenses(); // Refresh the data after adding a new expense
     } catch (err) {
       console.error("Error adding expense:", err);
