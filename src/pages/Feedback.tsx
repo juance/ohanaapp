@@ -14,7 +14,7 @@ const Feedback = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsPageLoading(false);
-    }, 500);
+    }, 300);
     
     return () => clearTimeout(timer);
   }, []);

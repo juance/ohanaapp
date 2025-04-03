@@ -2,22 +2,31 @@
 import { useState, useEffect } from 'react';
 
 export const useIsMobile = (): boolean => {
-  const [isMobile, setIsMobile] = useState(false);
+  // Initialize with a safe default based on current window size if available
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false; // Default for SSR
+  });
 
   useEffect(() => {
-    // Función para verificar si es un dispositivo móvil
+    // Skip if not in a browser environment
+    if (typeof window === 'undefined') return;
+    
+    // Function to check if is mobile device
     const checkIsMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
     };
 
-    // Verificamos inmediatamente
+    // Check immediately in case it wasn't set correctly initially
     checkIsMobile();
 
-    // Agregamos listener para cambios de tamaño
+    // Add listener for resize events
     window.addEventListener('resize', checkIsMobile);
 
-    // Limpiamos el listener cuando se desmonte el componente
+    // Clean up the listener when the component unmounts
     return () => {
       window.removeEventListener('resize', checkIsMobile);
     };
@@ -25,3 +34,5 @@ export const useIsMobile = (): boolean => {
 
   return isMobile;
 };
+
+export default useIsMobile;

@@ -66,7 +66,15 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   };
   
   useEffect(() => {
-    refreshData();
+    const fetchInitialData = async () => {
+      try {
+        await refreshData();
+      } catch (err) {
+        console.error("Error in initial data fetch:", err);
+      }
+    };
+    
+    fetchInitialData();
   }, []);
   
   const combinedData = {
