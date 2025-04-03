@@ -8,7 +8,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,

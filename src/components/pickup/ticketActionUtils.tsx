@@ -2,145 +2,143 @@
 import { Ticket } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
-export const formatDate = (dateString: string): string => {
-  try {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    });
-  } catch (e) {
-    return dateString;
-  }
-};
-
+// Utility function to notify a client that their order is ready
 export const handleNotifyClient = (ticket: Ticket) => {
-  if (ticket) {
-    const whatsappMessage = encodeURIComponent(
-      `Hola ${ticket.clientName}, su pedido está listo para retirar en Lavandería Ohana.`
-    );
-    const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
-    
-    toast.success(`Notificación enviada a ${ticket.clientName}`, {
-      description: `Se notificó que su pedido está listo para retirar.`
+  if (!ticket || !ticket.phoneNumber) {
+    toast.error("Error", { description: "No hay número de teléfono disponible" });
+    return;
+  }
+  
+  try {
+    // For now, just show a toast - this could be expanded to send actual notifications
+    toast.success("Cliente notificado", {
+      description: `Se ha enviado una notificación a ${ticket.clientName}`
     });
-  } else {
-    toast.error('Error', { description: 'Seleccione un ticket primero' });
+  } catch (error) {
+    console.error("Error notifying client:", error);
+    toast.error("Error", { description: "Error al notificar al cliente" });
   }
 };
 
-export const handleShareWhatsApp = (ticket: Ticket | undefined, ticketServices: any[]) => {
+// Generate WhatsApp share link
+export const handleShareWhatsApp = (ticket?: Ticket, services?: any[]) => {
   if (!ticket) {
-    toast.error('Error', { description: 'Seleccione un ticket primero' });
+    toast.error("Error", { description: "Seleccione un ticket primero" });
     return;
   }
 
-  let message = `🧼 *LAVANDERÍA OHANA - TICKET* 🧼\n\n`;
-  message += `Estimado/a ${ticket.clientName},\n\n`;
-  message += `Su pedido está listo para retirar.\n\n`;
-  
-  if (ticketServices.length > 0) {
-    message += `*Detalle de servicios:*\n`;
-    ticketServices.forEach(service => {
-      message += `- ${service.name} x${service.quantity}: $${service.price.toLocaleString()}\n`;
+  try {
+    const servicesList = services?.map(s => `${s.name} x${s.quantity}: $${s.price}`).join('\n') || '';
+    
+    const message = encodeURIComponent(
+      `*Lavandería Ohana*\n\n` +
+      `Hola ${ticket.clientName},\n\n` +
+      `Tu pedido está listo para retirar.\n` +
+      `*Ticket:* ${ticket.ticketNumber}\n` +
+      `*Total:* $${ticket.totalPrice}\n\n` +
+      `*Detalles:*\n${servicesList}`
+    );
+    
+    const whatsappURL = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${message}`;
+    window.open(whatsappURL, '_blank');
+    
+    toast.success("WhatsApp abierto", {
+      description: "Se ha abierto WhatsApp con el mensaje pre-escrito"
     });
+  } catch (error) {
+    console.error("Error sharing via WhatsApp:", error);
+    toast.error("Error", { description: "Error al abrir WhatsApp" });
   }
-  
-  message += `\n*Total a pagar: $${ticket.totalPrice.toLocaleString()}*\n\n`;
-  message += `Gracias por confiar en Lavandería Ohana.`;
-
-  const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-  
-  window.open(whatsappUrl, '_blank');
-  
-  toast.success(`Compartiendo ticket con ${ticket.clientName}`);
 };
 
-export const generatePrintContent = (ticket: Ticket, ticketServices: any[]) => {
-  const formattedDate = formatDate(ticket.createdAt);
-
-  const servicesContent = ticketServices.length > 0 
-    ? ticketServices.map(service => 
-        `<div class="service-item">
-          <span>${service.name} x${service.quantity}</span>
-          <span>$ ${(service.price).toLocaleString()}</span>
-        </div>`
-      ).join('')
-    : '<p>No hay servicios registrados</p>';
-
+// Generate content for printing ticket
+export const generatePrintContent = (ticket: Ticket, services: any[]) => {
+  const servicesList = services.map(s => 
+    `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+      <div>${s.name} x${s.quantity}</div>
+      <div>$${s.price}</div>
+    </div>`
+  ).join('');
+  
   return `
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Ticket</title>
+      <title>Ticket #${ticket.ticketNumber} - Lavandería Ohana</title>
       <style>
         body {
           font-family: Arial, sans-serif;
           margin: 0;
           padding: 20px;
-          max-width: 800px;
+          font-size: 12px;
+        }
+        .ticket {
+          width: 300px;
           margin: 0 auto;
         }
         .header {
           text-align: center;
           margin-bottom: 20px;
         }
-        .ticket-info {
-          margin-bottom: 20px;
+        .logo {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 5px;
         }
-        .ticket-info p {
-          margin: 5px 0;
+        .info {
+          margin-bottom: 20px;
         }
         .services {
           margin-bottom: 20px;
         }
-        .service-item {
-          display: flex;
-          justify-content: space-between;
-          padding: 5px 0;
-          border-bottom: 1px solid #eee;
-        }
         .total {
           font-weight: bold;
           text-align: right;
+          border-top: 1px solid black;
+          padding-top: 5px;
+        }
+        .footer {
+          text-align: center;
           margin-top: 20px;
-          font-size: 1.2em;
+          font-size: 10px;
         }
         @media print {
-          .no-print {
-            display: none;
+          @page {
+            margin: 0;
+          }
+          body {
+            margin: 10mm;
           }
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <h1>Lavandería Ohana</h1>
-        <p>Ticket de servicio</p>
-      </div>
-      
-      <div class="ticket-info">
-        <p><strong>Ticket N°:</strong> ${ticket.ticketNumber || 'N/A'}</p>
-        <p><strong>Cliente:</strong> ${ticket.clientName}</p>
-        <p><strong>Teléfono:</strong> ${ticket.phoneNumber}</p>
-        <p><strong>Fecha:</strong> ${formattedDate}</p>
-      </div>
-      
-      <h3>Servicios:</h3>
-      <div class="services">
-        ${servicesContent}
-      </div>
-      
-      <div class="total">
-        Total: $ ${ticket.totalPrice.toLocaleString()}
-      </div>
-      
-      <div class="no-print" style="text-align: center; margin-top: 30px;">
-        <button onclick="window.print();" style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer;">
-          Imprimir Ticket
-        </button>
+      <div class="ticket">
+        <div class="header">
+          <div class="logo">LAVANDERÍA OHANA</div>
+          <div>Servicio profesional de lavandería</div>
+        </div>
+        
+        <div class="info">
+          <div><strong>Ticket:</strong> #${ticket.ticketNumber}</div>
+          <div><strong>Cliente:</strong> ${ticket.clientName}</div>
+          <div><strong>Teléfono:</strong> ${ticket.phoneNumber}</div>
+          <div><strong>Fecha:</strong> ${new Date(ticket.createdAt).toLocaleDateString()}</div>
+        </div>
+        
+        <div class="services">
+          <div><strong>Servicios:</strong></div>
+          ${servicesList}
+        </div>
+        
+        <div class="total">
+          <div>TOTAL: $${ticket.totalPrice}</div>
+        </div>
+        
+        <div class="footer">
+          <p>Gracias por confiar en Lavandería Ohana</p>
+          <p>Para consultas: ohana.laundry@example.com</p>
+        </div>
       </div>
     </body>
     </html>

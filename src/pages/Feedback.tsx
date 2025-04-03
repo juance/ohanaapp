@@ -52,9 +52,7 @@ const Feedback = () => {
   
   const handleSearch = async () => {
     if (!phoneNumber.trim()) {
-      toast("Por favor ingrese un número de teléfono", {
-        style: { backgroundColor: 'red', color: 'white' }
-      });
+      toast.error("Error", { description: "Por favor ingrese un número de teléfono" });
       return;
     }
     
@@ -62,15 +60,11 @@ const Feedback = () => {
       await refetch();
       
       if (!customer) {
-        toast("Cliente no encontrado", {
-          style: { backgroundColor: 'red', color: 'white' }
-        });
+        toast.error("Error", { description: "Cliente no encontrado" });
       }
     } catch (error) {
       console.error("Error al buscar cliente:", error);
-      toast("Error al buscar el cliente", {
-        style: { backgroundColor: 'red', color: 'white' }
-      });
+      toast.error("Error", { description: "Error al buscar el cliente" });
     }
   };
   
