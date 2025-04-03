@@ -1,29 +1,27 @@
-
 import { Ticket } from '@/lib/types';
 import { toast } from '@/hooks/use-toast';
 
 // Utility function to notify a client that their order is ready
 export const handleNotifyClient = (ticket: Ticket) => {
   if (!ticket || !ticket.phoneNumber) {
-    toast.error("Error", { description: "No hay número de teléfono disponible" });
+    toast.error("Error", "No hay número de teléfono disponible");
     return;
   }
   
   try {
     // For now, just show a toast - this could be expanded to send actual notifications
-    toast.success("Cliente notificado", {
-      description: `Se ha enviado una notificación a ${ticket.clientName}`
-    });
+    toast.success("Cliente notificado", 
+      `Se ha enviado una notificación a ${ticket.clientName}`);
   } catch (error) {
     console.error("Error notifying client:", error);
-    toast.error("Error", { description: "Error al notificar al cliente" });
+    toast.error("Error", "Error al notificar al cliente");
   }
 };
 
 // Generate WhatsApp share link
 export const handleShareWhatsApp = (ticket?: Ticket, services?: any[]) => {
   if (!ticket) {
-    toast.error("Error", { description: "Seleccione un ticket primero" });
+    toast.error("Error", "Seleccione un ticket primero");
     return;
   }
 
@@ -42,12 +40,11 @@ export const handleShareWhatsApp = (ticket?: Ticket, services?: any[]) => {
     const whatsappURL = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${message}`;
     window.open(whatsappURL, '_blank');
     
-    toast.success("WhatsApp abierto", {
-      description: "Se ha abierto WhatsApp con el mensaje pre-escrito"
-    });
+    toast.success("WhatsApp abierto", 
+      "Se ha abierto WhatsApp con el mensaje pre-escrito");
   } catch (error) {
     console.error("Error sharing via WhatsApp:", error);
-    toast.error("Error", { description: "Error al abrir WhatsApp" });
+    toast.error("Error", "Error al abrir WhatsApp");
   }
 };
 

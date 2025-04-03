@@ -62,7 +62,7 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
 
   const handleOpenCancelDialog = useCallback(() => {
     if (!selectedTicket) {
-      toast.error('Error', { description: 'Seleccione un ticket primero' });
+      toast.error('Error', 'Seleccione un ticket primero');
       return;
     }
     setCancelReason('');
@@ -73,7 +73,7 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
     if (!selectedTicket) return;
     
     if (!cancelReason.trim()) {
-      toast.error('Error', { description: 'Por favor ingrese un motivo para anular el ticket' });
+      toast.error('Error', 'Por favor ingrese un motivo para anular el ticket');
       return;
     }
 
@@ -87,28 +87,26 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
       }
     } catch (error) {
       console.error('Error canceling ticket:', error);
-      toast.error('Error', { 
-        description: 'Hubo un problema al anular el ticket. Por favor, intente de nuevo.' 
-      });
+      toast.error('Error', 'Hubo un problema al anular el ticket. Por favor, intente de nuevo.');
     }
   };
 
   const handlePrintTicket = () => {
     if (!selectedTicket) {
-      toast.error('Error', { description: 'Seleccione un ticket primero' });
+      toast.error('Error', 'Seleccione un ticket primero');
       return;
     }
 
     const ticket = tickets.find(t => t.id === selectedTicket);
     if (!ticket) {
-      toast.error('Error', { description: 'Ticket no encontrado' });
+      toast.error('Error', 'Ticket no encontrado');
       return;
     }
 
     try {
       const printWindow = window.open('', '_blank');
       if (!printWindow) {
-        toast.error('Error', { description: 'El navegador bloqueó la apertura de la ventana de impresión' });
+        toast.error('Error', 'El navegador bloqueó la apertura de la ventana de impresión');
         return;
       }
 
@@ -124,7 +122,7 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
       toast.success('Preparando impresión del ticket');
     } catch (error) {
       console.error('Error printing ticket:', error);
-      toast.error('Error', { description: 'Error al generar la impresión' });
+      toast.error('Error', 'Error al generar la impresión');
     }
   };
 
@@ -139,9 +137,7 @@ export const useTicketOperations = ({ queryKey, fetchFunction }: UseTicketOperat
       }
     } catch (error) {
       console.error('Error marking ticket as delivered:', error);
-      toast.error('Error', { 
-        description: 'Hubo un problema al marcar el ticket como entregado. Por favor, intente de nuevo.' 
-      });
+      toast.error('Error', 'Hubo un problema al marcar el ticket como entregado. Por favor, intente de nuevo.');
     }
   };
 

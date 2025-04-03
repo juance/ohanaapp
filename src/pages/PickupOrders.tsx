@@ -7,6 +7,7 @@ import PickupLoadingState from '@/components/pickup/PickupLoadingState';
 import PickupErrorState from '@/components/pickup/PickupErrorState';
 import { getPickupTickets } from '@/lib/ticket';
 import { useTicketOperations } from '@/hooks/useTicketOperations';
+import { handleShareWhatsApp, handleNotifyClient } from '@/components/pickup/ticketActionUtils';
 
 const PickupOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');

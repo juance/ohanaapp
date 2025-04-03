@@ -37,7 +37,7 @@ export const cancelTicket = async (ticketId: string, reason: string): Promise<bo
       ? error.message 
       : 'Error desconocido al anular el ticket';
     
-    toast.error("Error", { description: errorMessage });
+    toast.error("Error", errorMessage);
     return false;
   }
 };

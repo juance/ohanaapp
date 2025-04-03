@@ -25,9 +25,7 @@ const AuthForm = () => {
       
       navigate('/dashboard');
     } catch (error) {
-      toast.error('Error', {
-        description: 'Please check your credentials and try again'
-      });
+      toast.error('Error', 'Please check your credentials and try again');
     } finally {
       setIsLoading(false);
     }

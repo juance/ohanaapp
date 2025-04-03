@@ -31,9 +31,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
         setFeedback(feedback.filter(item => item.id !== id));
         toast("Comentario eliminado exitosamente");
       } else {
-        toast("Error al eliminar el comentario", {
-          style: { backgroundColor: 'red', color: 'white' }
-        });
+        toast.error("Error al eliminar el comentario");
       }
     }
   };
