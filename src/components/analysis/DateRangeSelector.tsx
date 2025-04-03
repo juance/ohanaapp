@@ -9,59 +9,51 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DateRangeSelectorProps {
-  from: Date;
-  to: Date;
-  onUpdate: (from: Date, to: Date) => void;
-  minDate?: Date;
-  className?: string;
+  dateRange: { from: Date; to: Date };
+  onDateChange: (dateRange: { from: Date; to: Date }) => void;
 }
 
-const DateRangeSelector = ({ from, to, onUpdate, minDate, className }: DateRangeSelectorProps) => {
+const DateRangeSelector = ({ dateRange, onDateChange }: DateRangeSelectorProps) => {
   const isMobile = useIsMobile();
   
-  // Calcular fecha mínima predeterminada (90 días atrás)
-  const defaultMinDate = new Date();
-  defaultMinDate.setDate(defaultMinDate.getDate() - 90);
-  
-  // Usar la fecha mínima proporcionada o la predeterminada
-  const effectiveMinDate = minDate || defaultMinDate;
+  // Calcular fecha mínima (90 días atrás)
+  const minDate = new Date();
+  minDate.setDate(minDate.getDate() - 90);
+
+  const handleDateRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (range?.from && range?.to) {
+      onDateChange({ from: range.from, to: range.to });
+    }
+  };
 
   return (
-    <div className={className}>
+    <div className="mb-6">
       <Popover>
         <PopoverTrigger asChild>
           <Button variant="outline" className="w-full justify-start text-left sm:w-auto">
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {from ? (
-              to ? (
-                <>
-                  {format(from, 'dd/MM/yy', { locale: es })} -{' '}
-                  {format(to, 'dd/MM/yy', { locale: es })}
-                </>
-              ) : (
-                format(from, 'PP', { locale: es })
-              )
+            {dateRange.from && dateRange.to ? (
+              <>
+                {format(dateRange.from, 'dd/MM/yy', { locale: es })} -{' '}
+                {format(dateRange.to, 'dd/MM/yy', { locale: es })}
+              </>
             ) : (
               <span>Seleccionar rango</span>
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
+        <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             initialFocus
             mode="range"
-            defaultMonth={from}
+            defaultMonth={dateRange.from}
             selected={{
-              from: from,
-              to: to,
+              from: dateRange.from,
+              to: dateRange.to,
             }}
-            onSelect={(range) => {
-              if (range?.from && range?.to) {
-                onUpdate(range.from, range.to);
-              }
-            }}
+            onSelect={handleDateRangeSelect}
             numberOfMonths={isMobile ? 1 : 2}
-            fromDate={effectiveMinDate} // Permitir seleccionar desde la fecha mínima
+            fromDate={minDate}
           />
         </PopoverContent>
       </Popover>

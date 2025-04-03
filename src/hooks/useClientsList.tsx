@@ -16,9 +16,7 @@ export const useClientsList = () => {
 
   const handleAddClient = async () => {
     if (!newClientName || !newClientPhone) {
-      toast.error("Error", {
-        description: "Nombre y teléfono son campos obligatorios.",
-      });
+      toast.error("Error", "Nombre y teléfono son campos obligatorios.");
       return;
     }
     
@@ -36,9 +34,7 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      toast.success("Cliente agregado", {
-        description: "El cliente ha sido agregado exitosamente.",
-      });
+      toast.success("Cliente agregado", "El cliente ha sido agregado exitosamente.");
       
       await refreshData();
       
@@ -46,9 +42,7 @@ export const useClientsList = () => {
       setNewClientPhone('');
     } catch (err: any) {
       console.error("Error adding client:", err);
-      toast.error("Error", {
-        description: err.message || "Hubo un error al agregar el cliente.",
-      });
+      toast.error("Error", err.message || "Hubo un error al agregar el cliente.");
     } finally {
       setIsAddingClient(false);
     }
@@ -72,16 +66,12 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      toast.success("Cliente actualizado", {
-        description: "Los datos del cliente han sido actualizados.",
-      });
+      toast.success("Cliente actualizado", "Los datos del cliente han sido actualizados.");
       
       setIsEditingClient(null);
       await refreshData();
     } catch (err: any) {
-      toast.error("Error", {
-        description: err.message || "Error al actualizar el cliente.",
-      });
+      toast.error("Error", err.message || "Error al actualizar el cliente.");
     }
   };
 

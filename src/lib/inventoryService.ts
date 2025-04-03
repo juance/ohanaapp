@@ -23,9 +23,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     }));
   } catch (error) {
     console.error('Error al obtener elementos del inventario:', error);
-    toast.error("Error", {
-      description: 'Error al obtener elementos del inventario'
-    });
+    toast.error("Error", 'Error al obtener elementos del inventario');
     return [];
   }
 };
@@ -58,9 +56,7 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
     };
   } catch (error) {
     console.error('Error al agregar elemento de inventario:', error);
-    toast.error("Error", {
-      description: 'Error al agregar elemento de inventario'
-    });
+    toast.error("Error", 'Error al agregar elemento de inventario');
     return null;
   }
 };
@@ -84,9 +80,7 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
     return true;
   } catch (error) {
     console.error('Error al actualizar elemento de inventario:', error);
-    toast.error("Error", {
-      description: 'Error al actualizar elemento de inventario'
-    });
+    toast.error("Error", 'Error al actualizar elemento de inventario');
     return false;
   }
 };
@@ -105,9 +99,7 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
     return true;
   } catch (error) {
     console.error('Error al eliminar elemento de inventario:', error);
-    toast.error("Error", {
-      description: 'Error al eliminar elemento de inventario'
-    });
+    toast.error("Error", 'Error al eliminar elemento de inventario');
     return false;
   }
 };

@@ -15,30 +15,35 @@ export const useToast = () => {
 
 // Export toast functions directly for convenience
 export const toast = {
+  // Basic toast notification
   toast: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (!context) return;
     context.toast(title, description);
   },
   
+  // Success toast notification
   success: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (!context) return;
     context.success(title, description);
   },
   
+  // Error toast notification
   error: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (!context) return;
     context.error(title, description);
   },
   
+  // Warning toast notification
   warning: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (!context) return;
     context.warning(title, description);
   },
   
+  // Info toast notification
   info: (title: string, description?: string) => {
     const context = React.useContext(ToastContext);
     if (!context) return;

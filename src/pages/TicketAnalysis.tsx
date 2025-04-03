@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { ActionButtons } from '@/components/analysis/ActionButtons';
-import { ChartTabs } from '@/components/analysis/ChartTabs';
-import { DateRangeSelector } from '@/components/analysis/DateRangeSelector';
-import { MetricsSection } from '@/components/analysis/MetricsSection';
+import ChartTabs from '@/components/analysis/ChartTabs';
+import DateRangeSelector from '@/components/analysis/DateRangeSelector';
+import MetricsSection from '@/components/analysis/MetricsSection';
 import { Loading } from '@/components/ui/loading';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -59,8 +59,8 @@ const TicketAnalysis: React.FC = () => {
               </div>
             ) : (
               <>
-                <MetricsSection data={data} />
-                <ChartTabs data={data} />
+                <MetricsSection analytics={data} loading={isLoading} />
+                <ChartTabs analytics={data} loading={isLoading} />
               </>
             )}
           </div>
