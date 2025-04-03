@@ -1,24 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
-import { useQuery } from '@tanstack/react-query';
-import { getCustomerByPhone } from '@/lib/dataService';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
 
 const Feedback = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const isMobile = useIsMobile();
-  
   const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
@@ -28,39 +18,6 @@ const Feedback = () => {
     
     return () => clearTimeout(timer);
   }, []);
-  
-  const { data: customer, refetch, isLoading } = useQuery({
-    queryKey: ['customer', phoneNumber],
-    queryFn: async () => {
-      if (!phoneNumber) return null;
-      try {
-        return await getCustomerByPhone(phoneNumber);
-      } catch (error) {
-        console.error("Error fetching customer:", error);
-        return null;
-      }
-    },
-    enabled: false,
-    retry: false,
-  });
-  
-  const handleSearch = async () => {
-    if (!phoneNumber.trim()) {
-      toast.error("Error", "Por favor ingrese un número de teléfono");
-      return;
-    }
-    
-    try {
-      await refetch();
-      
-      if (!customer) {
-        toast.error("Error", "Cliente no encontrado");
-      }
-    } catch (error) {
-      console.error("Error al buscar cliente:", error);
-      toast.error("Error", "Error al buscar el cliente");
-    }
-  };
   
   const handleFeedbackAdded = () => {
     setRefreshTrigger(prev => prev + 1);

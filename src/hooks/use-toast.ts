@@ -1,12 +1,6 @@
 
 import { toast as sonnerToast } from "sonner";
 
-type ToastProps = {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-};
-
 export const toast = {
   toast: (title: string, description?: string) => sonnerToast(title, { description }),
   success: (title: string, description?: string) => sonnerToast.success(title, { description }),

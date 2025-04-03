@@ -16,9 +16,15 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   useEffect(() => {
     const loadFeedback = async () => {
       setIsLoading(true);
-      const data = await getFeedback();
-      setFeedback(data);
-      setIsLoading(false);
+      try {
+        const data = await getFeedback();
+        setFeedback(data);
+      } catch (error) {
+        console.error('Error al cargar comentarios:', error);
+        toast.error('Error', 'No se pudieron cargar los comentarios');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     loadFeedback();
@@ -80,7 +86,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
           </CardHeader>
           <CardContent className={isMobile ? 'px-3 py-2' : ''}>
             <p className="text-xs md:text-sm text-gray-700">{item.comment}</p>
-            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.createdAt}</p>
+            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {new Date(item.createdAt).toLocaleDateString()}</p>
           </CardContent>
         </Card>
       ))}

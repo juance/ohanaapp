@@ -5,7 +5,7 @@ import { useTheme } from "next-themes";
 import { Toaster as SonnerToaster } from "sonner";
 
 export function Toaster() {
-  const { theme } = useTheme();
+  const { theme = "system" } = useTheme();
 
   return (
     <SonnerToaster
