@@ -1,6 +1,5 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
@@ -18,24 +17,22 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/orders/pickup" element={<PickupOrders />} />
-          <Route path="/orders/delivered" element={<DeliveredOrders />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/users" element={<UserManagement />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/clients" element={<Clients />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+    <Toaster />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/orders/pickup" element={<PickupOrders />} />
+        <Route path="/orders/delivered" element={<DeliveredOrders />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/users" element={<UserManagement />} />
+        <Route path="/expenses" element={<Expenses />} />
+        <Route path="/clients" element={<Clients />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
   </QueryClientProvider>
 );
 
