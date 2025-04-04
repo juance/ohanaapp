@@ -1,4 +1,5 @@
 
-// This file is now just a re-export facade to maintain backward compatibility
-// while the actual implementation is split into more focused files
-export * from './ticket';
+// This file now re-exports the functionality from the refactored modules
+// to maintain backward compatibility with any existing imports
+
+export * from './tickets';

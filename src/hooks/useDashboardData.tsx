@@ -5,7 +5,7 @@ import { useExpensesData } from './useExpensesData';
 import { useClientData } from './useClientData';
 import { useChartData } from './useChartData';
 import { ClientVisit } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 interface UseDashboardDataReturn {
   isLoading: boolean;
@@ -26,11 +26,13 @@ interface UseDashboardDataReturn {
 export const useDashboardData = (): UseDashboardDataReturn => {
   const [error, setError] = useState<Error | null>(null);
   
+  // Use our separated hooks
   const metricsData = useMetricsData();
   const expensesData = useExpensesData();
   const clientData = useClientData();
   
-  const period = 'monthly';
+  // Calculate chart data based on metrics data and the current period
+  const period = 'monthly'; // Default to monthly
   const chartData = useChartData(
     period,
     {
@@ -39,17 +41,19 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       monthly: metricsData.data?.monthly || null
     },
     {
-      daily: Number(expensesData.periodExpenses?.daily || 0),
-      weekly: Number(expensesData.periodExpenses?.weekly || 0),
-      monthly: Number(expensesData.periodExpenses?.monthly || 0)
+      daily: Number(expensesData.expenses?.daily || 0),
+      weekly: Number(expensesData.expenses?.weekly || 0),
+      monthly: Number(expensesData.expenses?.monthly || 0)
     }
   );
   
+  // Determine overall loading state
   const isLoading = metricsData.isLoading || expensesData.loading || clientData.loading;
   
+  // Function to refresh all data
   const refreshData = async () => {
     try {
-      toast.toast("Actualizando datos del panel...");
+      toast.info("Actualizando datos del panel...");
       
       await Promise.all([
         metricsData.refreshData(),
@@ -61,36 +65,19 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     } catch (err) {
       console.error("Error refreshing dashboard data:", err);
       setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
-      toast.error("Error", "Error al actualizar los datos del panel");
+      toast.error("Error al actualizar los datos del panel");
     }
   };
   
+  // Initial load of data
   useEffect(() => {
-    let isMounted = true;
-    
-    const fetchInitialData = async () => {
-      try {
-        if (isMounted) {
-          await refreshData();
-        }
-      } catch (err) {
-        console.error("Error in initial data fetch:", err);
-        if (isMounted) {
-          setError(err instanceof Error ? err : new Error('Unknown error in initial fetch'));
-        }
-      }
-    };
-    
-    fetchInitialData();
-    
-    return () => {
-      isMounted = false;
-    };
+    refreshData();
   }, []);
   
+  // Combine data for component consumption
   const combinedData = {
     metrics: metricsData.data || {},
-    expenses: expensesData.periodExpenses || { daily: 0, weekly: 0, monthly: 0 },
+    expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
     clients: clientData.frequentClients || [],
     chartData: chartData || { barData: [], lineData: [], pieData: [] }
   };

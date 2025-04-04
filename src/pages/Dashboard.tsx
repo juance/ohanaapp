@@ -1,26 +1,14 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import MetricsCards from '@/components/dashboard/MetricsCards';
 import ChartSection from '@/components/dashboard/ChartSection';
 import LoadingState from '@/components/dashboard/LoadingState';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface DashboardProps {
   embedded?: boolean;
@@ -28,38 +16,14 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   const { data, isLoading, error, refreshData } = useDashboardData();
-  const [isResetting, setIsResetting] = useState(false);
   
   const handleRefresh = async () => {
     try {
-      toast.toast("Actualizando panel de control...");
+      toast.info("Actualizando panel de control...");
       await refreshData();
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
-      toast.toast("Error al actualizar el panel de control");
-    }
-  };
-  
-  const handleResetTickets = async () => {
-    try {
-      setIsResetting(true);
-      toast.toast("Reiniciando datos de tickets...");
-      
-      // Reset tickets to zero using a direct database query since RPC isn't available
-      const { error: resetError } = await supabase
-        .from('tickets')
-        .update({ is_canceled: true, cancel_reason: 'Reset por administrador' })
-        .gt('id', '0');
-      
-      if (resetError) throw resetError;
-      
-      await refreshData();
-      toast.success("Datos de tickets reiniciados correctamente");
-    } catch (err) {
-      console.error("Error resetting ticket data:", err);
-      toast.error("Error al reiniciar datos de tickets");
-    } finally {
-      setIsResetting(false);
+      toast.error("Error al actualizar el panel de control");
     }
   };
   
@@ -75,47 +39,15 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
             <p className="text-gray-500">Panel de Control</p>
           </div>
-          <div className="flex gap-2">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  className="flex items-center gap-2"
-                  disabled={isResetting}
-                >
-                  <RotateCcw className="h-4 w-4" />
-                  Reiniciar Tickets
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>¿Reiniciar datos de tickets?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta acción reiniciará los datos relacionados con tickets a cero.
-                    Esto podría afectar al panel de control y las métricas. 
-                    Esta acción no puede deshacerse.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleResetTickets}>
-                    Confirmar
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
-            <Button 
-              onClick={handleRefresh} 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Actualizar Datos
-            </Button>
-          </div>
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Actualizar Datos
+          </Button>
         </header>
       )}
       

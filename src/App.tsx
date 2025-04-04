@@ -1,13 +1,12 @@
 
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { Toaster } from "@/components/ui/toaster";
 import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
 
-// Import synchronously to avoid lazy loading issues
-import Index from '@/pages/Index';
-
 // Implement code splitting with lazy loading for each page
+const Index = lazy(() => import('@/pages/Index'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
 const Metrics = lazy(() => import('@/pages/Metrics'));
@@ -60,24 +59,27 @@ function App() {
   }, [location]);
   
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/metrics" element={<Metrics />} />
-        <Route path="/pickup" element={<PickupOrders />} />
-        <Route path="/delivered" element={<DeliveredOrders />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/administration" element={<Administration />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/loyalty" element={<Loyalty />} />
-        <Route path="/analysis" element={<TicketAnalysis />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+    <>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/tickets" element={<Tickets />} />
+          <Route path="/metrics" element={<Metrics />} />
+          <Route path="/pickup" element={<PickupOrders />} />
+          <Route path="/delivered" element={<DeliveredOrders />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/feedback" element={<Feedback />} />
+          <Route path="/administration" element={<Administration />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/loyalty" element={<Loyalty />} />
+          <Route path="/analysis" element={<TicketAnalysis />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+      <Toaster />
+    </>
   );
 }
 

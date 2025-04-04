@@ -40,7 +40,8 @@ export interface Ticket {
   createdAt: string;
   updatedAt: string;
   deliveredDate?: string;
-  isPaid?: boolean; // New field to track if ticket is paid
+  isPaid?: boolean;
+  valetQuantity?: number;
 }
 
 export interface Metrics {
@@ -166,6 +167,6 @@ export interface CustomerFeedback {
   customerId: string;
   customerName: string;
   comment: string;
-  rating: number; // 1-5 star rating
+  rating: number;
   createdAt: string;
 }

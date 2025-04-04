@@ -1,5 +1,5 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from "@/hooks/use-toast";
 
 // Define la estructura de un error en el sistema
 export interface SystemError {
@@ -41,7 +41,11 @@ export const logError = (
   errorStore = [systemError, ...errorStore];
   
   // Opcionalmente notificar al usuario
-  toast.error("Error detectado", "Se ha registrado un error en el sistema.");
+  toast({
+    variant: "destructive",
+    title: "Error detectado",
+    description: "Se ha registrado un error en el sistema."
+  });
   
   return systemError;
 };

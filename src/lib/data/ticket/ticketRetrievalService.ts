@@ -64,3 +64,92 @@ export const getStoredTickets = async (startDate?: Date, endDate?: Date): Promis
     return localTickets;
   }
 };
+
+/**
+ * Get tickets that are ready for pickup
+ */
+export const getPickupTickets = async (): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (name, phone)
+      `)
+      .eq('status', 'ready')
+      .eq('is_canceled', false)
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || '',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total,
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date
+    }));
+  } catch (error) {
+    console.error('Error fetching pickup tickets:', error);
+    return [];
+  }
+};
+
+/**
+ * Get tickets that have been delivered
+ */
+export const getDeliveredTickets = async (): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (name, phone)
+      `)
+      .eq('status', 'delivered')
+      .eq('is_canceled', false)
+      .order('delivered_date', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || '',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total,
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date
+    }));
+  } catch (error) {
+    console.error('Error fetching delivered tickets:', error);
+    return [];
+  }
+};
+
+/**
+ * Get services for a specific ticket
+ */
+export const getTicketServices = async (ticketId: string): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('dry_cleaning_items')
+      .select('*')
+      .eq('ticket_id', ticketId);
+    
+    if (error) throw error;
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching ticket services:', error);
+    return [];
+  }
+};

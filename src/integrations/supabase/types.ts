@@ -44,24 +44,6 @@ export type Database = {
           },
         ]
       }
-      customer_types: {
-        Row: {
-          count: number
-          id: number
-          type_name: string
-        }
-        Insert: {
-          count?: number
-          id?: never
-          type_name: string
-        }
-        Update: {
-          count?: number
-          id?: never
-          type_name?: string
-        }
-        Relationships: []
-      }
       customers: {
         Row: {
           created_at: string
@@ -69,7 +51,6 @@ export type Database = {
           id: string
           loyalty_points: number
           name: string
-          notes: string | null
           phone: string
           valets_count: number
           valets_redeemed: number | null
@@ -80,7 +61,6 @@ export type Database = {
           id?: string
           loyalty_points?: number
           name: string
-          notes?: string | null
           phone: string
           valets_count?: number
           valets_redeemed?: number | null
@@ -91,31 +71,9 @@ export type Database = {
           id?: string
           loyalty_points?: number
           name?: string
-          notes?: string | null
           phone?: string
           valets_count?: number
           valets_redeemed?: number | null
-        }
-        Relationships: []
-      }
-      dashboard_stats: {
-        Row: {
-          id: number
-          ingresos_diarios: number
-          tickets: number
-          total_clientes: number
-        }
-        Insert: {
-          id?: never
-          ingresos_diarios?: number
-          tickets?: number
-          total_clientes?: number
-        }
-        Update: {
-          id?: never
-          ingresos_diarios?: number
-          tickets?: number
-          total_clientes?: number
         }
         Relationships: []
       }

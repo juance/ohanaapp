@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { InventoryItem } from './types';
 
 // Obtener todos los elementos del inventario
@@ -23,7 +23,11 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     }));
   } catch (error) {
     console.error('Error al obtener elementos del inventario:', error);
-    toast.error("Error", 'Error al obtener elementos del inventario');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Error al obtener elementos del inventario'
+    });
     return [];
   }
 };
@@ -44,7 +48,10 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       
     if (error) throw error;
     
-    toast.success('Elemento de inventario agregado con éxito');
+    toast({
+      title: "Success",
+      description: 'Elemento de inventario agregado con éxito'
+    });
     
     return {
       id: data.id,
@@ -56,7 +63,11 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
     };
   } catch (error) {
     console.error('Error al agregar elemento de inventario:', error);
-    toast.error("Error", 'Error al agregar elemento de inventario');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Error al agregar elemento de inventario'
+    });
     return null;
   }
 };
@@ -76,11 +87,18 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
       
     if (error) throw error;
     
-    toast.success('Elemento de inventario actualizado con éxito');
+    toast({
+      title: "Success",
+      description: 'Elemento de inventario actualizado con éxito'
+    });
     return true;
   } catch (error) {
     console.error('Error al actualizar elemento de inventario:', error);
-    toast.error("Error", 'Error al actualizar elemento de inventario');
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: 'Error al actualizar elemento de inventario'
+    });
     return false;
   }
 };
@@ -95,11 +113,18 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
       
     if (error) throw error;
     
-    toast.success('Elemento de inventario eliminado con éxito');
+    toast({
+      title: "Success",
+      description: 'Elemento de inventario eliminado con éxito'
+    });
     return true;
   } catch (error) {
     console.error('Error al eliminar elemento de inventario:', error);
-    toast.error("Error", 'Error al eliminar elemento de inventario');
+    toast({
+      variant: "destructive", 
+      title: "Error",
+      description: 'Error al eliminar elemento de inventario'
+    });
     return false;
   }
 };

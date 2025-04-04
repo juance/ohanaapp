@@ -1,72 +1,42 @@
 
-import React from 'react';
+import { Download, RefreshCw, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Download, RefreshCcw } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/ui/use-toast';
+import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface ActionButtonsProps {
-  onExport?: () => Promise<void>;
-  isLoading?: boolean;
+  onExportData: () => void;
 }
 
-export const ActionButtons = ({ onExport, isLoading }: ActionButtonsProps) => {
-  const queryClient = useQueryClient();
-
-  const handleRefresh = () => {
-    toast.toast("Actualizando datos...");
-    
-    try {
-      // Invalidate ticket analytics query
-      queryClient.invalidateQueries({
-        queryKey: ['ticketAnalytics'],
-      });
-      
-      toast.success("Datos actualizados correctamente");
-    } catch (error) {
-      console.error("Error refreshing data:", error);
-      toast.error("Error al actualizar los datos");
-    }
-  };
-
-  const handleExport = async () => {
-    if (!onExport) {
-      toast.toast("Función de exportación no disponible");
-      return;
-    }
-
-    try {
-      await onExport();
-      // Toast is handled in the export function
-    } catch (error) {
-      console.error("Export error:", error);
-      toast.error("Error al exportar datos");
-    }
-  };
-
+const ActionButtons = ({ onExportData }: ActionButtonsProps) => {
   return (
-    <div className="flex flex-wrap gap-2 md:gap-3">
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-        onClick={handleRefresh}
-        disabled={isLoading}
-      >
-        <RefreshCcw className="h-4 w-4" />
-        <span>Actualizar</span>
+    <div className="flex flex-col gap-2 sm:flex-row">
+      <Button variant="outline" onClick={() => window.location.reload()}>
+        <RefreshCw className="mr-2 h-4 w-4" />
+        Actualizar
       </Button>
-
-      <Button
-        variant="default"
-        size="sm"
-        className="flex items-center gap-2"
-        onClick={handleExport}
-        disabled={isLoading || !onExport}
-      >
-        <Download className="h-4 w-4" />
-        <span>Exportar CSV</span>
+      
+      <Button variant="outline" onClick={onExportData}>
+        <Download className="mr-2 h-4 w-4" />
+        Exportar
+      </Button>
+      
+      <Link to="/clients">
+        <Button variant="outline">
+          <Users className="mr-2 h-4 w-4" />
+          Gestionar Clientes
+        </Button>
+      </Link>
+      
+      <Button variant="default" asChild>
+        <Link to="/loyalty">
+          <Star className="mr-2 h-4 w-4" />
+          Programa de Fidelidad
+        </Link>
       </Button>
     </div>
   );
 };
+
+export default ActionButtons;

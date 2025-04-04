@@ -37,14 +37,8 @@ export {
   getMonthlyMetrics
 } from './data/metricsService';
 
-// Export expense service - update to use the new modular structure
-export {
-  addExpense as storeExpense,
-  getExpenses as getStoredExpenses,
-  getDailyExpenses,
-  getWeeklyExpenses,
-  getMonthlyExpenses
-} from './data/expense';
+// Export expense service
+export * from './data/expenseService';
 
 // Explicitly export getCustomerByPhone for direct imports
 export { getCustomerByPhone } from './data/customerService';

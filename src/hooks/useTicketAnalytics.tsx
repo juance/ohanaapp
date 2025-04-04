@@ -1,21 +1,10 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from '@/hooks/use-toast';
-import { 
-  fetchTicketAnalytics, 
-  TicketAnalytics, 
-  DateRange 
-} from '@/lib/analytics/ticketAnalyticsService';
-import { exportAnalyticsToCSV } from '@/lib/analytics/ticketDataExport';
+import { fetchTicketAnalytics } from './analytics/fetchTicketAnalytics';
+import { exportTicketAnalytics } from './analytics/exportAnalytics';
+import type { TicketAnalytics, DateRange, UseTicketAnalyticsReturn } from './analytics/types';
 
-export interface UseTicketAnalyticsReturn {
-  data: TicketAnalytics;
-  dateRange: DateRange;
-  setDateRange: (range: DateRange) => void;
-  isLoading: boolean;
-  error: Error | null;
-  exportData: () => Promise<void>;
-}
+export type { TicketAnalytics, DateRange } from './analytics/types';
 
 export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +39,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       setData(analyticsData);
       setError(null);
     } catch (err) {
-      console.error("Error in useTicketAnalytics:", err);
+      console.error("Error fetching ticket analytics:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching analytics'));
     } finally {
       setIsLoading(false);
@@ -63,13 +52,10 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
   const exportData = async () => {
     try {
-      toast.toast("Exportando datos...");
-      await exportAnalyticsToCSV(data);
-      toast.success("Datos exportados correctamente");
+      await exportTicketAnalytics(data);
       return Promise.resolve();
     } catch (error) {
       console.error('Error exporting data:', error);
-      toast.error("Error al exportar los datos");
       return Promise.reject(error);
     }
   };

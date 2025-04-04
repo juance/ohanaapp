@@ -6,7 +6,7 @@ import { CustomerFeedback } from '@/lib/types';
 import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { Star, Trash2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [feedback, setFeedback] = useState<CustomerFeedback[]>([]);
@@ -16,15 +16,9 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   useEffect(() => {
     const loadFeedback = async () => {
       setIsLoading(true);
-      try {
-        const data = await getFeedback();
-        setFeedback(data);
-      } catch (error) {
-        console.error('Error al cargar comentarios:', error);
-        toast.error('Error', 'No se pudieron cargar los comentarios');
-      } finally {
-        setIsLoading(false);
-      }
+      const data = await getFeedback();
+      setFeedback(data);
+      setIsLoading(false);
     };
 
     loadFeedback();
@@ -36,9 +30,16 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const success = await deleteFeedback(id);
       if (success) {
         setFeedback(feedback.filter(item => item.id !== id));
-        toast.toast("Comentario eliminado exitosamente");
+        toast({
+          title: "Success", 
+          description: "Comentario eliminado exitosamente"
+        });
       } else {
-        toast.error("Error al eliminar el comentario");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Error al eliminar el comentario"
+        });
       }
     }
   };
@@ -86,7 +87,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
           </CardHeader>
           <CardContent className={isMobile ? 'px-3 py-2' : ''}>
             <p className="text-xs md:text-sm text-gray-700">{item.comment}</p>
-            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {new Date(item.createdAt).toLocaleDateString()}</p>
+            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.createdAt}</p>
           </CardContent>
         </Card>
       ))}

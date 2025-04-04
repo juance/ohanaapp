@@ -7,7 +7,7 @@ import {
   syncOfflineData
 } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
@@ -100,6 +100,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
       
       const totalTickets = 120;
       
+      // Use the properly typed calculated revenue
       const totalMonthlyRevenueNumber = Number(totalMonthlyRevenue) || 0;
       
       setData({

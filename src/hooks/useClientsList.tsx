@@ -1,11 +1,12 @@
 
 import { useState } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
 import { ClientVisit } from '@/lib/types';
 
 export const useClientsList = () => {
+  const { toast } = useToast();
   const { frequentClients, refreshData, loading, error } = useClientData();
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
@@ -16,7 +17,11 @@ export const useClientsList = () => {
 
   const handleAddClient = async () => {
     if (!newClientName || !newClientPhone) {
-      toast.error("Error", "Nombre y teléfono son campos obligatorios.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Nombre y teléfono son campos obligatorios.",
+      });
       return;
     }
     
@@ -34,15 +39,25 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      toast.success("Cliente agregado", "El cliente ha sido agregado exitosamente.");
+      // Show success message
+      toast({
+        title: "Cliente agregado",
+        description: "El cliente ha sido agregado exitosamente.",
+      });
       
+      // Refresh data
       await refreshData();
       
+      // Clear form
       setNewClientName('');
       setNewClientPhone('');
     } catch (err: any) {
       console.error("Error adding client:", err);
-      toast.error("Error", err.message || "Hubo un error al agregar el cliente.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err.message || "Hubo un error al agregar el cliente.",
+      });
     } finally {
       setIsAddingClient(false);
     }
@@ -66,12 +81,19 @@ export const useClientsList = () => {
         
       if (error) throw error;
       
-      toast.success("Cliente actualizado", "Los datos del cliente han sido actualizados.");
+      toast({
+        title: "Cliente actualizado",
+        description: "Los datos del cliente han sido actualizados.",
+      });
       
       setIsEditingClient(null);
       await refreshData();
     } catch (err: any) {
-      toast.error("Error", err.message || "Error al actualizar el cliente.");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: err.message || "Error al actualizar el cliente.",
+      });
     }
   };
 

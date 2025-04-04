@@ -1,38 +1,21 @@
-
 import { useState, useEffect } from 'react';
-import { 
-  getExpenses, 
-  addExpense, 
-  getDailyExpenses, 
-  getWeeklyExpenses, 
-  getMonthlyExpenses 
-} from '@/lib/data/expense';
-import { Expense } from '@/lib/types';
+import { getStoredExpenses } from '@/lib/dataService';
 
 interface UseExpensesDataReturn {
   loading: boolean;
   error: Error | null;
-  expenses: Expense[];
-  totalExpenses: number;
-  periodExpenses: {
+  expenses: {
     daily: number;
     weekly: number;
     monthly: number;
   };
   refreshData: () => Promise<void>;
-  addExpense: (expense: Omit<Expense, 'id' | 'createdAt'>) => Promise<void>;
 }
 
 export const useExpensesData = (): UseExpensesDataReturn => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [totalExpenses, setTotalExpenses] = useState<number>(0);
-  const [periodExpenses, setPeriodExpenses] = useState<{
-    daily: number;
-    weekly: number;
-    monthly: number;
-  }>({
+  const [expenses, setExpenses] = useState<{daily: number; weekly: number; monthly: number}>({
     daily: 0,
     weekly: 0,
     monthly: 0
@@ -40,27 +23,43 @@ export const useExpensesData = (): UseExpensesDataReturn => {
   
   const fetchExpenses = async () => {
     try {
-      setLoading(true);
+      // Get current date
+      const today = new Date();
       
-      // Get all expenses for the list
-      const allExpenses = await getExpenses();
-      setExpenses(allExpenses);
+      // Get expenses for today
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
       
-      // Calculate total
-      const total = allExpenses.reduce((sum, exp) => sum + exp.amount, 0);
-      setTotalExpenses(total);
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
       
-      // Get period expenses
-      const [daily, weekly, monthly] = await Promise.all([
-        getDailyExpenses(),
-        getWeeklyExpenses(),
-        getMonthlyExpenses()
-      ]);
+      const dailyExpenses = await getStoredExpenses(startOfDay, endOfDay);
+      const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       
-      setPeriodExpenses({
-        daily,
-        weekly,
-        monthly
+      // Get expenses for current week
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      const endOfWeek = new Date(startOfWeek);
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      const weeklyExpenses = await getStoredExpenses(startOfWeek, endOfWeek);
+      const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      // Get expenses for current month
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
+      const monthlyExpenses = await getStoredExpenses(startOfMonth, endOfMonth);
+      const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      
+      setExpenses({
+        daily: dailyTotal,
+        weekly: weeklyTotal,
+        monthly: monthlyTotal
       });
     } catch (err) {
       console.error("Error fetching expenses:", err);
@@ -75,22 +74,6 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     await fetchExpenses();
   };
   
-  const handleAddExpense = async (expense: Omit<Expense, 'id' | 'createdAt'>) => {
-    try {
-      // Add createdAt for the interface
-      const expenseToAdd = {
-        ...expense,
-        createdAt: new Date().toISOString() // This will be properly formatted in addExpense
-      };
-      
-      await addExpense(expenseToAdd as Omit<Expense, 'id'>);
-      await fetchExpenses(); // Refresh the data after adding a new expense
-    } catch (err) {
-      console.error("Error adding expense:", err);
-      throw err;
-    }
-  };
-  
   useEffect(() => {
     fetchExpenses();
   }, []);
@@ -99,9 +82,6 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     loading,
     error,
     expenses,
-    totalExpenses,
-    periodExpenses,
-    refreshData,
-    addExpense: handleAddExpense
+    refreshData
   };
 };
