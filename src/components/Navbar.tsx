@@ -1,66 +1,209 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  LayoutDashboard,
+  Receipt,
+  ShoppingBag,
+  Package2,
+  PackageCheck,
+  Users,
+  Settings,
+  Menu,
+  X,
+  Warehouse,
+  BanknoteIcon,
+  User,
+} from 'lucide-react';
+import { useMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
+import { getCurrentUser, hasPermission } from '@/lib/auth';
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const location = useLocation();
-  console.log("Current route:", location.pathname);
+  const isMobile = useMobile();
+  const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
+  React.useEffect(() => {
+    const loadUser = async () => {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+    };
+    loadUser();
+  }, []);
+
+  // Check if the current route is active
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const navItems = [
-    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" /> },
-    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" /> },
-    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
-    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
-    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
-    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
-    { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" /> },
-    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
-    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
-    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
-    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" /> },
-  ];
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const closeMenu = () => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
+  };
+
+  // Admin verification
+  const isAdmin = user && user.role === 'admin';
 
   return (
-    <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-blue-600">Lavandería Ohana</span>
+    <>
+      {/* Mobile menu button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed top-4 left-4 z-50 md:hidden"
+        onClick={toggleMenu}
+      >
+        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+      </Button>
+
+      {/* Sidebar/Navbar */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out",
+          {
+            "translate-x-0": isOpen || !isMobile,
+            "-translate-x-full": !isOpen && isMobile,
+          }
+        )}
+      >
+        <div className="p-6">
+          <Link to="/" className="flex items-center space-x-2" onClick={closeMenu}>
+            <ShoppingBag className="h-8 w-8 text-blue-600" />
+            <span className="text-xl font-bold">Lavandería Ohana</span>
           </Link>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4">
-          <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center rounded-md px-3 py-2 text-sm font-medium ${
-                    isActive(item.path)
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
-                  }`}
-                >
-                  <span className="mr-2">{item.icon}</span>
-                  {item.name}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+        <nav className="space-y-1 px-4">
+          <Link
+            to="/dashboard"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/dashboard") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <LayoutDashboard className="h-5 w-5" />
+            <span>Dashboard</span>
+          </Link>
 
-        <div className="p-4 border-t">
-          <div className="text-xs text-gray-500">
-            © 2023 Lavandería Ohana
-          </div>
-        </div>
+          <Link
+            to="/tickets"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/tickets") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <Receipt className="h-5 w-5" />
+            <span>Crear Tickets</span>
+          </Link>
+
+          <Link
+            to="/orders/pickup"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/orders/pickup") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <Package2 className="h-5 w-5" />
+            <span>Para Retirar</span>
+          </Link>
+
+          <Link
+            to="/orders/delivered"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/orders/delivered") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <PackageCheck className="h-5 w-5" />
+            <span>Entregados</span>
+          </Link>
+
+          <Link
+            to="/inventory"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/inventory") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <Warehouse className="h-5 w-5" />
+            <span>Inventario</span>
+          </Link>
+
+          <Link
+            to="/expenses"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/expenses") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <BanknoteIcon className="h-5 w-5" />
+            <span>Gastos</span>
+          </Link>
+
+          <Link
+            to="/clients"
+            className={cn(
+              "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+              isActive("/clients") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+            )}
+            onClick={closeMenu}
+          >
+            <User className="h-5 w-5" />
+            <span>Clientes</span>
+          </Link>
+
+          {isAdmin && (
+            <Link
+              to="/users"
+              className={cn(
+                "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+                isActive("/users") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+              )}
+              onClick={closeMenu}
+            >
+              <Users className="h-5 w-5" />
+              <span>Usuarios</span>
+            </Link>
+          )}
+
+          {isAdmin && (
+            <Link
+              to="/settings"
+              className={cn(
+                "flex items-center space-x-2 px-4 py-3 rounded-md transition-colors hover:text-blue-600 hover:bg-blue-50",
+                isActive("/settings") ? "bg-blue-50 text-blue-600" : "text-muted-foreground"
+              )}
+              onClick={closeMenu}
+            >
+              <Settings className="h-5 w-5" />
+              <span>Configuración</span>
+            </Link>
+          )}
+        </nav>
       </div>
-    </div>
+
+      {/* Overlay for mobile */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/50"
+          onClick={closeMenu}
+        />
+      )}
+    </>
   );
 };
 

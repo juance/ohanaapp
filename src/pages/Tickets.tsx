@@ -1,21 +1,12 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import SimpleTicketForm from '@/components/SimpleTicketForm';
-import TicketPrint from '@/components/TicketPrint';
+import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Ticket, LaundryOption } from '@/lib/types';
 
 const Tickets = () => {
-  const [printTicket, setPrintTicket] = useState<Ticket | null>(null);
-  const [selectedOptions, setSelectedOptions] = useState<LaundryOption[]>([]);
-
-  const handleTicketGenerated = (ticket: Ticket, options: LaundryOption[]) => {
-    setPrintTicket(ticket);
-    setSelectedOptions(options);
-  };
-
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
@@ -33,17 +24,9 @@ const Tickets = () => {
             </div>
           </header>
           
-          <SimpleTicketForm onTicketGenerated={handleTicketGenerated} />
+          <SimpleTicketForm />
         </div>
       </div>
-
-      {printTicket && (
-        <TicketPrint 
-          ticket={printTicket} 
-          selectedOptions={selectedOptions}
-          onClose={() => setPrintTicket(null)} 
-        />
-      )}
     </div>
   );
 };

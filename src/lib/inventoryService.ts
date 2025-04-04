@@ -1,9 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { InventoryItem } from './types';
 
-// Obtener todos los elementos del inventario
+// Get all inventory items
 export const getInventoryItems = async (): Promise<InventoryItem[]> => {
   try {
     const { data, error } = await supabase
@@ -22,17 +22,13 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
       lastUpdated: new Date(item.updated_at).toLocaleDateString()
     }));
   } catch (error) {
-    console.error('Error al obtener elementos del inventario:', error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: 'Error al obtener elementos del inventario'
-    });
+    console.error('Error fetching inventory items:', error);
+    toast.error('Error fetching inventory items');
     return [];
   }
 };
 
-// Agregar nuevo elemento al inventario
+// Add new inventory item
 export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpdated'>): Promise<InventoryItem | null> => {
   try {
     const { data, error } = await supabase
@@ -48,10 +44,7 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       
     if (error) throw error;
     
-    toast({
-      title: "Success",
-      description: 'Elemento de inventario agregado con éxito'
-    });
+    toast.success('Inventory item added successfully');
     
     return {
       id: data.id,
@@ -62,17 +55,13 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       lastUpdated: new Date(data.updated_at).toLocaleDateString()
     };
   } catch (error) {
-    console.error('Error al agregar elemento de inventario:', error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: 'Error al agregar elemento de inventario'
-    });
+    console.error('Error adding inventory item:', error);
+    toast.error('Error adding inventory item');
     return null;
   }
 };
 
-// Actualizar elemento del inventario
+// Update inventory item
 export const updateInventoryItem = async (item: InventoryItem): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -87,23 +76,16 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
       
     if (error) throw error;
     
-    toast({
-      title: "Success",
-      description: 'Elemento de inventario actualizado con éxito'
-    });
+    toast.success('Inventory item updated successfully');
     return true;
   } catch (error) {
-    console.error('Error al actualizar elemento de inventario:', error);
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: 'Error al actualizar elemento de inventario'
-    });
+    console.error('Error updating inventory item:', error);
+    toast.error('Error updating inventory item');
     return false;
   }
 };
 
-// Eliminar elemento del inventario
+// Delete inventory item
 export const deleteInventoryItem = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -113,18 +95,11 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
       
     if (error) throw error;
     
-    toast({
-      title: "Success",
-      description: 'Elemento de inventario eliminado con éxito'
-    });
+    toast.success('Inventory item deleted successfully');
     return true;
   } catch (error) {
-    console.error('Error al eliminar elemento de inventario:', error);
-    toast({
-      variant: "destructive", 
-      title: "Error",
-      description: 'Error al eliminar elemento de inventario'
-    });
+    console.error('Error deleting inventory item:', error);
+    toast.error('Error deleting inventory item');
     return false;
   }
 };

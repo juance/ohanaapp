@@ -9,71 +9,24 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      customer_feedback: {
-        Row: {
-          comment: string
-          created_at: string
-          customer_id: string
-          customer_name: string
-          id: string
-          rating: number
-        }
-        Insert: {
-          comment: string
-          created_at?: string
-          customer_id: string
-          customer_name: string
-          id?: string
-          rating: number
-        }
-        Update: {
-          comment?: string
-          created_at?: string
-          customer_id?: string
-          customer_name?: string
-          id?: string
-          rating?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "customer_feedback_customer_id_fkey"
-            columns: ["customer_id"]
-            isOneToOne: false
-            referencedRelation: "customers"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       customers: {
         Row: {
           created_at: string
-          free_valets: number
           id: string
-          loyalty_points: number
           name: string
           phone: string
-          valets_count: number
-          valets_redeemed: number | null
         }
         Insert: {
           created_at?: string
-          free_valets?: number
           id?: string
-          loyalty_points?: number
           name: string
           phone: string
-          valets_count?: number
-          valets_redeemed?: number | null
         }
         Update: {
           created_at?: string
-          free_valets?: number
           id?: string
-          loyalty_points?: number
           name?: string
           phone?: string
-          valets_count?: number
-          valets_redeemed?: number | null
         }
         Relationships: []
       }
@@ -195,90 +148,42 @@ export type Database = {
           },
         ]
       }
-      ticket_sequence: {
-        Row: {
-          id: number
-          last_number: number
-        }
-        Insert: {
-          id?: number
-          last_number?: number
-        }
-        Update: {
-          id?: number
-          last_number?: number
-        }
-        Relationships: []
-      }
-      ticket_sequence_resets: {
-        Row: {
-          id: string
-          notes: string | null
-          reset_by: string
-          reset_date: string
-        }
-        Insert: {
-          id?: string
-          notes?: string | null
-          reset_by: string
-          reset_date?: string
-        }
-        Update: {
-          id?: string
-          notes?: string | null
-          reset_by?: string
-          reset_date?: string
-        }
-        Relationships: []
-      }
       tickets: {
         Row: {
-          basket_ticket_number: number | null
-          cancel_reason: string | null
           created_at: string
           customer_id: string
           date: string
           delivered_date: string | null
           id: string
-          is_canceled: boolean | null
-          is_paid: boolean | null
           payment_method: Database["public"]["Enums"]["payment_method"]
           status: string
-          ticket_number: string | null
+          ticket_number: string
           total: number
           updated_at: string
           valet_quantity: number
         }
         Insert: {
-          basket_ticket_number?: number | null
-          cancel_reason?: string | null
           created_at?: string
           customer_id: string
           date?: string
           delivered_date?: string | null
           id?: string
-          is_canceled?: boolean | null
-          is_paid?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
-          ticket_number?: string | null
+          ticket_number: string
           total: number
           updated_at?: string
           valet_quantity?: number
         }
         Update: {
-          basket_ticket_number?: number | null
-          cancel_reason?: string | null
           created_at?: string
           customer_id?: string
           date?: string
           delivered_date?: string | null
           id?: string
-          is_canceled?: boolean | null
-          is_paid?: boolean | null
           payment_method?: Database["public"]["Enums"]["payment_method"]
           status?: string
-          ticket_number?: string | null
+          ticket_number?: string
           total?: number
           updated_at?: string
           valet_quantity?: number
@@ -298,16 +203,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      assign_basket_ticket_number: {
-        Args: {
-          ticket_id: string
-        }
-        Returns: number
-      }
-      create_feedback_table_if_not_exists: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       get_metrics: {
         Args: {
           start_date: string
@@ -321,18 +216,6 @@ export type Database = {
           mercadopago_payments: number
           cuentadni_payments: number
         }[]
-      }
-      get_next_basket_ticket_number: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      get_next_ticket_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      reset_ticket_sequence: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
       }
     }
     Enums: {

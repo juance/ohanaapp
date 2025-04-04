@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { storeExpense, getStoredExpenses } from '@/lib/dataService';
+import { storeExpense, getStoredExpenses } from '@/lib/expenseService';
 import { format } from 'date-fns';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -35,6 +36,7 @@ const Expenses = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const queryClient = useQueryClient();
   
+  // Check if user is admin
   useEffect(() => {
     const checkAdmin = async () => {
       const user = await getCurrentUser();
@@ -43,18 +45,22 @@ const Expenses = () => {
     checkAdmin();
   }, []);
   
+  // Fetch expenses data
   const { data: expenses, isLoading } = useQuery({
     queryKey: ['expenses'],
     queryFn: () => getStoredExpenses()
   });
   
+  // Add expense mutation
   const addExpenseMutation = useMutation({
-    mutationFn: (expenseData: {description: string; amount: number; date: string}) => storeExpense(expenseData),
+    mutationFn: storeExpense,
     onSuccess: () => {
       toast.success('Gasto agregado correctamente');
+      // Reset form
       setDescription('');
       setAmount('');
       setDate(new Date());
+      // Refetch expenses
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
     onError: (error) => {
@@ -132,29 +138,30 @@ const Expenses = () => {
                       />
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Fecha</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={(date) => date && setDate(date)}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
+                    {isAdmin && (
+                      <div className="space-y-2">
+                        <Label htmlFor="date">Fecha</Label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0">
+                            <Calendar
+                              mode="single"
+                              selected={date}
+                              onSelect={(date) => date && setDate(date)}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    )}
                     
                     <Button 
                       className="w-full bg-blue-600 hover:bg-blue-700" 

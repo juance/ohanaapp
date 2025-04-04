@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { 
-  ResponsiveContainer as RechartsResponsiveContainer, 
+  ResponsiveContainer, 
   BarChart as RechartsBarChart, 
   Bar, 
   LineChart as RechartsLineChart,
@@ -19,13 +19,10 @@ import {
 // Custom colors
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
-// Export ResponsiveContainer from recharts for use in other components
-export const ResponsiveContainer = RechartsResponsiveContainer;
-
 // Bar Chart
 export const BarChart = ({ data }: { data: { name: string; total: number }[] }) => {
   return (
-    <RechartsResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={300}>
       <RechartsBarChart
         data={data}
         margin={{
@@ -41,14 +38,14 @@ export const BarChart = ({ data }: { data: { name: string; total: number }[] }) 
         <Tooltip />
         <Bar dataKey="total" fill="#8884d8" />
       </RechartsBarChart>
-    </RechartsResponsiveContainer>
+    </ResponsiveContainer>
   );
 };
 
 // Line Chart
 export const LineChart = ({ data }: { data: { name: string; income: number; expenses: number }[] }) => {
   return (
-    <RechartsResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={300}>
       <RechartsLineChart
         data={data}
         margin={{
@@ -66,14 +63,14 @@ export const LineChart = ({ data }: { data: { name: string; income: number; expe
         <Line type="monotone" dataKey="income" stroke="#8884d8" activeDot={{ r: 8 }} />
         <Line type="monotone" dataKey="expenses" stroke="#82ca9d" />
       </RechartsLineChart>
-    </RechartsResponsiveContainer>
+    </ResponsiveContainer>
   );
 };
 
 // Pie Chart
 export const PieChart = ({ data }: { data: { name: string; value: number }[] }) => {
   return (
-    <RechartsResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height={300}>
       <RechartsPieChart>
         <Pie
           data={data}
@@ -91,6 +88,6 @@ export const PieChart = ({ data }: { data: { name: string; value: number }[] }) 
         </Pie>
         <Tooltip />
       </RechartsPieChart>
-    </RechartsResponsiveContainer>
+    </ResponsiveContainer>
   );
 };

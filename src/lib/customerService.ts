@@ -1,17 +1,39 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '../../types';
-import { formatPhoneNumber } from './phoneUtils';
+import { Customer } from './types';
+
+export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{ 
+        name: customer.name, 
+        phone: customer.phoneNumber 
+      }])
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      phoneNumber: data.phone,
+      createdAt: data.created_at,
+      lastVisit: data.created_at // Initialize lastVisit with createdAt
+    };
+  } catch (error) {
+    console.error('Error storing customer in Supabase:', error);
+    return null;
+  }
+};
 
 export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer | null> => {
   try {
-    // Format the phone number
-    const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
-
     const { data, error } = await supabase
       .from('customers')
       .select('*')
-      .eq('phone', formattedPhoneNumber)
+      .eq('phone', phoneNumber)
       .single();
     
     if (error) throw error;
@@ -35,10 +57,7 @@ export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer 
         name: data.name,
         phoneNumber: data.phone,
         createdAt: data.created_at,
-        lastVisit,
-        loyaltyPoints: data.loyalty_points || 0,
-        valetsCount: data.valets_count || 0,
-        freeValets: data.free_valets || 0
+        lastVisit
       };
     }
     
@@ -79,10 +98,7 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
           name: customer.name,
           phoneNumber: customer.phone,
           createdAt: customer.created_at,
-          lastVisit,
-          loyaltyPoints: customer.loyalty_points || 0,
-          valetsCount: customer.valets_count || 0,
-          freeValets: customer.free_valets || 0
+          lastVisit
         };
       })
     );

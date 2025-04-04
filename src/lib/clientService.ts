@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ClientVisit } from '../types';
-import { getFromLocalStorage } from './coreUtils';
-import { TICKETS_STORAGE_KEY } from './coreUtils';
+import { ClientVisit } from './types';
+import { getFromLocalStorage } from './dataService';
 
 // Client Visit Frequency
 export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
@@ -10,21 +9,20 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     // Get customer visit frequency
     const { data, error } = await supabase
       .from('tickets')
-      .select('customers(name, phone, id), created_at');
+      .select('customers(name, phone), created_at');
     
     if (error) throw error;
     
     if (!data || data.length === 0) return [];
     
     // Process the data to calculate visit frequency
-    const clientVisits = new Map<string, { id: string; name: string; visits: string[]; lastVisit: string }>();
+    const clientVisits = new Map<string, { name: string; visits: string[]; lastVisit: string }>();
     
     data.forEach((ticket: any) => {
       if (!ticket.customers) return;
       
       const phoneNumber = ticket.customers.phone;
       const name = ticket.customers.name;
-      const id = ticket.customers.id;
       const visitDate = ticket.created_at;
       
       if (clientVisits.has(phoneNumber)) {
@@ -37,7 +35,6 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
         }
       } else {
         clientVisits.set(phoneNumber, {
-          id,
           name,
           visits: [visitDate],
           lastVisit: visitDate
@@ -47,7 +44,6 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     
     // Convert to array and sort by visit count
     const result: ClientVisit[] = Array.from(clientVisits.entries()).map(([phoneNumber, data]) => ({
-      id: data.id,
       phoneNumber,
       clientName: data.name,
       visitCount: data.visits.length,
@@ -60,10 +56,10 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     
     // Fallback calculation using localStorage
     try {
-      const localTickets = getFromLocalStorage<any>(TICKETS_STORAGE_KEY);
+      const localTickets = getFromLocalStorage<any>('laundry_tickets');
       
       // Group by phone number
-      const clientsMap = new Map<string, { id: string; name: string; visits: string[]; lastVisit: string }>();
+      const clientsMap = new Map<string, { name: string; visits: string[]; lastVisit: string }>();
       
       localTickets.forEach((ticket: any) => {
         if (!ticket.phoneNumber) return;
@@ -78,7 +74,6 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
           }
         } else {
           clientsMap.set(ticket.phoneNumber, {
-            id: ticket.id || ticket.phoneNumber, // Use ticketId or phoneNumber as fallback
             name: ticket.customerName,
             visits: [ticket.createdAt],
             lastVisit: ticket.createdAt
@@ -88,7 +83,6 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
       
       // Convert map to array and sort by visit count
       const result: ClientVisit[] = Array.from(clientsMap.entries()).map(([phoneNumber, data]) => ({
-        id: data.id,
         phoneNumber,
         clientName: data.name,
         visitCount: data.visits.length,

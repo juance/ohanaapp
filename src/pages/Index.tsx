@@ -1,130 +1,52 @@
 
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, Package } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import AuthForm from '@/components/AuthForm';
+import { getCurrentUser } from '@/lib/auth';
 
-const Index: React.FC = () => {
-  const features = [
-    {
-      title: 'Panel de Control',
-      description: 'Visualiza métricas y estadísticas importantes',
-      icon: <BarChart className="h-8 w-8 text-blue-500" />,
-      path: '/dashboard',
-    },
-    {
-      title: 'Tickets',
-      description: 'Genera y gestiona tickets de servicio',
-      icon: <Ticket className="h-8 w-8 text-indigo-500" />,
-      path: '/tickets',
-    },
-    {
-      title: 'Ordenes Pendientes',
-      description: 'Gestiona las órdenes pendientes de entrega',
-      icon: <ShoppingBag className="h-8 w-8 text-yellow-500" />,
-      path: '/pickup',
-    },
-    {
-      title: 'Ordenes Entregadas',
-      description: 'Revisa el historial de órdenes entregadas',
-      icon: <FileText className="h-8 w-8 text-green-500" />,
-      path: '/delivered',
-    },
-    {
-      title: 'Clientes',
-      description: 'Administra la información de los clientes',
-      icon: <Users className="h-8 w-8 text-purple-500" />,
-      path: '/clients',
-    },
-    {
-      title: 'Programa de Fidelidad',
-      description: 'Gestiona puntos y recompensas para clientes',
-      icon: <Award className="h-8 w-8 text-orange-500" />,
-      path: '/loyalty',
-    },
-    {
-      title: 'Inventario',
-      description: 'Control y gestión de productos e insumos',
-      icon: <Package className="h-8 w-8 text-emerald-500" />,
-      path: '/inventory',
-    },
-    {
-      title: 'Métricas',
-      description: 'Análisis detallado de ventas y operaciones',
-      icon: <BarChart className="h-8 w-8 text-teal-500" />,
-      path: '/metrics',
-    },
-    {
-      title: 'Análisis de Tickets',
-      description: 'Reportes y analíticas sobre los tickets',
-      icon: <FileText className="h-8 w-8 text-cyan-500" />,
-      path: '/analysis',
-    },
-    {
-      title: 'Gastos',
-      description: 'Control y registro de gastos del negocio',
-      icon: <DollarSign className="h-8 w-8 text-red-500" />,
-      path: '/expenses',
-    },
-    {
-      title: 'Administración',
-      description: 'Configuraciones y herramientas del sistema',
-      icon: <Settings className="h-8 w-8 text-gray-500" />,
-      path: '/administration',
-    },
-    {
-      title: 'Comentarios',
-      description: 'Gestiona comentarios de clientes',
-      icon: <FileText className="h-8 w-8 text-blue-500" />,
-      path: '/feedback',
-    },
-  ];
-
+const Index = () => {
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    const checkUser = async () => {
+      const user = await getCurrentUser();
+      if (user) {
+        navigate('/dashboard');
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
+  
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
+    <div className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-laundry-50 to-white p-4">
+      <div className="absolute -top-40 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-laundry-100/50 blur-3xl" />
+      
+      <div className="relative z-10 mb-8 text-center">
+        <div className="flex flex-col items-center">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-laundry-500 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+              <path d="M12 22a9.94 9.94 0 0 1-3.64-.68 10.06 10.06 0 0 1-5.68-5.68A9.94 9.94 0 0 1 2 12c0-5.5 4.5-10 10-10s10 4.5 10 10-4.5 10-10 10z" />
+              <path d="M8 9.05v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2a3 3 0 0 1-6 0" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <circle cx="12" cy="16" r="1" />
+            </svg>
           </div>
+          <h1 className="mb-2 text-4xl font-bold tracking-tight text-laundry-900">Lavandería</h1>
+          <p className="text-muted-foreground">Sistema de gestión para lavandería</p>
         </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Sistema de Gestión</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.path} className="overflow-hidden transition-all duration-200 hover:shadow-md">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    {feature.icon}
-                    <span>{feature.title}</span>
-                  </CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardFooter className="pt-3">
-                  <Button asChild className="w-full">
-                    <Link to={feature.path} className="flex items-center justify-center">
-                      Acceder
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-        </section>
-      </main>
-
-      <footer className="bg-white border-t py-6">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-gray-500 text-sm">
-            © 2023 Lavandería Ohana. Todos los derechos reservados.
-          </p>
-        </div>
-      </footer>
+      </div>
+      
+      <div className="w-full max-w-md">
+        <AuthForm />
+      </div>
+      
+      <div className="absolute bottom-10 left-1/2 flex -translate-x-1/2 transform flex-col items-center gap-4 text-sm text-muted-foreground">
+        <p className="text-center">
+          Optimiza las operaciones de tu lavandería.<br />
+          Eficiente. Simple. Confiable.
+        </p>
+      </div>
     </div>
   );
 };
