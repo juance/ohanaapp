@@ -12,12 +12,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { storeTicketData } from '@/lib/dataService';
 import { getCustomerByPhone } from '@/lib/customerService';
 import { getCurrentUser } from '@/lib/auth';
+import { PaymentMethod } from '@/lib/types';
 
 const generateTicketNumber = () => {
   const now = new Date();
@@ -38,7 +39,7 @@ const SimpleTicketForm = () => {
   const [totalPrice, setTotalPrice] = useState(0);
   
   // Payment method
-  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   
   // Laundry options
   const [separateByColor, setSeparateByColor] = useState(false);
@@ -79,7 +80,11 @@ const SimpleTicketForm = () => {
   
   const handleCustomerLookup = async () => {
     if (!lookupPhone || lookupPhone.length < 8) {
-      toast.error('Por favor ingrese un número de teléfono válido');
+      toast({
+        title: "Error",
+        description: "Por favor ingrese un número de teléfono válido",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -103,17 +108,29 @@ const SimpleTicketForm = () => {
     e.preventDefault();
     
     if (!customerName || !phoneNumber) {
-      toast.error('Por favor complete los datos del cliente');
+      toast({
+        title: "Error",
+        description: "Por favor complete los datos del cliente",
+        variant: "destructive"
+      });
       return;
     }
     
     if (phoneNumber.length < 8) {
-      toast.error('Por favor ingrese un número de teléfono válido');
+      toast({
+        title: "Error",
+        description: "Por favor ingrese un número de teléfono válido",
+        variant: "destructive"
+      });
       return;
     }
     
     if (valetQuantity <= 0) {
-      toast.error('La cantidad de valets debe ser mayor a cero');
+      toast({
+        title: "Error", 
+        description: "La cantidad de valets debe ser mayor a cero",
+        variant: "destructive"
+      });
       return;
     }
     
@@ -129,7 +146,7 @@ const SimpleTicketForm = () => {
     if (noDry) laundryOptions.push('noDry');
     
     try {
-      // Prepare ticket data
+      // Prepare ticket data with correct PaymentMethod type
       const ticketData = {
         ticketNumber,
         totalPrice,
@@ -173,7 +190,11 @@ const SimpleTicketForm = () => {
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast.error('Error al generar el ticket');
+      toast({
+        title: "Error",
+        description: "Error al generar el ticket",
+        variant: "destructive"
+      });
     }
   };
   

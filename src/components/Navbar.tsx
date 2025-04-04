@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -16,13 +15,13 @@ import {
   BanknoteIcon,
   User,
 } from 'lucide-react';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import { getCurrentUser, hasPermission } from '@/lib/auth';
 
 const Navbar = () => {
   const location = useLocation();
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -34,7 +33,6 @@ const Navbar = () => {
     loadUser();
   }, []);
 
-  // Check if the current route is active
   const isActive = (path: string) => {
     return location.pathname === path;
   };
@@ -49,12 +47,10 @@ const Navbar = () => {
     }
   };
 
-  // Admin verification
   const isAdmin = user && user.role === 'admin';
 
   return (
     <>
-      {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
@@ -64,7 +60,6 @@ const Navbar = () => {
         {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
       </Button>
 
-      {/* Sidebar/Navbar */}
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 bg-background border-r border-border transform transition-transform duration-200 ease-in-out",
@@ -196,7 +191,6 @@ const Navbar = () => {
         </nav>
       </div>
 
-      {/* Overlay for mobile */}
       {isMobile && isOpen && (
         <div
           className="fixed inset-0 z-30 bg-black/50"
