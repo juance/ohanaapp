@@ -2,20 +2,17 @@
 import { useState, useEffect } from 'react';
 
 export const useIsMobile = (): boolean => {
-  // Initialize without using useState callback to avoid potential issues
+  // Initialize with a simple boolean to avoid potential initialization issues
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Skip if not in a browser environment
-    if (typeof window === 'undefined') return;
-    
     // Function to check if is mobile device
     const checkIsMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
     };
 
-    // Check immediately 
+    // Check immediately to set the initial value
     checkIsMobile();
 
     // Add listener for resize events

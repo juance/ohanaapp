@@ -1,14 +1,6 @@
 
 "use client";
 
-import { Toaster as SonnerToaster } from "sonner";
+import { Toaster as SonnerComponent } from "./sonner";
 
-export function Toaster() {
-  return (
-    <SonnerToaster 
-      position="bottom-right"
-      richColors
-      className="toaster"
-    />
-  );
-}
+export const Toaster = SonnerComponent;
