@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { InventoryItem } from './types';
 
 // Get all inventory items
@@ -23,7 +23,11 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     }));
   } catch (error) {
     console.error('Error fetching inventory items:', error);
-    toast.error('Error fetching inventory items');
+    toast({
+      title: "Error",
+      description: "Error fetching inventory items",
+      variant: "destructive"
+    });
     return [];
   }
 };
@@ -44,7 +48,10 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       
     if (error) throw error;
     
-    toast.success('Inventory item added successfully');
+    toast({
+      title: "Success",
+      description: "Inventory item added successfully"
+    });
     
     return {
       id: data.id,
@@ -56,7 +63,11 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
     };
   } catch (error) {
     console.error('Error adding inventory item:', error);
-    toast.error('Error adding inventory item');
+    toast({
+      title: "Error",
+      description: "Error adding inventory item",
+      variant: "destructive"
+    });
     return null;
   }
 };
@@ -76,11 +87,18 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
       
     if (error) throw error;
     
-    toast.success('Inventory item updated successfully');
+    toast({
+      title: "Success",
+      description: "Inventory item updated successfully"
+    });
     return true;
   } catch (error) {
     console.error('Error updating inventory item:', error);
-    toast.error('Error updating inventory item');
+    toast({
+      title: "Error",
+      description: "Error updating inventory item",
+      variant: "destructive"
+    });
     return false;
   }
 };
@@ -95,11 +113,18 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
       
     if (error) throw error;
     
-    toast.success('Inventory item deleted successfully');
+    toast({
+      title: "Success",
+      description: "Inventory item deleted successfully"
+    });
     return true;
   } catch (error) {
     console.error('Error deleting inventory item:', error);
-    toast.error('Error deleting inventory item');
+    toast({
+      title: "Error",
+      description: "Error deleting inventory item",
+      variant: "destructive"
+    });
     return false;
   }
 };
