@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -80,11 +81,7 @@ const SimpleTicketForm = () => {
   
   const handleCustomerLookup = async () => {
     if (!lookupPhone || lookupPhone.length < 8) {
-      toast({
-        title: "Error",
-        description: "Por favor ingrese un número de teléfono válido",
-        variant: "destructive"
-      });
+      toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
     
@@ -108,29 +105,17 @@ const SimpleTicketForm = () => {
     e.preventDefault();
     
     if (!customerName || !phoneNumber) {
-      toast({
-        title: "Error",
-        description: "Por favor complete los datos del cliente",
-        variant: "destructive"
-      });
+      toast.error('Por favor complete los datos del cliente');
       return;
     }
     
     if (phoneNumber.length < 8) {
-      toast({
-        title: "Error",
-        description: "Por favor ingrese un número de teléfono válido",
-        variant: "destructive"
-      });
+      toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
     
     if (valetQuantity <= 0) {
-      toast({
-        title: "Error", 
-        description: "La cantidad de valets debe ser mayor a cero",
-        variant: "destructive"
-      });
+      toast.error('La cantidad de valets debe ser mayor a cero');
       return;
     }
     
@@ -190,11 +175,7 @@ const SimpleTicketForm = () => {
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast({
-        title: "Error",
-        description: "Error al generar el ticket",
-        variant: "destructive"
-      });
+      toast.error('Error al generar el ticket');
     }
   };
   
@@ -270,7 +251,7 @@ const SimpleTicketForm = () => {
                     <Label htmlFor="paymentMethod">Método de Pago</Label>
                     <Select 
                       value={paymentMethod} 
-                      onValueChange={setPaymentMethod}
+                      onValueChange={(value: PaymentMethod) => setPaymentMethod(value)}
                     >
                       <SelectTrigger id="paymentMethod" className="mt-1">
                         <SelectValue placeholder="Método de pago" />
@@ -278,7 +259,7 @@ const SimpleTicketForm = () => {
                       <SelectContent>
                         <SelectItem value="cash">Efectivo</SelectItem>
                         <SelectItem value="debit">Tarjeta de Débito</SelectItem>
-                        <SelectItem value="mercado_pago">Mercado Pago</SelectItem>
+                        <SelectItem value="mercadopago">Mercado Pago</SelectItem>
                         <SelectItem value="cuenta_dni">Cuenta DNI</SelectItem>
                       </SelectContent>
                     </Select>
