@@ -44,6 +44,24 @@ export type Database = {
           },
         ]
       }
+      customer_types: {
+        Row: {
+          count: number
+          id: number
+          type_name: string
+        }
+        Insert: {
+          count?: number
+          id?: never
+          type_name: string
+        }
+        Update: {
+          count?: number
+          id?: never
+          type_name?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           created_at: string
@@ -77,6 +95,27 @@ export type Database = {
           phone?: string
           valets_count?: number
           valets_redeemed?: number | null
+        }
+        Relationships: []
+      }
+      dashboard_stats: {
+        Row: {
+          id: number
+          ingresos_diarios: number
+          tickets: number
+          total_clientes: number
+        }
+        Insert: {
+          id?: never
+          ingresos_diarios?: number
+          tickets?: number
+          total_clientes?: number
+        }
+        Update: {
+          id?: never
+          ingresos_diarios?: number
+          tickets?: number
+          total_clientes?: number
         }
         Relationships: []
       }
@@ -231,36 +270,6 @@ export type Database = {
           notes?: string | null
           reset_by?: string
           reset_date?: string
-        }
-        Relationships: []
-      }
-      system_versions: {
-        Row: {
-          id: string
-          version: string
-          release_date: string
-          changes: Json
-          is_active: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          version: string
-          release_date?: string
-          changes?: Json
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          version?: string
-          release_date?: string
-          changes?: Json
-          is_active?: boolean
-          created_at?: string
-          updated_at?: string
         }
         Relationships: []
       }
