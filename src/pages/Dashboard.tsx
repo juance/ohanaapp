@@ -4,8 +4,9 @@ import Navbar from '@/components/Navbar';
 import MetricsCards from '@/components/dashboard/MetricsCards';
 import ChartSection from '@/components/dashboard/ChartSection';
 import LoadingState from '@/components/dashboard/LoadingState';
+import { ResetDashboardCounters } from '@/components/dashboard/ResetDashboardCounters';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
@@ -99,6 +100,10 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             viewType="monthly"
             frequentClients={data.clients}
           />
+
+          <div className="mt-8">
+            <ResetDashboardCounters />
+          </div>
         </>
       )}
     </>
