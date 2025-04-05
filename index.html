@@ -69,7 +69,7 @@
       </div>
     </div>
     <div id="root"></div>
-    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+    <!-- Aplicación Ohana -->
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Hide loading indicator when app is loaded
@@ -79,7 +79,7 @@
           if (loadingIndicator) loadingIndicator.classList.add('hidden');
         }, 500);
       });
-      
+
       // Show timeout error if app takes too long to load
       setTimeout(() => {
         const app = document.querySelector('#root > div');
@@ -89,7 +89,7 @@
           console.warn('Application loading timeout detected');
         }
       }, 15000);
-      
+
       // Error handling for script loading failures
       window.addEventListener('error', (e) => {
         console.error('Script loading error:', e);
