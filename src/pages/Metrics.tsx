@@ -1,6 +1,6 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMetricsData } from '@/hooks/useMetricsData';
 import { DateRangeSelector } from '@/components/metrics/DateRangeSelector';
@@ -8,6 +8,7 @@ import { MetricsCards } from '@/components/metrics/MetricsCards';
 import { RevenueChart } from '@/components/metrics/RevenueChart';
 import { ServiceBreakdownChart } from '@/components/metrics/ServiceBreakdownChart';
 import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
+import { ResetMetricsCounters } from '@/components/metrics/ResetMetricsCounters';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
@@ -89,6 +90,10 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <ServiceBreakdownChart data={data} />
             <ClientTypeChart data={data} />
+          </div>
+
+          <div className="mt-8">
+            <ResetMetricsCounters />
           </div>
         </div>
       )}
