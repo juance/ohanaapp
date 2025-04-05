@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -14,24 +14,17 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "@/lib/toast";
-import { 
-  RotateCcw, 
-  AlertTriangle, 
-  RefreshCw, 
-  LayoutDashboard, 
-  Users, 
-  Award, 
-  BarChart, 
-  TicketCheck 
+import {
+  RotateCcw,
+  AlertTriangle,
+  RefreshCw,
+  LayoutDashboard,
+  Users,
+  Award,
+  BarChart,
+  TicketCheck
 } from "lucide-react";
-import { 
-  resetCounters,
-  resetDashboardCounters,
-  resetClientCounters,
-  resetLoyaltyCounters,
-  resetMetricsCounters,
-  resetTicketAnalysisCounters
-} from '@/lib/resetCountersService';
+import { resetCounters } from '@/lib/resetCountersService';
 
 export const ResetCounters = () => {
   const [isResetting, setIsResetting] = useState(false);
@@ -52,37 +45,8 @@ export const ResetCounters = () => {
   const handleResetCounters = async () => {
     setIsResetting(true);
     try {
-      let success = true;
-      const resetOperations = [];
-
-      // Perform resets based on selected sections
-      if (selectedSections.dashboard) {
-        resetOperations.push(resetDashboardCounters());
-      }
-      
-      if (selectedSections.clients) {
-        resetOperations.push(resetClientCounters());
-      }
-      
-      if (selectedSections.loyalty) {
-        resetOperations.push(resetLoyaltyCounters());
-      }
-      
-      if (selectedSections.metrics) {
-        resetOperations.push(resetMetricsCounters());
-      }
-      
-      if (selectedSections.ticketAnalysis) {
-        resetOperations.push(resetTicketAnalysisCounters());
-      }
-
-      // Wait for all reset operations to complete
-      const results = await Promise.all(resetOperations);
-      
-      // Check if any operation failed
-      if (results.includes(false)) {
-        success = false;
-      }
+      // Call the resetCounters function with the selected sections
+      const success = await resetCounters(selectedSections);
 
       if (success) {
         toast.success("Contadores reiniciados", {
@@ -143,9 +107,9 @@ export const ResetCounters = () => {
       <CardContent>
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
-            <Checkbox 
-              id="all-sections" 
-              checked={allSelected} 
+            <Checkbox
+              id="all-sections"
+              checked={allSelected}
               onCheckedChange={toggleAll}
             />
             <label
@@ -155,12 +119,12 @@ export const ResetCounters = () => {
               Seleccionar todas las secciones
             </label>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-2">
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="dashboard" 
-                checked={selectedSections.dashboard} 
+              <Checkbox
+                id="dashboard"
+                checked={selectedSections.dashboard}
                 onCheckedChange={() => toggleSection('dashboard')}
               />
               <label
@@ -171,11 +135,11 @@ export const ResetCounters = () => {
                 Dashboard
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="clients" 
-                checked={selectedSections.clients} 
+              <Checkbox
+                id="clients"
+                checked={selectedSections.clients}
                 onCheckedChange={() => toggleSection('clients')}
               />
               <label
@@ -186,11 +150,11 @@ export const ResetCounters = () => {
                 Clientes
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="loyalty" 
-                checked={selectedSections.loyalty} 
+              <Checkbox
+                id="loyalty"
+                checked={selectedSections.loyalty}
                 onCheckedChange={() => toggleSection('loyalty')}
               />
               <label
@@ -201,11 +165,11 @@ export const ResetCounters = () => {
                 Programa de Fidelidad
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="metrics" 
-                checked={selectedSections.metrics} 
+              <Checkbox
+                id="metrics"
+                checked={selectedSections.metrics}
                 onCheckedChange={() => toggleSection('metrics')}
               />
               <label
@@ -216,11 +180,11 @@ export const ResetCounters = () => {
                 Métricas
               </label>
             </div>
-            
+
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="ticketAnalysis" 
-                checked={selectedSections.ticketAnalysis} 
+              <Checkbox
+                id="ticketAnalysis"
+                checked={selectedSections.ticketAnalysis}
                 onCheckedChange={() => toggleSection('ticketAnalysis')}
               />
               <label
@@ -233,7 +197,7 @@ export const ResetCounters = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-md flex items-start">
           <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 mt-0.5" />
           <div className="text-amber-800 text-sm">
@@ -251,8 +215,8 @@ export const ResetCounters = () => {
       <CardFooter>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               className="w-full bg-amber-500 hover:bg-amber-600"
               disabled={!someSelected}
             >
