@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 
 export const ResetTicketNumbers = () => {
   const [isResetting, setIsResetting] = useState(false);
@@ -14,9 +14,9 @@ export const ResetTicketNumbers = () => {
     setIsResetting(true);
     try {
       const { error } = await supabase.rpc('reset_ticket_sequence');
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Success",
         description: 'Numeración de tickets reiniciada exitosamente'
@@ -54,7 +54,7 @@ export const ResetTicketNumbers = () => {
           </Alert>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets nuevos 
+            Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets nuevos
             que se generen a partir de este momento.
           </p>
         )}
@@ -62,15 +62,15 @@ export const ResetTicketNumbers = () => {
       <CardFooter className="flex justify-end space-x-2">
         {showConfirmation ? (
           <>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowConfirmation(false)}
               disabled={isResetting}
             >
               Cancelar
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleReset}
               disabled={isResetting}
             >
@@ -85,8 +85,8 @@ export const ResetTicketNumbers = () => {
             </Button>
           </>
         ) : (
-          <Button 
-            variant="secondary" 
+          <Button
+            variant="secondary"
             onClick={() => setShowConfirmation(true)}
           >
             Reiniciar Numeración

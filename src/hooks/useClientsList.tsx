@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
 import { ClientVisit } from '@/lib/types';
@@ -22,7 +22,7 @@ export const useClientsList = () => {
       });
       return;
     }
-    
+
     setIsAddingClient(true);
     try {
       const { error } = await supabase
@@ -34,18 +34,18 @@ export const useClientsList = () => {
           valets_count: 0,
           free_valets: 0
         });
-        
+
       if (error) throw error;
-      
+
       // Show success message
       toast({
         title: "Cliente agregado",
         description: "El cliente ha sido agregado exitosamente.",
       });
-      
+
       // Refresh data
       await refreshData();
-      
+
       // Clear form
       setNewClientName('');
       setNewClientPhone('');
@@ -76,14 +76,14 @@ export const useClientsList = () => {
           phone: editClientPhone
         })
         .eq('id', id);
-        
+
       if (error) throw error;
-      
+
       toast({
         title: "Cliente actualizado",
         description: "Los datos del cliente han sido actualizados.",
       });
-      
+
       setIsEditingClient(null);
       await refreshData();
     } catch (err: any) {

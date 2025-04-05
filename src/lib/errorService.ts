@@ -1,5 +1,5 @@
 
-import { toast } from "@/hooks/use-toast";
+import { toast } from "@/lib/toast";
 
 // Define la estructura de un error en el sistema
 export interface SystemError {
@@ -27,7 +27,7 @@ export const logError = (
 ): SystemError => {
   const errorMessage = typeof error === 'string' ? error : error.message;
   const errorStack = typeof error === 'string' ? undefined : error.stack;
-  
+
   const systemError: SystemError = {
     id: generateErrorId(),
     message: errorMessage,
@@ -36,17 +36,17 @@ export const logError = (
     context,
     resolved: false
   };
-  
+
   console.error("Error logged:", systemError);
   errorStore = [systemError, ...errorStore];
-  
+
   // Opcionalmente notificar al usuario
   toast({
     variant: "destructive",
     title: "Error detectado",
     description: "Se ha registrado un error en el sistema."
   });
-  
+
   return systemError;
 };
 
@@ -90,19 +90,19 @@ export const setupGlobalErrorHandling = (): void => {
         userAgent: navigator.userAgent
       });
     });
-    
+
     // Captura promesas rechazadas no manejadas
     window.addEventListener('unhandledrejection', (event) => {
-      const error = event.reason instanceof Error 
-        ? event.reason 
+      const error = event.reason instanceof Error
+        ? event.reason
         : new Error(String(event.reason));
-      
+
       logError(error, {
         type: 'unhandledRejection',
         location: window.location.href
       });
     });
-    
+
     console.info("Sistema de registro de errores global inicializado");
   }
 };

@@ -1,5 +1,5 @@
 
-import * as React from "react"
+import React from "react"
 import { toast as sonnerToast, type ToastT } from "sonner"
 
 export type ExternalToast = Parameters<typeof sonnerToast>[1]
@@ -20,7 +20,7 @@ const toast = ({
       ...props,
     })
   }
-  
+
   return sonnerToast(title as string, {
     description,
     ...props,

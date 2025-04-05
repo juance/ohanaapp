@@ -5,6 +5,9 @@ import { Link } from 'react-router-dom';
 import { ResetTicketNumbers } from '@/components/admin/ResetTicketNumbers';
 import { ErrorLogList } from '@/components/admin/ErrorLogList';
 import { GeneralSettings } from '@/components/admin/GeneralSettings';
+import { UnretrievedTickets } from '@/components/admin/UnretrievedTickets';
+import { SystemVersions } from '@/components/admin/SystemVersions';
+import { ResetCounters } from '@/components/admin/ResetCounters';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { setupGlobalErrorHandling } from '@/lib/errorService';
@@ -13,7 +16,7 @@ const Administration = () => {
   useEffect(() => {
     // Inicializar el sistema de captura de errores
     setupGlobalErrorHandling();
-    
+
     // Comprobar si el modo oscuro está activado en la configuración
     const savedSettings = localStorage.getItem('laundry_general_settings');
     if (savedSettings) {
@@ -29,7 +32,7 @@ const Administration = () => {
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      
+
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           <header className="mb-8">
@@ -40,7 +43,7 @@ const Administration = () => {
             <h1 className="text-2xl font-bold text-blue-600">Administración</h1>
             <p className="text-gray-500">Gestión y configuración del sistema</p>
           </header>
-          
+
           <Tabs defaultValue="general" className="w-full">
             <TabsList className="grid w-full grid-cols-4 mb-8">
               <TabsTrigger value="general">General</TabsTrigger>
@@ -48,33 +51,36 @@ const Administration = () => {
               <TabsTrigger value="errors">Errores</TabsTrigger>
               <TabsTrigger value="system">Sistema</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="general" className="space-y-6">
               <GeneralSettings />
             </TabsContent>
-            
+
             <TabsContent value="tickets" className="space-y-6">
+              <UnretrievedTickets />
               <ResetTicketNumbers />
             </TabsContent>
-            
+
             <TabsContent value="errors" className="space-y-6">
               <ErrorLogList />
             </TabsContent>
-            
+
             <TabsContent value="system" className="space-y-6">
+              <SystemVersions />
+              <ResetCounters />
               <Card>
                 <CardHeader>
                   <CardTitle>Información del Sistema</CardTitle>
-                  <CardDescription>Detalles técnicos y versión</CardDescription>
+                  <CardDescription>Detalles técnicos y configuración</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <div className="flex flex-col space-y-1.5">
-                    <h3 className="text-sm font-medium">Versión</h3>
-                    <p className="text-sm text-muted-foreground">1.0.0</p>
-                  </div>
-                  <div className="flex flex-col space-y-1.5">
                     <h3 className="text-sm font-medium">Base de Datos</h3>
                     <p className="text-sm text-muted-foreground">Supabase PostgreSQL</p>
+                  </div>
+                  <div className="flex flex-col space-y-1.5">
+                    <h3 className="text-sm font-medium">Entorno</h3>
+                    <p className="text-sm text-muted-foreground">Producción</p>
                   </div>
                 </CardContent>
               </Card>

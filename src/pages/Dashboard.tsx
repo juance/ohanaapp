@@ -8,7 +8,7 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 interface DashboardProps {
   embedded?: boolean;
@@ -16,7 +16,7 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   const { data, isLoading, error, refreshData } = useDashboardData();
-  
+
   const handleRefresh = async () => {
     try {
       toast({
@@ -33,7 +33,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       });
     }
   };
-  
+
   const content = (
     <>
       {!embedded && (
@@ -46,9 +46,9 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
             <p className="text-gray-500">Panel de Control</p>
           </div>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
             size="sm"
             className="flex items-center gap-2"
           >
@@ -57,16 +57,16 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
           </Button>
         </header>
       )}
-      
+
       {isLoading ? (
         <LoadingState />
       ) : error ? (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4">
           <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
           <p className="text-red-700">{error.message}</p>
-          <Button 
-            onClick={handleRefresh} 
-            variant="destructive" 
+          <Button
+            onClick={handleRefresh}
+            variant="destructive"
             size="sm"
             className="mt-2"
           >
@@ -77,9 +77,9 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
           <h3 className="text-lg font-medium text-yellow-800">No hay datos disponibles</h3>
           <p className="text-yellow-700">No se encontraron datos para mostrar en el panel de control.</p>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
             size="sm"
             className="mt-2"
           >
@@ -88,14 +88,14 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         </div>
       ) : (
         <>
-          <MetricsCards 
-            metrics={data.metrics} 
-            expenses={data.expenses} 
-            viewType="monthly" 
+          <MetricsCards
+            metrics={data.metrics}
+            expenses={data.expenses}
+            viewType="monthly"
           />
           <div className="h-6"></div>
-          <ChartSection 
-            chartData={data.chartData} 
+          <ChartSection
+            chartData={data.chartData}
             viewType="monthly"
             frequentClients={data.clients}
           />
@@ -103,15 +103,15 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       )}
     </>
   );
-  
+
   if (embedded) {
     return content;
   }
-  
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      
+
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           {content}

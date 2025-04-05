@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ClientVisit } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/dataService';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -9,21 +9,21 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
   const [pointsToAdd, setPointsToAdd] = useState(0);
   const [pointsToRedeem, setPointsToRedeem] = useState(0);
   const [isAddingPoints, setIsAddingPoints] = useState(false);
-  
+
   const handleSelectClient = async (client: ClientVisit) => {
     setSelectedClient(client);
     setPointsToAdd(0);
     setPointsToRedeem(0);
-    
+
     try {
       const { data, error } = await supabase
         .from('customers')
         .select('loyalty_points, free_valets, valets_count')
         .eq('id', client.id)
         .single();
-        
+
       if (error) throw error;
-      
+
       setSelectedClient({
         ...client,
         loyaltyPoints: data.loyalty_points,
@@ -34,25 +34,25 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
       console.error("Error loading client details:", err);
     }
   };
-  
+
   const handleAddPoints = async () => {
     if (!selectedClient || pointsToAdd <= 0) return;
-    
+
     setIsAddingPoints(true);
     try {
       const success = await addLoyaltyPoints(selectedClient.id, pointsToAdd);
-      
+
       if (success) {
         toast({
           title: "Puntos agregados",
           description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
         });
-        
+
         setSelectedClient({
           ...selectedClient,
           loyaltyPoints: (selectedClient.loyaltyPoints || 0) + pointsToAdd
         });
-        
+
         setPointsToAdd(0);
         await refreshData();
       } else {
@@ -68,7 +68,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
       setIsAddingPoints(false);
     }
   };
-  
+
   const handleRedeemPoints = async () => {
     if (!selectedClient || !selectedClient.loyaltyPoints || pointsToRedeem <= 0 || pointsToRedeem > selectedClient.loyaltyPoints) {
       toast({
@@ -78,21 +78,21 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
       });
       return;
     }
-    
+
     try {
       const success = await redeemLoyaltyPoints(selectedClient.id, pointsToRedeem);
-      
+
       if (success) {
         toast({
           title: "Puntos canjeados",
           description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
         });
-        
+
         setSelectedClient({
           ...selectedClient,
           loyaltyPoints: selectedClient.loyaltyPoints - pointsToRedeem
         });
-        
+
         setPointsToRedeem(0);
         await refreshData();
       } else {

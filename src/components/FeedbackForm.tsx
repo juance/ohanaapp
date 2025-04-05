@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { addFeedback } from '@/lib/feedbackService';
 import { getCustomerByPhone } from '@/lib/dataService';
 import { Star } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
@@ -59,7 +59,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!customerId) {
       toast({
         variant: "destructive",
@@ -68,7 +68,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       });
       return;
     }
-    
+
     if (!comment.trim()) {
       toast({
         variant: "destructive",
@@ -77,9 +77,9 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const result = await addFeedback({
         customerId,
@@ -87,7 +87,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
         comment,
         rating
       });
-      
+
       if (result) {
         toast({
           title: "Success",
@@ -133,8 +133,8 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 className="flex-1 text-sm md:text-base"
               />
-              <Button 
-                type="button" 
+              <Button
+                type="button"
                 variant="outline"
                 onClick={handleCustomerSearch}
                 className="text-xs md:text-sm px-2 md:px-3"
@@ -142,7 +142,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
                 Buscar
               </Button>
             </div>
-            
+
             <div>
               <label className="block text-xs md:text-sm font-medium mb-1">Calificación</label>
               <div className="flex space-x-1">
@@ -157,7 +157,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
                 ))}
               </div>
             </div>
-            
+
             <Textarea
               placeholder="Comentario del cliente"
               value={comment}
@@ -169,8 +169,8 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
         </form>
       </CardContent>
       <CardFooter className={isMobile ? "px-3 pb-3" : ""}>
-        <Button 
-          onClick={handleSubmit} 
+        <Button
+          onClick={handleSubmit}
           disabled={isSubmitting || !customerId}
           className="w-full text-sm md:text-base"
         >

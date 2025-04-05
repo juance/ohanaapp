@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { InventoryItem as InventoryItemType } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Package, Trash, Plus, Minus, Save, X, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -18,26 +18,26 @@ interface InventoryItemProps {
 const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedItem, setEditedItem] = useState({ ...item });
-  
+
   const handleEdit = () => {
     setIsEditing(true);
   };
-  
+
   const handleCancel = () => {
     setEditedItem({ ...item });
     setIsEditing(false);
   };
-  
+
   const handleSave = () => {
     onUpdate(editedItem);
     setIsEditing(false);
   };
-  
+
   const handleQuantityChange = (amount: number) => {
     const newQuantity = Math.max(0, editedItem.quantity + amount);
     setEditedItem({ ...editedItem, quantity: newQuantity });
   };
-  
+
   const getStockStatus = () => {
     const ratio = item.quantity / item.threshold;
     if (ratio <= 0.25) return 'Critical';
@@ -45,7 +45,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
     if (ratio < 1) return 'Warning';
     return 'Normal';
   };
-  
+
   const getProgressColor = () => {
     const status = getStockStatus();
     switch (status) {
@@ -59,12 +59,12 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
         return 'bg-green-500';
     }
   };
-  
+
   const getProgressPercentage = () => {
     const percentage = (item.quantity / (item.threshold * 2)) * 100;
     return Math.min(100, Math.max(0, percentage));
   };
-  
+
   return (
     <Card className="transition-all duration-200 hover:shadow-md">
       <CardContent className="p-4">
@@ -80,7 +80,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                 className="h-9"
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Quantity</label>
@@ -111,7 +111,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Threshold</label>
                 <Input
@@ -121,7 +121,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                   className="h-9"
                 />
               </div>
-              
+
               <div className="space-y-1">
                 <label className="text-xs text-muted-foreground">Unit</label>
                 <Input
@@ -131,7 +131,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end space-x-2">
               <Button
                 variant="outline"
@@ -192,7 +192,7 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                 </Button>
               </div>
             </div>
-            
+
             <div className="space-y-1">
               <div className="flex items-center justify-between text-xs">
                 <span className="font-medium">Stock Level</span>
@@ -208,8 +208,8 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
                   {getStockStatus()}
                 </span>
               </div>
-              <Progress 
-                value={getProgressPercentage()} 
+              <Progress
+                value={getProgressPercentage()}
                 className="h-2"
                 indicatorClassName={getProgressColor()}
               />

@@ -1,5 +1,5 @@
 
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { Customer } from '@/lib/types';
 import { getCustomerByPhone } from '@/lib/dataService';
 
@@ -20,15 +20,15 @@ export const useCustomerLookup = (
       });
       return;
     }
-    
+
     try {
       const customer = await getCustomerByPhone(lookupPhone);
-      
+
       if (customer) {
         setCustomerName(customer.name);
         setPhoneNumber(customer.phoneNumber);
         setFoundCustomer(customer);
-        
+
         // Si el cliente tiene valets gratis, mostrar la opción
         if (customer.freeValets > 0 && activeTab === 'valet') {
           setShowFreeValetDialog(true);

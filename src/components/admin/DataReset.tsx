@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const DataReset = () => {
@@ -22,28 +22,28 @@ const DataReset = () => {
   const handleResetData = async () => {
     try {
       setIsResetting(true);
-      
+
       // Call the Supabase edge function to reset all data
       const { data, error } = await supabase.functions.invoke('reset_all_data');
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Reset local storage data
       localStorage.removeItem('tickets');
       localStorage.removeItem('expenses');
-      
+
       toast({
         title: "Datos reiniciados",
         description: "Todos los datos han sido reiniciados exitosamente."
       });
-      
+
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-      
+
     } catch (err) {
       console.error("Error resetting data:", err);
       toast({
@@ -55,7 +55,7 @@ const DataReset = () => {
       setIsResetting(false);
     }
   };
-  
+
   return (
     <Card className="border-red-200">
       <CardHeader className="pb-3">
@@ -99,7 +99,7 @@ const DataReset = () => {
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction 
+              <AlertDialogAction
                 onClick={handleResetData}
                 disabled={isResetting}
                 className="bg-red-600 hover:bg-red-700"

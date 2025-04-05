@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 export interface LoyaltyCustomer {
   id: string;
@@ -18,13 +18,13 @@ export function useLoyaltyCustomer() {
   const [loading, setLoading] = useState(false);
   const [searchResult, setSearchResult] = useState<LoyaltyCustomer | null>(null);
   const [redeeming, setRedeeming] = useState(false);
-  
+
   const handleSearch = async () => {
     if (!phone || phone.length < 8) {
       toast.error('Por favor ingrese un número de teléfono válido');
       return;
     }
-    
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -32,9 +32,9 @@ export function useLoyaltyCustomer() {
         .select('*')
         .eq('phone', phone)
         .single();
-      
+
       if (error) throw error;
-      
+
       if (data) {
         setSearchResult(data as LoyaltyCustomer);
       } else {
@@ -49,36 +49,36 @@ export function useLoyaltyCustomer() {
       setLoading(false);
     }
   };
-  
+
   const handleRedeemValet = async () => {
     if (!searchResult) return;
-    
+
     setRedeeming(true);
     try {
       // Update customer's free_valets count
       const { error } = await supabase
         .from('customers')
-        .update({ 
+        .update({
           free_valets: searchResult.free_valets + 1,
           loyalty_points: Math.max(0, searchResult.loyalty_points - 100), // Subtract 100 points
           valets_redeemed: (searchResult.valets_redeemed || 0) + 1
         })
         .eq('id', searchResult.id);
-      
+
       if (error) throw error;
-      
+
       toast.success('¡Valet gratis canjeado con éxito!');
-      
+
       // Refresh customer data
       const { data, error: fetchError } = await supabase
         .from('customers')
         .select('*')
         .eq('id', searchResult.id)
         .single();
-      
+
       if (fetchError) throw fetchError;
       setSearchResult(data as LoyaltyCustomer);
-      
+
     } catch (error) {
       console.error('Error redeeming free valet:', error);
       toast.error('Error al canjear valet gratis');

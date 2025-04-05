@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Search, Bell, CheckCircle, Printer, Share2, XCircle, Clock } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Ticket } from '@/lib/types';
 import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -24,7 +24,7 @@ const PickupOrders = () => {
   const [cancelReason, setCancelReason] = useState('');
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
-  
+
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
     queryFn: getPickupTickets,
@@ -51,9 +51,9 @@ const PickupOrders = () => {
         `Hola ${ticket.clientName}, su pedido está listo para retirar en Lavandería Ohana.`
       );
       const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
-      
+
       window.open(whatsappUrl, '_blank');
-      
+
       toast.success(`Notificación enviada a ${ticket.clientName}`, {
         description: `Se notificó que su pedido está listo para retirar.`
       });
@@ -85,7 +85,7 @@ const PickupOrders = () => {
 
   const handleCancelTicket = async () => {
     if (!selectedTicket) return;
-    
+
     if (!cancelReason.trim()) {
       toast.error('Por favor ingrese un motivo para anular el ticket');
       return;
@@ -120,8 +120,8 @@ const PickupOrders = () => {
 
     const formattedDate = formatDate(ticket.createdAt);
 
-    const servicesContent = ticketServices.length > 0 
-      ? ticketServices.map(service => 
+    const servicesContent = ticketServices.length > 0
+      ? ticketServices.map(service =>
           `<div class="service-item">
             <span>${service.name} x${service.quantity}</span>
             <span>$ ${(service.price).toLocaleString()}</span>
@@ -179,23 +179,23 @@ const PickupOrders = () => {
           <h1>Lavandería Ohana</h1>
           <p>Ticket de servicio</p>
         </div>
-        
+
         <div class="ticket-info">
           <p><strong>Ticket N°:</strong> ${ticket.ticketNumber || 'N/A'}</p>
           <p><strong>Cliente:</strong> ${ticket.clientName}</p>
           <p><strong>Teléfono:</strong> ${ticket.phoneNumber}</p>
           <p><strong>Fecha:</strong> ${formattedDate}</p>
         </div>
-        
+
         <h3>Servicios:</h3>
         <div class="services">
           ${servicesContent}
         </div>
-        
+
         <div class="total">
           Total: $ ${ticket.totalPrice.toLocaleString()}
         </div>
-        
+
         <div class="no-print" style="text-align: center; margin-top: 30px;">
           <button onclick="window.print();" style="padding: 10px 20px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer;">
             Imprimir Ticket
@@ -204,14 +204,14 @@ const PickupOrders = () => {
       </body>
       </html>
     `);
-    
+
     printWindow.document.close();
-    
+
     printWindow.onload = function() {
       printWindow.focus();
       printWindow.print();
     };
-    
+
     toast.success('Preparando impresión del ticket');
   };
 
@@ -230,25 +230,25 @@ const PickupOrders = () => {
     let message = `🧼 *LAVANDERÍA OHANA - TICKET* 🧼\n\n`;
     message += `Estimado/a ${ticket.clientName},\n\n`;
     message += `Su pedido está listo para retirar.\n\n`;
-    
+
     if (ticketServices.length > 0) {
       message += `*Detalle de servicios:*\n`;
       ticketServices.forEach(service => {
         message += `- ${service.name} x${service.quantity}: $${service.price.toLocaleString()}\n`;
       });
     }
-    
+
     message += `\n*Total a pagar: $${ticket.totalPrice.toLocaleString()}*\n\n`;
     message += `Gracias por confiar en Lavandería Ohana.`;
 
     const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    
+
     window.open(whatsappUrl, '_blank');
-    
+
     toast.success(`Compartiendo ticket con ${ticket.clientName}`);
   };
 
-  const filteredTickets = searchQuery.trim() 
+  const filteredTickets = searchQuery.trim()
     ? tickets.filter(ticket => {
         if (searchFilter === 'name') {
           return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -257,7 +257,7 @@ const PickupOrders = () => {
         }
       })
     : tickets;
-    
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
@@ -290,11 +290,11 @@ const PickupOrders = () => {
       </div>
     );
   }
-  
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      
+
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           <header className="mb-8 flex justify-between items-center">
@@ -307,13 +307,13 @@ const PickupOrders = () => {
               <p className="text-gray-500">Sistema de Tickets</p>
             </div>
           </header>
-          
+
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Pedidos a Retirar</h2>
-            
+
             <div className="flex flex-wrap justify-end mb-4 gap-2">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex items-center space-x-2"
                 onClick={() => {
                   const ticket = tickets.find(t => t.id === selectedTicket);
@@ -325,9 +325,9 @@ const PickupOrders = () => {
                 <Bell className="h-4 w-4" />
                 <span>Avisar al cliente</span>
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="flex items-center space-x-2"
                 onClick={handlePrintTicket}
                 disabled={!selectedTicket}
@@ -335,9 +335,9 @@ const PickupOrders = () => {
                 <Printer className="h-4 w-4" />
                 <span>IMPRIMIR</span>
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 className="flex items-center space-x-2"
                 onClick={handleShareWhatsApp}
                 disabled={!selectedTicket}
@@ -345,9 +345,9 @@ const PickupOrders = () => {
                 <Share2 className="h-4 w-4" />
                 <span>ENVIAR POR WHATSAPP</span>
               </Button>
-              
-              <Button 
-                variant="destructive" 
+
+              <Button
+                variant="destructive"
                 className="flex items-center space-x-2"
                 onClick={handleOpenCancelDialog}
                 disabled={!selectedTicket}
@@ -355,9 +355,9 @@ const PickupOrders = () => {
                 <XCircle className="h-4 w-4" />
                 <span>ANULAR</span>
               </Button>
-              
-              <Button 
-                variant="default" 
+
+              <Button
+                variant="default"
                 className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
                 onClick={() => {
                   if (selectedTicket) handleMarkAsDelivered(selectedTicket);
@@ -369,24 +369,24 @@ const PickupOrders = () => {
                 <span>ENTREGADO</span>
               </Button>
             </div>
-            
+
             <div className="flex space-x-2 mb-4">
-              <Button 
-                variant={searchFilter === 'name' ? "secondary" : "outline"} 
+              <Button
+                variant={searchFilter === 'name' ? "secondary" : "outline"}
                 className={searchFilter === 'name' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
                 onClick={() => setSearchFilter('name')}
               >
                 Nombre
               </Button>
-              <Button 
-                variant={searchFilter === 'phone' ? "secondary" : "outline"} 
+              <Button
+                variant={searchFilter === 'phone' ? "secondary" : "outline"}
                 className={searchFilter === 'phone' ? "bg-blue-600 text-white hover:bg-blue-700" : ""}
                 onClick={() => setSearchFilter('phone')}
               >
                 Teléfono
               </Button>
             </div>
-            
+
             <div className="mb-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -398,12 +398,12 @@ const PickupOrders = () => {
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <div className="md:col-span-2 space-y-4 border rounded-lg p-4 bg-gray-50 max-h-[calc(100vh-300px)] overflow-y-auto">
                 {filteredTickets.length > 0 ? (
                   filteredTickets.map(ticket => (
-                    <Card 
+                    <Card
                       key={ticket.id}
                       className={`
                         cursor-pointer transition-all
@@ -436,13 +436,13 @@ const PickupOrders = () => {
                   ))
                 ) : (
                   <div className="text-center p-6 text-gray-500">
-                    {searchQuery ? 
-                      'No se encontraron tickets que coincidan con su búsqueda' : 
+                    {searchQuery ?
+                      'No se encontraron tickets que coincidan con su búsqueda' :
                       'No hay tickets pendientes de entrega'}
                   </div>
                 )}
               </div>
-              
+
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 {selectedTicket ? (
                   <div className="w-full space-y-4">
@@ -450,7 +450,7 @@ const PickupOrders = () => {
                     {(() => {
                       const ticket = tickets.find(t => t.id === selectedTicket);
                       if (!ticket) return <p>No se encontró el ticket seleccionado</p>;
-                      
+
                       return (
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-2">
@@ -471,7 +471,7 @@ const PickupOrders = () => {
                               <p className="font-medium">{formatDate(ticket.createdAt)}</p>
                             </div>
                           </div>
-                          
+
                           <div className="border-t pt-3">
                             <p className="font-medium mb-2">Servicios:</p>
                             <div className="space-y-2">
@@ -514,25 +514,25 @@ const PickupOrders = () => {
               Ingrese el motivo por el cual se anula este ticket. Esta acción no se puede deshacer.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
-            <Textarea 
-              placeholder="Motivo de anulación" 
+            <Textarea
+              placeholder="Motivo de anulación"
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               className="min-h-[100px]"
             />
           </div>
-          
+
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setCancelDialogOpen(false)}
             >
               Cancelar
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleCancelTicket}
               disabled={!cancelReason.trim()}
             >

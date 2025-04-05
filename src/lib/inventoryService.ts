@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { InventoryItem } from './types';
 
 // Obtener todos los elementos del inventario
@@ -10,9 +10,9 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
       .from('inventory_items')
       .select('*')
       .order('name');
-      
+
     if (error) throw error;
-    
+
     return data.map((item: any) => ({
       id: item.id,
       name: item.name,
@@ -45,14 +45,14 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       })
       .select('*')
       .single();
-      
+
     if (error) throw error;
-    
+
     toast({
       title: "Success",
       description: 'Elemento de inventario agregado con éxito'
     });
-    
+
     return {
       id: data.id,
       name: data.name,
@@ -84,9 +84,9 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
         unit: item.unit
       })
       .eq('id', item.id);
-      
+
     if (error) throw error;
-    
+
     toast({
       title: "Success",
       description: 'Elemento de inventario actualizado con éxito'
@@ -110,9 +110,9 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
       .from('inventory_items')
       .delete()
       .eq('id', id);
-      
+
     if (error) throw error;
-    
+
     toast({
       title: "Success",
       description: 'Elemento de inventario eliminado con éxito'
@@ -121,7 +121,7 @@ export const deleteInventoryItem = async (id: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error al eliminar elemento de inventario:', error);
     toast({
-      variant: "destructive", 
+      variant: "destructive",
       title: "Error",
       description: 'Error al eliminar elemento de inventario'
     });

@@ -234,6 +234,36 @@ export type Database = {
         }
         Relationships: []
       }
+      system_versions: {
+        Row: {
+          id: string
+          version: string
+          release_date: string
+          changes: Json
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          version: string
+          release_date?: string
+          changes?: Json
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          version?: string
+          release_date?: string
+          changes?: Json
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tickets: {
         Row: {
           basket_ticket_number: number | null

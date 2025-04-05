@@ -3,11 +3,11 @@ import React, { useState } from 'react';
 import { getErrors, resolveError, deleteError, clearResolvedErrors, SystemError } from '@/lib/errorService';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { Loader2, CheckCircle, Trash2, AlertTriangle, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/lib/toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function ErrorLogList() {
@@ -54,8 +54,8 @@ export function ErrorLogList() {
     refreshErrors();
   };
 
-  const filteredErrors = showResolved 
-    ? errors 
+  const filteredErrors = showResolved
+    ? errors
     : errors.filter(error => !error.resolved);
 
   const formatDate = (date: Date) => {
@@ -83,8 +83,8 @@ export function ErrorLogList() {
               <Filter className="h-4 w-4 mr-2" />
               {showResolved ? "Ocultar resueltos" : "Mostrar todos"}
             </Button>
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               size="sm"
               onClick={refreshErrors}
               disabled={isRefreshing}
@@ -102,8 +102,8 @@ export function ErrorLogList() {
           <Alert>
             <AlertTitle>No hay errores para mostrar</AlertTitle>
             <AlertDescription>
-              {showResolved 
-                ? "No se han registrado errores en el sistema." 
+              {showResolved
+                ? "No se han registrado errores en el sistema."
                 : "No hay errores pendientes. Puedes mostrar los errores resueltos con el filtro."}
             </AlertDescription>
           </Alert>
@@ -151,8 +151,8 @@ export function ErrorLogList() {
                     <TableCell>
                       <div className="flex space-x-2">
                         {!error.resolved && (
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => handleResolveError(error.id)}
                           >
@@ -160,8 +160,8 @@ export function ErrorLogList() {
                             Resolver
                           </Button>
                         )}
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           onClick={() => handleDeleteError(error.id)}
                         >
@@ -182,12 +182,12 @@ export function ErrorLogList() {
           {filteredErrors.length} {filteredErrors.length === 1 ? 'error' : 'errores'} {showResolved ? '' : 'pendientes'}
         </div>
         {errors.some(e => e.resolved) && (
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="sm"
             onClick={handleClearResolved}
           >
-            <Trash2 className="h-4 w-4 mr-2" /> 
+            <Trash2 className="h-4 w-4 mr-2" />
             Limpiar resueltos
           </Button>
         )}

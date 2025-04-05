@@ -1,7 +1,7 @@
 
 import { Download, RefreshCw, Users, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
@@ -16,19 +16,19 @@ const ActionButtons = ({ onExportData }: ActionButtonsProps) => {
         <RefreshCw className="mr-2 h-4 w-4" />
         Actualizar
       </Button>
-      
+
       <Button variant="outline" onClick={onExportData}>
         <Download className="mr-2 h-4 w-4" />
         Exportar
       </Button>
-      
+
       <Link to="/clients">
         <Button variant="outline">
           <Users className="mr-2 h-4 w-4" />
           Gestionar Clientes
         </Button>
       </Link>
-      
+
       <Button variant="default" asChild>
         <Link to="/loyalty">
           <Star className="mr-2 h-4 w-4" />

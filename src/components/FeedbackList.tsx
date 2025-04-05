@@ -6,7 +6,7 @@ import { CustomerFeedback } from '@/lib/types';
 import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { Star, Trash2 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [feedback, setFeedback] = useState<CustomerFeedback[]>([]);
@@ -31,7 +31,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       if (success) {
         setFeedback(feedback.filter(item => item.id !== id));
         toast({
-          title: "Success", 
+          title: "Success",
           description: "Comentario eliminado exitosamente"
         });
       } else {
@@ -75,9 +75,9 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
                 <CardTitle className="text-base md:text-lg">{item.customerName}</CardTitle>
                 <div className="flex mt-1">{renderStars(item.rating)}</div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => handleDelete(item.id)}
                 className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 w-7 md:h-8 md:w-8"
               >

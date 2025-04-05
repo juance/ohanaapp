@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { LaundryService, PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { Check } from 'lucide-react';
 import { storeTicketData } from '@/lib/dataService';
 
@@ -56,23 +56,23 @@ const TicketForm = () => {
   const [selectedLaundryOptions, setSelectedLaundryOptions] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const calculateTotal = () => {
     // Calculate total for regular services
     const servicesTotal = selectedServices.reduce((total, serviceId) => {
       const service = laundryServices.find(s => s.id === serviceId);
       return total + (service?.price || 0);
     }, 0);
-    
+
     // Calculate total for dry cleaning items
     const dryCleaningTotal = selectedDryCleaningItems.reduce((total, item) => {
       const dryCleaningItem = dryCleaningOptions.find(dci => dci.id === item.id);
       return total + ((dryCleaningItem?.price || 0) * item.quantity);
     }, 0);
-    
+
     return servicesTotal + dryCleaningTotal;
   };
-  
+
   const handleServiceToggle = (serviceId: string) => {
     if (selectedServices.includes(serviceId)) {
       setSelectedServices(selectedServices.filter(id => id !== serviceId));
@@ -80,10 +80,10 @@ const TicketForm = () => {
       setSelectedServices([...selectedServices, serviceId]);
     }
   };
-  
+
   const handleDryCleaningToggle = (itemId: string) => {
     const existingItem = selectedDryCleaningItems.find(item => item.id === itemId);
-    
+
     if (existingItem) {
       // Remove the item
       setSelectedDryCleaningItems(selectedDryCleaningItems.filter(item => item.id !== itemId));
@@ -92,15 +92,15 @@ const TicketForm = () => {
       setSelectedDryCleaningItems([...selectedDryCleaningItems, { id: itemId, quantity: 1 }]);
     }
   };
-  
+
   const handleDryCleaningQuantityChange = (itemId: string, quantity: number) => {
     setSelectedDryCleaningItems(
-      selectedDryCleaningItems.map(item => 
+      selectedDryCleaningItems.map(item =>
         item.id === itemId ? { ...item, quantity } : item
       )
     );
   };
-  
+
   const handleLaundryOptionToggle = (optionId: string) => {
     if (selectedLaundryOptions.includes(optionId)) {
       setSelectedLaundryOptions(selectedLaundryOptions.filter(id => id !== optionId));
@@ -108,34 +108,34 @@ const TicketForm = () => {
       setSelectedLaundryOptions([...selectedLaundryOptions, optionId]);
     }
   };
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Validation
     if (!clientName.trim()) {
       toast.error('Please enter a client name');
       setIsSubmitting(false);
       return;
     }
-    
+
     if (!phoneNumber.trim()) {
       toast.error('Please enter a phone number');
       setIsSubmitting(false);
       return;
     }
-    
+
     if (selectedServices.length === 0 && selectedDryCleaningItems.length === 0) {
       toast.error('Please select at least one service or dry cleaning item');
       setIsSubmitting(false);
       return;
     }
-    
+
     try {
       // Generate ticket number
       const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
-      
+
       // Prepare dry cleaning items
       const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
         const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
@@ -145,10 +145,10 @@ const TicketForm = () => {
           price: (itemDetails?.price || 0) * item.quantity
         };
       });
-      
+
       // Prepare laundry options
       const laundryOptions: LaundryOption[] = selectedLaundryOptions.map(option => option as LaundryOption);
-      
+
       // Store the ticket data
       const success = await storeTicketData(
         {
@@ -164,13 +164,13 @@ const TicketForm = () => {
         dryCleaningItems,
         laundryOptions
       );
-      
+
       if (success) {
         // Show success message
         toast.success('Ticket created successfully', {
           description: `Ticket #${ticketNumber} for ${clientName}`,
         });
-        
+
         // Reset form
         setClientName('');
         setPhoneNumber('');
@@ -192,7 +192,7 @@ const TicketForm = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <form onSubmit={handleSubmit}>
       <Card className="overflow-hidden">
@@ -223,7 +223,7 @@ const TicketForm = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Services</h3>
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -256,7 +256,7 @@ const TicketForm = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Dry Cleaning Items</h3>
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -288,7 +288,7 @@ const TicketForm = () => {
                         </div>
                         <span className="text-sm font-semibold">${item.price}</span>
                       </div>
-                      
+
                       {selectedItem && (
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-xs text-muted-foreground">Quantity:</span>
@@ -330,7 +330,7 @@ const TicketForm = () => {
                 })}
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Laundry Options</h3>
               <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
@@ -362,7 +362,7 @@ const TicketForm = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Payment Method</h3>
               <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
@@ -397,7 +397,7 @@ const TicketForm = () => {
             </div>
           </div>
         </CardContent>
-        
+
         <CardFooter className="flex items-center justify-between border-t bg-muted/30 px-6 py-4">
           <div className="text-lg font-medium">
             Total: <span className="text-laundry-700">${calculateTotal()}</span>

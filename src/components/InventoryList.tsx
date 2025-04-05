@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Package, AlertTriangle, Pencil, Trash, Plus, Search, X, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const InventoryList = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,32 +24,32 @@ const InventoryList = () => {
     threshold: 0,
     unit: '',
   });
-  
+
   useEffect(() => {
     loadInventoryItems();
   }, []);
-  
+
   const loadInventoryItems = async () => {
     setLoading(true);
     const items = await getInventoryItems();
     setInventoryItems(items);
     setLoading(false);
   };
-  
-  const filteredItems = searchQuery.trim() 
-    ? inventoryItems.filter(item => 
+
+  const filteredItems = searchQuery.trim()
+    ? inventoryItems.filter(item =>
         item.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : inventoryItems;
-    
+
   const lowStockItems = inventoryItems.filter(item => item.quantity <= item.threshold);
-  
+
   const handleAddItem = async () => {
     if (!newItem.name || !newItem.unit) {
       toast.error('Por favor complete todos los campos requeridos');
       return;
     }
-    
+
     const item = await addInventoryItem(newItem);
     if (item) {
       setInventoryItems([...inventoryItems, item]);
@@ -62,10 +62,10 @@ const InventoryList = () => {
       setIsAddDialogOpen(false);
     }
   };
-  
+
   const handleEditItem = async () => {
     if (!currentItem) return;
-    
+
     const success = await updateInventoryItem(currentItem);
     if (success) {
       setInventoryItems(
@@ -74,10 +74,10 @@ const InventoryList = () => {
       setIsEditDialogOpen(false);
     }
   };
-  
+
   const handleDeleteItem = async () => {
     if (!currentItem) return;
-    
+
     const success = await deleteInventoryItem(currentItem.id);
     if (success) {
       setInventoryItems(
@@ -86,7 +86,7 @@ const InventoryList = () => {
       setIsDeleteDialogOpen(false);
     }
   };
-  
+
   return (
     <div className="space-y-6">
       {lowStockItems.length > 0 && (
@@ -95,7 +95,7 @@ const InventoryList = () => {
             <AlertTriangle className="h-5 w-5" />
             <h3>Productos con Bajo Stock</h3>
           </div>
-          
+
           <div className="space-x-2">
             {lowStockItems.map(item => (
               <span key={item.id} className="inline-block bg-white border border-red-200 text-red-700 text-sm px-2 py-1 rounded">
@@ -105,7 +105,7 @@ const InventoryList = () => {
           </div>
         </div>
       )}
-      
+
       <div className="flex justify-between items-center">
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -116,7 +116,7 @@ const InventoryList = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button 
+            <button
               className="absolute right-2 top-2.5 text-muted-foreground"
               onClick={() => setSearchQuery('')}
             >
@@ -124,8 +124,8 @@ const InventoryList = () => {
             </button>
           )}
         </div>
-        
-        <Button 
+
+        <Button
           className="bg-blue-600 hover:bg-blue-700"
           onClick={() => setIsAddDialogOpen(true)}
         >
@@ -133,7 +133,7 @@ const InventoryList = () => {
           Agregar Producto
         </Button>
       </div>
-      
+
       <Card>
         <CardContent className="p-0">
           {loading ? (
@@ -145,8 +145,8 @@ const InventoryList = () => {
               <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <h3 className="font-medium text-lg mb-1">No hay productos</h3>
               <p className="text-muted-foreground">
-                {searchQuery 
-                  ? "No se encontraron productos que coincidan con la búsqueda." 
+                {searchQuery
+                  ? "No se encontraron productos que coincidan con la búsqueda."
                   : "Agregue productos para comenzar a gestionar su inventario."}
               </p>
             </div>
@@ -181,9 +181,9 @@ const InventoryList = () => {
                     <TableCell>{item.lastUpdated}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-blue-600"
                           onClick={() => {
                             setCurrentItem(item);
@@ -192,9 +192,9 @@ const InventoryList = () => {
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="h-8 w-8 text-red-600"
                           onClick={() => {
                             setCurrentItem(item);
@@ -212,7 +212,7 @@ const InventoryList = () => {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Add Item Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent>
@@ -271,7 +271,7 @@ const InventoryList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Edit Item Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
@@ -331,7 +331,7 @@ const InventoryList = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent>
@@ -339,7 +339,7 @@ const InventoryList = () => {
             <DialogTitle>Confirmar Eliminación</DialogTitle>
           </DialogHeader>
           <p>
-            ¿Está seguro de que desea eliminar el producto 
+            ¿Está seguro de que desea eliminar el producto
             <span className="font-semibold"> {currentItem?.name}</span>?
             Esta acción no se puede deshacer.
           </p>

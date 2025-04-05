@@ -11,22 +11,22 @@ import { ClientTypeChart } from '@/components/metrics/ClientTypeChart';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 interface MetricsProps {
   embedded?: boolean;
 }
 
 const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    dateRange, 
+  const {
+    data,
+    isLoading,
+    error,
+    dateRange,
     setDateRange,
     refreshData
   } = useMetricsData();
-  
+
   const handleRefresh = async () => {
     toast({
       title: "Info",
@@ -34,9 +34,9 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
     });
     await refreshData();
   };
-  
+
   console.log("Current metrics data:", data);
-  
+
   const content = (
     <>
       {!embedded && (
@@ -49,9 +49,9 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
             <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
             <p className="text-gray-500">Métricas</p>
           </div>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
             size="sm"
             className="flex items-center gap-2"
           >
@@ -60,7 +60,7 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
           </Button>
         </header>
       )}
-      
+
       <DateRangeSelector dateRange={dateRange} setDateRange={setDateRange} />
 
       {isLoading ? (
@@ -94,15 +94,15 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
       )}
     </>
   );
-  
+
   if (embedded) {
     return content;
   }
-  
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
-      
+
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           {content}
