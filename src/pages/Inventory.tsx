@@ -1,394 +1,240 @@
 
 import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Table, TableBody, TableCell, TableHead, 
-  TableHeader, TableRow 
-} from '@/components/ui/table';
-import { Link } from 'react-router-dom';
-import { 
-  ArrowLeft, Package, AlertTriangle, Pencil, 
-  Trash, Plus, Search, X, Save
-} from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Navbar from '@/components/Navbar';
+import InventoryItem from '@/components/InventoryItem';
+import { getCurrentUser, hasPermission } from '@/lib/auth';
+import { InventoryItem as InventoryItemType } from '@/lib/types';
 import { toast } from 'sonner';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter,
-  DialogClose
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { getInventoryItems, addInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/lib/inventoryService';
-import { InventoryItem } from '@/lib/types';
+import { Search, Plus, Package } from 'lucide-react';
+
+// Mock inventory data
+const mockInventory: InventoryItemType[] = [
+  { id: '1', name: 'Detergent', quantity: 20, threshold: 10, unit: 'liters' },
+  { id: '2', name: 'Fabric Softener', quantity: 15, threshold: 8, unit: 'liters' },
+  { id: '3', name: 'Bleach', quantity: 5, threshold: 10, unit: 'liters' },
+  { id: '4', name: 'Stain Remover', quantity: 8, threshold: 6, unit: 'bottles' },
+  { id: '5', name: 'Laundry Bags', quantity: 50, threshold: 30, unit: 'pieces' },
+  { id: '6', name: 'Hangers', quantity: 75, threshold: 50, unit: 'pieces' },
+];
 
 const Inventory = () => {
+  const [inventory, setInventory] = useState<InventoryItemType[]>(mockInventory);
+  const [filteredInventory, setFilteredInventory] = useState<InventoryItemType[]>(mockInventory);
   const [searchQuery, setSearchQuery] = useState('');
-  const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentItem, setCurrentItem] = useState<InventoryItem | null>(null);
   const [newItem, setNewItem] = useState({
     name: '',
     quantity: 0,
     threshold: 0,
     unit: '',
   });
+  const [isAddingItem, setIsAddingItem] = useState(false);
+  const navigate = useNavigate();
   
   useEffect(() => {
-    loadInventoryItems();
-  }, []);
+    const checkAuth = async () => {
+      const user = await getCurrentUser();
+      
+      if (!user) {
+        navigate('/');
+        return;
+      }
+      
+      if (!hasPermission(user, ['admin'])) {
+        navigate('/dashboard');
+        toast.error('Access denied', {
+          description: 'You do not have permission to access this page',
+        });
+        return;
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
   
-  const loadInventoryItems = async () => {
-    setLoading(true);
-    const items = await getInventoryItems();
-    setInventoryItems(items);
-    setLoading(false);
+  useEffect(() => {
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      setFilteredInventory(inventory.filter(item => 
+        item.name.toLowerCase().includes(query) ||
+        item.unit.toLowerCase().includes(query)
+      ));
+    } else {
+      setFilteredInventory(inventory);
+    }
+  }, [searchQuery, inventory]);
+  
+  const handleDeleteItem = (id: string) => {
+    setInventory(inventory.filter(item => item.id !== id));
   };
   
-  const filteredItems = searchQuery.trim() 
-    ? inventoryItems.filter(item => 
-        item.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : inventoryItems;
+  const handleUpdateItem = (updatedItem: InventoryItemType) => {
+    setInventory(inventory.map(item => 
+      item.id === updatedItem.id ? updatedItem : item
+    ));
     
-  const lowStockItems = inventoryItems.filter(item => item.quantity <= item.threshold);
+    toast.success('Item updated', {
+      description: `${updatedItem.name} has been updated`,
+    });
+  };
   
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     if (!newItem.name || !newItem.unit) {
-      toast.error('Por favor complete todos los campos requeridos');
+      toast.error('Missing information', {
+        description: 'Please provide a name and unit for the new item',
+      });
       return;
     }
     
-    const item = await addInventoryItem(newItem);
-    if (item) {
-      setInventoryItems([...inventoryItems, item]);
-      setNewItem({
-        name: '',
-        quantity: 0,
-        threshold: 0,
-        unit: '',
-      });
-      setIsAddDialogOpen(false);
-      toast.success('Producto agregado con éxito');
-    }
-  };
-  
-  const handleEditItem = async () => {
-    if (!currentItem) return;
+    const newId = `${inventory.length + 1}`;
+    const item: InventoryItemType = {
+      id: newId,
+      ...newItem,
+    };
     
-    const success = await updateInventoryItem(currentItem);
-    if (success) {
-      setInventoryItems(
-        inventoryItems.map(item => item.id === currentItem.id ? currentItem : item)
-      );
-      setIsEditDialogOpen(false);
-      toast.success('Producto actualizado con éxito');
-    }
-  };
-  
-  const handleDeleteItem = async () => {
-    if (!currentItem) return;
+    setInventory([...inventory, item]);
+    setNewItem({
+      name: '',
+      quantity: 0,
+      threshold: 0,
+      unit: '',
+    });
+    setIsAddingItem(false);
     
-    const success = await deleteInventoryItem(currentItem.id);
-    if (success) {
-      setInventoryItems(
-        inventoryItems.filter(item => item.id !== currentItem.id)
-      );
-      setIsDeleteDialogOpen(false);
-      toast.success('Producto eliminado con éxito');
-    }
+    toast.success('Item added', {
+      description: `${newItem.name} has been added to inventory`,
+    });
   };
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
       
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <header className="mb-8 flex justify-between items-center">
-            <div>
-              <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                <span>Volver</span>
-              </Link>
-              <h1 className="text-2xl font-bold">Gestión de Inventario</h1>
-            </div>
-            
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700"
-              onClick={() => setIsAddDialogOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar Producto
-            </Button>
-          </header>
+      <div className="flex-1 md:ml-64">
+        <div className="container mx-auto p-6 md:p-8">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight">Inventory</h1>
+            <p className="mt-1 text-muted-foreground">
+              Manage laundry supplies and inventory items
+            </p>
+          </div>
           
-          {lowStockItems.length > 0 && (
-            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-red-700 font-medium mb-2">
-                <AlertTriangle className="h-5 w-5" />
-                <h3>Productos con Bajo Stock</h3>
-              </div>
-              
-              <div className="space-x-2">
-                {lowStockItems.map(item => (
-                  <span key={item.id} className="inline-block bg-white border border-red-200 text-red-700 text-sm px-2 py-1 rounded">
-                    {item.name}: {item.quantity} {item.unit}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="mb-4">
-            <div className="relative w-full max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="mb-6 flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+            <div className="relative w-full sm:w-[300px]">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar productos..."
+                type="search"
+                placeholder="Search inventory..."
                 className="pl-8"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              {searchQuery && (
-                <button 
-                  className="absolute right-2 top-2.5 text-muted-foreground"
-                  onClick={() => setSearchQuery('')}
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
             </div>
+            <Button
+              onClick={() => setIsAddingItem(true)}
+              className="bg-laundry-500 hover:bg-laundry-600"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Item
+            </Button>
           </div>
           
-          <Card>
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="flex justify-center items-center p-8">
-                  <p>Cargando...</p>
+          {isAddingItem && (
+            <Card className="mb-6 animate-scale-in border-dashed">
+              <CardHeader>
+                <CardTitle className="text-lg">Add New Inventory Item</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Name</label>
+                    <Input
+                      value={newItem.name}
+                      onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                      placeholder="Item name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Unit</label>
+                    <Input
+                      value={newItem.unit}
+                      onChange={(e) => setNewItem({ ...newItem, unit: e.target.value })}
+                      placeholder="e.g. liters, pieces"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Initial Quantity</label>
+                    <Input
+                      type="number"
+                      value={newItem.quantity}
+                      onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Low Stock Threshold</label>
+                    <Input
+                      type="number"
+                      value={newItem.threshold}
+                      onChange={(e) => setNewItem({ ...newItem, threshold: parseInt(e.target.value) || 0 })}
+                      placeholder="0"
+                    />
+                  </div>
                 </div>
-              ) : filteredItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 text-center">
-                  <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="font-medium text-lg mb-1">No hay productos</h3>
-                  <p className="text-muted-foreground">
-                    {searchQuery 
-                      ? "No se encontraron productos que coincidan con la búsqueda." 
-                      : "Agregue productos para comenzar a gestionar su inventario."}
-                  </p>
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Producto</TableHead>
-                      <TableHead>Cantidad</TableHead>
-                      <TableHead>Stock Mínimo</TableHead>
-                      <TableHead>Última Actualización</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredItems.map(item => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center">
-                            <span className="text-blue-600 mr-2">
-                              <Package className="h-4 w-4" />
-                            </span>
-                            {item.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={item.quantity <= item.threshold ? "text-red-600 font-medium" : ""}>
-                            {item.quantity} {item.unit}
-                          </span>
-                        </TableCell>
-                        <TableCell>{item.threshold} {item.unit}</TableCell>
-                        <TableCell>{item.lastUpdated}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-blue-600"
-                              onClick={() => {
-                                setCurrentItem(item);
-                                setIsEditDialogOpen(true);
-                              }}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-red-600"
-                              onClick={() => {
-                                setCurrentItem(item);
-                                setIsDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              </CardContent>
+              <CardFooter className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsAddingItem(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleAddItem}
+                  className="bg-laundry-500 hover:bg-laundry-600"
+                >
+                  Add Item
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+          
+          {filteredInventory.length === 0 ? (
+            <div className="flex min-h-[200px] flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                <Package className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="mt-4 text-lg font-medium">No items found</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {searchQuery ? 'Try a different search term' : 'Start by adding some inventory items'}
+              </p>
+              {!searchQuery && (
+                <Button
+                  onClick={() => setIsAddingItem(true)}
+                  className="mt-4 bg-laundry-500 hover:bg-laundry-600"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add First Item
+                </Button>
               )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      
-      {/* Add Item Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Agregar Producto</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Nombre del Producto</Label>
-              <Input
-                id="name"
-                value={newItem.name}
-                onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Cantidad</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  min="0"
-                  value={newItem.quantity}
-                  onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})}
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredInventory.map((item) => (
+                <InventoryItem
+                  key={item.id}
+                  item={item}
+                  onDelete={handleDeleteItem}
+                  onUpdate={handleUpdateItem}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="threshold">Stock Mínimo</Label>
-                <Input
-                  id="threshold"
-                  type="number"
-                  min="0"
-                  value={newItem.threshold}
-                  onChange={(e) => setNewItem({...newItem, threshold: parseInt(e.target.value) || 0})}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="unit">Unidad</Label>
-              <Input
-                id="unit"
-                value={newItem.unit}
-                onChange={(e) => setNewItem({...newItem, unit: e.target.value})}
-                placeholder="kg, litros, unidades, etc."
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <Button onClick={handleAddItem}>
-              <Plus className="mr-2 h-4 w-4" />
-              Agregar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Edit Item Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Producto</DialogTitle>
-          </DialogHeader>
-          {currentItem && (
-            <div className="space-y-4 py-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-name">Nombre del Producto</Label>
-                <Input
-                  id="edit-name"
-                  value={currentItem.name}
-                  onChange={(e) => setCurrentItem({...currentItem, name: e.target.value})}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="edit-quantity">Cantidad</Label>
-                  <Input
-                    id="edit-quantity"
-                    type="number"
-                    min="0"
-                    value={currentItem.quantity}
-                    onChange={(e) => setCurrentItem({...currentItem, quantity: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-threshold">Stock Mínimo</Label>
-                  <Input
-                    id="edit-threshold"
-                    type="number"
-                    min="0"
-                    value={currentItem.threshold}
-                    onChange={(e) => setCurrentItem({...currentItem, threshold: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-unit">Unidad</Label>
-                <Input
-                  id="edit-unit"
-                  value={currentItem.unit}
-                  onChange={(e) => setCurrentItem({...currentItem, unit: e.target.value})}
-                />
-              </div>
+              ))}
             </div>
           )}
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <Button onClick={handleEditItem}>
-              <Save className="mr-2 h-4 w-4" />
-              Guardar Cambios
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar Eliminación</DialogTitle>
-          </DialogHeader>
-          <p>
-            ¿Está seguro de que desea eliminar el producto 
-            <span className="font-semibold"> {currentItem?.name}</span>?
-            Esta acción no se puede deshacer.
-          </p>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-            <Button variant="destructive" onClick={handleDeleteItem}>
-              <Trash className="mr-2 h-4 w-4" />
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </div>
     </div>
   );
 };
