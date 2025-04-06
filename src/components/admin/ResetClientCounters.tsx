@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
 
-export const ResetTicketNumbers = () => {
+export const ResetClientCounters = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -15,22 +15,22 @@ export const ResetTicketNumbers = () => {
     setIsResetting(true);
     try {
       const { data, error } = await supabase.functions.invoke("reset_counters", {
-        body: { counter: "tickets" }
+        body: { counter: "clients" }
       });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: 'Numeración de tickets reiniciada exitosamente'
+        description: 'Contadores de clientes reiniciados exitosamente'
       });
       setShowConfirmation(false);
     } catch (error) {
-      console.error('Error al reiniciar la numeración de tickets:', error);
+      console.error('Error al reiniciar los contadores de clientes:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: 'Error al reiniciar la numeración de tickets'
+        description: 'Error al reiniciar los contadores de clientes'
       });
     } finally {
       setIsResetting(false);
@@ -40,9 +40,9 @@ export const ResetTicketNumbers = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reiniciar Numeración de Tickets</CardTitle>
+        <CardTitle>Reiniciar Contadores de Clientes</CardTitle>
         <CardDescription>
-          Esta acción reiniciará la secuencia de números de tickets para que comience desde 1 nuevamente
+          Esta acción reiniciará los valets acumulados, valets gratis y puntos de fidelidad de todos los clientes
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -51,14 +51,15 @@ export const ResetTicketNumbers = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>¡Atención!</AlertTitle>
             <AlertDescription>
-              Está a punto de reiniciar la numeración de tickets. Esta acción no puede deshacerse.
-              ¿Está seguro que desea continuar?
+              Está a punto de reiniciar TODOS los contadores relacionados con clientes, 
+              incluyendo valets acumulados, valets gratis y puntos de fidelidad.
+              Esta acción no puede deshacerse. ¿Está seguro que desea continuar?
             </AlertDescription>
           </Alert>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets nuevos
-            que se generen a partir de este momento.
+            Use esta función con precaución. El reinicio afectará a todos los clientes 
+            registrados en el sistema y eliminará sus beneficios acumulados.
           </p>
         )}
       </CardContent>
@@ -92,7 +93,7 @@ export const ResetTicketNumbers = () => {
             variant="secondary"
             onClick={() => setShowConfirmation(true)}
           >
-            Reiniciar Numeración
+            Reiniciar Contadores de Clientes
           </Button>
         )}
       </CardFooter>

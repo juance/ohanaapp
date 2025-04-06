@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/lib/toast";
 
-export const ResetTicketNumbers = () => {
+export const ResetAllCounters = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
 
@@ -15,22 +15,22 @@ export const ResetTicketNumbers = () => {
     setIsResetting(true);
     try {
       const { data, error } = await supabase.functions.invoke("reset_counters", {
-        body: { counter: "tickets" }
+        body: { counter: "all" }
       });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: 'Numeración de tickets reiniciada exitosamente'
+        description: 'Todos los contadores han sido reiniciados exitosamente'
       });
       setShowConfirmation(false);
     } catch (error) {
-      console.error('Error al reiniciar la numeración de tickets:', error);
+      console.error('Error al reiniciar todos los contadores:', error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: 'Error al reiniciar la numeración de tickets'
+        description: 'Error al reiniciar los contadores'
       });
     } finally {
       setIsResetting(false);
@@ -40,25 +40,27 @@ export const ResetTicketNumbers = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Reiniciar Numeración de Tickets</CardTitle>
+        <CardTitle>Reiniciar Todos los Contadores</CardTitle>
         <CardDescription>
-          Esta acción reiniciará la secuencia de números de tickets para que comience desde 1 nuevamente
+          Esta acción reiniciará todos los contadores de la aplicación incluyendo tickets, clientes, ingresos y más
         </CardDescription>
       </CardHeader>
       <CardContent>
         {showConfirmation ? (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>¡Atención!</AlertTitle>
+            <AlertTitle>¡ADVERTENCIA!</AlertTitle>
             <AlertDescription>
-              Está a punto de reiniciar la numeración de tickets. Esta acción no puede deshacerse.
-              ¿Está seguro que desea continuar?
+              Esta es una acción destructiva que reiniciará TODOS los contadores en la aplicación.
+              Esta operación no puede deshacerse y afectará datos históricos.
+              ¿Está COMPLETAMENTE seguro que desea continuar?
             </AlertDescription>
           </Alert>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets nuevos
-            que se generen a partir de este momento.
+            Use esta función solo si necesita reiniciar completamente todos los contadores
+            del sistema. Esta acción afectará a la numeración de tickets, puntos de fidelidad,
+            valets acumulados, e ingresos registrados.
           </p>
         )}
       </CardContent>
@@ -83,16 +85,16 @@ export const ResetTicketNumbers = () => {
                   Reiniciando...
                 </>
               ) : (
-                'Confirmar Reinicio'
+                'Confirmar Reinicio Total'
               )}
             </Button>
           </>
         ) : (
           <Button
-            variant="secondary"
+            variant="destructive"
             onClick={() => setShowConfirmation(true)}
           >
-            Reiniciar Numeración
+            Reiniciar Todos los Contadores
           </Button>
         )}
       </CardFooter>
