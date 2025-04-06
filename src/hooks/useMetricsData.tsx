@@ -48,7 +48,7 @@ export const useMetricsData = (): UseMetricsDataReturn => {
     try {
       await syncOfflineData();
       
-      // Use the combined getMetrics function instead of separate functions
+      // Use the combined getMetrics function
       const metricsData = await getMetrics();
       
       const calculateTotalRevenue = (paymentMethods: Record<string, number | undefined>): number => {

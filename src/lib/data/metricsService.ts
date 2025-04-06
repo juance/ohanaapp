@@ -10,6 +10,11 @@ const defaultPaymentMethods = {
   cuentaDni: 0
 };
 
+// Helper function to safely access properties from JSON data
+const safeGet = (obj: any, path: string, defaultValue: any = {}) => {
+  return obj && typeof obj === 'object' && path in obj ? obj[path] : defaultValue;
+};
+
 // Instead of using a non-existent RPC function, we'll query the database directly
 export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: WeeklyMetrics, monthly: MonthlyMetrics }> => {
   try {
@@ -23,28 +28,28 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
     if (error) throw error;
 
     // Extract stats data from the JSON field
-    const statsData = data.stats_data || {};
+    const statsData = data?.stats_data || {};
     
     // Transform the data to match our metrics structure
     return {
       daily: {
-        salesByHour: statsData.daily_sales_by_hour || {},
-        paymentMethods: statsData.daily_payment_methods || defaultPaymentMethods,
-        dryCleaningItems: statsData.daily_dry_cleaning_items || {},
-        totalSales: statsData.daily_total_sales || 0,
-        valetCount: statsData.daily_valet_count || 0
+        salesByHour: safeGet(statsData, 'daily_sales_by_hour', {}),
+        paymentMethods: safeGet(statsData, 'daily_payment_methods', defaultPaymentMethods),
+        dryCleaningItems: safeGet(statsData, 'daily_dry_cleaning_items', {}),
+        totalSales: safeGet(statsData, 'daily_total_sales', 0),
+        valetCount: safeGet(statsData, 'daily_valet_count', 0)
       },
       weekly: {
-        salesByDay: statsData.weekly_sales_by_day || {},
-        valetsByDay: statsData.weekly_valets_by_day || {},
-        paymentMethods: statsData.weekly_payment_methods || defaultPaymentMethods,
-        dryCleaningItems: statsData.weekly_dry_cleaning_items || {}
+        salesByDay: safeGet(statsData, 'weekly_sales_by_day', {}),
+        valetsByDay: safeGet(statsData, 'weekly_valets_by_day', {}),
+        paymentMethods: safeGet(statsData, 'weekly_payment_methods', defaultPaymentMethods),
+        dryCleaningItems: safeGet(statsData, 'weekly_dry_cleaning_items', {})
       },
       monthly: {
-        salesByWeek: statsData.monthly_sales_by_week || {},
-        valetsByWeek: statsData.monthly_valets_by_week || {},
-        paymentMethods: statsData.monthly_payment_methods || defaultPaymentMethods,
-        dryCleaningItems: statsData.monthly_dry_cleaning_items || {}
+        salesByWeek: safeGet(statsData, 'monthly_sales_by_week', {}),
+        valetsByWeek: safeGet(statsData, 'monthly_valets_by_week', {}),
+        paymentMethods: safeGet(statsData, 'monthly_payment_methods', defaultPaymentMethods),
+        dryCleaningItems: safeGet(statsData, 'monthly_dry_cleaning_items', {})
       }
     };
   } catch (error) {

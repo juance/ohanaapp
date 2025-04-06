@@ -1,5 +1,6 @@
 
 // Re-export from lib/toast for compatibility
-import { useToast, toast } from "@/lib/toast"
+import { toast } from "@/lib/toast"
+import { useToast } from "@/hooks/use-toast" 
 
 export { useToast, toast }

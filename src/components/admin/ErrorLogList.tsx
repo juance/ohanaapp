@@ -3,18 +3,16 @@ import React, { useState } from 'react';
 import { getErrors, resolveError, deleteError, clearResolvedErrors, SystemError } from '@/lib/errorService';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { toast } from '@/lib/toast';
 import { Loader2, CheckCircle, Trash2, AlertTriangle, Filter } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/lib/toast';
+import { toast } from '@/lib/toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function ErrorLogList() {
   const [errors, setErrors] = useState<SystemError[]>(getErrors());
   const [showResolved, setShowResolved] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const { toast } = useToast();
 
   const refreshErrors = () => {
     setIsRefreshing(true);
