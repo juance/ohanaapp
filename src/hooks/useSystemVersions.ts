@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from 'react';
+import { getSystemVersions, setActiveVersion, addSystemVersion, rollbackToVersion } from '@/lib/systemVersionService';
 import { toast } from '@/lib/toast';
-import { getSystemVersions, getCurrentVersion, rollbackToVersion as rollbackService } from '@/lib/systemVersionService';
 
 export interface SystemChange {
-  type: 'feature' | 'fix' | 'improvement' | 'security' | 'other';
+  type: 'feature' | 'bugfix' | 'improvement' | 'other';
   title: string;
   description: string;
 }
@@ -18,193 +19,78 @@ export interface SystemVersion {
 
 export const useSystemVersions = () => {
   const [versions, setVersions] = useState<SystemVersion[]>([]);
-  const [currentVersion, setCurrentVersion] = useState<string>('1.0.0');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    fetchVersions();
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   const fetchVersions = async () => {
-    setIsLoading(true);
+    setLoading(true);
     try {
-      // Get versions from service
-      const versionsData = await getSystemVersions();
-
-      if (versionsData && versionsData.length > 0) {
-        setVersions(versionsData);
-
-        // Set current version
-        const activeVersion = versionsData.find(v => v.isActive);
-        if (activeVersion) {
-          setCurrentVersion(activeVersion.version);
-        } else {
-          // If no active version found, try to get it separately
-          const current = await getCurrentVersion();
-          if (current) {
-            setCurrentVersion(current.version);
-          }
-        }
-      } else {
-        // If no data, use mock data
-        setVersions(getMockVersions());
-        setCurrentVersion('1.0.0');
-      }
-    } catch (error) {
-      console.error('Error fetching system versions:', error);
-      // Fallback to mock data
-      setVersions(getMockVersions());
-      setCurrentVersion('1.0.0');
+      const data = await getSystemVersions();
+      setVersions(data);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching system versions:', err);
+      setError(err instanceof Error ? err : new Error('Unknown error fetching system versions'));
+      toast.error('Error al obtener versiones del sistema');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const rollbackToVersion = async (version: string): Promise<boolean> => {
+  const activateVersion = async (versionId: string) => {
     try {
-      // First, check if the version exists
-      const targetVersion = versions.find(v => v.version === version);
-      if (!targetVersion) {
-        throw new Error('Versión no encontrada');
-      }
-
-      // Call the service to perform the rollback
-      const success = await rollbackService(targetVersion.id);
-
+      const success = await setActiveVersion(versionId);
       if (success) {
-        // Update current version in state
-        setCurrentVersion(version);
-
-        // Update versions to mark the selected one as active
-        setVersions(prevVersions =>
-          prevVersions.map(v => ({
-            ...v,
-            isActive: v.version === version
-          }))
-        );
+        toast.success('Versión activada correctamente');
+        await fetchVersions(); // Refresh the list
       }
-
       return success;
-    } catch (error) {
-      console.error('Error rolling back to version:', error);
+    } catch (err) {
+      console.error('Error activating version:', err);
+      toast.error('Error al activar versión');
+      return false;
+    }
+  };
+
+  const addVersion = async (version: string, changes: SystemChange[], releaseDate?: Date) => {
+    try {
+      const success = await addSystemVersion(version, changes, releaseDate);
+      if (success) {
+        await fetchVersions(); // Refresh the list
+      }
+      return success;
+    } catch (err) {
+      console.error('Error adding version:', err);
+      toast.error('Error al agregar versión');
+      return false;
+    }
+  };
+
+  const rollbackVersion = async (versionId: string) => {
+    try {
+      const success = await rollbackToVersion(versionId);
+      if (success) {
+        await fetchVersions(); // Refresh the list
+      }
+      return success;
+    } catch (err) {
+      console.error('Error rolling back version:', err);
       toast.error('Error al restaurar versión');
       return false;
     }
   };
 
+  useEffect(() => {
+    fetchVersions();
+  }, []);
+
   return {
     versions,
-    currentVersion,
-    isLoading,
-    rollbackToVersion
+    loading,
+    error,
+    fetchVersions,
+    activateVersion,
+    addVersion,
+    rollbackVersion
   };
 };
-
-// Mock data for development and testing
-const getMockVersions = (): SystemVersion[] => [
-  {
-    id: '1',
-    version: '1.0.0',
-    releaseDate: '2023-10-15T00:00:00Z',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Lanzamiento inicial',
-        description: 'Primera versión del sistema de gestión de lavandería'
-      },
-      {
-        type: 'feature',
-        title: 'Sistema de tickets',
-        description: 'Implementación del sistema básico de tickets'
-      },
-      {
-        type: 'feature',
-        title: 'Gestión de clientes',
-        description: 'Funcionalidad para administrar clientes'
-      }
-    ],
-    isActive: true
-  },
-  {
-    id: '2',
-    version: '1.1.0',
-    releaseDate: '2023-11-20T00:00:00Z',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Programa de fidelidad',
-        description: 'Implementación del sistema de puntos de fidelidad para clientes frecuentes'
-      },
-      {
-        type: 'improvement',
-        title: 'Mejora en la interfaz de usuario',
-        description: 'Rediseño de la interfaz para mejorar la experiencia de usuario'
-      },
-      {
-        type: 'fix',
-        title: 'Corrección de errores en tickets',
-        description: 'Solución a problemas con la numeración de tickets'
-      }
-    ],
-    isActive: false
-  },
-  {
-    id: '3',
-    version: '1.2.0',
-    releaseDate: '2024-01-10T00:00:00Z',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Gestión de inventario',
-        description: 'Nueva funcionalidad para administrar el inventario de productos'
-      },
-      {
-        type: 'security',
-        title: 'Mejoras de seguridad',
-        description: 'Implementación de medidas de seguridad adicionales'
-      }
-    ],
-    isActive: false
-  },
-  {
-    id: '4',
-    version: '1.3.0',
-    releaseDate: '2024-03-05T00:00:00Z',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Notificaciones por WhatsApp',
-        description: 'Integración con WhatsApp para enviar notificaciones a clientes'
-      },
-      {
-        type: 'improvement',
-        title: 'Optimización de rendimiento',
-        description: 'Mejoras en la velocidad y rendimiento general de la aplicación'
-      }
-    ],
-    isActive: false
-  },
-  {
-    id: '5',
-    version: '1.4.0',
-    releaseDate: '2024-05-20T00:00:00Z',
-    changes: [
-      {
-        type: 'feature',
-        title: 'Alertas de tickets no retirados',
-        description: 'Sistema de alertas para tickets que no han sido retirados después de 45 y 90 días'
-      },
-      {
-        type: 'improvement',
-        title: 'Mejoras en el panel de administración',
-        description: 'Nuevas funcionalidades en el panel de administración'
-      },
-      {
-        type: 'feature',
-        title: 'Control de versiones',
-        description: 'Implementación del sistema de control de versiones con capacidad de rollback'
-      }
-    ],
-    isActive: false
-  }
-];

@@ -21,7 +21,17 @@ export default defineConfig(({ mode }) => ({
   },
   base: '/',
   build: {
-    sourcemap: false,
+    sourcemap: mode === 'development',
     chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          'react-router': ['react-router-dom'],
+          'shadcn-ui': ['@radix-ui/react-slot', '@radix-ui/react-dialog'],
+          charts: ['recharts'],
+        },
+      },
+    },
   },
 }));

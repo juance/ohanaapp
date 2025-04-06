@@ -1,433 +1,69 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
-import { getStoredTickets } from './ticketService';
+import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
 
-export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMetrics> => {
+// Instead of using a non-existent RPC function, we'll query the database directly
+export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: WeeklyMetrics, monthly: MonthlyMetrics }> => {
   try {
-    // Set time to beginning of day
-    const startDate = new Date(date);
-    startDate.setHours(0, 0, 0, 0);
+    const { data, error } = await supabase
+      .from('dashboard_stats')
+      .select('*')
+      .order('date', { ascending: false })
+      .limit(1)
+      .single();
     
-    // Set time to end of day
-    const endDate = new Date(date);
-    endDate.setHours(23, 59, 59, 999);
+    if (error) throw error;
     
-    // Instead of calling an RPC that doesn't exist, we'll query the data directly
-    const { data: ticketsData, error: ticketsError } = await supabase
-      .from('tickets')
-      .select('total, payment_method, valet_quantity')
-      .gte('date', startDate.toISOString())
-      .lte('date', endDate.toISOString());
-    
-    if (ticketsError) throw ticketsError;
-    
-    // Calculate totals from tickets data
-    let totalSales = 0;
-    let valetCount = 0;
-    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-    
-    ticketsData.forEach((ticket: any) => {
-      totalSales += ticket.total || 0;
-      valetCount += ticket.valet_quantity || 0;
-      
-      // Payment methods
-      if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
-      if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
-      if (ticket.payment_method === 'mercadopago') paymentMethods.mercadopago += ticket.total || 0;
-      if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
-    });
-    
-    // Get dry cleaning items for the day
-    const { data: dryCleaningData, error: dryCleaningError } = await supabase
-      .from('dry_cleaning_items')
-      .select('name, quantity')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
-    
-    if (dryCleaningError) throw dryCleaningError;
-    
-    // Calculate dry cleaning items distribution
-    const dryCleaningItems: Record<string, number> = {};
-    dryCleaningData.forEach((item: any) => {
-      const itemName = item.name;
-      if (dryCleaningItems[itemName]) {
-        dryCleaningItems[itemName] += item.quantity;
-      } else {
-        dryCleaningItems[itemName] = item.quantity;
-      }
-    });
-    
+    // Transform the data to match our metrics structure
     return {
-      totalSales,
-      valetCount,
-      paymentMethods,
-      dryCleaningItems
+      daily: {
+        total: data.daily_total || 0,
+        ticketCount: data.daily_ticket_count || 0,
+        salesByHour: data.daily_sales_by_hour || {},
+        paymentMethods: data.daily_payment_methods || {},
+        dryCleaningItems: data.daily_dry_cleaning_items || {}
+      },
+      weekly: {
+        total: data.weekly_total || 0,
+        ticketCount: data.weekly_ticket_count || 0,
+        salesByDay: data.weekly_sales_by_day || {},
+        paymentMethods: data.weekly_payment_methods || {},
+        dryCleaningItems: data.weekly_dry_cleaning_items || {}
+      },
+      monthly: {
+        total: data.monthly_total || 0,
+        ticketCount: data.monthly_ticket_count || 0,
+        salesByWeek: data.monthly_sales_by_week || {},
+        paymentMethods: data.monthly_payment_methods || {},
+        dryCleaningItems: data.monthly_dry_cleaning_items || {}
+      }
     };
   } catch (error) {
-    console.error('Error retrieving daily metrics from Supabase:', error);
+    console.error('Error fetching metrics:', error);
     
-    // Fallback calculation using localStorage
-    try {
-      // Get start and end of the day
-      const startDate = new Date(date);
-      startDate.setHours(0, 0, 0, 0);
-      
-      const endDate = new Date(date);
-      endDate.setHours(23, 59, 59, 999);
-      
-      // Get tickets for the day
-      const tickets = await getStoredTickets(startDate, endDate);
-      
-      // Calculate totals
-      let totalSales = 0;
-      let valetCount = 0;
-      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-      const dryCleaningItems: Record<string, number> = {};
-      
-      tickets.forEach(ticket => {
-        totalSales += ticket.totalPrice || 0;
-        valetCount += ticket.valetQuantity || 0;
-        
-        // Payment methods
-        if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
-        
-        // Dry cleaning items
-        if (ticket.dryCleaningItems && Array.isArray(ticket.dryCleaningItems)) {
-          ticket.dryCleaningItems.forEach((item: any) => {
-            const itemName = item.name;
-            if (dryCleaningItems[itemName]) {
-              dryCleaningItems[itemName] += item.quantity;
-            } else {
-              dryCleaningItems[itemName] = item.quantity;
-            }
-          });
-        }
-      });
-      
-      return {
-        totalSales,
-        valetCount,
-        paymentMethods,
-        dryCleaningItems
-      };
-    } catch (localError) {
-      console.error('Error calculating daily metrics from localStorage:', localError);
-      return {
-        totalSales: 0,
-        valetCount: 0,
-        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    // Return default metrics if there's an error
+    return {
+      daily: {
+        total: 0,
+        ticketCount: 0,
+        salesByHour: {},
+        paymentMethods: {},
         dryCleaningItems: {}
-      };
-    }
-  }
-};
-
-export const getWeeklyMetrics = async (date: Date = new Date()): Promise<WeeklyMetrics> => {
-  try {
-    // Get start of week (Sunday)
-    const startDate = new Date(date);
-    startDate.setDate(date.getDate() - date.getDay());
-    startDate.setHours(0, 0, 0, 0);
-    
-    // Get end of week (Saturday)
-    const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 6);
-    endDate.setHours(23, 59, 59, 999);
-    
-    // Get all tickets for the week
-    const { data: ticketsData, error: ticketsError } = await supabase
-      .from('tickets')
-      .select('date, total, valet_quantity, payment_method')
-      .gte('date', startDate.toISOString())
-      .lte('date', endDate.toISOString());
-    
-    if (ticketsError) throw ticketsError;
-    
-    // Get dry cleaning items for the week
-    const { data: dryCleaningData, error: dryCleaningError } = await supabase
-      .from('dry_cleaning_items')
-      .select('name, quantity, created_at')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
-    
-    if (dryCleaningError) throw dryCleaningError;
-    
-    // Initialize data structures
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const salesByDay: Record<string, number> = {};
-    const valetsByDay: Record<string, number> = {};
-    dayNames.forEach(day => {
-      salesByDay[day] = 0;
-      valetsByDay[day] = 0;
-    });
-    
-    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-    const dryCleaningItems: Record<string, number> = {};
-    
-    // Process tickets data
-    ticketsData.forEach((ticket: any) => {
-      const ticketDate = new Date(ticket.date);
-      const dayName = dayNames[ticketDate.getDay()];
-      
-      salesByDay[dayName] += ticket.total || 0;
-      valetsByDay[dayName] += ticket.valet_quantity || 0;
-      
-      // Payment methods
-      if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
-      if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
-      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadopago += ticket.total || 0;
-      if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
-    });
-    
-    // Process dry cleaning items
-    dryCleaningData.forEach((item: any) => {
-      const itemName = item.name;
-      if (dryCleaningItems[itemName]) {
-        dryCleaningItems[itemName] += item.quantity;
-      } else {
-        dryCleaningItems[itemName] = item.quantity;
-      }
-    });
-    
-    return {
-      salesByDay,
-      valetsByDay,
-      paymentMethods,
-      dryCleaningItems
-    };
-  } catch (error) {
-    console.error('Error retrieving weekly metrics from Supabase:', error);
-    
-    // Fallback calculation using localStorage
-    try {
-      // Get start of week (Sunday)
-      const startDate = new Date(date);
-      startDate.setDate(date.getDate() - date.getDay());
-      startDate.setHours(0, 0, 0, 0);
-      
-      // Get end of week (Saturday)
-      const endDate = new Date(startDate);
-      endDate.setDate(startDate.getDate() + 6);
-      endDate.setHours(23, 59, 59, 999);
-      
-      // Get tickets for the week
-      const tickets = await getStoredTickets(startDate, endDate);
-      
-      // Initialize data structures
-      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      const salesByDay: Record<string, number> = {};
-      const valetsByDay: Record<string, number> = {};
-      dayNames.forEach(day => {
-        salesByDay[day] = 0;
-        valetsByDay[day] = 0;
-      });
-      
-      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-      const dryCleaningItems: Record<string, number> = {};
-      
-      // Process tickets
-      tickets.forEach(ticket => {
-        const ticketDate = new Date(ticket.createdAt);
-        const dayName = dayNames[ticketDate.getDay()];
-        
-        salesByDay[dayName] += ticket.totalPrice || 0;
-        valetsByDay[dayName] += ticket.valetQuantity || 0;
-        
-        // Payment methods
-        if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
-        
-        // Dry cleaning items
-        if (ticket.dryCleaningItems && Array.isArray(ticket.dryCleaningItems)) {
-          ticket.dryCleaningItems.forEach((item: any) => {
-            const itemName = item.name;
-            if (dryCleaningItems[itemName]) {
-              dryCleaningItems[itemName] += item.quantity;
-            } else {
-              dryCleaningItems[itemName] = item.quantity;
-            }
-          });
-        }
-      });
-      
-      return {
-        salesByDay,
-        valetsByDay,
-        paymentMethods,
-        dryCleaningItems
-      };
-    } catch (localError) {
-      console.error('Error calculating weekly metrics from localStorage:', localError);
-      return {
+      },
+      weekly: {
+        total: 0,
+        ticketCount: 0,
         salesByDay: {},
-        valetsByDay: {},
-        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+        paymentMethods: {},
         dryCleaningItems: {}
-      };
-    }
-  }
-};
-
-export const getMonthlyMetrics = async (date: Date = new Date()): Promise<MonthlyMetrics> => {
-  try {
-    // Get start of month
-    const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
-    
-    // Get end of month
-    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
-    
-    // Get all tickets for the month
-    const { data: ticketsData, error: ticketsError } = await supabase
-      .from('tickets')
-      .select('date, total, valet_quantity, payment_method')
-      .gte('date', startDate.toISOString())
-      .lte('date', endDate.toISOString());
-    
-    if (ticketsError) throw ticketsError;
-    
-    // Get dry cleaning items for the month
-    const { data: dryCleaningData, error: dryCleaningError } = await supabase
-      .from('dry_cleaning_items')
-      .select('name, quantity')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
-    
-    if (dryCleaningError) throw dryCleaningError;
-    
-    // Initialize data structures
-    const salesByWeek: Record<string, number> = {
-      'Week 1': 0,
-      'Week 2': 0,
-      'Week 3': 0,
-      'Week 4': 0,
-      'Week 5': 0
-    };
-    
-    const valetsByWeek: Record<string, number> = {
-      'Week 1': 0,
-      'Week 2': 0,
-      'Week 3': 0,
-      'Week 4': 0,
-      'Week 5': 0
-    };
-    
-    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-    const dryCleaningItems: Record<string, number> = {};
-    
-    // Process tickets data
-    ticketsData.forEach((ticket: any) => {
-      const ticketDate = new Date(ticket.date);
-      const weekOfMonth = Math.ceil((ticketDate.getDate()) / 7);
-      const weekName = `Week ${weekOfMonth}`;
-      
-      salesByWeek[weekName] = (salesByWeek[weekName] || 0) + (ticket.total || 0);
-      valetsByWeek[weekName] = (valetsByWeek[weekName] || 0) + (ticket.valet_quantity || 0);
-      
-      // Payment methods
-      if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
-      if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
-      if (ticket.payment_method === 'mercado_pago') paymentMethods.mercadopago += ticket.total || 0;
-      if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
-    });
-    
-    // Process dry cleaning items
-    dryCleaningData.forEach((item: any) => {
-      const itemName = item.name;
-      if (dryCleaningItems[itemName]) {
-        dryCleaningItems[itemName] += item.quantity;
-      } else {
-        dryCleaningItems[itemName] = item.quantity;
-      }
-    });
-    
-    return {
-      salesByWeek,
-      valetsByWeek,
-      paymentMethods,
-      dryCleaningItems
-    };
-  } catch (error) {
-    console.error('Error retrieving monthly metrics from Supabase:', error);
-    
-    // Fallback calculation using localStorage
-    try {
-      // Get start of month
-      const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
-      
-      // Get end of month
-      const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0, 23, 59, 59, 999);
-      
-      // Get tickets for the month
-      const tickets = await getStoredTickets(startDate, endDate);
-      
-      // Initialize data structures
-      const salesByWeek: Record<string, number> = {
-        'Week 1': 0,
-        'Week 2': 0,
-        'Week 3': 0,
-        'Week 4': 0,
-        'Week 5': 0
-      };
-      
-      const valetsByWeek: Record<string, number> = {
-        'Week 1': 0,
-        'Week 2': 0,
-        'Week 3': 0,
-        'Week 4': 0,
-        'Week 5': 0
-      };
-      
-      const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
-      const dryCleaningItems: Record<string, number> = {};
-      
-      // Process tickets
-      tickets.forEach(ticket => {
-        const ticketDate = new Date(ticket.createdAt);
-        const weekOfMonth = Math.ceil((ticketDate.getDate()) / 7);
-        const weekName = `Week ${weekOfMonth}`;
-        
-        salesByWeek[weekName] = (salesByWeek[weekName] || 0) + (ticket.totalPrice || 0);
-        valetsByWeek[weekName] = (valetsByWeek[weekName] || 0) + (ticket.valetQuantity || 0);
-        
-        // Payment methods
-        if (ticket.paymentMethod === 'cash') paymentMethods.cash += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'debit') paymentMethods.debit += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'mercado_pago') paymentMethods.mercadopago += ticket.totalPrice || 0;
-        if (ticket.paymentMethod === 'cuenta_dni') paymentMethods.cuentaDni += ticket.totalPrice || 0;
-        
-        // Dry cleaning items
-        if (ticket.dryCleaningItems && Array.isArray(ticket.dryCleaningItems)) {
-          ticket.dryCleaningItems.forEach((item: any) => {
-            const itemName = item.name;
-            if (dryCleaningItems[itemName]) {
-              dryCleaningItems[itemName] += item.quantity;
-            } else {
-              dryCleaningItems[itemName] = item.quantity;
-            }
-          });
-        }
-      });
-      
-      return {
-        salesByWeek,
-        valetsByWeek,
-        paymentMethods,
-        dryCleaningItems
-      };
-    } catch (localError) {
-      console.error('Error calculating monthly metrics from localStorage:', localError);
-      return {
+      },
+      monthly: {
+        total: 0,
+        ticketCount: 0,
         salesByWeek: {},
-        valetsByWeek: {},
-        paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+        paymentMethods: {},
         dryCleaningItems: {}
-      };
-    }
+      }
+    };
   }
 };

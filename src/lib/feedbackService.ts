@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
 import { CustomerFeedback } from './types';
 
 // Instead of calling an RPC function that doesn't exist, we'll handle the feedback
