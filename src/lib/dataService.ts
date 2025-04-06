@@ -32,9 +32,7 @@ export {
 
 // Export metrics service
 export {
-  getDailyMetrics,
-  getWeeklyMetrics,
-  getMonthlyMetrics
+  getMetrics
 } from './data/metricsService';
 
 // Export expense service

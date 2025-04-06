@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,20 +22,22 @@ import { useSystemVersions } from '@/hooks/useSystemVersions';
 export const SystemVersions = () => {
   const { 
     versions, 
-    currentVersion, 
-    isLoading, 
-    rollbackToVersion 
+    loading, 
+    rollbackVersion 
   } = useSystemVersions();
   
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
   const [isRollingBack, setIsRollingBack] = useState(false);
+  
+  // Get the current version (active one)
+  const currentVersion = versions.find(v => v.isActive)?.version || '';
 
   const handleRollback = async () => {
     if (!selectedVersion) return;
     
     setIsRollingBack(true);
     try {
-      await rollbackToVersion(selectedVersion);
+      await rollbackVersion(selectedVersion);
       toast.success("Sistema restaurado correctamente", {
         description: `Se ha vuelto a la versión ${selectedVersion}`
       });
@@ -92,7 +95,7 @@ export const SystemVersions = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {loading ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
             <span className="ml-2">Cargando versiones...</span>

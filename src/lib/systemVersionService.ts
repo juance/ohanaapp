@@ -109,7 +109,7 @@ export const addSystemVersion = async (
     const { error } = await supabase
       .from('system_version')
       .insert({
-        version,
+        version: version,
         changes: formattedChanges,
         release_date: releaseDate ? releaseDate.toISOString() : new Date().toISOString(),
         is_active: false // New versions are not active by default

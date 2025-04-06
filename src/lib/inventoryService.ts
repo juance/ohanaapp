@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { InventoryItem } from './types';
 import { toast } from '@/lib/toast';
@@ -19,10 +20,8 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
       quantity: item.quantity || 0,
       unit: item.unit || 'unidad',
       threshold: item.threshold || 5,
-      notes: item.notes || '',
-      createdAt: item.created_at || new Date().toISOString(),
-      // Handle potentially missing updated_at field
-      updatedAt: item.updated_at || item.created_at || new Date().toISOString(),
+      lastUpdated: item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '',
+      notes: item.notes || ''
     }));
   } catch (error) {
     console.error('Error fetching inventory items:', error);
@@ -49,10 +48,8 @@ export async function getInventoryItem(id: string): Promise<InventoryItem | null
       quantity: data.quantity || 0,
       unit: data.unit || 'unidad',
       threshold: data.threshold || 5,
-      notes: data.notes || '',
-      createdAt: data.created_at || new Date().toISOString(),
-      // Handle potentially missing updated_at field
-      updatedAt: data.updated_at || data.created_at || new Date().toISOString(),
+      lastUpdated: data.updated_at ? new Date(data.updated_at).toLocaleDateString() : '',
+      notes: data.notes || ''
     };
   } catch (error) {
     console.error('Error fetching inventory item:', error);
@@ -69,7 +66,8 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
         name: item.name,
         quantity: item.quantity,
         threshold: item.threshold,
-        unit: item.unit
+        unit: item.unit,
+        notes: item.notes
       })
       .select('*')
       .single();
@@ -87,7 +85,8 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       quantity: data.quantity,
       threshold: data.threshold,
       unit: data.unit,
-      lastUpdated: data.created_at ? new Date(data.created_at).toLocaleDateString() : ''
+      lastUpdated: data.created_at ? new Date(data.created_at).toLocaleDateString() : '',
+      notes: data.notes || ''
     };
   } catch (error) {
     console.error('Error al agregar elemento de inventario:', error);
@@ -108,7 +107,8 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
         name: item.name,
         quantity: item.quantity,
         threshold: item.threshold,
-        unit: item.unit
+        unit: item.unit,
+        notes: item.notes
       })
       .eq('id', item.id);
 

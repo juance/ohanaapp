@@ -8,7 +8,7 @@ import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
 import { setupGlobalErrorHandling } from './lib/errorService.ts';
-import { Toaster } from './components/ui/sonner.tsx';
+import { Toaster } from 'sonner';
 
 // Create a client with optimized settings for production
 const queryClient = new QueryClient({
