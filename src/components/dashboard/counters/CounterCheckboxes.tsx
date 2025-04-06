@@ -17,7 +17,7 @@ interface CounterCheckboxesProps {
     expenses: boolean;
     freeValets: boolean;
   };
-  toggleCounter: (counter: keyof typeof selectedCounters) => void;
+  
   allSelected: boolean;
   toggleAll: () => void;
 }
