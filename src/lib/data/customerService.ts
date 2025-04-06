@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -84,7 +83,7 @@ export const updateValetsCount = async (customerId: string, valetsToAdd: number)
     // First, get the current customer data
     const { data: customerData, error: getError } = await supabase
       .from('customers')
-      .select('valets_count, loyalty_points')
+      .select('valets_count, loyalty_points, free_valets')
       .eq('id', customerId)
       .single();
     
@@ -105,12 +104,7 @@ export const updateValetsCount = async (customerId: string, valetsToAdd: number)
       .from('customers')
       .update({
         valets_count: newValetsCount,
-        free_valets: supabase.rpc('increment', { 
-          row_id: customerId,
-          table_name: 'customers',
-          column_name: 'free_valets',
-          increment_amount: freeValetsToAdd 
-        }),
+        free_valets: (customerData?.free_valets || 0) + freeValetsToAdd,
         last_visit: new Date().toISOString()
       })
       .eq('id', customerId);
@@ -158,12 +152,7 @@ export const updateLoyaltyPoints = async (customerId: string, pointsToAdd: numbe
       .from('customers')
       .update({
         loyalty_points: newPoints,
-        free_valets: supabase.rpc('increment', { 
-          row_id: customerId,
-          table_name: 'customers',
-          column_name: 'free_valets',
-          increment_amount: freeValetsToAdd 
-        }),
+        free_valets: (customerData?.free_valets || 0) + freeValetsToAdd,
         last_visit: new Date().toISOString()
       })
       .eq('id', customerId);

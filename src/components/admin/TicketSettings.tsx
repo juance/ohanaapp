@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,17 +17,14 @@ export const TicketSettings = () => {
 
   const loadUnretiredTickets = async () => {
     try {
-      // Get current date
       const now = new Date();
       
-      // Calculate dates for 45 and 90 days ago
       const date45DaysAgo = new Date(now);
       date45DaysAgo.setDate(now.getDate() - 45);
       
       const date90DaysAgo = new Date(now);
       date90DaysAgo.setDate(now.getDate() - 90);
       
-      // Query for tickets not retired after 45 days but less than 90 days
       const { data: tickets45Days, error: error45Days } = await supabase
         .from('tickets')
         .select('id')
@@ -39,7 +35,6 @@ export const TicketSettings = () => {
       
       if (error45Days) throw error45Days;
       
-      // Query for tickets not retired after 90 days
       const { data: tickets90Days, error: error90Days } = await supabase
         .from('tickets')
         .select('id')
@@ -141,7 +136,7 @@ export const TicketSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert variant="warning">
+          <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Precaución</AlertTitle>
             <AlertDescription>

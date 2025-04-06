@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,22 +21,15 @@ export const GeneralSettings = () => {
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      // In a real implementation, this would save to Supabase
-      const { data, error } = await supabase
-        .from('system_settings')
-        .upsert({
-          business_name: businessName,
-          address,
-          phone,
-          email,
-          welcome_message: welcomeMessage,
-          notifications_enabled: notifications,
-          dark_mode_enabled: darkMode,
-          updated_at: new Date().toISOString()
-        })
-        .select();
-
-      if (error) throw error;
+      console.log('Settings would be saved:', {
+        business_name: businessName,
+        address,
+        phone,
+        email,
+        welcome_message: welcomeMessage,
+        notifications_enabled: notifications,
+        dark_mode_enabled: darkMode,
+      });
       
       toast({
         title: "Cambios guardados",

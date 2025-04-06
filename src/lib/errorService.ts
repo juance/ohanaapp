@@ -55,6 +55,11 @@ export const getErrors = (): SystemError[] => {
   return [...errorStore];
 };
 
+// Add the missing clearErrors function
+export const clearErrors = (): void => {
+  errorStore = [];
+};
+
 // Marca un error como resuelto
 export const resolveError = (errorId: string): boolean => {
   const errorIndex = errorStore.findIndex(e => e.id === errorId);

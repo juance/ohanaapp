@@ -145,6 +145,7 @@ export interface Customer {
   loyaltyPoints: number;
   valetsCount: number;
   freeValets: number;
+  valetsRedeemed?: number; // Add this to fix the error
 }
 
 export interface Expense {
