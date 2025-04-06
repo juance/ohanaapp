@@ -39,18 +39,18 @@ setupGlobalErrorHandling();
 // Create and render the root
 try {
   createRoot(rootElement).render(
-    <BrowserRouter>
-      <StrictMode>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <QueryClientProvider client={queryClient}>
+    <StrictMode>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
             <ErrorBoundary>
               <App />
               <Toaster />
             </ErrorBoundary>
-          </QueryClientProvider>
-        </ThemeProvider>
-      </StrictMode>
-    </BrowserRouter>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </ThemeProvider>
+    </StrictMode>
   );
   
   const loadTime = Math.round(performance.now() - startTime);

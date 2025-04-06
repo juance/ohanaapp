@@ -5,7 +5,6 @@ import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, File
 
 const Navbar: React.FC = () => {
   const location = useLocation();
-  console.log("Current route:", location.pathname);
 
   const isActive = (path: string) => {
     return location.pathname === path;
