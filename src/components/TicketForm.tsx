@@ -1,15 +1,15 @@
 
 import { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { LaundryService, PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { Check } from 'lucide-react';
 import { storeTicketData } from '@/lib/dataService';
+import ClientInfo from './ticket/form/ClientInfo';
+import ServicesSection from './ticket/form/ServicesSection';
+import DryCleaningSection from './ticket/form/DryCleaningSection';
+import LaundryOptionsSection from './ticket/form/LaundryOptionsSection';
+import PaymentSection from './ticket/form/PaymentSection';
+import TicketFormFooter from './ticket/form/TicketFormFooter';
 
 // Mock laundry services
 const laundryServices: LaundryService[] = [
@@ -198,234 +198,45 @@ const TicketForm = () => {
       <Card className="overflow-hidden">
         <CardContent className="p-6">
           <div className="space-y-6">
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Client Information</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="clientName">Client Name</Label>
-                  <Input
-                    id="clientName"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Enter client name"
-                    className="h-10"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phoneNumber">Phone Number</Label>
-                  <Input
-                    id="phoneNumber"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+54 9 11 XXXX XXXX"
-                    className="h-10"
-                  />
-                </div>
-              </div>
-            </div>
+            <ClientInfo 
+              clientName={clientName}
+              setClientName={setClientName}
+              phoneNumber={phoneNumber}
+              setPhoneNumber={setPhoneNumber}
+            />
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Services</h3>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {laundryServices.map((service) => (
-                  <div
-                    key={service.id}
-                    className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${
-                      selectedServices.includes(service.id)
-                        ? 'border-laundry-500 bg-laundry-50'
-                        : 'border-border'
-                    }`}
-                    onClick={() => handleServiceToggle(service.id)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`service-${service.id}`}
-                        checked={selectedServices.includes(service.id)}
-                        onCheckedChange={() => {}}
-                        className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
-                      />
-                      <label
-                        htmlFor={`service-${service.id}`}
-                        className="text-sm font-medium"
-                      >
-                        {service.name}
-                      </label>
-                    </div>
-                    <span className="text-sm font-semibold">${service.price}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ServicesSection 
+              laundryServices={laundryServices}
+              selectedServices={selectedServices}
+              handleServiceToggle={handleServiceToggle}
+            />
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Dry Cleaning Items</h3>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {dryCleaningOptions.map((item) => {
-                  const selectedItem = selectedDryCleaningItems.find(i => i.id === item.id);
-                  return (
-                    <div
-                      key={item.id}
-                      className={`flex cursor-pointer flex-col rounded-lg border p-3 transition-all ${
-                        selectedItem
-                          ? 'border-laundry-500 bg-laundry-50'
-                          : 'border-border'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`drycleaning-${item.id}`}
-                            checked={!!selectedItem}
-                            onCheckedChange={() => handleDryCleaningToggle(item.id)}
-                            className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
-                          />
-                          <label
-                            htmlFor={`drycleaning-${item.id}`}
-                            className="text-sm font-medium"
-                          >
-                            {item.name}
-                          </label>
-                        </div>
-                        <span className="text-sm font-semibold">${item.price}</span>
-                      </div>
+            <DryCleaningSection 
+              dryCleaningOptions={dryCleaningOptions}
+              selectedDryCleaningItems={selectedDryCleaningItems}
+              handleDryCleaningToggle={handleDryCleaningToggle}
+              handleDryCleaningQuantityChange={handleDryCleaningQuantityChange}
+            />
 
-                      {selectedItem && (
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-muted-foreground">Quantity:</span>
-                          <div className="flex items-center space-x-2">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (selectedItem.quantity > 1) {
-                                  handleDryCleaningQuantityChange(item.id, selectedItem.quantity - 1);
-                                }
-                              }}
-                            >
-                              -
-                            </Button>
-                            <span className="text-sm font-medium w-4 text-center">
-                              {selectedItem.quantity}
-                            </span>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDryCleaningQuantityChange(item.id, selectedItem.quantity + 1);
-                              }}
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <LaundryOptionsSection 
+              laundryOptionsList={laundryOptionsList}
+              selectedLaundryOptions={selectedLaundryOptions}
+              handleLaundryOptionToggle={handleLaundryOptionToggle}
+            />
 
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Laundry Options</h3>
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {laundryOptionsList.map((option) => (
-                  <div
-                    key={option.id}
-                    className={`flex cursor-pointer items-center rounded-lg border p-3 transition-all ${
-                      selectedLaundryOptions.includes(option.id)
-                        ? 'border-laundry-500 bg-laundry-50'
-                        : 'border-border'
-                    }`}
-                    onClick={() => handleLaundryOptionToggle(option.id)}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`option-${option.id}`}
-                        checked={selectedLaundryOptions.includes(option.id)}
-                        onCheckedChange={() => {}}
-                        className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
-                      />
-                      <label
-                        htmlFor={`option-${option.id}`}
-                        className="text-sm font-medium"
-                      >
-                        {option.label}
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium">Payment Method</h3>
-              <RadioGroup value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}>
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                  {paymentMethods.map((method) => (
-                    <div
-                      key={method.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-all ${
-                        paymentMethod === method.id
-                          ? 'border-laundry-500 bg-laundry-50'
-                          : 'border-border'
-                      }`}
-                      onClick={() => setPaymentMethod(method.id as PaymentMethod)}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value={method.id}
-                          id={`payment-${method.id}`}
-                          className="data-[state=checked]:border-laundry-500 data-[state=checked]:text-laundry-500"
-                        />
-                        <Label
-                          htmlFor={`payment-${method.id}`}
-                          className="cursor-pointer text-sm font-medium"
-                        >
-                          {method.label}
-                        </Label>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </RadioGroup>
-            </div>
+            <PaymentSection 
+              paymentMethods={paymentMethods}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+            />
           </div>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-between border-t bg-muted/30 px-6 py-4">
-          <div className="text-lg font-medium">
-            Total: <span className="text-laundry-700">${calculateTotal()}</span>
-          </div>
-          <Button
-            type="submit"
-            className="bg-laundry-500 hover:bg-laundry-600"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <span className="flex items-center gap-2">
-                <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-                Processing...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <Check className="h-4 w-4" />
-                Create Ticket
-              </span>
-            )}
-          </Button>
+        <CardFooter>
+          <TicketFormFooter 
+            calculateTotal={calculateTotal}
+            isSubmitting={isSubmitting}
+          />
         </CardFooter>
       </Card>
     </form>
