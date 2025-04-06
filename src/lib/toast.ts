@@ -1,3 +1,5 @@
+
+// Import toast function and hook directly from the hooks directory
 import { toast, useToast } from '@/hooks/use-toast';
 
 // Re-export the toast function and useToast hook

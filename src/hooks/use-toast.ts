@@ -1,5 +1,4 @@
 
-import React from "react"
 import { toast as sonnerToast, type ToastT } from "sonner"
 
 export type ExternalToast = Parameters<typeof sonnerToast>[1]
