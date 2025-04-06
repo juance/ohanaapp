@@ -122,9 +122,8 @@ const Administration = () => {
               </Button>
               <Button
                 variant={activeSection === 'error_logs' ? 'default' : 'outline'}
-                className="w-full justify-start"
-                onClick={() => setActiveSection('error_logs')}
                 className={`w-full justify-start ${systemErrors.length > 0 ? 'animate-pulse' : ''}`}
+                onClick={() => setActiveSection('error_logs')}
               >
                 <AlertTriangle className={`mr-2 h-4 w-4 ${systemErrors.length > 0 ? 'text-red-500' : ''}`} />
                 Registro de Errores
