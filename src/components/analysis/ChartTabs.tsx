@@ -21,7 +21,7 @@ const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value
+      value: Number(value) || 0 // Ensure value is a number
     }));
   };
   
@@ -40,11 +40,11 @@ const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
     
     // Get top 10 items by quantity
     return Object.entries(analytics.itemTypeDistribution)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => Number(b[1]) - Number(a[1]))
       .slice(0, 10)
       .map(([name, value]) => ({
         name,
-        total: value
+        total: Number(value) || 0
       }));
   };
 

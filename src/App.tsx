@@ -46,47 +46,8 @@ function App() {
         <Route path="/analysis" element={<TicketAnalysis />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <RouteObserver />
     </Suspense>
   );
-}
-
-// Create a separate component to handle route changes
-// This prevents useLocation from being called at the App component level
-import { useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
-
-function RouteObserver() {
-  const location = useLocation();
-  
-  useEffect(() => {
-    // Log current route for debugging
-    console.log("Current location:", location.pathname);
-    
-    // Report to browser timing API for performance monitoring
-    if (window.performance && 'mark' in window.performance) {
-      window.performance.mark('app-rendered');
-    }
-    
-    // Hide loading indicator when app is loaded
-    const loadingIndicator = document.getElementById('loading-indicator');
-    if (loadingIndicator) {
-      loadingIndicator.classList.add('hidden');
-    }
-    
-    // Comprobar configuración de tema oscuro al iniciar la aplicación
-    const savedSettings = localStorage.getItem('laundry_general_settings');
-    if (savedSettings) {
-      const settings = JSON.parse(savedSettings);
-      if (settings.enableDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    }
-  }, [location]);
-  
-  return null; // This component doesn't render anything
 }
 
 export default App;

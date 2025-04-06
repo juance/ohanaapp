@@ -1,86 +1,50 @@
 
 import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getCustomerByPhone } from '@/lib/dataService';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { toast } from '@/lib/toast';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { Loading } from '@/components/ui/loading';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { Loading } from '@/components/ui/loading';
-import { ErrorMessage } from '@/components/ui/error-message';
+import { toast } from '@/lib/toast';
+import { logError } from '@/lib/errorService';
 
 const Feedback = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
-  const isMobile = useIsMobile();
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     setIsComponentMounted(true);
+    
+    // Initial load
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        // Add any data loading logic here if needed
+        setIsLoading(false);
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("Error loading feedback data:", error);
+        setError(error);
+        logError(error, { context: 'Feedback Page', operation: 'initial load' });
+        setIsLoading(false);
+      }
+    };
+    
+    loadData();
+    
     return () => setIsComponentMounted(false);
   }, []);
 
-  // Make sure query client is available
-  useEffect(() => {
-    if (!queryClient) {
-      console.error("QueryClient not available in Feedback component");
-    }
-  }, [queryClient]);
-
-  const { data: customer, refetch, isLoading } = useQuery({
-    queryKey: ['customer', phoneNumber],
-    queryFn: async () => {
-      if (!phoneNumber) return null;
-      try {
-        return await getCustomerByPhone(phoneNumber);
-      } catch (error) {
-        console.error("Error fetching customer:", error);
-        return null;
-      }
-    },
-    enabled: false, // Don't run automatically
-    retry: false, // Don't retry failed queries
-  });
-
-  const handleSearch = async () => {
-    if (!phoneNumber.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: 'Por favor ingrese un número de teléfono'
-      });
-      return;
-    }
-
-    try {
-      await refetch();
-
-      if (!customer) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: 'Cliente no encontrado'
-        });
-      }
-    } catch (error) {
-      console.error("Error al buscar cliente:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: 'Error al buscar el cliente'
-      });
-    }
-  };
-
   const handleFeedbackAdded = () => {
     setRefreshTrigger(prev => prev + 1);
+    toast({
+      title: "Success",
+      description: "Comentario agregado correctamente"
+    });
   };
 
   if (!isComponentMounted) {
@@ -111,8 +75,22 @@ const Feedback = () => {
             </Link>
           </div>
 
-          <FeedbackForm onFeedbackAdded={handleFeedbackAdded} />
-          <FeedbackList refreshTrigger={refreshTrigger} />
+          {error ? (
+            <ErrorMessage 
+              title="Error al cargar comentarios" 
+              message={error.message}
+              onRetry={() => window.location.reload()}
+            />
+          ) : (
+            <>
+              <FeedbackForm onFeedbackAdded={handleFeedbackAdded} />
+              {isLoading ? (
+                <div className="flex justify-center p-6"><Loading /></div>
+              ) : (
+                <FeedbackList refreshTrigger={refreshTrigger} />
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

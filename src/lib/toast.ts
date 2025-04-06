@@ -1,6 +1,10 @@
 
-// Import toast function and hook directly
-import { toast, useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-// Re-export both the toast function and the hook
-export { toast, useToast };
+// Re-export the toast function
+export { toast };
+
+// Export a useToast function that matches the expected interface
+export const useToast = () => {
+  return { toast };
+};

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
+import { logError } from '@/lib/errorService';
 
 // Default empty payment methods object that matches the required type
 const defaultPaymentMethods = {
@@ -45,6 +46,7 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
     
     if (error) {
       console.error("Error fetching dashboard stats:", error);
+      logError(error, { context: 'getMetrics', operation: 'supabase query' });
       throw error;
     }
     
@@ -75,6 +77,7 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
     };
   } catch (error) {
     console.error('Error fetching metrics:', error);
+    logError(error, { context: 'getMetrics', operation: 'data processing' });
     
     // Return default metrics if there's an error
     return {

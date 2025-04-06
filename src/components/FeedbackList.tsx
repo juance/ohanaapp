@@ -4,43 +4,63 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomerFeedback } from '@/lib/types';
 import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
-import { Star, Trash2 } from 'lucide-react';
+import { Star, Trash2, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/lib/toast';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { Loading } from '@/components/ui/loading';
+import { logError } from '@/lib/errorService';
 
 const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
   const [feedback, setFeedback] = useState<CustomerFeedback[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    const loadFeedback = async () => {
+  const loadFeedback = async () => {
+    try {
       setIsLoading(true);
+      setError(null);
       const data = await getFeedback();
       setFeedback(data);
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error("Error fetching feedback:", error);
+      setError(error);
+      logError(error, { context: 'FeedbackList', operation: 'load feedback' });
+    } finally {
       setIsLoading(false);
-    };
+    }
+  };
 
+  useEffect(() => {
     loadFeedback();
   }, [refreshTrigger]);
 
   const handleDelete = async (id: string) => {
-    const confirmed = window.confirm('¿Está seguro de eliminar este comentario?');
-    if (confirmed) {
-      const success = await deleteFeedback(id);
-      if (success) {
-        setFeedback(feedback.filter(item => item.id !== id));
-        toast({
-          title: "Success",
-          description: "Comentario eliminado exitosamente"
-        });
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Error al eliminar el comentario"
-        });
+    try {
+      const confirmed = window.confirm('¿Está seguro de eliminar este comentario?');
+      if (confirmed) {
+        const success = await deleteFeedback(id);
+        if (success) {
+          setFeedback(feedback.filter(item => item.id !== id));
+          toast({
+            title: "Success",
+            description: "Comentario eliminado exitosamente"
+          });
+        } else {
+          throw new Error("Error al eliminar el comentario");
+        }
       }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error("Error deleting feedback:", error);
+      logError(error, { context: 'FeedbackList', operation: 'delete feedback' });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Error al eliminar el comentario"
+      });
     }
   };
 
@@ -57,12 +77,40 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       ));
   };
 
+  if (error) {
+    return (
+      <ErrorMessage 
+        title="Error al cargar comentarios" 
+        message={error.message} 
+        onRetry={loadFeedback}
+      />
+    );
+  }
+
   if (isLoading) {
-    return <div className="text-center py-4 text-sm md:text-base">Cargando comentarios...</div>;
+    return (
+      <div className="text-center py-8">
+        <Loading className="mx-auto" />
+        <p className="mt-4 text-sm md:text-base text-gray-600">Cargando comentarios...</p>
+      </div>
+    );
   }
 
   if (feedback.length === 0) {
-    return <div className="text-center py-4 text-sm md:text-base">No hay comentarios para mostrar</div>;
+    return (
+      <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+        <p className="text-gray-500 text-sm md:text-base">No hay comentarios para mostrar</p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="mt-4"
+          onClick={loadFeedback}
+        >
+          <RefreshCw className="mr-2 h-3 w-3" />
+          Actualizar
+        </Button>
+      </div>
+    );
   }
 
   return (
