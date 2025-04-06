@@ -4,53 +4,47 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
+import { TicketAnalytics } from '@/lib/analyticsService';
 
 interface ChartTabsProps {
   chartData: any;
+  loading?: boolean;
 }
 
-const ChartTabs = ({ chartData }: ChartTabsProps) => {
-  // Safe accessor with fallbacks
-  const safeData = chartData || {
-    revenueByMonth: [],
-    itemTypeDistribution: {},
-    paymentMethodDistribution: {}
-  };
-  
+const ChartTabs = ({ chartData, loading = false }: ChartTabsProps) => {
   // Prepare chart data
   const preparePaymentMethodData = () => {
-    const distribution = safeData.paymentMethodDistribution || {};
+    if (!chartData) return [];
     
-    return Object.entries(distribution).map(([name, value]) => ({
+    return Object.entries(chartData.paymentMethodDistribution || {}).map(([name, value]) => ({
       name: name === 'cash' ? 'Efectivo' :
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value: Number(value) // Convert to number to fix type error
+      value
     }));
   };
   
   const prepareRevenueChartData = () => {
-    const revenueData = safeData.revenueByMonth || [];
+    if (!chartData) return [];
     
-    return revenueData.map(item => ({
+    return (chartData.revenueByMonth || []).map((item: any) => ({
       name: item.month,
-      // Ensure we're working with numbers before arithmetic operations
-      income: Number(parseFloat(String(item.revenue || 0)).toFixed(2)),
+      income: parseFloat((item.revenue || 0).toFixed(2)),
       expenses: 0 // Adding default expenses value to match LineChart data type
     }));
   };
   
   const prepareItemDistributionData = () => {
-    const distribution = safeData.itemTypeDistribution || {};
+    if (!chartData) return [];
     
     // Get top 10 items by quantity
-    return Object.entries(distribution)
+    return Object.entries(chartData.itemTypeDistribution || {})
       .sort((a, b) => Number(b[1]) - Number(a[1]))
       .slice(0, 10)
       .map(([name, value]) => ({
         name,
-        total: Number(value) // Convert to number to fix type error
+        total: Number(value)
       }));
   };
 
@@ -71,9 +65,13 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px]">
-              <LineChart data={prepareRevenueChartData()} />
-            </div>
+            {loading ? (
+              <Skeleton className="h-[350px] w-full" />
+            ) : (
+              <div className="h-[350px]">
+                <LineChart data={prepareRevenueChartData()} />
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
@@ -87,9 +85,13 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px]">
-              <BarChart data={prepareItemDistributionData()} />
-            </div>
+            {loading ? (
+              <Skeleton className="h-[350px] w-full" />
+            ) : (
+              <div className="h-[350px]">
+                <BarChart data={prepareItemDistributionData()} />
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>
@@ -103,9 +105,13 @@ const ChartTabs = ({ chartData }: ChartTabsProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[350px]">
-              <PieChart data={preparePaymentMethodData()} />
-            </div>
+            {loading ? (
+              <Skeleton className="h-[350px] w-full" />
+            ) : (
+              <div className="h-[350px]">
+                <PieChart data={preparePaymentMethodData()} />
+              </div>
+            )}
           </CardContent>
         </Card>
       </TabsContent>

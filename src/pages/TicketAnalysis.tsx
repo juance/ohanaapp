@@ -9,7 +9,7 @@ import MetricsSection from '@/components/analytics/MetricsSection';
 import ChartTabs from '@/components/analytics/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
