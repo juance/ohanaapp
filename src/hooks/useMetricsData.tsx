@@ -1,9 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { 
-  getMetrics,
-  syncOfflineData
-} from '@/lib/dataService';
+import { getMetrics } from '@/lib/data/metricsService';
+import { syncOfflineData } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';

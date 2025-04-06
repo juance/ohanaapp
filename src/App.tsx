@@ -1,6 +1,6 @@
 
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { Suspense, lazy, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { Suspense, lazy } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
 
@@ -28,6 +28,37 @@ const LoadingFallback = () => (
 );
 
 function App() {
+  // Use a separate RouteObserver component for location tracking effects
+  
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/metrics" element={<Metrics />} />
+        <Route path="/pickup" element={<PickupOrders />} />
+        <Route path="/delivered" element={<DeliveredOrders />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/expenses" element={<Expenses />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/administration" element={<Administration />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/loyalty" element={<Loyalty />} />
+        <Route path="/analysis" element={<TicketAnalysis />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <RouteObserver />
+    </Suspense>
+  );
+}
+
+// Create a separate component to handle route changes
+// This prevents useLocation from being called at the App component level
+import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+
+function RouteObserver() {
   const location = useLocation();
   
   useEffect(() => {
@@ -57,26 +88,7 @@ function App() {
     }
   }, [location]);
   
-  return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/metrics" element={<Metrics />} />
-        <Route path="/pickup" element={<PickupOrders />} />
-        <Route path="/delivered" element={<DeliveredOrders />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/administration" element={<Administration />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/loyalty" element={<Loyalty />} />
-        <Route path="/analysis" element={<TicketAnalysis />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
-  );
+  return null; // This component doesn't render anything
 }
 
 export default App;

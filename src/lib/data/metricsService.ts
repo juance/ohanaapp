@@ -12,7 +12,20 @@ const defaultPaymentMethods = {
 
 // Helper function to safely access properties from JSON data
 const safeGet = (obj: any, path: string, defaultValue: any = {}) => {
-  return obj && typeof obj === 'object' && path in obj ? obj[path] : defaultValue;
+  if (!obj || typeof obj !== 'object') return defaultValue;
+  
+  // Handle nested paths like 'stats.daily.count'
+  const parts = path.split('.');
+  let current = obj;
+  
+  for (const part of parts) {
+    if (current === null || typeof current !== 'object' || !(part in current)) {
+      return defaultValue;
+    }
+    current = current[part];
+  }
+  
+  return current !== undefined ? current : defaultValue;
 };
 
 // Instead of using a non-existent RPC function, we'll query the database directly
