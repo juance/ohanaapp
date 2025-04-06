@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
-import { Ticket } from './types';
+import { Ticket, PaymentMethod } from './types';
 import { subDays } from 'date-fns';
 
 // Get tickets that are ready for pickup
@@ -50,9 +49,9 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         clientName: customerData?.name || '',
         phoneNumber: customerData?.phone || '',
         services: [], // Will be populated by getTicketServices
-        paymentMethod: ticket.payment_method,
+        paymentMethod: ticket.payment_method as PaymentMethod, // Cast to PaymentMethod
         totalPrice: ticket.total,
-        status: ticket.status,
+        status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status
         createdAt: ticket.created_at,
         updatedAt: ticket.updated_at,
         isPaid: ticket.is_paid
@@ -75,6 +74,13 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 // Get tickets that have been delivered
 export const getDeliveredTickets = async (): Promise<Ticket[]> => {
   try {
+    // First check if delivered_date column exists
+    const { data: columnCheck } = await supabase
+      .from('tickets')
+      .select('delivered_date')
+      .limit(1)
+      .maybeSingle();
+    
     const { data, error } = await supabase
       .from('tickets')
       .select(`
@@ -86,13 +92,13 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         status,
         created_at,
         updated_at,
-        delivered_date,
         is_paid,
         customer_id
+        ${columnCheck ? ', delivered_date' : ''}
       `)
       .eq('status', 'delivered')
       .eq('is_canceled', false) // Only show non-canceled tickets
-      .order('delivered_date', { ascending: false });
+      .order('updated_at', { ascending: false });
 
     if (error) throw error;
 
@@ -118,9 +124,9 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         clientName: customerData?.name || '',
         phoneNumber: customerData?.phone || '',
         services: [], // Will be populated by getTicketServices
-        paymentMethod: ticket.payment_method,
+        paymentMethod: ticket.payment_method as PaymentMethod, // Cast to PaymentMethod
         totalPrice: ticket.total,
-        status: ticket.status,
+        status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status
         createdAt: ticket.created_at,
         updatedAt: ticket.updated_at,
         deliveredDate: ticket.delivered_date,
@@ -144,14 +150,27 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 // Mark a ticket as delivered
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
+    // First check if delivered_date column exists
+    const { data: columnCheck } = await supabase
+      .from('tickets')
+      .select('delivered_date')
+      .limit(1)
+      .maybeSingle();
+    
+    const updateData: Record<string, any> = {
+      status: 'delivered',
+      is_paid: true, // Mark as paid when delivered
+      updated_at: new Date().toISOString()
+    };
+    
+    // Only add delivered_date if the column exists
+    if (columnCheck) {
+      updateData.delivered_date = new Date().toISOString();
+    }
+
     const { error } = await supabase
       .from('tickets')
-      .update({
-        status: 'delivered',
-        is_paid: true, // Mark as paid when delivered
-        delivered_date: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', ticketId);
 
     if (error) throw error;
