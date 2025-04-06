@@ -136,12 +136,12 @@ export const TicketSettings = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Alert variant="destructive">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Precaución</AlertTitle>
-            <AlertDescription>
-              Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets 
-              nuevos que se generen a partir de este momento.
+          <Alert variant="destructive" className="mb-4 bg-amber-50 border-amber-200">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertTitle className="text-amber-800">¡Atención!</AlertTitle>
+            <AlertDescription className="text-amber-800">
+              Está a punto de reiniciar la numeración de tickets. Esta acción no puede deshacerse.
+              ¿Está seguro que desea continuar?
             </AlertDescription>
           </Alert>
           

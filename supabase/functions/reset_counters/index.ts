@@ -24,26 +24,29 @@ serve(async (req) => {
       }
     );
 
-    const { data: body } = await req.json();
+    // Parse request body
+    const requestData = await req.json();
+    console.log("Request data received:", requestData);
+    
     let result;
 
-    // Check if the request is for resetting all counters
-    if (body.counter === "all") {
+    // Check what type of reset is being requested
+    if (requestData && requestData.counter === "all") {
       console.log("Resetting all counters");
       result = await resetAllCounters(supabaseClient);
     } 
     // Check if the request is for resetting dashboard counters
-    else if (body.counters) {
-      console.log("Resetting dashboard counters:", body.counters);
-      result = await resetDashboardCounters(supabaseClient, body.counters);
+    else if (requestData && requestData.counters) {
+      console.log("Resetting dashboard counters:", requestData.counters);
+      result = await resetDashboardCounters(supabaseClient, requestData.counters);
     }
     // Check if the request is for resetting a specific counter
-    else if (body.counter) {
-      console.log("Resetting specific counter:", body.counter);
-      result = await resetSpecificCounter(supabaseClient, body.counter, body.options || {});
+    else if (requestData && requestData.counter) {
+      console.log("Resetting specific counter:", requestData.counter);
+      result = await resetSpecificCounter(supabaseClient, requestData.counter, requestData.options || {});
     }
     else {
-      throw new Error("Invalid request format");
+      throw new Error("Invalid request format. Expected 'counter', 'counters', or other valid parameters.");
     }
 
     return new Response(JSON.stringify(result), {

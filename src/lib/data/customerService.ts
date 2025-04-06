@@ -1,224 +1,81 @@
-import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '@/lib/types';
-import { toast } from '@/lib/toast';
 
-/**
- * Get a customer by phone number
- */
-export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer | null> => {
+import { supabase } from '@/integrations/supabase/client';
+import { Customer, ClientVisit } from '@/lib/types';
+import { formatPhoneNumber } from './customer/phoneUtils';
+import { logError } from '@/lib/errorService';
+
+// Get or create a customer by phone number
+export const getCustomerByPhone = async (phoneNumber: string, customerName: string = ''): Promise<Customer | null> => {
   try {
-    const { data, error } = await supabase
+    // Format phone number
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    // Check if customer exists
+    const { data: existingCustomer, error: searchError } = await supabase
       .from('customers')
       .select('*')
-      .eq('phone', phoneNumber)
+      .eq('phone', formattedPhone)
       .maybeSingle();
     
-    if (error) throw error;
+    if (searchError) throw searchError;
     
-    if (!data) return null;
+    // If customer exists, return it
+    if (existingCustomer) {
+      return {
+        id: existingCustomer.id,
+        name: existingCustomer.name,
+        phoneNumber: existingCustomer.phone,
+        loyaltyPoints: existingCustomer.loyalty_points || 0,
+        valetsCount: existingCustomer.valets_count || 0,
+        freeValets: existingCustomer.free_valets || 0,
+        valetsRedeemed: existingCustomer.valets_redeemed || 0,
+        lastVisit: existingCustomer.last_visit,
+        createdAt: existingCustomer.created_at
+      };
+    }
     
-    return {
-      id: data.id,
-      name: data.name || '',
-      phoneNumber: data.phone,
-      loyaltyPoints: data.loyalty_points || 0,
-      valetsCount: data.valets_count || 0,
-      freeValets: data.free_valets || 0,
-      valetsRedeemed: data.valets_redeemed || 0,
-      lastVisit: data.last_visit
-    };
+    // If customer does not exist and we have a name, create it
+    if (customerName.trim()) {
+      const { data: newCustomer, error: createError } = await supabase
+        .from('customers')
+        .insert({
+          name: customerName.trim(),
+          phone: formattedPhone,
+          loyalty_points: 0,
+          valets_count: 0,
+          free_valets: 0,
+          valets_redeemed: 0
+        })
+        .select()
+        .single();
+      
+      if (createError) throw createError;
+      
+      if (newCustomer) {
+        return {
+          id: newCustomer.id,
+          name: newCustomer.name,
+          phoneNumber: newCustomer.phone,
+          loyaltyPoints: newCustomer.loyalty_points || 0,
+          valetsCount: newCustomer.valets_count || 0,
+          freeValets: newCustomer.free_valets || 0,
+          valetsRedeemed: newCustomer.valets_redeemed || 0,
+          lastVisit: newCustomer.last_visit,
+          createdAt: newCustomer.created_at
+        };
+      }
+    }
+    
+    return null;
   } catch (error) {
-    console.error('Error getting customer by phone:', error);
+    console.error('Error in getCustomerByPhone:', error);
+    logError(error, { context: 'getCustomerByPhone' });
     return null;
   }
 };
 
-/**
- * Store a new customer
- */
-export const storeCustomer = async (customer: {
-  name: string;
-  phoneNumber: string;
-  loyaltyPoints?: number;
-  valetsCount?: number;
-  freeValets?: number;
-}): Promise<Customer | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('customers')
-      .insert({
-        name: customer.name,
-        phone: customer.phoneNumber,
-        loyalty_points: customer.loyaltyPoints || 0,
-        valets_count: customer.valetsCount || 0,
-        free_valets: customer.freeValets || 0,
-        last_visit: new Date().toISOString()
-      })
-      .select('*')
-      .single();
-    
-    if (error) throw error;
-    
-    return {
-      id: data.id,
-      name: data.name || '',
-      phoneNumber: data.phone,
-      loyaltyPoints: data.loyalty_points || 0,
-      valetsCount: data.valets_count || 0,
-      freeValets: data.free_valets || 0,
-      valetsRedeemed: data.valets_redeemed || 0,
-      lastVisit: data.last_visit
-    };
-  } catch (error) {
-    console.error('Error storing customer:', error);
-    return null;
-  }
-};
-
-/**
- * Update valets count for a customer
- */
-export const updateValetsCount = async (customerId: string, valetsToAdd: number): Promise<boolean> => {
-  try {
-    // First, get the current customer data
-    const { data: customerData, error: getError } = await supabase
-      .from('customers')
-      .select('valets_count, loyalty_points, free_valets')
-      .eq('id', customerId)
-      .single();
-    
-    if (getError) throw getError;
-    
-    // Calculate new values
-    const currentValetsCount = customerData?.valets_count || 0;
-    const newValetsCount = currentValetsCount + valetsToAdd;
-    
-    // Calculate if a free valet should be added
-    // A free valet is earned every 10 valets
-    const currentFreeValetsEarned = Math.floor(currentValetsCount / 10);
-    const newFreeValetsEarned = Math.floor(newValetsCount / 10);
-    const freeValetsToAdd = newFreeValetsEarned - currentFreeValetsEarned;
-    
-    // Update the customer
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({
-        valets_count: newValetsCount,
-        free_valets: (customerData?.free_valets || 0) + freeValetsToAdd,
-        last_visit: new Date().toISOString()
-      })
-      .eq('id', customerId);
-    
-    if (updateError) throw updateError;
-    
-    // Notify the user if they earned a free valet
-    if (freeValetsToAdd > 0) {
-      toast.success(`¡Felicidades! Has ganado ${freeValetsToAdd} valet${freeValetsToAdd > 1 ? 's' : ''} gratis`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating valets count:', error);
-    return false;
-  }
-};
-
-/**
- * Update loyalty points for a customer
- */
-export const updateLoyaltyPoints = async (customerId: string, pointsToAdd: number): Promise<boolean> => {
-  try {
-    // First, get the current customer data
-    const { data: customerData, error: getError } = await supabase
-      .from('customers')
-      .select('loyalty_points, free_valets')
-      .eq('id', customerId)
-      .single();
-    
-    if (getError) throw getError;
-    
-    // Calculate new values
-    const currentPoints = customerData?.loyalty_points || 0;
-    const newPoints = currentPoints + pointsToAdd;
-    
-    // Calculate if a free valet should be added from loyalty points
-    // A free valet is earned every 100 loyalty points
-    const currentFreeValetsEarned = Math.floor(currentPoints / 100);
-    const newFreeValetsEarned = Math.floor(newPoints / 100);
-    const freeValetsToAdd = newFreeValetsEarned - currentFreeValetsEarned;
-    
-    // Update the customer
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({
-        loyalty_points: newPoints,
-        free_valets: (customerData?.free_valets || 0) + freeValetsToAdd,
-        last_visit: new Date().toISOString()
-      })
-      .eq('id', customerId);
-    
-    if (updateError) throw updateError;
-    
-    // Notify the user if they earned a free valet
-    if (freeValetsToAdd > 0) {
-      toast.success(`¡Felicidades! Has ganado ${freeValetsToAdd} valet${freeValetsToAdd > 1 ? 's' : ''} gratis por puntos de fidelidad`);
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating loyalty points:', error);
-    return false;
-  }
-};
-
-/**
- * Use a free valet for a customer
- */
-export const useFreeValet = async (customerId: string): Promise<boolean> => {
-  try {
-    // First, get the current customer data
-    const { data: customerData, error: getError } = await supabase
-      .from('customers')
-      .select('free_valets, valets_redeemed')
-      .eq('id', customerId)
-      .single();
-    
-    if (getError) throw getError;
-    
-    // Check if the customer has free valets available
-    const freeValets = customerData?.free_valets || 0;
-    
-    if (freeValets <= 0) {
-      toast.error('El cliente no tiene valets gratuitos disponibles');
-      return false;
-    }
-    
-    // Calculate new values
-    const valetsRedeemed = customerData?.valets_redeemed || 0;
-    
-    // Update the customer
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({
-        free_valets: freeValets - 1,
-        valets_redeemed: valetsRedeemed + 1,
-        last_visit: new Date().toISOString()
-      })
-      .eq('id', customerId);
-    
-    if (updateError) throw updateError;
-    
-    return true;
-  } catch (error) {
-    console.error('Error using free valet:', error);
-    return false;
-  }
-};
-
-/**
- * Get frequent clients (for dashboard)
- */
-export const getFrequentClients = async (limit = 5): Promise<any[]> => {
+// Get frequent clients for dashboard
+export const getFrequentClients = async (limit: number = 5): Promise<ClientVisit[]> => {
   try {
     const { data, error } = await supabase
       .from('customers')
@@ -228,64 +85,91 @@ export const getFrequentClients = async (limit = 5): Promise<any[]> => {
     
     if (error) throw error;
     
-    return data.map(client => ({
-      id: client.id,
-      clientName: client.name,
-      phoneNumber: client.phone,
-      valetsCount: client.valets_count || 0,
-      loyaltyPoints: client.loyalty_points || 0,
-      freeValets: client.free_valets || 0,
-      lastVisit: client.last_visit
+    return (data || []).map(customer => ({
+      id: customer.id,
+      phoneNumber: customer.phone,
+      clientName: customer.name || 'Cliente',
+      visitCount: customer.valets_count || 0,
+      lastVisit: customer.last_visit,
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      loyaltyPoints: customer.loyalty_points || 0
     }));
   } catch (error) {
-    console.error('Error getting frequent clients:', error);
+    console.error('Error in getFrequentClients:', error);
+    logError(error, { context: 'getFrequentClients' });
     return [];
   }
 };
 
-/**
- * Redeem loyalty points for a free valet
- */
-export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem = 100): Promise<boolean> => {
+// Update customer loyalty points
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
   try {
-    // First, get the current customer data
-    const { data: customerData, error: getError } = await supabase
+    // First, get current loyalty points
+    const { data: customer, error: getError } = await supabase
       .from('customers')
-      .select('loyalty_points, free_valets')
+      .select('loyalty_points')
       .eq('id', customerId)
       .single();
     
     if (getError) throw getError;
     
-    // Check if the customer has enough points
-    const loyaltyPoints = customerData?.loyalty_points || 0;
+    const currentPoints = customer?.loyalty_points || 0;
+    const newPoints = currentPoints + points;
     
-    if (loyaltyPoints < pointsToRedeem) {
-      toast.error('El cliente no tiene suficientes puntos de fidelidad');
-      return false;
-    }
-    
-    // Calculate new values
-    const freeValets = customerData?.free_valets || 0;
-    const freeValetsToAdd = Math.floor(pointsToRedeem / 100);
-    
-    // Update the customer
+    // Update loyalty points
     const { error: updateError } = await supabase
       .from('customers')
-      .update({
-        loyalty_points: loyaltyPoints - pointsToRedeem,
-        free_valets: freeValets + freeValetsToAdd
-      })
+      .update({ loyalty_points: newPoints })
       .eq('id', customerId);
     
     if (updateError) throw updateError;
     
-    // Notify the user
-    toast.success(`¡Puntos canjeados! Se han agregado ${freeValetsToAdd} valet${freeValetsToAdd > 1 ? 's' : ''} gratis`);
+    return newPoints;
+  } catch (error) {
+    console.error('Error in addLoyaltyPoints:', error);
+    logError(error, { context: 'addLoyaltyPoints' });
+    return 0;
+  }
+};
+
+// Redeem loyalty points for a reward
+export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<boolean> => {
+  try {
+    // First, get current loyalty points
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentPoints = customer?.loyalty_points || 0;
+    
+    // Ensure customer has enough points
+    if (currentPoints < pointsToRedeem) {
+      return false;
+    }
+    
+    const newPoints = currentPoints - pointsToRedeem;
+    
+    // Update loyalty points
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: newPoints })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
     
     return true;
   } catch (error) {
-    console.error('Error redeeming loyalty points:', error);
+    console.error('Error in redeemLoyaltyPoints:', error);
+    logError(error, { context: 'redeemLoyaltyPoints' });
     return false;
   }
 };
+
+// Additional exports for the data service
+export { updateCustomerLastVisit } from './customer/customerStorageService';
+export { getCustomerValetCount } from './customer/valetService';

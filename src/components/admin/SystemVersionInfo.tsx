@@ -31,13 +31,15 @@ export const SystemVersionInfo = () => {
 
       if (error) throw error;
       
-      // Convert from Json to any[] if needed
+      // Convert from JSON to array
       const formattedVersions = (data || []).map(version => ({
         ...version,
-        changes: Array.isArray(version.changes) ? version.changes : []
-      })) as SystemVersion[];
+        changes: Array.isArray(version.changes) ? version.changes : 
+                 typeof version.changes === 'string' ? JSON.parse(version.changes) : 
+                 []
+      }));
       
-      setVersions(formattedVersions);
+      setVersions(formattedVersions as SystemVersion[]);
     } catch (error) {
       console.error("Error loading system versions:", error);
       toast({

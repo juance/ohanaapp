@@ -29,16 +29,22 @@ export const ResetDashboardCounters = () => {
     try {
       // Create payload based on selected counters
       const payload = { 
-        counters: selectedCounters,
-        options: {}
+        counters: selectedCounters
       };
+      
+      console.log("Sending reset counters payload:", payload);
       
       // Call the Supabase function to reset counters
       const { data, error } = await supabase.functions.invoke("reset_counters", {
         body: payload
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error from reset_counters function:", error);
+        throw error;
+      }
+
+      console.log("Reset counters response:", data);
 
       toast.success("Contadores del dashboard reiniciados", {
         description: "Los contadores del dashboard han sido reiniciados exitosamente."
