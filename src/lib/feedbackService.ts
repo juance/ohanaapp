@@ -2,22 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerFeedback } from './types';
 
-// Check if the customer_feedback table exists, if not, create it
-const ensureFeedbackTableExists = async () => {
-  try {
-    // Call the RPC function to create the table if it doesn't exist
-    const { error } = await supabase.rpc('create_feedback_table_if_not_exists');
-    if (error) {
-      console.error('Error ensuring feedback table exists:', error);
-    }
-  } catch (error) {
-    console.error('Error in ensureFeedbackTableExists:', error);
-  }
-};
-
-// Initialize the table check
-ensureFeedbackTableExists();
-
+// Instead of calling an RPC function that doesn't exist, we'll handle the feedback
+// functionality directly with standard Supabase queries
 export const getFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
     const { data, error } = await supabase
@@ -37,7 +23,7 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
       customerName: item.customer_name,
       comment: item.comment,
       rating: item.rating,
-      createdAt: new Date(item.created_at).toLocaleDateString('es-ES')
+      createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('es-ES') : ''
     }));
   } catch (error) {
     console.error('Error in getFeedback:', error);

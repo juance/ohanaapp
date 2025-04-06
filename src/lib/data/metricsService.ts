@@ -13,14 +13,30 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
     const endDate = new Date(date);
     endDate.setHours(23, 59, 59, 999);
     
-    const { data, error } = await supabase.rpc('get_metrics', {
-      start_date: startDate.toISOString(),
-      end_date: endDate.toISOString()
+    // Instead of calling an RPC that doesn't exist, we'll query the data directly
+    const { data: ticketsData, error: ticketsError } = await supabase
+      .from('tickets')
+      .select('total, payment_method, valet_quantity')
+      .gte('date', startDate.toISOString())
+      .lte('date', endDate.toISOString());
+    
+    if (ticketsError) throw ticketsError;
+    
+    // Calculate totals from tickets data
+    let totalSales = 0;
+    let valetCount = 0;
+    const paymentMethods = { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 };
+    
+    ticketsData.forEach((ticket: any) => {
+      totalSales += ticket.total || 0;
+      valetCount += ticket.valet_quantity || 0;
+      
+      // Payment methods
+      if (ticket.payment_method === 'cash') paymentMethods.cash += ticket.total || 0;
+      if (ticket.payment_method === 'debit') paymentMethods.debit += ticket.total || 0;
+      if (ticket.payment_method === 'mercadopago') paymentMethods.mercadopago += ticket.total || 0;
+      if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuentaDni += ticket.total || 0;
     });
-    
-    if (error) throw error;
-    
-    const metrics = data[0];
     
     // Get dry cleaning items for the day
     const { data: dryCleaningData, error: dryCleaningError } = await supabase
@@ -43,14 +59,9 @@ export const getDailyMetrics = async (date: Date = new Date()): Promise<DailyMet
     });
     
     return {
-      totalSales: metrics.total_sales || 0,
-      valetCount: metrics.total_valets || 0,
-      paymentMethods: {
-        cash: metrics.cash_payments || 0,
-        debit: metrics.debit_payments || 0,
-        mercadopago: metrics.mercadopago_payments || 0,
-        cuentaDni: metrics.cuentadni_payments || 0
-      },
+      totalSales,
+      valetCount,
+      paymentMethods,
       dryCleaningItems
     };
   } catch (error) {

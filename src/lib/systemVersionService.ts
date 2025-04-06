@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { SystemVersion, SystemChange } from '@/hooks/useSystemVersions';
@@ -8,7 +9,7 @@ import { SystemVersion, SystemChange } from '@/hooks/useSystemVersions';
 export const getSystemVersions = async (): Promise<SystemVersion[]> => {
   try {
     const { data, error } = await supabase
-      .from('system_versions')
+      .from('system_version')
       .select('*')
       .order('release_date', { ascending: false });
 
@@ -35,7 +36,7 @@ export const getSystemVersions = async (): Promise<SystemVersion[]> => {
 export const getCurrentVersion = async (): Promise<SystemVersion | null> => {
   try {
     const { data, error } = await supabase
-      .from('system_versions')
+      .from('system_version')
       .select('*')
       .eq('is_active', true)
       .single();
@@ -61,7 +62,7 @@ export const getCurrentVersion = async (): Promise<SystemVersion | null> => {
 export const setActiveVersion = async (versionId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('system_versions')
+      .from('system_version')
       .update({ is_active: true })
       .eq('id', versionId);
 
@@ -85,10 +86,10 @@ export const addSystemVersion = async (
 ): Promise<boolean> => {
   try {
     const { error } = await supabase
-      .from('system_versions')
+      .from('system_version')
       .insert({
         version,
-        changes,
+        changes: changes as any, // Type cast to avoid issues with JSON serialization
         release_date: releaseDate ? releaseDate.toISOString() : new Date().toISOString(),
         is_active: false // New versions are not active by default
       });
@@ -114,7 +115,7 @@ export const rollbackToVersion = async (versionId: string): Promise<boolean> => 
     
     // For now, we'll just set the version as active
     const { error } = await supabase
-      .from('system_versions')
+      .from('system_version')
       .update({ is_active: true })
       .eq('id', versionId);
 

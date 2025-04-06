@@ -1,11 +1,13 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { RefreshCw, Settings } from "lucide-react";
+import { RefreshCw, Settings, History } from "lucide-react";
 import { ResetCountersPage } from '@/components/admin/ResetCountersPage';
 import { SystemVersion } from '@/components/admin/SystemVersion';
+import { SystemVersions } from '@/components/admin/SystemVersions';
 
 const Administration = () => {
-  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<string | null>("system_version");
 
   // Función para renderizar el contenido basado en la sección activa
   const renderContent = () => {
@@ -14,6 +16,8 @@ const Administration = () => {
         return <SystemVersion />;
       case 'reset_counters':
         return <ResetCountersPage />;
+      case 'system_versions':
+        return <SystemVersions />;
       default:
         return <div>Seleccione una opción del menú</div>;
     }
@@ -40,6 +44,14 @@ const Administration = () => {
           >
             <RefreshCw className="mr-2 h-4 w-4" />
             Reiniciar Contadores
+          </Button>
+          <Button
+            variant={activeSection === 'system_versions' ? 'default' : 'outline'}
+            className="w-full justify-start"
+            onClick={() => setActiveSection('system_versions')}
+          >
+            <History className="mr-2 h-4 w-4" />
+            Historial de Versiones
           </Button>
         </div>
         

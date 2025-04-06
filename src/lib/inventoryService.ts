@@ -19,7 +19,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
       quantity: item.quantity,
       threshold: item.threshold,
       unit: item.unit,
-      lastUpdated: new Date(item.updated_at).toLocaleDateString()
+      lastUpdated: item.created_at ? new Date(item.created_at).toLocaleDateString() : ''
     }));
   } catch (error) {
     console.error('Error al obtener elementos del inventario:', error);
@@ -59,7 +59,7 @@ export const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpd
       quantity: data.quantity,
       threshold: data.threshold,
       unit: data.unit,
-      lastUpdated: new Date(data.updated_at).toLocaleDateString()
+      lastUpdated: data.created_at ? new Date(data.created_at).toLocaleDateString() : ''
     };
   } catch (error) {
     console.error('Error al agregar elemento de inventario:', error);
