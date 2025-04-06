@@ -114,6 +114,7 @@ export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
             handlePaymentMethodChange={handlePaymentMethodChange}
             totalPrice={totalPrice}
             useFreeValet={useFreeValet}
+            setUseFreeValet={setUseFreeValet} // Add the missing prop here
             separateByColor={separateByColor}
             setSeparateByColor={setSeparateByColor}
             delicateDry={delicateDry}

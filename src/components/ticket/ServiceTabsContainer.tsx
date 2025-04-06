@@ -16,7 +16,7 @@ interface ServiceTabsContainerProps {
   handlePaymentMethodChange: (value: PaymentMethod) => void;
   totalPrice: number;
   useFreeValet: boolean;
-  setUseFreeValet: (value: boolean) => void;
+  setUseFreeValet: (value: boolean) => void; // Ensure this prop is defined in the interface
   separateByColor: boolean;
   setSeparateByColor: (value: boolean) => void;
   delicateDry: boolean;
@@ -42,6 +42,7 @@ const ServiceTabsContainer: React.FC<ServiceTabsContainerProps> = ({
   handlePaymentMethodChange,
   totalPrice,
   useFreeValet,
+  setUseFreeValet, // Add this to the destructured props
   separateByColor,
   setSeparateByColor,
   delicateDry,
