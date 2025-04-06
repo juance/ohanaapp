@@ -20,7 +20,7 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
       quantity: item.quantity || 0,
       unit: item.unit || 'unidad',
       threshold: item.threshold || 5,
-      lastUpdated: item.updated_at ? new Date(item.updated_at).toLocaleDateString() : '',
+      lastUpdated: item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
       notes: item.notes || ''
     }));
   } catch (error) {
@@ -48,7 +48,7 @@ export async function getInventoryItem(id: string): Promise<InventoryItem | null
       quantity: data.quantity || 0,
       unit: data.unit || 'unidad',
       threshold: data.threshold || 5,
-      lastUpdated: data.updated_at ? new Date(data.updated_at).toLocaleDateString() : '',
+      lastUpdated: data.created_at ? new Date(data.created_at).toLocaleDateString() : '',
       notes: data.notes || ''
     };
   } catch (error) {

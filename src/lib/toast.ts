@@ -1,9 +1,9 @@
 
 // Import toast function and hook directly
-import { toast, useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
-// Re-export the toast function and useToast hook
-export { toast, useToast };
+// Re-export the toast function 
+export { toast };
 
 // This is a centralized place for toast functionality
-// All components should import toast and useToast from here instead of directly from sonner
+// All components should import toast from here instead of directly from sonner

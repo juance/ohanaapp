@@ -30,15 +30,19 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
       daily: {
         salesByHour: statsData.daily_sales_by_hour || {},
         paymentMethods: statsData.daily_payment_methods || defaultPaymentMethods,
-        dryCleaningItems: statsData.daily_dry_cleaning_items || {}
+        dryCleaningItems: statsData.daily_dry_cleaning_items || {},
+        totalSales: statsData.daily_total_sales || 0,
+        valetCount: statsData.daily_valet_count || 0
       },
       weekly: {
         salesByDay: statsData.weekly_sales_by_day || {},
+        valetsByDay: statsData.weekly_valets_by_day || {},
         paymentMethods: statsData.weekly_payment_methods || defaultPaymentMethods,
         dryCleaningItems: statsData.weekly_dry_cleaning_items || {}
       },
       monthly: {
         salesByWeek: statsData.monthly_sales_by_week || {},
+        valetsByWeek: statsData.monthly_valets_by_week || {},
         paymentMethods: statsData.monthly_payment_methods || defaultPaymentMethods,
         dryCleaningItems: statsData.monthly_dry_cleaning_items || {}
       }
@@ -51,15 +55,19 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
       daily: {
         salesByHour: {},
         paymentMethods: defaultPaymentMethods,
-        dryCleaningItems: {}
+        dryCleaningItems: {},
+        totalSales: 0,
+        valetCount: 0
       },
       weekly: {
         salesByDay: {},
+        valetsByDay: {},
         paymentMethods: defaultPaymentMethods,
         dryCleaningItems: {}
       },
       monthly: {
         salesByWeek: {},
+        valetsByWeek: {},
         paymentMethods: defaultPaymentMethods,
         dryCleaningItems: {}
       }

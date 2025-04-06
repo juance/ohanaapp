@@ -58,6 +58,43 @@ export interface Metrics {
   };
 }
 
+export interface DailyMetrics {
+  salesByHour: Record<string, number>;
+  totalSales?: number;
+  valetCount?: number;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}
+
+export interface WeeklyMetrics {
+  salesByDay: Record<string, number>;
+  valetsByDay: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}
+
+export interface MonthlyMetrics {
+  salesByWeek: Record<string, number>;
+  valetsByWeek: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>;
+}
+
 export type InventoryItem = {
   id: string;
   name: string;
@@ -65,6 +102,7 @@ export type InventoryItem = {
   threshold: number;
   unit: string;
   lastUpdated: string;
+  notes?: string; // Added notes field as it's used in the code
 };
 
 export interface ClientVisit {
@@ -115,42 +153,6 @@ export interface Expense {
   amount: number;
   date: string;
   createdAt: string;
-}
-
-export interface DailyMetrics {
-  totalSales: number;
-  valetCount: number;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  dryCleaningItems: Record<string, number>;
-}
-
-export interface WeeklyMetrics {
-  salesByDay: Record<string, number>;
-  valetsByDay: Record<string, number>;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  dryCleaningItems: Record<string, number>;
-}
-
-export interface MonthlyMetrics {
-  salesByWeek: Record<string, number>;
-  valetsByWeek: Record<string, number>;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  dryCleaningItems: Record<string, number>;
 }
 
 export interface LoyaltyReward {

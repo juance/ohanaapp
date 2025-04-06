@@ -1,12 +1,11 @@
+
 import { useState, useEffect } from 'react';
 import { 
-  getDailyMetrics, 
-  getWeeklyMetrics, 
-  getMonthlyMetrics,
+  getMetrics,
   syncOfflineData
 } from '@/lib/dataService';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
 
 export type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
@@ -49,24 +48,21 @@ export const useMetricsData = (): UseMetricsDataReturn => {
     try {
       await syncOfflineData();
       
-      const [dailyMetrics, weeklyMetrics, monthlyMetrics] = await Promise.all([
-        getDailyMetrics(),
-        getWeeklyMetrics(),
-        getMonthlyMetrics()
-      ]);
+      // Use the combined getMetrics function instead of separate functions
+      const metricsData = await getMetrics();
       
       const calculateTotalRevenue = (paymentMethods: Record<string, number | undefined>): number => {
         if (!paymentMethods) return 0;
         return Object.values(paymentMethods).reduce((sum: number, value) => sum + Number(value || 0), 0);
       };
       
-      const daily = dailyMetrics;
+      const daily = metricsData.daily;
       const totalDailyRevenue = calculateTotalRevenue(daily.paymentMethods);
       
-      const weekly = weeklyMetrics;
+      const weekly = metricsData.weekly;
       const totalWeeklyRevenue = calculateTotalRevenue(weekly.paymentMethods);
       
-      const monthly = monthlyMetrics;
+      const monthly = metricsData.monthly;
       const totalMonthlyRevenue = calculateTotalRevenue(monthly.paymentMethods);
       
       const revenueByDate: Array<{ date: string; revenue: number }> = [];
