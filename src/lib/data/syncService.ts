@@ -14,6 +14,8 @@ export const syncOfflineData = async (): Promise<boolean> => {
     
     if (ticketsToSync.length === 0) return true;
     
+    console.log(`Found ${ticketsToSync.length} tickets to sync`);
+    
     // Sync each ticket
     for (const ticket of ticketsToSync) {
       const customer = {
@@ -30,11 +32,14 @@ export const syncOfflineData = async (): Promise<boolean> => {
       };
       
       try {
+        console.log(`Syncing ticket ${ticket.ticketNumber} for ${ticket.customerName}`);
+        
         // Call the storeTicketData function but skip localStorage fallback
-        await storeTicketData(ticketData, customer, ticket.dryCleaningItems, ticket.laundryOptions);
+        await storeTicketData(ticketData, customer, ticket.dryCleaningItems || [], ticket.laundryOptions || []);
         
         // Mark as synced in localStorage
         ticket.pendingSync = false;
+        console.log(`Successfully synced ticket ${ticket.ticketNumber}`);
       } catch (syncError) {
         console.error(`Error syncing ticket ${ticket.ticketNumber}:`, syncError);
         // Continue with other tickets
@@ -49,6 +54,8 @@ export const syncOfflineData = async (): Promise<boolean> => {
     const expensesToSync = localExpenses.filter((expense: any) => expense.pendingSync);
     
     if (expensesToSync.length > 0) {
+      console.log(`Found ${expensesToSync.length} expenses to sync`);
+      
       for (const expense of expensesToSync) {
         const expenseData = {
           description: expense.description,
@@ -57,8 +64,10 @@ export const syncOfflineData = async (): Promise<boolean> => {
         };
         
         try {
+          console.log(`Syncing expense: ${expense.description}`);
           await storeExpense(expenseData);
           expense.pendingSync = false;
+          console.log(`Successfully synced expense: ${expense.description}`);
         } catch (syncError) {
           console.error(`Error syncing expense:`, syncError);
           // Continue with other expenses

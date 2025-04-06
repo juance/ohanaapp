@@ -80,6 +80,19 @@ export const storeTicketData = async (
     // Get next ticket number
     const ticketNumber = ticket.ticketNumber || await getNextTicketNumber();
     
+    // Get the next basket ticket number
+    const { data: basketCountData, error: basketCountError } = await supabase
+      .from('tickets')
+      .select('basket_ticket_number')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    
+    let basketTicketNumber = "1";
+    if (!basketCountError && basketCountData && basketCountData.length > 0) {
+      const lastBasketNumber = parseInt(basketCountData[0].basket_ticket_number || "0");
+      basketTicketNumber = (lastBasketNumber + 1).toString();
+    }
+    
     // Insert ticket with 'ready' status by default
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
@@ -92,22 +105,13 @@ export const storeTicketData = async (
         status: 'ready', // Set status to ready by default
         date: ticketDate,
         created_at: ticketDate,
-        is_paid: ticket.isPaidInAdvance || false // Set paid status based on the isPaidInAdvance flag
+        is_paid: ticket.isPaidInAdvance || false, // Set paid status based on the isPaidInAdvance flag
+        basket_ticket_number: basketTicketNumber // Set the incremental basket ticket number
       })
       .select('*')
       .single();
     
     if (ticketError) throw ticketError;
-    
-    // Assign a basket ticket number to the new ticket
-    try {
-      await supabase.rpc("assign_basket_ticket_number", {
-        ticket_id: ticketData.id
-      });
-    } catch (basketNumberError) {
-      console.error('Error assigning basket ticket number:', basketNumberError);
-      // Continue even if basket number assignment fails
-    }
     
     // Insert dry cleaning items if any
     if (dryCleaningItems.length > 0) {
@@ -147,6 +151,13 @@ export const storeTicketData = async (
     try {
       const localTickets = getFromLocalStorage<any>(TICKETS_STORAGE_KEY);
       
+      // Get next basket ticket number for local storage
+      let nextBasketNumber = 1;
+      if (localTickets.length > 0) {
+        const lastBasketNumber = Math.max(...localTickets.map(t => parseInt(t.basketTicketNumber || "0")));
+        nextBasketNumber = lastBasketNumber + 1;
+      }
+      
       const newTicket = {
         id: crypto.randomUUID(),
         customerName: customer.name,
@@ -159,7 +170,7 @@ export const storeTicketData = async (
         createdAt: ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString(),
         pendingSync: true,
         ticketNumber: Math.floor(Math.random() * 1000) + 1, // Local ticket number as fallback
-        basketTicketNumber: Math.floor(Math.random() * 1000) + 1, // Fallback random basket number
+        basketTicketNumber: nextBasketNumber.toString(), // Incremental basket number
         isPaid: ticket.isPaidInAdvance || false // Set paid status
       };
       

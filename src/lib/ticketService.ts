@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket } from './types';
@@ -9,8 +10,16 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        *,
-        customers (name, phone)
+        id,
+        ticket_number,
+        basket_ticket_number,
+        total,
+        payment_method,
+        status,
+        created_at,
+        updated_at,
+        is_paid,
+        customer_id
       `)
       .eq('status', 'ready')
       .eq('is_canceled', false) // Only show non-canceled tickets
@@ -18,20 +27,37 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     if (error) throw error;
 
-    // Transform data to match the Ticket type
-    const tickets = data.map((ticket: any) => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      basketTicketNumber: ticket.basket_ticket_number,
-      clientName: ticket.customers?.name || '',
-      phoneNumber: ticket.customers?.phone || '',
-      services: [], // This will be populated by getTicketServices
-      paymentMethod: ticket.payment_method,
-      totalPrice: ticket.total,
-      status: ticket.status,
-      createdAt: ticket.created_at,
-      updatedAt: ticket.updated_at
-    }));
+    // Get customer info for each ticket
+    const tickets: Ticket[] = [];
+    for (const ticket of data) {
+      // Get customer details
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('name, phone')
+        .eq('id', ticket.customer_id)
+        .single();
+      
+      if (customerError) {
+        console.error('Error fetching customer for ticket:', customerError);
+        continue;
+      }
+
+      // Transform data to match the Ticket type
+      tickets.push({
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerData?.name || '',
+        phoneNumber: customerData?.phone || '',
+        services: [], // Will be populated by getTicketServices
+        paymentMethod: ticket.payment_method,
+        totalPrice: ticket.total,
+        status: ticket.status,
+        createdAt: ticket.created_at,
+        updatedAt: ticket.updated_at,
+        isPaid: ticket.is_paid
+      });
+    }
 
     // Get services for each ticket
     for (const ticket of tickets) {
@@ -52,8 +78,17 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        *,
-        customers (name, phone)
+        id,
+        ticket_number,
+        basket_ticket_number,
+        total,
+        payment_method,
+        status,
+        created_at,
+        updated_at,
+        delivered_date,
+        is_paid,
+        customer_id
       `)
       .eq('status', 'delivered')
       .eq('is_canceled', false) // Only show non-canceled tickets
@@ -61,20 +96,37 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 
     if (error) throw error;
 
-    const tickets = data.map((ticket: any) => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      basketTicketNumber: ticket.basket_ticket_number,
-      clientName: ticket.customers?.name || '',
-      phoneNumber: ticket.customers?.phone || '',
-      services: [], // This will be populated by getTicketServices
-      paymentMethod: ticket.payment_method,
-      totalPrice: ticket.total,
-      status: ticket.status,
-      createdAt: ticket.created_at,
-      updatedAt: ticket.updated_at,
-      deliveredDate: ticket.delivered_date
-    }));
+    // Get customer info for each ticket
+    const tickets: Ticket[] = [];
+    for (const ticket of data) {
+      // Get customer details
+      const { data: customerData, error: customerError } = await supabase
+        .from('customers')
+        .select('name, phone')
+        .eq('id', ticket.customer_id)
+        .single();
+      
+      if (customerError) {
+        console.error('Error fetching customer for ticket:', customerError);
+        continue;
+      }
+
+      tickets.push({
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerData?.name || '',
+        phoneNumber: customerData?.phone || '',
+        services: [], // Will be populated by getTicketServices
+        paymentMethod: ticket.payment_method,
+        totalPrice: ticket.total,
+        status: ticket.status,
+        createdAt: ticket.created_at,
+        updatedAt: ticket.updated_at,
+        deliveredDate: ticket.delivered_date,
+        isPaid: ticket.is_paid
+      });
+    }
 
     // Get services for each ticket
     for (const ticket of tickets) {
