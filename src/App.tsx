@@ -8,7 +8,6 @@ import NotFound from '@/pages/NotFound';
 const Index = lazy(() => import('@/pages/Index'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
-const Metrics = lazy(() => import('@/pages/Metrics'));
 const PickupOrders = lazy(() => import('@/pages/PickupOrders'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const Expenses = lazy(() => import('@/pages/Expenses'));
@@ -34,7 +33,6 @@ function App() {
         <Route path="/" element={<Index />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/tickets" element={<Tickets />} />
-        <Route path="/metrics" element={<Metrics />} />
         <Route path="/pickup" element={<PickupOrders />} />
         <Route path="/delivered" element={<DeliveredOrders />} />
         <Route path="/inventory" element={<Inventory />} />

@@ -50,12 +50,6 @@ const Index: React.FC = () => {
       path: '/inventory',
     },
     {
-      title: 'Métricas',
-      description: 'Análisis detallado de ventas y operaciones',
-      icon: <BarChart className="h-8 w-8 text-teal-500" />,
-      path: '/metrics',
-    },
-    {
       title: 'Análisis de Tickets',
       description: 'Reportes y analíticas sobre los tickets',
       icon: <FileText className="h-8 w-8 text-cyan-500" />,

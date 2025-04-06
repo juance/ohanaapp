@@ -3,9 +3,9 @@ import React from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ShoppingBag,
-  CheckCircle,
   DollarSign,
-  TrendingUp,
+  CreditCard,
+  Receipt,
   Award
 } from "lucide-react";
 
@@ -70,7 +70,7 @@ export const CounterCheckboxes: React.FC<CounterCheckboxesProps> = ({
             htmlFor="paidTickets"
             className="flex items-center gap-1.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            <CheckCircle className="h-4 w-4 text-blue-500" />
+            <Receipt className="h-4 w-4 text-blue-500" />
             Tickets Pagados
           </label>
         </div>
@@ -100,7 +100,7 @@ export const CounterCheckboxes: React.FC<CounterCheckboxesProps> = ({
             htmlFor="expenses"
             className="flex items-center gap-1.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            <TrendingUp className="h-4 w-4 text-red-500" />
+            <CreditCard className="h-4 w-4 text-red-500" />
             Gastos
           </label>
         </div>

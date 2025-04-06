@@ -18,7 +18,6 @@ const Navbar: React.FC = () => {
     { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
     { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
     { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
-    { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" /> },
     { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
     { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
     { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
