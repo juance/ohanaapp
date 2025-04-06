@@ -10,7 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from '@/lib/toast';
+import { toast } from 'sonner';
 import { Customer } from '@/lib/types';
 
 interface FreeValetDialogProps {

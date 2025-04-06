@@ -1,7 +1,8 @@
 
-// Using sonner toaster instead, this file is kept for compatibility
+"use client";
+
 import { Toaster as SonnerToaster } from "sonner";
 
 export function Toaster() {
-  return <SonnerToaster />;
+  return <SonnerToaster position="top-right" closeButton richColors />;
 }
