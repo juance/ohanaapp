@@ -45,7 +45,7 @@ try {
           <QueryClientProvider client={queryClient}>
             <ErrorBoundary>
               <App />
-              <Toaster />
+              <Toaster position="top-right" closeButton richColors />
             </ErrorBoundary>
           </QueryClientProvider>
         </ThemeProvider>

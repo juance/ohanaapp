@@ -28,8 +28,6 @@ const LoadingFallback = () => (
 );
 
 function App() {
-  // Use a separate RouteObserver component for location tracking effects
-  
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Routes>

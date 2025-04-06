@@ -21,32 +21,43 @@ import {
   TableHeader, 
   TableRow
 } from '@/components/ui/table';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { storeExpense, getStoredExpenses } from '@/lib/dataService';
 import { format } from 'date-fns';
 import { getCurrentUser } from '@/lib/auth';
+import { Loading } from '@/components/ui/loading';
+import { ErrorMessage } from '@/components/ui/error-message';
 
 const Expenses = () => {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState<Date>(new Date());
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
   const queryClient = useQueryClient();
   
   useEffect(() => {
+    setIsComponentMounted(true);
     const checkAdmin = async () => {
-      const user = await getCurrentUser();
-      setIsAdmin(user?.role === 'admin');
+      try {
+        const user = await getCurrentUser();
+        setIsAdmin(user?.role === 'admin');
+      } catch (error) {
+        console.error("Error checking user role:", error);
+      }
     };
     checkAdmin();
+    return () => setIsComponentMounted(false);
   }, []);
   
-  const { data: expenses, isLoading } = useQuery({
+  const { data: expenses, isLoading, error } = useQuery({
     queryKey: ['expenses'],
-    queryFn: () => getStoredExpenses()
+    queryFn: () => getStoredExpenses(),
+    retry: 1,
+    staleTime: 30000,
   });
   
   const addExpenseMutation = useMutation({
@@ -96,6 +107,14 @@ const Expenses = () => {
       date: date.toISOString()
     });
   };
+
+  if (!isComponentMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
   
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -194,7 +213,11 @@ const Expenses = () => {
                 </CardHeader>
                 <CardContent>
                   {isLoading ? (
-                    <div className="text-center py-4">Cargando gastos...</div>
+                    <div className="flex justify-center py-8">
+                      <Loading />
+                    </div>
+                  ) : error ? (
+                    <ErrorMessage message="Error al cargar los gastos" />
                   ) : !expenses || expenses.length === 0 ? (
                     <div className="text-center py-4 text-gray-500">
                       No hay gastos registrados

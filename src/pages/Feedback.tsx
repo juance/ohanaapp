@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
@@ -13,23 +13,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { Loading } from '@/components/ui/loading';
+import { ErrorMessage } from '@/components/ui/error-message';
 
 const Feedback = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
   const isMobile = useIsMobile();
   const queryClient = useQueryClient();
 
-  // Initialize loading state
-  const [isPageLoading, setIsPageLoading] = useState(true);
-
   useEffect(() => {
-    // Simulate page load completion after components mount
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
+    setIsComponentMounted(true);
+    return () => setIsComponentMounted(false);
   }, []);
 
   // Make sure query client is available
@@ -88,7 +83,7 @@ const Feedback = () => {
     setRefreshTrigger(prev => prev + 1);
   };
 
-  if (isPageLoading) {
+  if (!isComponentMounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loading />

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -10,12 +10,21 @@ import ChartTabs from '@/components/analytics/ChartTabs';
 import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
 import { Loading } from '@/components/ui/loading';
 import { toast } from '@/lib/toast';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { Button } from '@/components/ui/button';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
 }
 
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
+
+  useEffect(() => {
+    setIsComponentMounted(true);
+    return () => setIsComponentMounted(false);
+  }, []);
+
   // Handler function for exporting data
   const handleExport = async () => {
     try {
@@ -53,6 +62,15 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     setDateRange({ from, to });
   };
 
+  // If component isn't mounted yet, show loading
+  if (!isComponentMounted) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loading className="h-8 w-8" />
+      </div>
+    );
+  }
+
   const content = (
     <>
       {!embedded && (
@@ -80,9 +98,11 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
           <Loading />
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
-          <p className="text-red-700">{error.message}</p>
+        <div className="space-y-4">
+          <ErrorMessage message={`Error al cargar datos: ${error.message}`} />
+          <Button onClick={() => window.location.reload()} variant="outline" className="mx-auto block">
+            Reintentar
+          </Button>
         </div>
       ) : (
         <div className="space-y-8">

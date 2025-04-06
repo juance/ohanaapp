@@ -19,10 +19,15 @@ const safeGet = (obj: any, path: string, defaultValue: any = {}) => {
   let current = obj;
   
   for (const part of parts) {
-    if (current === null || typeof current !== 'object' || !(part in current)) {
+    if (current === null || typeof current !== 'object') {
       return defaultValue;
     }
-    current = current[part];
+    try {
+      current = current[part];
+    } catch (error) {
+      console.error(`Error accessing ${part} in object:`, current);
+      return defaultValue;
+    }
   }
   
   return current !== undefined ? current : defaultValue;
@@ -36,10 +41,13 @@ export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: Weekl
       .select('*')
       .order('stats_date', { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
     
-    if (error) throw error;
-
+    if (error) {
+      console.error("Error fetching dashboard stats:", error);
+      throw error;
+    }
+    
     // Extract stats data from the JSON field
     const statsData = data?.stats_data || {};
     

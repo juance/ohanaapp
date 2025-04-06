@@ -1,6 +1,7 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { ArrowLeft, RefreshCw, RotateCcw } from 'lucide-react';
+import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMetricsData } from '@/hooks/useMetricsData';
 import { DateRangeSelector } from '@/components/metrics/DateRangeSelector';
@@ -19,6 +20,13 @@ interface MetricsProps {
 }
 
 const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
+  const [isComponentMounted, setIsComponentMounted] = useState(false);
+
+  useEffect(() => {
+    setIsComponentMounted(true);
+    return () => setIsComponentMounted(false);
+  }, []);
+
   const {
     data,
     isLoading,
@@ -37,6 +45,14 @@ const Metrics: React.FC<MetricsProps> = ({ embedded = false }) => {
   };
 
   console.log("Current metrics data:", data);
+
+  if (!isComponentMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loading />
+      </div>
+    );
+  }
 
   const content = (
     <>
