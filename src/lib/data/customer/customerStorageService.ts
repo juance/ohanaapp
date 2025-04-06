@@ -46,3 +46,20 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
     return null;
   }
 };
+
+// Add the missing updateCustomerLastVisit function
+export const updateCustomerLastVisit = async (customerId: string): Promise<boolean> => {
+  try {
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from('customers')
+      .update({ last_visit: now })
+      .eq('id', customerId);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating customer last visit:', error);
+    return false;
+  }
+};

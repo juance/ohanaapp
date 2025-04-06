@@ -38,8 +38,8 @@ export {
 // Export expense service
 export * from './data/expenseService';
 
-// Export loyalty service (add this line)
-export * from './data/customer/loyaltyService';
+// Do not re-export loyalty service since we're exporting all from customerService
+// which includes these functions
 
 // Explicitly export getCustomerByPhone for direct imports
 export { getCustomerByPhone } from './data/customerService';

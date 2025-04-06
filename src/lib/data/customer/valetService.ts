@@ -72,3 +72,20 @@ export const useFreeValet = async (customerId: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Add the missing getCustomerValetCount function
+export const getCustomerValetCount = async (customerId: string): Promise<number> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('valets_count')
+      .eq('id', customerId)
+      .single();
+    
+    if (error) throw error;
+    return data?.valets_count || 0;
+  } catch (error) {
+    console.error('Error getting customer valet count:', error);
+    return 0;
+  }
+};

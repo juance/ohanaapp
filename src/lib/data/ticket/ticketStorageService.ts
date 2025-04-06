@@ -12,7 +12,7 @@ import {
   storeCustomer, 
   updateValetsCount, 
   useFreeValet,
-  updateLoyaltyPoints
+  addLoyaltyPoints
 } from '../customerService';
 import { getNextTicketNumber } from './ticketNumberService';
 
@@ -69,7 +69,7 @@ export const storeTicketData = async (
       const pointsToAdd = ticket.valetQuantity * 10;
       
       if (pointsToAdd > 0) {
-        await updateLoyaltyPoints(customerId, pointsToAdd);
+        await addLoyaltyPoints(customerId, pointsToAdd);
         console.log(`Added ${pointsToAdd} loyalty points for ${ticket.valetQuantity} valets`);
       }
     }

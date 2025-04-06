@@ -3,6 +3,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { Customer, ClientVisit } from '@/lib/types';
 import { formatPhoneNumber } from './customer/phoneUtils';
 import { logError } from '@/lib/errorService';
+import { updateCustomerLastVisit } from './customer/customerStorageService';
+import { getCustomerValetCount, updateValetsCount, useFreeValet } from './customer/valetService';
 
 // Get or create a customer by phone number
 export const getCustomerByPhone = async (phoneNumber: string, customerName: string = ''): Promise<Customer | null> => {
@@ -170,6 +172,49 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
   }
 };
 
-// Additional exports for the data service
-export { updateCustomerLastVisit } from './customer/customerStorageService';
-export { getCustomerValetCount } from './customer/valetService';
+// Re-export necessary functions from sub-modules
+export { 
+  updateCustomerLastVisit, 
+  getCustomerValetCount,
+  updateValetsCount,
+  useFreeValet
+};
+
+// Add a function to store customer data
+export const storeCustomer = async (customerData: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({
+        name: customerData.name,
+        phone: formatPhoneNumber(customerData.phoneNumber),
+        loyalty_points: customerData.loyaltyPoints || 0,
+        valets_count: customerData.valetsCount || 0,
+        free_valets: customerData.freeValets || 0
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      name: data.name,
+      phoneNumber: data.phone,
+      loyaltyPoints: data.loyalty_points || 0,
+      valetsCount: data.valets_count || 0,
+      freeValets: data.free_valets || 0,
+      lastVisit: data.last_visit,
+      createdAt: data.created_at
+    };
+  } catch (error) {
+    console.error('Error creating customer:', error);
+    logError(error, { context: 'storeCustomer' });
+    return null;
+  }
+};
+
+// Add the missing updateLoyaltyPoints function
+export const updateLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
+  return addLoyaltyPoints(customerId, points);
+};
