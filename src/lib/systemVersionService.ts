@@ -20,7 +20,14 @@ export const getSystemVersions = async (): Promise<SystemVersion[]> => {
       id: item.id,
       version: item.version,
       releaseDate: item.release_date,
-      changes: item.changes || [],
+      // Ensure changes is always an array of SystemChange objects
+      changes: Array.isArray(item.changes) 
+        ? item.changes.map((change: any) => ({
+            type: change.type || 'other',
+            title: change.title || '',
+            description: change.description || ''
+          })) 
+        : [],
       isActive: item.is_active
     }));
   } catch (error) {
@@ -47,7 +54,14 @@ export const getCurrentVersion = async (): Promise<SystemVersion | null> => {
       id: data.id,
       version: data.version,
       releaseDate: data.release_date,
-      changes: data.changes || [],
+      // Ensure changes is always an array of SystemChange objects
+      changes: Array.isArray(data.changes) 
+        ? data.changes.map((change: any) => ({
+            type: change.type || 'other',
+            title: change.title || '',
+            description: change.description || ''
+          })) 
+        : [],
       isActive: data.is_active
     };
   } catch (error) {
@@ -85,11 +99,18 @@ export const addSystemVersion = async (
   releaseDate?: Date
 ): Promise<boolean> => {
   try {
+    // We need to ensure the changes array is properly formatted for JSON storage
+    const formattedChanges = changes.map(change => ({
+      type: change.type,
+      title: change.title,
+      description: change.description
+    }));
+
     const { error } = await supabase
       .from('system_version')
       .insert({
         version,
-        changes: changes as any, // Type cast to avoid issues with JSON serialization
+        changes: formattedChanges,
         release_date: releaseDate ? releaseDate.toISOString() : new Date().toISOString(),
         is_active: false // New versions are not active by default
       });

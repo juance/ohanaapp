@@ -4,15 +4,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { Check, Info } from "lucide-react";
 import { getCurrentVersion } from '@/lib/systemVersionService';
+import { SystemChange } from '@/hooks/useSystemVersions';
 
 export const SystemVersion = () => {
   const [version, setVersion] = useState("1.0.0");
   const [releaseDate, setReleaseDate] = useState("6 de abril de 2025");
-  const [changes, setChanges] = useState([
-    { title: "Implementación del sistema de tickets" },
-    { title: "Gestión de clientes y su historial" },
-    { title: "Sistema de lealtad con valets gratuitos" },
-    { title: "Panel de administración para reiniciar contadores" }
+  const [changes, setChanges] = useState<SystemChange[]>([
+    { type: 'feature', title: "Implementación del sistema de tickets", description: "" },
+    { type: 'feature', title: "Gestión de clientes y su historial", description: "" },
+    { type: 'feature', title: "Sistema de lealtad con valets gratuitos", description: "" },
+    { type: 'feature', title: "Panel de administración para reiniciar contadores", description: "" }
   ]);
 
   useEffect(() => {
@@ -32,10 +33,7 @@ export const SystemVersion = () => {
           
           // Set changes if available
           if (versionData.changes && versionData.changes.length > 0) {
-            setChanges(versionData.changes.map((change: any) => ({
-              title: change.title,
-              type: change.type
-            })));
+            setChanges(versionData.changes);
           }
         }
       } catch (error) {
