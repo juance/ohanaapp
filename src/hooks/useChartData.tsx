@@ -1,7 +1,8 @@
 
 import { useMemo } from 'react';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { MetricsPeriod } from './useMetricsData';
+
+type MetricsPeriod = 'daily' | 'weekly' | 'monthly';
 
 interface ChartDataResult {
   barData: { name: string; total: number }[];

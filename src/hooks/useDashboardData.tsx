@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import { useMetricsData } from './useMetricsData';
 import { useExpensesData } from './useExpensesData';
 import { useClientData } from './useClientData';
 import { useChartData } from './useChartData';
@@ -25,9 +24,25 @@ interface UseDashboardDataReturn {
 
 export const useDashboardData = (): UseDashboardDataReturn => {
   const [error, setError] = useState<Error | null>(null);
+  const [metricsData, setMetricsData] = useState<any>({
+    daily: null,
+    weekly: null,
+    monthly: {
+      totalTickets: 0,
+      paidTickets: 0,
+      totalRevenue: 0,
+      salesByWeek: {
+        'Week 1': 0,
+        'Week 2': 0,
+        'Week 3': 0,
+        'Week 4': 0
+      },
+      dryCleaningItems: {}
+    }
+  });
+  const [isMetricsLoading, setIsMetricsLoading] = useState(true);
   
   // Use our separated hooks
-  const metricsData = useMetricsData();
   const expensesData = useExpensesData();
   const clientData = useClientData();
   
@@ -36,9 +51,9 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const chartData = useChartData(
     period,
     {
-      daily: metricsData.data?.daily || null,
-      weekly: metricsData.data?.weekly || null,
-      monthly: metricsData.data?.monthly || null
+      daily: metricsData.daily || null,
+      weekly: metricsData.weekly || null,
+      monthly: metricsData.monthly || null
     },
     {
       daily: Number(expensesData.expenses?.daily || 0),
@@ -47,8 +62,49 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     }
   );
   
+  // Simulate metrics data loading
+  const refreshMetricsData = async () => {
+    setIsMetricsLoading(true);
+    try {
+      // In a real app, this would fetch data from an API
+      // For now, we'll just simulate it with a timeout
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Sample data
+      const sampleMetrics = {
+        daily: null,
+        weekly: null,
+        monthly: {
+          totalTickets: 125,
+          paidTickets: 102,
+          totalRevenue: 15780,
+          salesByWeek: {
+            'Week 1': 3450,
+            'Week 2': 4230,
+            'Week 3': 3890,
+            'Week 4': 4210
+          },
+          dryCleaningItems: {
+            'Camisas': 45,
+            'Pantalones': 38,
+            'Vestidos': 22,
+            'Sacos': 15,
+            'Otros': 5
+          }
+        }
+      };
+      
+      setMetricsData(sampleMetrics);
+    } catch (err) {
+      console.error("Error fetching metrics data:", err);
+      setError(err instanceof Error ? err : new Error('Error fetching metrics data'));
+    } finally {
+      setIsMetricsLoading(false);
+    }
+  };
+  
   // Determine overall loading state
-  const isLoading = metricsData.isLoading || expensesData.loading || clientData.loading;
+  const isLoading = isMetricsLoading || expensesData.loading || clientData.loading;
   
   // Function to refresh all data
   const refreshData = async () => {
@@ -56,7 +112,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       toast.info("Actualizando datos del panel...");
       
       await Promise.all([
-        metricsData.refreshData(),
+        refreshMetricsData(),
         expensesData.refreshData(),
         clientData.refreshData()
       ]);
@@ -76,7 +132,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   // Combine data for component consumption
   const combinedData = {
-    metrics: metricsData.data || {},
+    metrics: metricsData || {},
     expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
     clients: clientData.frequentClients || [],
     chartData: chartData || { barData: [], lineData: [], pieData: [] }
@@ -84,7 +140,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   
   return {
     isLoading,
-    error: error || metricsData.error || expensesData.error || clientData.error,
+    error: error || expensesData.error || clientData.error,
     data: combinedData,
     refreshData
   };
