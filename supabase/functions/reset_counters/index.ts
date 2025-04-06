@@ -25,86 +25,25 @@ serve(async (req) => {
     );
 
     const { data: body } = await req.json();
-    const { counter, options } = body || { counter: null, options: {} };
-
     let result;
 
-    switch (counter) {
-      case "tickets":
-        // Reiniciar el contador de tickets
-        const { data: ticketsResult, error: ticketsError } = await supabaseClient.rpc(
-          "reset_ticket_sequence"
-        );
-        
-        if (ticketsError) throw ticketsError;
-        result = { success: true, message: "Numeración de tickets reiniciada a 0" };
-        break;
-        
-      case "clients":
-        // Reiniciar el contador de clientes (valets, puntos, etc.)
-        const { error: clientsError } = await supabaseClient
-          .from("customers")
-          .update({
-            loyalty_points: 0,
-            free_valets: 0,
-            valets_count: 0,
-            valets_redeemed: 0
-          })
-          .eq("id", options?.clientId || "all")
-          .is("id", options?.clientId ? null : "not.null");
-          
-        if (clientsError) throw clientsError;
-        result = { success: true, message: "Contadores de clientes reiniciados" };
-        break;
-        
-      case "revenue":
-        // Reiniciar los datos de ingresos
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        const { error: revenueError } = await supabaseClient
-          .from("tickets")
-          .update({
-            total: 0,
-            is_paid: false
-          })
-          .gte("created_at", thirtyDaysAgo.toISOString())
-          .is("is_canceled", false);
-          
-        if (revenueError) throw revenueError;
-        result = { success: true, message: "Datos de ingresos reiniciados" };
-        break;
-
-      case "all":
-        // Reiniciar todos los contadores
-        const resetTickets = await supabaseClient.rpc("reset_ticket_sequence");
-        
-        const resetClients = await supabaseClient
-          .from("customers")
-          .update({
-            loyalty_points: 0,
-            free_valets: 0,
-            valets_count: 0,
-            valets_redeemed: 0
-          });
-          
-        const resetRevenue = await supabaseClient
-          .from("tickets")
-          .update({
-            total: 0,
-            is_paid: false
-          })
-          .is("is_canceled", false);
-          
-        if (resetTickets.error || resetClients.error || resetRevenue.error) {
-          throw new Error("Error al reiniciar todos los contadores");
-        }
-        
-        result = { success: true, message: "Todos los contadores han sido reiniciados" };
-        break;
-        
-      default:
-        throw new Error("Contador no válido");
+    // Check if the request is for resetting all counters
+    if (body.counter === "all") {
+      console.log("Resetting all counters");
+      result = await resetAllCounters(supabaseClient);
+    } 
+    // Check if the request is for resetting dashboard counters
+    else if (body.counters) {
+      console.log("Resetting dashboard counters:", body.counters);
+      result = await resetDashboardCounters(supabaseClient, body.counters);
+    }
+    // Check if the request is for resetting a specific counter
+    else if (body.counter) {
+      console.log("Resetting specific counter:", body.counter);
+      result = await resetSpecificCounter(supabaseClient, body.counter, body.options || {});
+    }
+    else {
+      throw new Error("Invalid request format");
     }
 
     return new Response(JSON.stringify(result), {
@@ -112,7 +51,7 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error en reset_counters:", error);
+    console.error("Error in reset_counters:", error);
     return new Response(
       JSON.stringify({ error: error.message || "Error al reiniciar contadores" }),
       {
@@ -122,3 +61,283 @@ serve(async (req) => {
     );
   }
 });
+
+async function resetAllCounters(supabaseClient) {
+  try {
+    // Reset ticket sequence
+    await supabaseClient.rpc("reset_ticket_sequence");
+    
+    // Delete ticket_laundry_options (need to delete these first due to foreign key constraints)
+    await supabaseClient
+      .from('ticket_laundry_options')
+      .delete()
+      .not('id', 'is', null);
+
+    // Delete dry_cleaning_items (need to delete these first due to foreign key constraints)
+    await supabaseClient
+      .from('dry_cleaning_items')
+      .delete()
+      .not('id', 'is', null);
+
+    // Delete all tickets
+    await supabaseClient
+      .from('tickets')
+      .delete()
+      .not('id', 'is', null);
+      
+    // Reset client counters
+    await supabaseClient
+      .from("customers")
+      .update({
+        loyalty_points: 0,
+        free_valets: 0,
+        valets_count: 0,
+        valets_redeemed: 0
+      })
+      .not('id', 'is', null);
+      
+    // Delete expenses
+    await supabaseClient
+      .from('expenses')
+      .delete()
+      .not('id', 'is', null);
+    
+    return { 
+      success: true, 
+      message: "Todos los contadores han sido reiniciados exitosamente" 
+    };
+  } catch (error) {
+    console.error("Error resetting all counters:", error);
+    throw error;
+  }
+}
+
+async function resetDashboardCounters(supabaseClient, counters) {
+  const results = {
+    tickets: false,
+    paidTickets: false,
+    revenue: false,
+    expenses: false,
+    freeValets: false
+  };
+
+  try {
+    // Reset tickets counter
+    if (counters.tickets) {
+      try {
+        // Delete ticket_laundry_options (need to delete these first due to foreign key constraints)
+        await supabaseClient
+          .from('ticket_laundry_options')
+          .delete()
+          .not('id', 'is', null);
+
+        // Delete dry_cleaning_items (need to delete these first due to foreign key constraints)
+        await supabaseClient
+          .from('dry_cleaning_items')
+          .delete()
+          .not('id', 'is', null);
+
+        // Delete all tickets
+        await supabaseClient
+          .from('tickets')
+          .delete()
+          .not('id', 'is', null);
+
+        // Reset ticket sequence
+        await supabaseClient.rpc("reset_ticket_sequence");
+
+        results.tickets = true;
+        console.log('Tickets counter reset successfully');
+      } catch (error) {
+        console.error('Error resetting tickets counter:', error);
+      }
+    }
+
+    // Reset paid tickets counter
+    if (counters.paidTickets) {
+      try {
+        // If tickets are already reset, we don't need to do anything extra
+        if (results.tickets) {
+          results.paidTickets = true;
+        } else {
+          // Update all tickets to be unpaid
+          await supabaseClient
+            .from('tickets')
+            .update({
+              is_paid: false,
+              payment_method: null
+            })
+            .not('id', 'is', null);
+
+          results.paidTickets = true;
+          console.log('Paid tickets counter reset successfully');
+        }
+      } catch (error) {
+        console.error('Error resetting paid tickets counter:', error);
+      }
+    }
+
+    // Reset revenue data
+    if (counters.revenue) {
+      try {
+        // If tickets are already reset, we don't need to do anything extra for revenue
+        if (results.tickets) {
+          results.revenue = true;
+        } else {
+          // Update all tickets to have zero revenue
+          await supabaseClient
+            .from('tickets')
+            .update({
+              total: 0
+            })
+            .not('id', 'is', null);
+
+          results.revenue = true;
+          console.log('Revenue data reset successfully');
+        }
+      } catch (error) {
+        console.error('Error resetting revenue data:', error);
+      }
+    }
+
+    // Reset expenses data
+    if (counters.expenses) {
+      try {
+        // Delete all expenses
+        await supabaseClient
+          .from('expenses')
+          .delete()
+          .not('id', 'is', null);
+
+        results.expenses = true;
+        console.log('Expenses data reset successfully');
+      } catch (error) {
+        console.error('Error resetting expenses data:', error);
+      }
+    }
+
+    // Reset free valets counter
+    if (counters.freeValets) {
+      try {
+        // Reset free valets in customers table
+        await supabaseClient
+          .from('customers')
+          .update({
+            free_valets: 0,
+            valets_count: 0,
+            valets_redeemed: 0
+          })
+          .not('id', 'is', null);
+
+        results.freeValets = true;
+        console.log('Free valets counter reset successfully');
+      } catch (error) {
+        console.error('Error resetting free valets counter:', error);
+      }
+    }
+
+    // Check if at least one counter was reset successfully
+    const success = Object.values(results).some(Boolean);
+    
+    return {
+      success,
+      results,
+      message: success 
+        ? "Los contadores seleccionados han sido reiniciados exitosamente" 
+        : "No se pudo reiniciar ningún contador"
+    };
+  } catch (error) {
+    console.error("Error resetting dashboard counters:", error);
+    throw error;
+  }
+}
+
+async function resetSpecificCounter(supabaseClient, counter, options) {
+  try {
+    switch (counter) {
+      case "tickets":
+        // Reset ticket sequence
+        await supabaseClient.rpc("reset_ticket_sequence");
+        
+        // Delete ticket_laundry_options (need to delete these first due to foreign key constraints)
+        await supabaseClient
+          .from('ticket_laundry_options')
+          .delete()
+          .not('id', 'is', null);
+
+        // Delete dry_cleaning_items (need to delete these first due to foreign key constraints)
+        await supabaseClient
+          .from('dry_cleaning_items')
+          .delete()
+          .not('id', 'is', null);
+
+        // Delete all tickets
+        await supabaseClient
+          .from('tickets')
+          .delete()
+          .not('id', 'is', null);
+          
+        return { 
+          success: true, 
+          message: "Numeración de tickets reiniciada a 0" 
+        };
+        
+      case "clients":
+        // Reset client counters
+        await supabaseClient
+          .from("customers")
+          .update({
+            loyalty_points: 0,
+            free_valets: 0,
+            valets_count: 0,
+            valets_redeemed: 0
+          })
+          .not('id', 'is', null);
+          
+        return { 
+          success: true, 
+          message: "Contadores de clientes reiniciados" 
+        };
+        
+      case "revenue":
+        // Reset revenue data
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        await supabaseClient
+          .from('tickets')
+          .update({
+            total: 0,
+            is_paid: false
+          })
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .is('is_canceled', false);
+          
+        return { 
+          success: true, 
+          message: "Datos de ingresos reiniciados" 
+        };
+
+      case "loyalty":
+        // Reset loyalty points and free valets
+        await supabaseClient
+          .from("customers")
+          .update({
+            loyalty_points: 0,
+            free_valets: 0
+          })
+          .not('id', 'is', null);
+          
+        return { 
+          success: true, 
+          message: "Puntos de fidelidad y valets gratuitos reiniciados" 
+        };
+        
+      default:
+        throw new Error("Contador no válido");
+    }
+  } catch (error) {
+    console.error(`Error resetting counter "${counter}":`, error);
+    throw error;
+  }
+}

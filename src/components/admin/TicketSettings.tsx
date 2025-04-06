@@ -1,0 +1,166 @@
+
+import React from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "@/lib/toast";
+import { AlertTriangle, Clock, AlertCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+export const TicketSettings = () => {
+  const [isResetingTicketNumbers, setIsResetingTicketNumbers] = React.useState(false);
+  const [noRetired45Days, setNoRetired45Days] = React.useState(0);
+  const [noRetired90Days, setNoRetired90Days] = React.useState(0);
+
+  React.useEffect(() => {
+    loadUnretiredTickets();
+  }, []);
+
+  const loadUnretiredTickets = async () => {
+    try {
+      // Get current date
+      const now = new Date();
+      
+      // Calculate dates for 45 and 90 days ago
+      const date45DaysAgo = new Date(now);
+      date45DaysAgo.setDate(now.getDate() - 45);
+      
+      const date90DaysAgo = new Date(now);
+      date90DaysAgo.setDate(now.getDate() - 90);
+      
+      // Query for tickets not retired after 45 days but less than 90 days
+      const { data: tickets45Days, error: error45Days } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('status', 'ready')
+        .eq('is_canceled', false)
+        .lt('date', date45DaysAgo.toISOString())
+        .gte('date', date90DaysAgo.toISOString());
+      
+      if (error45Days) throw error45Days;
+      
+      // Query for tickets not retired after 90 days
+      const { data: tickets90Days, error: error90Days } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('status', 'ready')
+        .eq('is_canceled', false)
+        .lt('date', date90DaysAgo.toISOString());
+      
+      if (error90Days) throw error90Days;
+      
+      setNoRetired45Days(tickets45Days?.length || 0);
+      setNoRetired90Days(tickets90Days?.length || 0);
+    } catch (error) {
+      console.error("Error loading unretired tickets:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudieron cargar los tickets no retirados."
+      });
+    }
+  };
+
+  const handleResetTicketNumbers = async () => {
+    setIsResetingTicketNumbers(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("reset_counters", {
+        body: { counter: "tickets" }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Numeración reiniciada",
+        description: "La numeración de tickets ha sido reiniciada exitosamente."
+      });
+    } catch (error) {
+      console.error("Error resetting ticket numbers:", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo reiniciar la numeración de tickets."
+      });
+    } finally {
+      setIsResetingTicketNumbers(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center">
+            <AlertTriangle className="h-5 w-5 text-amber-500 mr-2" />
+            <CardTitle>Alertas de Tickets No Retirados</CardTitle>
+          </div>
+          <CardDescription>
+            Tickets que no han sido retirados por los clientes después de 45 y 90 días
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={`rounded-lg border p-4 ${noRetired45Days > 0 ? 'bg-blue-50' : ''}`}>
+              <div className="flex items-center mb-2">
+                <Clock className="h-5 w-5 text-blue-500 mr-2" />
+                <h3 className="font-medium">Tickets sin retirar por más de 45 días</h3>
+              </div>
+              
+              {noRetired45Days > 0 ? (
+                <p className="text-sm">
+                  Hay <strong>{noRetired45Days}</strong> tickets que no han sido retirados en los últimos 45 días.
+                </p>
+              ) : (
+                <p className="text-sm text-amber-700">No hay tickets sin retirar desde hace 45 días.</p>
+              )}
+            </div>
+            
+            <div className={`rounded-lg border p-4 ${noRetired90Days > 0 ? 'bg-amber-50' : ''}`}>
+              <div className="flex items-center mb-2">
+                <AlertCircle className="h-5 w-5 text-amber-500 mr-2" />
+                <h3 className="font-medium">Tickets sin retirar por más de 90 días (prendas a donar)</h3>
+              </div>
+              
+              {noRetired90Days > 0 ? (
+                <p className="text-sm">
+                  Hay <strong>{noRetired90Days}</strong> tickets con prendas que pueden ser donadas.
+                </p>
+              ) : (
+                <p className="text-sm text-amber-700">No hay tickets sin retirar desde hace 90 días.</p>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Reiniciar Numeración de Tickets</CardTitle>
+          <CardDescription>
+            Esta acción reiniciará la secuencia de números de tickets para que comience desde 1 nuevamente
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="warning">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Precaución</AlertTitle>
+            <AlertDescription>
+              Use esta función con precaución. El reinicio de la numeración de tickets afectará a todos los tickets 
+              nuevos que se generen a partir de este momento.
+            </AlertDescription>
+          </Alert>
+          
+          <div className="flex justify-end">
+            <Button 
+              variant="secondary"
+              onClick={handleResetTicketNumbers}
+              disabled={isResetingTicketNumbers}
+            >
+              {isResetingTicketNumbers ? "Reiniciando..." : "Reiniciar Numeración"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};

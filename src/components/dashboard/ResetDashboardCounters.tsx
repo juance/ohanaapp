@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
 import { RotateCcw } from "lucide-react";
-import { resetDashboardCounters } from '@/lib/resetDashboardService';
+import { supabase } from "@/integrations/supabase/client";
 import { CounterCheckboxes } from './counters/CounterCheckboxes';
 import { InfoWarning } from './counters/InfoWarning';
 import { ResetConfirmDialog } from './counters/ResetConfirmDialog';
@@ -27,27 +27,31 @@ export const ResetDashboardCounters = () => {
   const handleResetCounters = async () => {
     setIsResetting(true);
     try {
-      // Call the resetDashboardCounters function with the selected counters
-      const success = await resetDashboardCounters(selectedCounters);
+      // Create payload based on selected counters
+      const payload = { 
+        counters: selectedCounters,
+        options: {}
+      };
+      
+      // Call the Supabase function to reset counters
+      const { data, error } = await supabase.functions.invoke("reset_counters", {
+        body: payload
+      });
 
-      if (success) {
-        toast.success("Contadores del dashboard reiniciados", {
-          description: "Los contadores del dashboard han sido reiniciados exitosamente."
-        });
+      if (error) throw error;
 
-        // Refresh the page after a short delay to show updated data
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } else {
-        toast.error("Error al reiniciar contadores del dashboard", {
-          description: "Algunos contadores no pudieron ser reiniciados."
-        });
-      }
+      toast.success("Contadores del dashboard reiniciados", {
+        description: "Los contadores del dashboard han sido reiniciados exitosamente."
+      });
+
+      // Refresh the page after a short delay to show updated data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
     } catch (error) {
       console.error('Error resetting dashboard counters:', error);
       toast.error("Error al reiniciar contadores del dashboard", {
-        description: "Ocurrió un error al reiniciar los contadores del dashboard."
+        description: error instanceof Error ? error.message : "Ocurrió un error al reiniciar los contadores del dashboard."
       });
     } finally {
       setIsResetting(false);

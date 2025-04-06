@@ -1,9 +1,10 @@
 
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 import { storeTicketData } from '@/lib/dataService';
 import { LaundryOption, Ticket } from '@/lib/types';
 import { dryCleaningItems } from '@/components/DryCleaningOptions';
 import { getNextTicketNumber } from '@/lib/data/ticket/ticketNumberService';
+import { supabase } from '@/integrations/supabase/client';
 
 // Types for the combined form state
 interface TicketFormState {
@@ -21,7 +22,7 @@ interface TicketFormState {
   resetValetForm: () => void;
   resetDryCleaningForm: () => void;
   resetTicketFormState: () => void;
-  isPaidInAdvance?: boolean; // Add the new optional field
+  isPaidInAdvance?: boolean;
 }
 
 export const useTicketFormSubmit = (
@@ -69,7 +70,7 @@ export const useTicketFormSubmit = (
       return;
     }
     
-    // Ajustamos la cantidad de valets si se usa uno gratis
+    // Adjust the valet quantity if using a free one
     const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
     
     try {
@@ -79,7 +80,7 @@ export const useTicketFormSubmit = (
         paymentMethod: paymentMethod as any,
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
         customDate: date, // Now all users can set a custom date
-        usesFreeValet: useFreeValet, // Indicamos si se está usando un valet gratis
+        usesFreeValet: useFreeValet, // Indicate if a free valet is being used
         isPaidInAdvance: isPaidInAdvance // Add the paid in advance flag
       };
       
@@ -111,8 +112,23 @@ export const useTicketFormSubmit = (
         dryCleaningItemsData,
         laundryOptions
       );
-      
+
       if (success) {
+        // After successfully creating a ticket, update dashboard metrics
+        try {
+          await updateDashboardMetrics({
+            ticketType: activeTab,
+            isPaid: isPaidInAdvance || false,
+            total: useFreeValet ? 0 : totalPrice,
+            items: dryCleaningItemsData,
+            valetQuantity: effectiveValetQuantity,
+            usesFreeValet: useFreeValet
+          });
+        } catch (metricsError) {
+          console.error("Error updating dashboard metrics:", metricsError);
+          // This error shouldn't block the ticket creation process
+        }
+
         if (useFreeValet) {
           toast.success('Ticket de valet gratis generado correctamente');
         } else if (isPaidInAdvance) {
@@ -169,6 +185,135 @@ export const useTicketFormSubmit = (
     } catch (error) {
       console.error('Error submitting ticket:', error);
       toast.error('Error al generar el ticket');
+    }
+  };
+
+  // Helper function to update dashboard metrics
+  const updateDashboardMetrics = async (data: {
+    ticketType: string;
+    isPaid: boolean;
+    total: number;
+    items: any[];
+    valetQuantity: number;
+    usesFreeValet: boolean;
+  }) => {
+    try {
+      // Get current date for grouping metrics
+      const now = new Date();
+      const today = now.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+      
+      // Get existing stats or create new
+      const { data: existingStats, error: fetchError } = await supabase
+        .from('dashboard_stats')
+        .select('*')
+        .eq('stats_date', today)
+        .maybeSingle();
+      
+      if (fetchError) throw fetchError;
+      
+      // Prepare stats data
+      let statsData: any = existingStats?.stats_data || {
+        daily_total_tickets: 0,
+        daily_paid_tickets: 0,
+        daily_total_revenue: 0,
+        daily_sales_by_hour: {},
+        daily_valet_count: 0,
+        daily_free_valets: 0,
+        daily_dry_cleaning_items: {},
+        
+        weekly_total_tickets: 0,
+        weekly_paid_tickets: 0,
+        weekly_total_revenue: 0,
+        weekly_valets_count: 0,
+        weekly_free_valets: 0,
+        weekly_dry_cleaning_items: {},
+        
+        monthly_total_tickets: 0,
+        monthly_paid_tickets: 0,
+        monthly_total_revenue: 0,
+        monthly_valets_count: 0,
+        monthly_free_valets: 0,
+        monthly_dry_cleaning_items: {}
+      };
+      
+      // Update ticket counts
+      statsData.daily_total_tickets += 1;
+      statsData.weekly_total_tickets += 1;
+      statsData.monthly_total_tickets += 1;
+      
+      // Update paid ticket counts if applicable
+      if (data.isPaid) {
+        statsData.daily_paid_tickets += 1;
+        statsData.weekly_paid_tickets += 1;
+        statsData.monthly_paid_tickets += 1;
+      }
+      
+      // Update revenue if there's a total
+      if (data.total > 0) {
+        statsData.daily_total_revenue += data.total;
+        statsData.weekly_total_revenue += data.total;
+        statsData.monthly_total_revenue += data.total;
+        
+        // Update sales by hour
+        const currentHour = now.getHours().toString();
+        statsData.daily_sales_by_hour[currentHour] = (statsData.daily_sales_by_hour[currentHour] || 0) + data.total;
+      }
+      
+      // Update valet counts
+      if (data.ticketType === 'valet') {
+        statsData.daily_valet_count += data.valetQuantity;
+        statsData.weekly_valets_count += data.valetQuantity;
+        statsData.monthly_valets_count += data.valetQuantity;
+        
+        // Update free valets count
+        if (data.usesFreeValet) {
+          statsData.daily_free_valets = (statsData.daily_free_valets || 0) + 1;
+          statsData.weekly_free_valets = (statsData.weekly_free_valets || 0) + 1;
+          statsData.monthly_free_valets = (statsData.monthly_free_valets || 0) + 1;
+        }
+      }
+      
+      // Update dry cleaning items count
+      if (data.ticketType === 'tintoreria' && data.items.length > 0) {
+        for (const item of data.items) {
+          // Update daily counts
+          statsData.daily_dry_cleaning_items[item.name] = (statsData.daily_dry_cleaning_items[item.name] || 0) + item.quantity;
+          
+          // Update weekly counts
+          statsData.weekly_dry_cleaning_items[item.name] = (statsData.weekly_dry_cleaning_items[item.name] || 0) + item.quantity;
+          
+          // Update monthly counts
+          statsData.monthly_dry_cleaning_items[item.name] = (statsData.monthly_dry_cleaning_items[item.name] || 0) + item.quantity;
+        }
+      }
+      
+      // Save updated stats
+      if (existingStats) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('dashboard_stats')
+          .update({
+            stats_data: statsData
+          })
+          .eq('id', existingStats.id);
+        
+        if (updateError) throw updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('dashboard_stats')
+          .insert({
+            stats_date: today,
+            stats_data: statsData
+          });
+        
+        if (insertError) throw insertError;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Error updating dashboard metrics:", error);
+      return false;
     }
   };
 

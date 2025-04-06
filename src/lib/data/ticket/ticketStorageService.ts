@@ -11,7 +11,8 @@ import {
   getCustomerByPhone, 
   storeCustomer, 
   updateValetsCount, 
-  useFreeValet 
+  useFreeValet,
+  updateLoyaltyPoints
 } from '../customerService';
 import { getNextTicketNumber } from './ticketNumberService';
 
@@ -26,7 +27,7 @@ export const storeTicketData = async (
     valetQuantity: number;
     customDate?: Date;
     usesFreeValet?: boolean;
-    isPaidInAdvance?: boolean; // Add the new field
+    isPaidInAdvance?: boolean;
   },
   customer: { name: string; phoneNumber: string },
   dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
@@ -60,16 +61,24 @@ export const storeTicketData = async (
         throw new Error('Client has no free valets available');
       }
     } 
-    // If not a free valet and there are valets, update the count
+    // If not a free valet and there are valets, update the count and add loyalty points
     else if (ticket.valetQuantity > 0) {
       await updateValetsCount(customerId, ticket.valetQuantity);
+      
+      // Add loyalty points for valets (10 points per valet)
+      const pointsToAdd = ticket.valetQuantity * 10;
+      
+      if (pointsToAdd > 0) {
+        await updateLoyaltyPoints(customerId, pointsToAdd);
+        console.log(`Added ${pointsToAdd} loyalty points for ${ticket.valetQuantity} valets`);
+      }
     }
     
     // Prepare date field - use custom date if provided, otherwise use current date
     const ticketDate = ticket.customDate ? ticket.customDate.toISOString() : new Date().toISOString();
     
     // Get next ticket number
-    const ticketNumber = await getNextTicketNumber();
+    const ticketNumber = ticket.ticketNumber || await getNextTicketNumber();
     
     // Insert ticket with 'ready' status by default
     const { data: ticketData, error: ticketError } = await supabase
@@ -82,6 +91,7 @@ export const storeTicketData = async (
         customer_id: customerId,
         status: 'ready', // Set status to ready by default
         date: ticketDate,
+        created_at: ticketDate,
         is_paid: ticket.isPaidInAdvance || false // Set paid status based on the isPaidInAdvance flag
       })
       .select('*')
@@ -91,7 +101,7 @@ export const storeTicketData = async (
     
     // Assign a basket ticket number to the new ticket
     try {
-      await supabase.rpc('assign_basket_ticket_number', {
+      await supabase.rpc("assign_basket_ticket_number", {
         ticket_id: ticketData.id
       });
     } catch (basketNumberError) {

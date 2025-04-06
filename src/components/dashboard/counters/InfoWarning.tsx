@@ -9,13 +9,13 @@ export const InfoWarning: React.FC = () => {
       <div className="text-green-800 text-sm">
         <p className="font-medium">Esta acción reiniciará:</p>
         <ul className="list-disc pl-5 mt-1 space-y-1">
-          <li>Contadores de tickets</li>
-          <li>Contadores de tickets pagados</li>
-          <li>Datos de ingresos</li>
-          <li>Datos de gastos</li>
-          <li>Contadores de valets gratis</li>
+          <li>Contadores de tickets y ventas en el dashboard</li>
+          <li>Estado de pago de tickets</li>
+          <li>Ingresos registrados</li>
+          <li>Gastos registrados</li>
+          <li>Valets gratuitos asignados a clientes</li>
         </ul>
-        <p className="mt-2 font-medium">Los datos de clientes se mantendrán, pero sus contadores se reiniciarán a cero.</p>
+        <p className="mt-2 font-medium">Los datos de clientes se mantendrán, pero los contadores relacionados se reiniciarán a cero.</p>
       </div>
     </div>
   );
