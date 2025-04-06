@@ -21,7 +21,7 @@ const ChartTabs = ({ chartData, loading = false }: ChartTabsProps) => {
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value
+      value: Number(value) // Explicitly convert to number to fix type issue
     }));
   };
   
