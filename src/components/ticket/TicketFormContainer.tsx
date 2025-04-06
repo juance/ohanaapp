@@ -1,19 +1,16 @@
+
 import React from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { LaundryOption, Ticket } from '@/lib/types';
 
 import { useTicketForm } from '@/hooks/useTicketForm';
 import { useCustomerLookup } from '@/hooks/useCustomerLookup';
 import { useTicketPrice } from '@/hooks/useTicketPrice';
 
-import { CustomerForm } from './CustomerForm';
-import { CustomerLookup } from './CustomerLookup';
-import { DateSelector } from './DateSelector';
-import { ValetTab } from './ValetTab';
-import { DryCleaningTab } from './DryCleaningTab';
+import FormHeader from './FormHeader';
+import CustomerSection from './CustomerSection';
+import ServiceTabsContainer from './ServiceTabsContainer';
+import FormSubmitSection from './FormSubmitSection';
 import { FreeValetDialog } from './FreeValetDialog';
 
 interface TicketFormContainerProps {
@@ -87,103 +84,56 @@ export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-xl">Formulario de Ticket</CardTitle>
-        <CardDescription>Genere tickets para valets o tintorería</CardDescription>
-      </CardHeader>
+      <FormHeader />
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Customer information section */}
-          <div className="space-y-4">
-            <CustomerForm 
-              customerName={customerName}
-              setCustomerName={setCustomerName}
-              phoneNumber={phoneNumber}
-              setPhoneNumber={setPhoneNumber}
-            />
-            
-            <CustomerLookup 
-              lookupPhone={lookupPhone}
-              setLookupPhone={setLookupPhone}
-              handleCustomerLookup={handleLookupCustomer}
-              foundCustomer={foundCustomer}
-              activeTab={activeTab}
-              useFreeValet={useFreeValet}
-              setShowFreeValetDialog={setShowFreeValetDialog}
-            />
-            
-            <Separator className="my-4" />
-            
-            <DateSelector date={date} setDate={setDate} />
-            
-            <Separator className="my-4" />
-            
-            {/* Service Type Tabs */}
-            <Tabs value={activeTab} onValueChange={(val) => {
-              setActiveTab(val);
-              // Resetear el uso de valet gratis al cambiar de pestaña
-              setUseFreeValet(false);
-            }}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="valet">Valet</TabsTrigger>
-                <TabsTrigger value="tintoreria">Tintorería</TabsTrigger>
-              </TabsList>
-              
-              {/* Valet Tab Content */}
-              <TabsContent value="valet" className="mt-4">
-                <ValetTab 
-                  valetQuantity={valetQuantity}
-                  setValetQuantity={setValetQuantity}
-                  paymentMethod={paymentMethod}
-                  handlePaymentMethodChange={handlePaymentMethodChange}
-                  totalPrice={totalPrice}
-                  useFreeValet={useFreeValet}
-                  separateByColor={separateByColor}
-                  setSeparateByColor={setSeparateByColor}
-                  delicateDry={delicateDry}
-                  setDelicateDry={setDelicateDry}
-                  stainRemoval={stainRemoval}
-                  setStainRemoval={setStainRemoval}
-                  bleach={bleach}
-                  setBleach={setBleach}
-                  noFragrance={noFragrance}
-                  setNoFragrance={setNoFragrance}
-                  noDry={noDry}
-                  setNoDry={setNoDry}
-                />
-              </TabsContent>
-              
-              {/* Dry Cleaning Tab Content */}
-              <TabsContent value="tintoreria" className="mt-4">
-                <DryCleaningTab 
-                  paymentMethod={paymentMethod}
-                  handlePaymentMethodChange={handlePaymentMethodChange}
-                  totalPrice={totalPrice}
-                  selectedDryCleaningItems={selectedDryCleaningItems}
-                  setSelectedDryCleaningItems={setSelectedDryCleaningItems}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+          <CustomerSection 
+            customerName={customerName}
+            setCustomerName={setCustomerName}
+            phoneNumber={phoneNumber}
+            setPhoneNumber={setPhoneNumber}
+            lookupPhone={lookupPhone}
+            setLookupPhone={setLookupPhone}
+            handleCustomerLookup={handleLookupCustomer}
+            foundCustomer={foundCustomer}
+            activeTab={activeTab}
+            useFreeValet={useFreeValet}
+            setShowFreeValetDialog={setShowFreeValetDialog}
+            date={date}
+            setDate={setDate}
+          />
           
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="paidInAdvance"
-                checked={isPaidInAdvance}
-                onChange={() => setIsPaidInAdvance(!isPaidInAdvance)}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <label htmlFor="paidInAdvance" className="text-sm font-medium">
-                Cliente dejó pago (Pagado por adelantado)
-              </label>
-            </div>
-            
-            <Button type="submit" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
-              Generar Ticket
-            </Button>
-          </div>
+          {/* Service Type Tabs */}
+          <ServiceTabsContainer 
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            valetQuantity={valetQuantity}
+            setValetQuantity={setValetQuantity}
+            paymentMethod={paymentMethod}
+            handlePaymentMethodChange={handlePaymentMethodChange}
+            totalPrice={totalPrice}
+            useFreeValet={useFreeValet}
+            separateByColor={separateByColor}
+            setSeparateByColor={setSeparateByColor}
+            delicateDry={delicateDry}
+            setDelicateDry={setDelicateDry}
+            stainRemoval={stainRemoval}
+            setStainRemoval={setStainRemoval}
+            bleach={bleach}
+            setBleach={setBleach}
+            noFragrance={noFragrance}
+            setNoFragrance={setNoFragrance}
+            noDry={noDry}
+            setNoDry={setNoDry}
+            selectedDryCleaningItems={selectedDryCleaningItems}
+            setSelectedDryCleaningItems={setSelectedDryCleaningItems}
+          />
+          
+          <FormSubmitSection 
+            isPaidInAdvance={isPaidInAdvance}
+            setIsPaidInAdvance={setIsPaidInAdvance}
+          />
         </form>
       </CardContent>
 
