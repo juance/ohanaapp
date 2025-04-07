@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from './types';
@@ -89,26 +90,26 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     }
     
     // Build the query based on whether the column exists
-    let query = supabase
+    const selectColumns = `
+      id,
+      ticket_number,
+      basket_ticket_number,
+      total,
+      payment_method,
+      status,
+      created_at,
+      updated_at,
+      is_paid,
+      customer_id
+      ${hasDeliveredDateColumn ? ',delivered_date' : ''}
+    `;
+    
+    const { data, error } = await supabase
       .from('tickets')
-      .select(`
-        id,
-        ticket_number,
-        basket_ticket_number,
-        total,
-        payment_method,
-        status,
-        created_at,
-        updated_at,
-        is_paid,
-        customer_id
-        ${hasDeliveredDateColumn ? ', delivered_date' : ''}
-      `)
+      .select(selectColumns)
       .eq('status', 'delivered')
       .eq('is_canceled', false) // Only show non-canceled tickets
       .order('updated_at', { ascending: false });
-
-    const { data, error } = await query;
 
     if (error) throw error;
 
