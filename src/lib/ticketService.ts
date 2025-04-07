@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from './types';
@@ -75,14 +74,23 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 // Get tickets that have been delivered
 export const getDeliveredTickets = async (): Promise<Ticket[]> => {
   try {
-    // First check if delivered_date column exists
-    const { data: columnCheck } = await supabase
-      .from('tickets')
-      .select('delivered_date')
-      .limit(1)
-      .maybeSingle();
+    // First check if the tickets table has a delivered_date column
+    let hasDeliveredDateColumn = false;
+    try {
+      const { data: columnCheck, error: columnError } = await supabase
+        .from('tickets')
+        .select('delivered_date')
+        .limit(1);
+      
+      if (!columnError) {
+        hasDeliveredDateColumn = true;
+      }
+    } catch (error) {
+      console.error('Error checking for delivered_date column:', error);
+      hasDeliveredDateColumn = false;
+    }
     
-    // Construct the query string correctly
+    // Build the query based on whether the column exists
     let queryString = `
       id,
       ticket_number,
@@ -96,8 +104,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       customer_id
     `;
     
-    // Add delivered_date only if the column exists
-    if (columnCheck !== null) {
+    if (hasDeliveredDateColumn) {
       queryString += `, delivered_date`;
     }
     
@@ -137,7 +144,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status
         createdAt: ticket.created_at,
         updatedAt: ticket.updated_at,
-        deliveredDate: ticket.delivered_date,
+        deliveredDate: hasDeliveredDateColumn ? ticket.delivered_date : undefined,
         isPaid: ticket.is_paid
       });
     }
@@ -158,12 +165,21 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 // Mark a ticket as delivered
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
-    // First check if delivered_date column exists
-    const { data: columnCheck } = await supabase
-      .from('tickets')
-      .select('delivered_date')
-      .limit(1)
-      .maybeSingle();
+    // First check if the tickets table has a delivered_date column
+    let hasDeliveredDateColumn = false;
+    try {
+      const { data: columnCheck, error: columnError } = await supabase
+        .from('tickets')
+        .select('delivered_date')
+        .limit(1);
+      
+      if (!columnError) {
+        hasDeliveredDateColumn = true;
+      }
+    } catch (error) {
+      console.error('Error checking for delivered_date column:', error);
+      hasDeliveredDateColumn = false;
+    }
     
     const updateData: Record<string, any> = {
       status: 'delivered',
@@ -172,7 +188,7 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     };
     
     // Only add delivered_date if the column exists
-    if (columnCheck !== null) {
+    if (hasDeliveredDateColumn) {
       updateData.delivered_date = new Date().toISOString();
     }
 
