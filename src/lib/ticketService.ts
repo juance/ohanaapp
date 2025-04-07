@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from './types';
@@ -78,43 +77,38 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     // First check if the tickets table has a delivered_date column
     let hasDeliveredDateColumn = false;
     try {
-      const { data: columnCheck, error: columnError } = await supabase
+      const { data: columnCheck } = await supabase
         .from('tickets')
         .select('delivered_date')
         .limit(1);
       
-      if (!columnError) {
-        hasDeliveredDateColumn = true;
-      }
+      hasDeliveredDateColumn = columnCheck !== null;
     } catch (error) {
       console.error('Error checking for delivered_date column:', error);
       hasDeliveredDateColumn = false;
     }
     
     // Build the query based on whether the column exists
-    let queryString = `
-      id,
-      ticket_number,
-      basket_ticket_number,
-      total,
-      payment_method,
-      status,
-      created_at,
-      updated_at,
-      is_paid,
-      customer_id
-    `;
-    
-    if (hasDeliveredDateColumn) {
-      queryString += `, delivered_date`;
-    }
-    
-    const { data, error } = await supabase
+    let query = supabase
       .from('tickets')
-      .select(queryString)
+      .select(`
+        id,
+        ticket_number,
+        basket_ticket_number,
+        total,
+        payment_method,
+        status,
+        created_at,
+        updated_at,
+        is_paid,
+        customer_id
+        ${hasDeliveredDateColumn ? ', delivered_date' : ''}
+      `)
       .eq('status', 'delivered')
       .eq('is_canceled', false) // Only show non-canceled tickets
       .order('updated_at', { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -173,14 +167,12 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     // First check if the tickets table has a delivered_date column
     let hasDeliveredDateColumn = false;
     try {
-      const { data: columnCheck, error: columnError } = await supabase
+      const { data: columnCheck } = await supabase
         .from('tickets')
         .select('delivered_date')
         .limit(1);
       
-      if (!columnError) {
-        hasDeliveredDateColumn = true;
-      }
+      hasDeliveredDateColumn = columnCheck !== null;
     } catch (error) {
       console.error('Error checking for delivered_date column:', error);
       hasDeliveredDateColumn = false;
