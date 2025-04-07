@@ -137,6 +137,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     for (const rawTicketData of data) {
       // Skip invalid ticket data with additional safety check
       if (!rawTicketData || typeof rawTicketData !== 'object' || !rawTicketData.id) {
+        console.error('Invalid ticket data received:', rawTicketData);
         continue;
       }
       
