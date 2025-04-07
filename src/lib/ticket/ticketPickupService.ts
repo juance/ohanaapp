@@ -5,6 +5,7 @@ import { Ticket } from '../types';
 import { getTicketServices } from './ticketServiceCore';
 import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 import { subDays } from 'date-fns';
+import { handleError } from '../utils/errorHandling';
 
 // Get tickets that are ready for pickup
 export const getPickupTickets = async (): Promise<Ticket[]> => {
@@ -45,10 +46,13 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
             continue;
           }
 
-          // Map ticket data to Ticket model
-          const ticketModel = mapTicketData(ticketData, customerData, false);
-          if (ticketModel) {
-            tickets.push(ticketModel);
+          // Add explicit null check before mapping
+          if (ticketData) {
+            // Map ticket data to Ticket model
+            const ticketModel = mapTicketData(ticketData, customerData, false);
+            if (ticketModel) {
+              tickets.push(ticketModel);
+            }
           }
         } catch (err) {
           console.error('Error processing ticket:', err);
@@ -58,15 +62,16 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
       // Get services for each ticket
       for (const ticket of tickets) {
-        // Each ticket in the tickets array is guaranteed to have an id since we checked in the mapping process
-        ticket.services = await getTicketServices(ticket.id);
+        // Only call getTicketServices if ticket and ticket.id exist
+        if (ticket && ticket.id) {
+          ticket.services = await getTicketServices(ticket.id);
+        }
       }
     }
 
     return tickets;
   } catch (error) {
-    console.error('Error fetching pickup tickets:', error);
-    toast.error('Error fetching tickets for pickup');
+    handleError(error, 'getPickupTickets', 'Error fetching pickup tickets');
     return [];
   }
 };
@@ -98,8 +103,7 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     toast.success('Ticket marcado como entregado y pagado');
     return true;
   } catch (error) {
-    console.error('Error marking ticket as delivered:', error);
-    toast.error('Error al marcar el ticket como entregado');
+    handleError(error, 'markTicketAsDelivered', 'Error al marcar el ticket como entregado');
     return false;
   }
 };
@@ -115,10 +119,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     
     const { data, error } = await supabase
       .from('tickets')
-      .select(`
-        ${selectColumns},
-        customers (name, phone)
-      `)
+      .select(selectColumns)
       .eq('status', 'ready') // Only tickets that are ready for pickup
       .eq('is_canceled', false) // Not canceled
       .lte('created_at', cutoffDate.toISOString()) // Created before the cutoff date
@@ -139,31 +140,33 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
         continue;
       }
       
-      // Use non-null assertion after explicit check
-      const ticketData = rawTicketData!;
-      
-      const ticket: Ticket = {
-        id: ticketData.id,
-        ticketNumber: ticketData.ticket_number,
-        basketTicketNumber: ticketData.basket_ticket_number,
-        clientName: ticketData.customers?.name || '',
-        phoneNumber: ticketData.customers?.phone || '',
-        services: [], // This will be populated by getTicketServices if needed
-        paymentMethod: ticketData.payment_method,
-        totalPrice: ticketData.total,
-        status: ticketData.status,
-        createdAt: ticketData.created_at,
-        updatedAt: ticketData.updated_at,
-        isPaid: ticketData.is_paid
-      };
-      
-      tickets.push(ticket);
+      try {
+        // Get customer details for each ticket
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .select('name, phone')
+          .eq('id', rawTicketData.customer_id)
+          .single();
+          
+        if (customerError) {
+          console.error('Error fetching customer for ticket:', customerError);
+          continue;
+        }
+        
+        // Map the ticket data using our shared utility
+        const ticketModel = mapTicketData(rawTicketData, customerData, false);
+        if (ticketModel) {
+          tickets.push(ticketModel);
+        }
+      } catch (err) {
+        console.error('Error processing unretrieved ticket:', err);
+        continue;
+      }
     }
 
     return tickets;
   } catch (error) {
-    console.error(`Error fetching unretrieved tickets (${days} days):`, error);
-    toast.error(`Error al obtener tickets no retirados (${days} días)`);
+    handleError(error, `getUnretrievedTickets(${days} days)`, `Error al obtener tickets no retirados (${days} días)`);
     return [];
   }
 };

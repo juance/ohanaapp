@@ -4,6 +4,7 @@ import { toast } from '@/lib/toast';
 import { Ticket } from '../types';
 import { getTicketServices } from './ticketServiceCore';
 import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
+import { handleError } from '../utils/errorHandling';
 
 // Get tickets that have been delivered
 export const getDeliveredTickets = async (): Promise<Ticket[]> => {
@@ -49,10 +50,13 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
             continue;
           }
 
-          // Map ticket data to Ticket model
-          const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
-          if (ticketModel) {
-            tickets.push(ticketModel);
+          // Add explicit null check before mapping
+          if (ticketData) {
+            // Map ticket data to Ticket model
+            const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
+            if (ticketModel) {
+              tickets.push(ticketModel);
+            }
           }
         } catch (err) {
           console.error('Error processing ticket:', err);
@@ -63,14 +67,15 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       // Get services for each ticket
       for (const ticket of tickets) {
         // Since we just created tickets array above, each ticket is guaranteed to exist and have an id
-        ticket.services = await getTicketServices(ticket.id);
+        if (ticket && ticket.id) {
+          ticket.services = await getTicketServices(ticket.id);
+        }
       }
     }
 
     return tickets;
   } catch (error) {
-    console.error('Error fetching delivered tickets:', error);
-    toast.error('Error fetching delivered tickets');
+    handleError(error, 'getDeliveredTickets', 'Error fetching delivered tickets');
     return [];
   }
 };
