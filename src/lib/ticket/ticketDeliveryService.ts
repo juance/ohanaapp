@@ -29,10 +29,10 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       const hasDeliveredDateColumn = await buildTicketSelectQuery(true);
       const hasColumn = hasDeliveredDateColumn.includes('delivered_date');
       
-      for (const ticket of data) {
+      for (const ticketData of data) {
         // Skip invalid ticket data
-        if (!ticket || typeof ticket !== 'object' || !ticket.id) {
-          console.error('Invalid ticket data received:', ticket);
+        if (!ticketData || typeof ticketData !== 'object' || !ticketData.id) {
+          console.error('Invalid ticket data received:', ticketData);
           continue;
         }
         
@@ -41,7 +41,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('name, phone')
-            .eq('id', ticket.customer_id)
+            .eq('id', ticketData.customer_id)
             .single();
           
           if (customerError) {
@@ -50,7 +50,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
           }
 
           // Map ticket data to Ticket model
-          const ticketModel = mapTicketData(ticket, customerData, hasColumn);
+          const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
           if (ticketModel) {
             tickets.push(ticketModel);
           }
@@ -62,9 +62,8 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 
       // Get services for each ticket
       for (const ticket of tickets) {
-        if (ticket && ticket.id) {
-          ticket.services = await getTicketServices(ticket.id);
-        }
+        // Since we just created tickets array above, each ticket is guaranteed to exist and have an id
+        ticket.services = await getTicketServices(ticket.id);
       }
     }
 

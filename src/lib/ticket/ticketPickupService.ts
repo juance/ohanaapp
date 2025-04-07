@@ -25,10 +25,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     const tickets: Ticket[] = [];
     
     if (data && Array.isArray(data)) {
-      for (const ticket of data) {
+      for (const ticketData of data) {
         // Skip invalid ticket data
-        if (!ticket || typeof ticket !== 'object' || !ticket.id) {
-          console.error('Invalid ticket data received:', ticket);
+        if (!ticketData || typeof ticketData !== 'object' || !ticketData.id) {
+          console.error('Invalid ticket data received:', ticketData);
           continue;
         }
         
@@ -37,7 +37,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('name, phone')
-            .eq('id', ticket.customer_id)
+            .eq('id', ticketData.customer_id)
             .single();
           
           if (customerError) {
@@ -46,7 +46,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           }
 
           // Map ticket data to Ticket model
-          const ticketModel = mapTicketData(ticket, customerData, false);
+          const ticketModel = mapTicketData(ticketData, customerData, false);
           if (ticketModel) {
             tickets.push(ticketModel);
           }
@@ -58,9 +58,8 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
       // Get services for each ticket
       for (const ticket of tickets) {
-        if (ticket && ticket.id) {
-          ticket.services = await getTicketServices(ticket.id);
-        }
+        // Each ticket in the tickets array is guaranteed to have an id since we checked in the mapping process
+        ticket.services = await getTicketServices(ticket.id);
       }
     }
 
@@ -134,24 +133,28 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     // Transform data to match the Ticket type with better error handling
     const tickets: Ticket[] = [];
     
-    for (const rawTicket of data) {
-      if (!rawTicket || typeof rawTicket !== 'object' || !rawTicket.id) {
+    for (const rawTicketData of data) {
+      // Skip invalid ticket data with additional safety check
+      if (!rawTicketData || typeof rawTicketData !== 'object' || !rawTicketData.id) {
         continue;
       }
       
+      // Use non-null assertion after explicit check
+      const ticketData = rawTicketData!;
+      
       const ticket: Ticket = {
-        id: rawTicket.id,
-        ticketNumber: rawTicket.ticket_number,
-        basketTicketNumber: rawTicket.basket_ticket_number,
-        clientName: rawTicket.customers?.name || '',
-        phoneNumber: rawTicket.customers?.phone || '',
+        id: ticketData.id,
+        ticketNumber: ticketData.ticket_number,
+        basketTicketNumber: ticketData.basket_ticket_number,
+        clientName: ticketData.customers?.name || '',
+        phoneNumber: ticketData.customers?.phone || '',
         services: [], // This will be populated by getTicketServices if needed
-        paymentMethod: rawTicket.payment_method,
-        totalPrice: rawTicket.total,
-        status: rawTicket.status,
-        createdAt: rawTicket.created_at,
-        updatedAt: rawTicket.updated_at,
-        isPaid: rawTicket.is_paid
+        paymentMethod: ticketData.payment_method,
+        totalPrice: ticketData.total,
+        status: ticketData.status,
+        createdAt: ticketData.created_at,
+        updatedAt: ticketData.updated_at,
+        isPaid: ticketData.is_paid
       };
       
       tickets.push(ticket);
