@@ -134,25 +134,27 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     // Transform data to match the Ticket type with better error handling
     const tickets: Ticket[] = [];
     
-    for (const ticket of data) {
-      if (!ticket || typeof ticket !== 'object' || !ticket.id) {
+    for (const rawTicket of data) {
+      if (!rawTicket || typeof rawTicket !== 'object' || !rawTicket.id) {
         continue;
       }
       
-      tickets.push({
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: ticket.customers?.name || '',
-        phoneNumber: ticket.customers?.phone || '',
+      const ticket: Ticket = {
+        id: rawTicket.id,
+        ticketNumber: rawTicket.ticket_number,
+        basketTicketNumber: rawTicket.basket_ticket_number,
+        clientName: rawTicket.customers?.name || '',
+        phoneNumber: rawTicket.customers?.phone || '',
         services: [], // This will be populated by getTicketServices if needed
-        paymentMethod: ticket.payment_method,
-        totalPrice: ticket.total,
-        status: ticket.status,
-        createdAt: ticket.created_at,
-        updatedAt: ticket.updated_at,
-        isPaid: ticket.is_paid
-      });
+        paymentMethod: rawTicket.payment_method,
+        totalPrice: rawTicket.total,
+        status: rawTicket.status,
+        createdAt: rawTicket.created_at,
+        updatedAt: rawTicket.updated_at,
+        isPaid: rawTicket.is_paid
+      };
+      
+      tickets.push(ticket);
     }
 
     return tickets;
