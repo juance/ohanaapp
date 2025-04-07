@@ -38,7 +38,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('name, phone')
-            .eq('id', ticketData.customer_id)
+            .eq('id', ticketData?.customer_id)
             .single();
           
           if (customerError) {
@@ -146,7 +146,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
         const { data: customerData, error: customerError } = await supabase
           .from('customers')
           .select('name, phone')
-          .eq('id', rawTicketData.customer_id)
+          .eq('id', rawTicketData?.customer_id)
           .single();
           
         if (customerError) {

@@ -42,7 +42,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('name, phone')
-            .eq('id', ticketData.customer_id)
+            .eq('id', ticketData?.customer_id)
             .single();
           
           if (customerError) {
