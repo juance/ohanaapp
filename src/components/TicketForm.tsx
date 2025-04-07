@@ -9,6 +9,12 @@ import TicketFormFooter from './ticket/form/TicketFormFooter';
 import { useTicketFormLogic } from './ticket/form/useTicketFormLogic';
 import { PaymentMethod } from '@/lib/types';
 
+interface PaymentMethodOption {
+  id: string;
+  value: PaymentMethod;
+  label: string;
+}
+
 const TicketForm = () => {
   const {
     clientName,
@@ -32,11 +38,11 @@ const TicketForm = () => {
     handleSubmit
   } = useTicketFormLogic();
 
-  const paymentMethods: { value: PaymentMethod; label: string }[] = [
-    { value: 'cash', label: 'Efectivo' },
-    { value: 'debit', label: 'Débito' },
-    { value: 'mercadopago', label: 'Mercado Pago' },
-    { value: 'cuenta_dni', label: 'Cuenta DNI' }
+  const paymentMethods: PaymentMethodOption[] = [
+    { id: '1', value: 'cash', label: 'Efectivo' },
+    { id: '2', value: 'debit', label: 'Débito' },
+    { id: '3', value: 'mercadopago', label: 'Mercado Pago' },
+    { id: '4', value: 'cuenta_dni', label: 'Cuenta DNI' }
   ];
 
   return (
