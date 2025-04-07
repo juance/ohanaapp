@@ -7,6 +7,7 @@ import LaundryOptionsSection from './ticket/form/LaundryOptionsSection';
 import PaymentSection from './ticket/form/PaymentSection';
 import TicketFormFooter from './ticket/form/TicketFormFooter';
 import { useTicketFormLogic } from './ticket/form/useTicketFormLogic';
+import { PaymentMethod } from '@/lib/types';
 
 const TicketForm = () => {
   const {
@@ -30,6 +31,13 @@ const TicketForm = () => {
     handleLaundryOptionToggle,
     handleSubmit
   } = useTicketFormLogic();
+
+  const paymentMethods: { value: PaymentMethod; label: string }[] = [
+    { value: 'cash', label: 'Efectivo' },
+    { value: 'debit', label: 'Débito' },
+    { value: 'mercadopago', label: 'Mercado Pago' },
+    { value: 'cuenta_dni', label: 'Cuenta DNI' }
+  ];
 
   return (
     <form onSubmit={handleSubmit}>

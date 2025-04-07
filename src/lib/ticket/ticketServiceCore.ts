@@ -1,8 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from '../types';
-import { subDays } from 'date-fns';
-import { buildTicketSelectQuery, checkDeliveredDateColumnExists, mapTicketData } from './ticketQueryUtils';
 
 // Get ticket services (dry cleaning items) with immediate default values
 export const getTicketServices = async (ticketId: string) => {
@@ -67,6 +65,10 @@ export const getTicketOptions = async (ticketId: string): Promise<string[]> => {
       .eq('ticket_id', ticketId);
 
     if (error) throw error;
+    
+    if (!data || !Array.isArray(data)) {
+      return [];
+    }
 
     return data.map(item => item.option_type);
   } catch (error) {
@@ -98,7 +100,7 @@ export const cancelTicket = async (ticketId: string, reason: string): Promise<bo
   }
 };
 
-// New function to mark a ticket as paid in advance
+// Mark a ticket as paid in advance
 export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boolean> => {
   try {
     const { error } = await supabase

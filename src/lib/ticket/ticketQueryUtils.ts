@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Comprueba si existe la columna delivered_date en la tabla tickets
+// Checks if delivered_date column exists in the tickets table
 export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -21,9 +21,9 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   }
 };
 
-// Construye la consulta SQL para seleccionar columnas incluyendo delivered_date si existe
+// Builds the select query string based on available columns
 export const buildTicketSelectQuery = async (includeDeliveredDate = false): Promise<string> => {
-  // Si se especificó incluir delivered_date, verificar primero si existe
+  // If specifying to include delivered_date, verify it exists first
   let hasDeliveredDateColumn = false;
   
   if (includeDeliveredDate) {
@@ -45,11 +45,11 @@ export const buildTicketSelectQuery = async (includeDeliveredDate = false): Prom
   `;
 };
 
-// Función auxiliar para mapear datos de ticket a objeto Ticket
+// Maps ticket data from database to application Ticket model
 export const mapTicketData = (ticket: any, customerData: any, hasDeliveredDateColumn: boolean): any => {
-  // Verifica que ticket tenga las propiedades necesarias
+  // Verify ticket has required properties before mapping
   if (!ticket || typeof ticket !== 'object' || !ticket.id) {
-    console.error('Invalid ticket data:', ticket);
+    console.error('Invalid ticket data for mapping:', ticket);
     return null;
   }
 
@@ -59,7 +59,7 @@ export const mapTicketData = (ticket: any, customerData: any, hasDeliveredDateCo
     basketTicketNumber: ticket.basket_ticket_number,
     clientName: customerData?.name || '',
     phoneNumber: customerData?.phone || '',
-    services: [], // Will be populated by getTicketServices
+    services: [], // Will be populated by getTicketServices later
     paymentMethod: ticket.payment_method as any, // Cast to PaymentMethod
     totalPrice: ticket.total,
     status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status

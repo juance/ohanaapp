@@ -16,3 +16,10 @@ export {
 export {
   getDeliveredTickets
 } from './ticket/ticketDeliveryService';
+
+// Re-export query utilities for other modules to use
+export {
+  checkDeliveredDateColumnExists,
+  buildTicketSelectQuery,
+  mapTicketData
+} from './ticket/ticketQueryUtils';

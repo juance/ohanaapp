@@ -62,7 +62,9 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 
       // Get services for each ticket
       for (const ticket of tickets) {
-        ticket.services = await getTicketServices(ticket.id);
+        if (ticket && ticket.id) { // Add null check here
+          ticket.services = await getTicketServices(ticket.id);
+        }
       }
     }
 
