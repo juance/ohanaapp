@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from './types';
@@ -119,39 +120,43 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
 
     // Get customer info for each ticket
     const tickets: Ticket[] = [];
-    for (const ticket of data) {
-      // Get customer details
-      const { data: customerData, error: customerError } = await supabase
-        .from('customers')
-        .select('name, phone')
-        .eq('id', ticket.customer_id)
-        .single();
-      
-      if (customerError) {
-        console.error('Error fetching customer for ticket:', customerError);
-        continue;
+    
+    // Only proceed if we have valid data
+    if (data && Array.isArray(data)) {
+      for (const ticket of data) {
+        // Get customer details
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .select('name, phone')
+          .eq('id', ticket.customer_id)
+          .single();
+        
+        if (customerError) {
+          console.error('Error fetching customer for ticket:', customerError);
+          continue;
+        }
+
+        tickets.push({
+          id: ticket.id,
+          ticketNumber: ticket.ticket_number,
+          basketTicketNumber: ticket.basket_ticket_number,
+          clientName: customerData?.name || '',
+          phoneNumber: customerData?.phone || '',
+          services: [], // Will be populated by getTicketServices
+          paymentMethod: ticket.payment_method as PaymentMethod, // Cast to PaymentMethod
+          totalPrice: ticket.total,
+          status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status
+          createdAt: ticket.created_at,
+          updatedAt: ticket.updated_at,
+          deliveredDate: hasDeliveredDateColumn && ticket.delivered_date ? ticket.delivered_date : undefined,
+          isPaid: ticket.is_paid
+        });
       }
 
-      tickets.push({
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerData?.name || '',
-        phoneNumber: customerData?.phone || '',
-        services: [], // Will be populated by getTicketServices
-        paymentMethod: ticket.payment_method as PaymentMethod, // Cast to PaymentMethod
-        totalPrice: ticket.total,
-        status: ticket.status as 'pending' | 'processing' | 'ready' | 'delivered', // Cast to valid status
-        createdAt: ticket.created_at,
-        updatedAt: ticket.updated_at,
-        deliveredDate: hasDeliveredDateColumn ? ticket.delivered_date : undefined,
-        isPaid: ticket.is_paid
-      });
-    }
-
-    // Get services for each ticket
-    for (const ticket of tickets) {
-      ticket.services = await getTicketServices(ticket.id);
+      // Get services for each ticket
+      for (const ticket of tickets) {
+        ticket.services = await getTicketServices(ticket.id);
+      }
     }
 
     return tickets;
