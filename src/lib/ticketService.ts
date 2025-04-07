@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from './types';
@@ -81,21 +82,28 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       .limit(1)
       .maybeSingle();
     
+    // Construct the query string correctly
+    let queryString = `
+      id,
+      ticket_number,
+      basket_ticket_number,
+      total,
+      payment_method,
+      status,
+      created_at,
+      updated_at,
+      is_paid,
+      customer_id
+    `;
+    
+    // Add delivered_date only if the column exists
+    if (columnCheck !== null) {
+      queryString += `, delivered_date`;
+    }
+    
     const { data, error } = await supabase
       .from('tickets')
-      .select(`
-        id,
-        ticket_number,
-        basket_ticket_number,
-        total,
-        payment_method,
-        status,
-        created_at,
-        updated_at,
-        is_paid,
-        customer_id
-        ${columnCheck ? ', delivered_date' : ''}
-      `)
+      .select(queryString)
       .eq('status', 'delivered')
       .eq('is_canceled', false) // Only show non-canceled tickets
       .order('updated_at', { ascending: false });
@@ -164,7 +172,7 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     };
     
     // Only add delivered_date if the column exists
-    if (columnCheck) {
+    if (columnCheck !== null) {
       updateData.delivered_date = new Date().toISOString();
     }
 
