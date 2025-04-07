@@ -50,9 +50,9 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
             continue;
           }
 
-          // Add explicit null check before mapping
-          if (ticketData) {
-            // Map ticket data to Ticket model
+          // Add explicit null checks before mapping
+          if (ticketData && customerData) {
+            // Map ticket data to Ticket model with explicit null check
             const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
             if (ticketModel) {
               tickets.push(ticketModel);

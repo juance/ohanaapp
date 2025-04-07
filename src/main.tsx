@@ -40,16 +40,16 @@ setupGlobalErrorHandling();
 try {
   createRoot(rootElement).render(
     <StrictMode>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter>
+      <BrowserRouter>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <QueryClientProvider client={queryClient}>
             <ErrorBoundary>
               <App />
               <Toaster />
             </ErrorBoundary>
-          </BrowserRouter>
-        </QueryClientProvider>
-      </ThemeProvider>
+          </QueryClientProvider>
+        </ThemeProvider>
+      </BrowserRouter>
     </StrictMode>
   );
   

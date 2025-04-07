@@ -46,9 +46,9 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
             continue;
           }
 
-          // Add explicit null check before mapping
-          if (ticketData) {
-            // Map ticket data to Ticket model
+          // Add explicit null checks before mapping
+          if (ticketData && customerData) {
+            // Map ticket data to Ticket model with explicit null check
             const ticketModel = mapTicketData(ticketData, customerData, false);
             if (ticketModel) {
               tickets.push(ticketModel);
@@ -153,10 +153,13 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
           continue;
         }
         
-        // Map the ticket data using our shared utility
-        const ticketModel = mapTicketData(rawTicketData, customerData, false);
-        if (ticketModel) {
-          tickets.push(ticketModel);
+        // Only proceed if we have valid ticket and customer data
+        if (rawTicketData && customerData) {
+          // Map the ticket data using our shared utility
+          const ticketModel = mapTicketData(rawTicketData, customerData, false);
+          if (ticketModel) {
+            tickets.push(ticketModel);
+          }
         }
       } catch (err) {
         console.error('Error processing unretrieved ticket:', err);
