@@ -42,30 +42,32 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       }
       
       try {
-        // Get customer details - add safe null check for customer_id
-        const customerId = ticketData?.customer_id;
-        if (!customerId) {
-          console.error('Ticket has no customer_id:', ticketData?.id ?? 'unknown');
-          continue;
-        }
+        // Get customer details with proper null safety
+        if (ticketData) {
+          const customerId = ticketData.customer_id;
+          if (!customerId) {
+            console.error('Ticket has no customer_id:', ticketData.id ? ticketData.id : 'unknown');
+            continue;
+          }
 
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('name, phone')
-          .eq('id', customerId)
-          .single();
-        
-        if (customerError) {
-          console.error('Error fetching customer for ticket:', customerError);
-          continue;
-        }
+          const { data: customerData, error: customerError } = await supabase
+            .from('customers')
+            .select('name, phone')
+            .eq('id', customerId)
+            .single();
+          
+          if (customerError) {
+            console.error('Error fetching customer for ticket:', customerError);
+            continue;
+          }
 
-        // Add explicit null checks before mapping
-        if (ticketData && customerData) {
-          // Map ticket data to Ticket model with explicit null check
-          const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
-          if (ticketModel) {
-            tickets.push(ticketModel);
+          // Add explicit null checks before mapping
+          if (customerData) {
+            // Map ticket data to Ticket model with explicit null check
+            const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
+            if (ticketModel) {
+              tickets.push(ticketModel);
+            }
           }
         }
       } catch (err) {

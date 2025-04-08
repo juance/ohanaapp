@@ -38,30 +38,32 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       }
       
       try {
-        // Get customer details - add safe null check for customer_id
-        const customerId = ticketData?.customer_id;
-        if (!customerId) {
-          console.error('Ticket has no customer_id:', ticketData?.id ?? 'unknown');
-          continue;
-        }
+        // Get customer details with proper null safety
+        if (ticketData) {
+          const customerId = ticketData.customer_id;
+          if (!customerId) {
+            console.error('Ticket has no customer_id:', ticketData.id ? ticketData.id : 'unknown');
+            continue;
+          }
 
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('name, phone')
-          .eq('id', customerId)
-          .single();
-        
-        if (customerError) {
-          console.error('Error fetching customer for ticket:', customerError);
-          continue;
-        }
+          const { data: customerData, error: customerError } = await supabase
+            .from('customers')
+            .select('name, phone')
+            .eq('id', customerId)
+            .single();
+          
+          if (customerError) {
+            console.error('Error fetching customer for ticket:', customerError);
+            continue;
+          }
 
-        // Add explicit null checks before mapping
-        if (ticketData && customerData) {
-          // Map ticket data to Ticket model with explicit null check
-          const ticketModel = mapTicketData(ticketData, customerData, false);
-          if (ticketModel) {
-            tickets.push(ticketModel);
+          // Add explicit null checks before mapping
+          if (customerData) {
+            // Map ticket data to Ticket model with explicit null check
+            const ticketModel = mapTicketData(ticketData, customerData, false);
+            if (ticketModel) {
+              tickets.push(ticketModel);
+            }
           }
         }
       } catch (err) {
@@ -152,30 +154,32 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       }
       
       try {
-        // Get customer details for each ticket - add safe null check for customer_id
-        const customerId = rawTicketData?.customer_id;
-        if (!customerId) {
-          console.error('Ticket has no customer_id:', rawTicketData?.id ?? 'unknown');
-          continue;
-        }
+        // Get customer details with proper null safety
+        if (rawTicketData) {
+          const customerId = rawTicketData.customer_id;
+          if (!customerId) {
+            console.error('Ticket has no customer_id:', rawTicketData.id ? rawTicketData.id : 'unknown');
+            continue;
+          }
 
-        const { data: customerData, error: customerError } = await supabase
-          .from('customers')
-          .select('name, phone')
-          .eq('id', customerId)
-          .single();
+          const { data: customerData, error: customerError } = await supabase
+            .from('customers')
+            .select('name, phone')
+            .eq('id', customerId)
+            .single();
+            
+          if (customerError) {
+            console.error('Error fetching customer for ticket:', customerError);
+            continue;
+          }
           
-        if (customerError) {
-          console.error('Error fetching customer for ticket:', customerError);
-          continue;
-        }
-        
-        // Only proceed if we have valid ticket and customer data
-        if (rawTicketData && customerData) {
-          // Map the ticket data using our shared utility
-          const ticketModel = mapTicketData(rawTicketData, customerData, false);
-          if (ticketModel) {
-            tickets.push(ticketModel);
+          // Only proceed if we have valid ticket and customer data
+          if (customerData) {
+            // Map the ticket data using our shared utility
+            const ticketModel = mapTicketData(rawTicketData, customerData, false);
+            if (ticketModel) {
+              tickets.push(ticketModel);
+            }
           }
         }
       } catch (err) {
