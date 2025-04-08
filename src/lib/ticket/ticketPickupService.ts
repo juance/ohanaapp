@@ -32,7 +32,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     for (const ticketData of data) {
       // Skip invalid ticket data
-      if (!ticketData || typeof ticketData !== 'object' || !ticketData.id) {
+      if (!ticketData || typeof ticketData !== 'object') {
         console.error('Invalid ticket data received:', ticketData);
         continue;
       }
@@ -41,7 +41,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         // Get customer details - add safe null check for customer_id
         const customerId = ticketData?.customer_id;
         if (!customerId) {
-          console.error('Ticket has no customer_id:', ticketData?.id);
+          console.error('Ticket has no customer_id:', ticketData?.id ?? 'unknown');
           continue;
         }
 
@@ -146,7 +146,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     
     for (const rawTicketData of data) {
       // Skip invalid ticket data with additional safety check
-      if (!rawTicketData || typeof rawTicketData !== 'object' || !rawTicketData.id) {
+      if (!rawTicketData || typeof rawTicketData !== 'object') {
         console.error('Invalid ticket data received:', rawTicketData);
         continue;
       }
@@ -155,7 +155,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
         // Get customer details for each ticket - add safe null check for customer_id
         const customerId = rawTicketData?.customer_id;
         if (!customerId) {
-          console.error('Ticket has no customer_id:', rawTicketData?.id);
+          console.error('Ticket has no customer_id:', rawTicketData?.id ?? 'unknown');
           continue;
         }
 
