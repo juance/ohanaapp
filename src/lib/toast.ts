@@ -10,7 +10,7 @@ export type ToastProps = {
 
 // Create a wrapper function
 export const toast = {
-  // Base toast function
+  // Base toast function for direct calling
   default: (title: string, options?: Omit<ToastProps, 'title'>) => {
     return sonnerToast(title, options);
   },

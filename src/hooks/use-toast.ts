@@ -8,7 +8,7 @@ export type ToastProps = {
   [key: string]: any;
 };
 
-// Create a wrapper function that doesn't rely on React hooks
+// Create a toast function that properly handles the variant
 export const toast = (props: ToastProps) => {
   const { title, description, variant, ...rest } = props;
 
@@ -46,7 +46,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Export a simplified useToast function that doesn't use React's useState
+// Export a useToast function that no longer depends on React's useState
 export function useToast() {
   return { toast };
 }
