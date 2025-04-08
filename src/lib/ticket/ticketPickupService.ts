@@ -35,7 +35,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         
         try {
           // Get customer details - add safe null check for customer_id
-          if (!ticketData || ticketData.customer_id === null || ticketData.customer_id === undefined) {
+          if (!ticketData || !ticketData.customer_id) {
             console.error('Ticket has no customer_id:', ticketData?.id);
             continue;
           }
@@ -148,7 +148,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       
       try {
         // Get customer details for each ticket - add safe null check for customer_id
-        if (!rawTicketData || rawTicketData.customer_id === null || rawTicketData.customer_id === undefined) {
+        if (!rawTicketData || !rawTicketData.customer_id) {
           console.error('Ticket has no customer_id:', rawTicketData?.id);
           continue;
         }
