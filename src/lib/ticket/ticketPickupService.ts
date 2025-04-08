@@ -34,11 +34,16 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         }
         
         try {
-          // Get customer details
+          // Get customer details - add safe null check for customer_id
+          if (ticketData.customer_id === null || ticketData.customer_id === undefined) {
+            console.error('Ticket has no customer_id:', ticketData.id);
+            continue;
+          }
+
           const { data: customerData, error: customerError } = await supabase
             .from('customers')
             .select('name, phone')
-            .eq('id', ticketData?.customer_id)
+            .eq('id', ticketData.customer_id)
             .single();
           
           if (customerError) {
@@ -142,11 +147,16 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       }
       
       try {
-        // Get customer details for each ticket
+        // Get customer details for each ticket - add safe null check for customer_id
+        if (rawTicketData.customer_id === null || rawTicketData.customer_id === undefined) {
+          console.error('Ticket has no customer_id:', rawTicketData.id);
+          continue;
+        }
+
         const { data: customerData, error: customerError } = await supabase
           .from('customers')
           .select('name, phone')
-          .eq('id', rawTicketData?.customer_id)
+          .eq('id', rawTicketData.customer_id)
           .single();
           
         if (customerError) {
