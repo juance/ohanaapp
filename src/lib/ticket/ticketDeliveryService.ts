@@ -45,7 +45,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         // Get customer details - add safe null check for customer_id
         const customerId = ticketData?.customer_id;
         if (!customerId) {
-          console.error('Ticket has no customer_id:', ticketData.id);
+          console.error('Ticket has no customer_id:', ticketData?.id);
           continue;
         }
 
