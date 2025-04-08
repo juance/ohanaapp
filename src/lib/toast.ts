@@ -8,31 +8,42 @@ export type ToastProps = {
   [key: string]: any;
 };
 
-// Create a wrapper function
-export const toast = {
-  // Base toast function for direct calling
-  default: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast(title, options);
-  },
-  
-  // Helper methods
-  success: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.success(title, options);
-  },
-  
-  error: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.error(title, options);
-  },
-  
-  info: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.info(title, options);
-  },
-  
-  warning: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.warning(title, options);
-  },
-  
-  loading: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.loading(title, options);
+// Create a toast function that can be called directly
+const toast = (props: ToastProps) => {
+  const { title, description, variant, ...rest } = props;
+
+  if (variant === 'destructive') {
+    return sonnerToast.error(title || '', {
+      description,
+      ...rest
+    });
   }
+
+  return sonnerToast(title || '', {
+    description,
+    ...rest
+  });
 };
+
+// Add helper methods to the toast function
+toast.success = (title: string, options?: Omit<ToastProps, 'title'>) => {
+  return sonnerToast.success(title, options);
+};
+
+toast.error = (title: string, options?: Omit<ToastProps, 'title'>) => {
+  return sonnerToast.error(title, options);
+};
+
+toast.info = (title: string, options?: Omit<ToastProps, 'title'>) => {
+  return sonnerToast.info(title, options);
+};
+
+toast.warning = (title: string, options?: Omit<ToastProps, 'title'>) => {
+  return sonnerToast.warning(title, options);
+};
+
+toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
+  return sonnerToast.loading(title, options);
+};
+
+export { toast };

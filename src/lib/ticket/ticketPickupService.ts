@@ -39,7 +39,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       
       try {
         // Get customer details - add safe null check for customer_id
-        const customerId = ticketData.customer_id;
+        const customerId = ticketData?.customer_id;
         if (!customerId) {
           console.error('Ticket has no customer_id:', ticketData.id);
           continue;
@@ -153,7 +153,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       
       try {
         // Get customer details for each ticket - add safe null check for customer_id
-        const customerId = rawTicketData.customer_id;
+        const customerId = rawTicketData?.customer_id;
         if (!customerId) {
           console.error('Ticket has no customer_id:', rawTicketData.id);
           continue;
