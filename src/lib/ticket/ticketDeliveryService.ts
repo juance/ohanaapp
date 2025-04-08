@@ -25,56 +25,60 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     const tickets: Ticket[] = [];
     
     // Check if we have valid data
-    if (data && Array.isArray(data)) {
-      // Check for delivered_date existence for correct mapping later
-      const hasDeliveredDateColumn = await buildTicketSelectQuery(true);
-      const hasColumn = hasDeliveredDateColumn.includes('delivered_date');
-      
-      for (const ticketData of data) {
-        // Skip invalid ticket data
-        if (!ticketData || typeof ticketData !== 'object' || !ticketData.id) {
-          console.error('Invalid ticket data received:', ticketData);
-          continue;
-        }
-        
-        try {
-          // Get customer details - add safe null check for customer_id
-          if (!ticketData || !ticketData.customer_id) {
-            console.error('Ticket has no customer_id:', ticketData?.id);
-            continue;
-          }
-
-          const { data: customerData, error: customerError } = await supabase
-            .from('customers')
-            .select('name, phone')
-            .eq('id', ticketData.customer_id)
-            .single();
-          
-          if (customerError) {
-            console.error('Error fetching customer for ticket:', customerError);
-            continue;
-          }
-
-          // Add explicit null checks before mapping
-          if (ticketData && customerData) {
-            // Map ticket data to Ticket model with explicit null check
-            const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
-            if (ticketModel) {
-              tickets.push(ticketModel);
-            }
-          }
-        } catch (err) {
-          console.error('Error processing ticket:', err);
-          continue;
-        }
+    if (!data || !Array.isArray(data)) {
+      console.error('Invalid or empty data received from tickets query');
+      return [];
+    }
+    
+    // Check for delivered_date existence for correct mapping later
+    const hasDeliveredDateColumn = await buildTicketSelectQuery(true);
+    const hasColumn = hasDeliveredDateColumn.includes('delivered_date');
+    
+    for (const ticketData of data) {
+      // Skip invalid ticket data
+      if (!ticketData || typeof ticketData !== 'object' || !ticketData.id) {
+        console.error('Invalid ticket data received:', ticketData);
+        continue;
       }
-
-      // Get services for each ticket
-      for (const ticket of tickets) {
-        // Since we just created tickets array above, each ticket is guaranteed to exist and have an id
-        if (ticket && ticket.id) {
-          ticket.services = await getTicketServices(ticket.id);
+      
+      try {
+        // Get customer details - add safe null check for customer_id
+        const customerId = ticketData.customer_id;
+        if (!customerId) {
+          console.error('Ticket has no customer_id:', ticketData.id);
+          continue;
         }
+
+        const { data: customerData, error: customerError } = await supabase
+          .from('customers')
+          .select('name, phone')
+          .eq('id', customerId)
+          .single();
+        
+        if (customerError) {
+          console.error('Error fetching customer for ticket:', customerError);
+          continue;
+        }
+
+        // Add explicit null checks before mapping
+        if (ticketData && customerData) {
+          // Map ticket data to Ticket model with explicit null check
+          const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
+          if (ticketModel) {
+            tickets.push(ticketModel);
+          }
+        }
+      } catch (err) {
+        console.error('Error processing ticket:', err);
+        continue;
+      }
+    }
+
+    // Get services for each ticket
+    for (const ticket of tickets) {
+      // Since we just created tickets array above, each ticket is guaranteed to exist and have an id
+      if (ticket && ticket.id) {
+        ticket.services = await getTicketServices(ticket.id);
       }
     }
 
