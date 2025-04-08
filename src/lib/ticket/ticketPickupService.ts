@@ -38,11 +38,12 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       }
       
       try {
-        // Get customer details with proper null safety
-        if (ticketData) {
+        // Explicit type check to address TS error
+        if (ticketData && 'customer_id' in ticketData) {
           const customerId = ticketData.customer_id;
           if (!customerId) {
-            console.error('Ticket has no customer_id:', ticketData.id ? ticketData.id : 'unknown');
+            console.error('Ticket has no customer_id:', 
+              'id' in ticketData && ticketData.id ? ticketData.id : 'unknown');
             continue;
           }
 
@@ -154,11 +155,12 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       }
       
       try {
-        // Get customer details with proper null safety
-        if (rawTicketData) {
+        // Explicit type check to address TS error
+        if (rawTicketData && 'customer_id' in rawTicketData) {
           const customerId = rawTicketData.customer_id;
           if (!customerId) {
-            console.error('Ticket has no customer_id:', rawTicketData.id ? rawTicketData.id : 'unknown');
+            console.error('Ticket has no customer_id:', 
+              'id' in rawTicketData && rawTicketData.id ? rawTicketData.id : 'unknown');
             continue;
           }
 
