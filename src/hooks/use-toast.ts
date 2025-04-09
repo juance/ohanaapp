@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { toast as sonnerToast } from 'sonner';
 
 export type ToastProps = {
@@ -46,7 +47,8 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Export a useToast function that doesn't depend on React's useState
+// Create a React-safe hook version that doesn't use useState directly
 export function useToast() {
+  // Simply return the toast function - no useState needed here
   return { toast };
 }
