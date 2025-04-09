@@ -1,7 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CustomerFeedback } from './types';
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
+
+// Define the CustomerFeedback interface
+interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  pendingSync?: boolean;
+}
 
 const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 

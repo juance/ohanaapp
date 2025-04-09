@@ -1,31 +1,22 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage } from '../coreUtils';
-import { LocalMetrics } from './types';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+
+// Define the LocalMetrics interface
+interface LocalMetrics {
+  daily?: any;
+  weekly?: any;
+  monthly?: any;
+  pendingSync?: boolean;
+}
 
 /**
- * Sync dashboard metrics data with Supabase
+ * Sync metrics data
  */
-export const syncDashboardMetrics = async (): Promise<boolean> => {
+export const syncMetricsData = async (): Promise<boolean> => {
   try {
-    // Get current date for the metrics record
-    const today = new Date();
-    const formattedDate = today.toISOString().split('T')[0];
-    
-    // Get existing metrics from dashboard_stats
-    const { data: existingStats, error: statsError } = await supabase
-      .from('dashboard_stats')
-      .select('*')
-      .eq('stats_date', formattedDate)
-      .maybeSingle();
-    
-    if (statsError) throw statsError;
-    
-    // Get local data to sync
-    const localMetricsData = getFromLocalStorage<LocalMetrics>('dashboard_metrics');
-    
-    // Set defaults if no data exists
-    const localMetrics: LocalMetrics = localMetricsData || {
+    // Get local metrics data
+    const localMetrics = getFromLocalStorage<LocalMetrics>('metrics_data') || {
       daily: {
         salesByHour: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
@@ -35,60 +26,25 @@ export const syncDashboardMetrics = async (): Promise<boolean> => {
       },
       weekly: {
         salesByDay: {},
-        valetsByDay: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-        dryCleaningItems: {}
+        totalSales: 0,
+        valetCount: 0
       },
       monthly: {
-        salesByWeek: {},
-        valetsByWeek: {},
+        salesByDay: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-        dryCleaningItems: {}
+        totalSales: 0,
+        valetCount: 0
       }
     };
     
-    // Prepare the stats data
-    const statsData = {
-      daily_sales_by_hour: localMetrics.daily?.salesByHour || {},
-      daily_payment_methods: localMetrics.daily?.paymentMethods || {},
-      daily_dry_cleaning_items: localMetrics.daily?.dryCleaningItems || {},
-      daily_total_sales: localMetrics.daily?.totalSales || 0,
-      daily_valet_count: localMetrics.daily?.valetCount || 0,
-      weekly_sales_by_day: localMetrics.weekly?.salesByDay || {},
-      weekly_valets_by_day: localMetrics.weekly?.valetsByDay || {},
-      weekly_payment_methods: localMetrics.weekly?.paymentMethods || {},
-      weekly_dry_cleaning_items: localMetrics.weekly?.dryCleaningItems || {},
-      monthly_sales_by_week: localMetrics.monthly?.salesByWeek || {},
-      monthly_valets_by_week: localMetrics.monthly?.valetsByWeek || {},
-      monthly_payment_methods: localMetrics.monthly?.paymentMethods || {},
-      monthly_dry_cleaning_items: localMetrics.monthly?.dryCleaningItems || {}
-    };
+    // Update local storage
+    saveToLocalStorage('metrics_data', localMetrics);
     
-    // Upsert dashboard stats
-    if (existingStats) {
-      const { error: updateError } = await supabase
-        .from('dashboard_stats')
-        .update({
-          stats_data: statsData
-        })
-        .eq('id', existingStats.id);
-      
-      if (updateError) throw updateError;
-    } else {
-      const { error: insertError } = await supabase
-        .from('dashboard_stats')
-        .insert({
-          stats_date: formattedDate,
-          stats_data: statsData
-        });
-      
-      if (insertError) throw insertError;
-    }
-    
-    console.log('Dashboard metrics synced successfully');
+    console.log('Metrics data synced successfully');
     return true;
   } catch (error) {
-    console.error('Error syncing dashboard metrics:', error);
+    console.error('Error syncing metrics data:', error);
     return false;
   }
 };

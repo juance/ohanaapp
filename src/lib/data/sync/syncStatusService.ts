@@ -1,9 +1,16 @@
 
 import { getFromLocalStorage } from '../coreUtils';
 import { TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from '../coreUtils';
-import { LocalClient } from './types';
-import { CustomerFeedback } from '@/lib/types';
 import { SyncStatus } from './types';
+
+// Define interfaces for local data
+interface LocalClient {
+  pendingSync?: boolean;
+}
+
+interface CustomerFeedback {
+  pendingSync?: boolean;
+}
 
 /**
  * Get synchronization status for all data types

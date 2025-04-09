@@ -1,7 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { CustomerFeedback } from '@/lib/types';
+
+// Define the CustomerFeedback interface
+interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  pendingSync?: boolean;
+}
 
 /**
  * Sync feedback data
@@ -13,7 +22,7 @@ export const syncFeedbackData = async (): Promise<boolean> => {
     
     // Process any unsynced feedback
     for (const feedback of localFeedback) {
-      if (feedback && typeof feedback === 'object' && 'pendingSync' in feedback && feedback.pendingSync) {
+      if (feedback && typeof feedback === 'object' && feedback.pendingSync) {
         const { error: feedbackError } = await supabase
           .from('customer_feedback')
           .insert({

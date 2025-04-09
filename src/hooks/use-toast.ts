@@ -1,13 +1,15 @@
 
-import { useState } from 'react';
-import { toast as sonnerToast } from 'sonner';
+"use client";
 
-export type ToastProps = {
+import * as React from "react";
+import { toast as sonnerToast } from "sonner";
+
+export interface ToastProps {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
   [key: string]: any;
-};
+}
 
 // Create a toast function that properly handles the variant
 export const toast = (props: ToastProps) => {
@@ -47,8 +49,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Create a React-safe hook version that doesn't use useState directly
+// Create a React hook
 export function useToast() {
-  // Simply return the toast function - no useState needed here
   return { toast };
 }
