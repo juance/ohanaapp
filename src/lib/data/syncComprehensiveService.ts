@@ -3,6 +3,39 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { syncOfflineData } from './syncService';
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
+import { CustomerFeedback } from '@/lib/types';
+
+interface LocalMetrics {
+  daily?: {
+    salesByHour: Record<string, number>;
+    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+    dryCleaningItems: Record<string, number>;
+    totalSales?: number;
+    valetCount?: number;
+  };
+  weekly?: {
+    salesByDay: Record<string, number>;
+    valetsByDay: Record<string, number>;
+    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+    dryCleaningItems: Record<string, number>;
+  };
+  monthly?: {
+    salesByWeek: Record<string, number>;
+    valetsByWeek: Record<string, number>;
+    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+    dryCleaningItems: Record<string, number>;
+  };
+}
+
+interface LocalClient {
+  id?: string;
+  clientName: string;
+  phoneNumber: string;
+  loyaltyPoints?: number;
+  freeValets?: number;
+  valetsCount?: number;
+  pendingSync?: boolean;
+}
 
 /**
  * Synchronize all application data between local storage and Supabase
@@ -69,7 +102,7 @@ const syncDashboardMetrics = async (): Promise<boolean> => {
     if (statsError) throw statsError;
     
     // Get local data to sync
-    const localMetrics = getFromLocalStorage('dashboard_metrics') || {
+    const localMetrics = getFromLocalStorage<LocalMetrics>('dashboard_metrics') || {
       daily: {
         salesByHour: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
@@ -143,7 +176,7 @@ const syncDashboardMetrics = async (): Promise<boolean> => {
 const syncClientsData = async (): Promise<boolean> => {
   try {
     // Get local clients data (if any)
-    const localClients = getFromLocalStorage('clients_data') || [];
+    const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
     
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
@@ -225,7 +258,7 @@ const syncTicketAnalysis = async (): Promise<boolean> => {
 const syncFeedbackData = async (): Promise<boolean> => {
   try {
     // Get local feedback data
-    const localFeedback = getFromLocalStorage('customer_feedback') || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
     
     // Process any unsynced feedback
     for (const feedback of localFeedback) {
@@ -267,17 +300,17 @@ export const getSyncStatus = async (): Promise<{
 }> => {
   try {
     // Get counts of data that needs to be synced
-    const localTickets = getFromLocalStorage(TICKETS_STORAGE_KEY) || [];
-    const ticketsSync = localTickets.filter((t: any) => t.pendingSync).length;
+    const localTickets = getFromLocalStorage<any[]>(TICKETS_STORAGE_KEY) || [];
+    const ticketsSync = localTickets.filter((t) => t.pendingSync).length;
     
-    const localExpenses = getFromLocalStorage(EXPENSES_STORAGE_KEY) || [];
-    const expensesSync = localExpenses.filter((e: any) => e.pendingSync).length;
+    const localExpenses = getFromLocalStorage<any[]>(EXPENSES_STORAGE_KEY) || [];
+    const expensesSync = localExpenses.filter((e) => e.pendingSync).length;
     
-    const localClients = getFromLocalStorage('clients_data') || [];
-    const clientsSync = localClients.filter((c: any) => c.pendingSync).length;
+    const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
+    const clientsSync = localClients.filter((c) => c.pendingSync).length;
     
-    const localFeedback = getFromLocalStorage('customer_feedback') || [];
-    const feedbackSync = localFeedback.filter((f: any) => f.pendingSync).length;
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
+    const feedbackSync = localFeedback.filter((f) => f.pendingSync).length;
     
     return {
       ticketsSync,

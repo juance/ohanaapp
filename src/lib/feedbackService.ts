@@ -59,6 +59,8 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     
     if (error) throw error;
     
+    if (!data) return [];
+    
     // Map to application CustomerFeedback model
     return data.map(item => ({
       id: item.id,

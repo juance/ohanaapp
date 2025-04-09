@@ -82,10 +82,9 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
 
     try {
       const result = await addFeedback({
-        customerId,
         customerName,
-        comment,
-        rating
+        rating,
+        comment
       });
 
       if (result) {

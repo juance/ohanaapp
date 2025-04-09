@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ResetIcon, CheckIcon } from 'lucide-react';
+import { RepeatIcon, CheckIcon } from 'lucide-react';
 import { syncAllData, getSyncStatus } from '@/lib/data/syncComprehensiveService';
 import { toast } from '@/lib/toast';
 
@@ -83,12 +83,12 @@ export const SyncDataButton = () => {
       >
         {isSyncing ? (
           <>
-            <ResetIcon className="mr-2 h-4 w-4 animate-spin" />
+            <RepeatIcon className="mr-2 h-4 w-4 animate-spin" />
             Sincronizando...
           </>
         ) : totalPendingSync > 0 ? (
           <>
-            <ResetIcon className="mr-2 h-4 w-4" />
+            <RepeatIcon className="mr-2 h-4 w-4" />
             Sincronizar datos ({totalPendingSync})
           </>
         ) : (

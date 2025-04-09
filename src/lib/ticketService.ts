@@ -79,7 +79,14 @@ export const getTicketServices = async (ticketId: string): Promise<DryCleaningIt
     
     if (error) throw error;
     
-    return data as DryCleaningItem[];
+    // Map the data to match the DryCleaningItem type
+    return data.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      ticketId: item.ticket_id
+    })) as DryCleaningItem[];
   } catch (error) {
     console.error('Error retrieving ticket services:', error);
     return [];
