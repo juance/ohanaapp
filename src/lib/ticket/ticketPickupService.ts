@@ -1,198 +1,142 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
-import { Ticket } from '../types';
-import { getTicketServices } from './ticketServiceCore';
+import { Ticket } from '@/lib/types';
 import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
-import { subDays } from 'date-fns';
-import { handleError } from '../utils/errorHandling';
 
-// Get tickets that are ready for pickup
-export const getPickupTickets = async (): Promise<Ticket[]> => {
+/**
+ * Get list of tickets ready for pickup
+ */
+export const getPickupTickets = async (startDate?: Date, endDate?: Date): Promise<Ticket[]> => {
   try {
-    // Use the dynamic query builder
-    const selectColumns = await buildTicketSelectQuery(false);
+    // First check if delivered_date column exists
+    const hasDeliveredDate = await checkDeliveredDateColumnExists();
     
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(selectColumns)
+    let query = supabase.from('tickets')
+      .select(buildTicketSelectQuery(hasDeliveredDate))
       .eq('status', 'ready')
-      .eq('is_canceled', false) // Only show non-canceled tickets
-      .order('created_at', { ascending: false });
-
+      .is('is_canceled', false)
+      .order('updated_at', { ascending: false });
+    
+    // Add date filters if provided
+    if (startDate) {
+      query = query.gte('date', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      query = query.lte('date', endDate.toISOString());
+    }
+    
+    const { data, error } = await query;
+    
     if (error) throw error;
-
-    // Get customer info for each ticket
-    const tickets: Ticket[] = [];
     
     if (!data || !Array.isArray(data)) {
-      console.error('Invalid or empty data received from tickets query');
       return [];
     }
-
-    for (const ticketData of data) {
-      // Skip invalid ticket data
-      if (!ticketData || typeof ticketData !== 'object') {
-        console.error('Invalid ticket data received:', ticketData);
-        continue;
+    
+    // Transform data to match our application types
+    return data.map((ticket: any) => {
+      // Type guard to ensure we're working with valid data
+      if (!ticket || typeof ticket !== 'object') {
+        return null;
       }
       
-      try {
-        // Safe property check before accessing
-        if (ticketData && typeof ticketData === 'object' && 'customer_id' in ticketData) {
-          const customerId = ticketData.customer_id;
-          if (!customerId) {
-            console.error('Ticket has no customer_id:', 
-              'id' in ticketData ? ticketData.id : 'unknown');
-            continue;
-          }
-
-          const { data: customerData, error: customerError } = await supabase
-            .from('customers')
-            .select('name, phone')
-            .eq('id', customerId)
-            .single();
-          
-          if (customerError) {
-            console.error('Error fetching customer for ticket:', customerError);
-            continue;
-          }
-
-          // Add explicit null checks before mapping
-          if (customerData) {
-            // Map ticket data to Ticket model with explicit null check
-            const ticketModel = mapTicketData(ticketData, customerData, false);
-            if (ticketModel) {
-              tickets.push(ticketModel);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error processing ticket:', err);
-        continue;
+      const customerId = ticket.customer_id || null;
+      const customerData = ticket.customers || null;
+      
+      if (customerId && customerData && typeof customerData === 'object') {
+        return mapTicketData(ticket, hasDeliveredDate);
       }
-    }
-
-    // Get services for each ticket
-    for (const ticket of tickets) {
-      // Only call getTicketServices if ticket and ticket.id exist
-      if (ticket && ticket.id) {
-        ticket.services = await getTicketServices(ticket.id);
-      }
-    }
-
-    return tickets;
+      
+      return null;
+    }).filter((ticket): ticket is Ticket => ticket !== null);
   } catch (error) {
-    handleError(error, 'getPickupTickets', 'Error fetching pickup tickets');
+    console.error('Error fetching pickup tickets:', error);
     return [];
   }
 };
 
-// Mark a ticket as delivered
+/**
+ * Mark a ticket as delivered
+ */
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
-    // First check if the tickets table has a delivered_date column
-    const hasDeliveredDateColumn = await checkDeliveredDateColumnExists();
+    // First check if delivered_date column exists
+    const hasDeliveredDate = await checkDeliveredDateColumnExists();
     
-    const updateData: Record<string, any> = {
+    // Prepare update data
+    const updateData: any = {
       status: 'delivered',
-      is_paid: true, // Mark as paid when delivered
       updated_at: new Date().toISOString()
     };
     
-    // Only add delivered_date if the column exists
-    if (hasDeliveredDateColumn) {
+    // If the delivered_date column exists, set it
+    if (hasDeliveredDate) {
       updateData.delivered_date = new Date().toISOString();
     }
-
+    
+    // Update the ticket
     const { error } = await supabase
       .from('tickets')
       .update(updateData)
       .eq('id', ticketId);
-
+    
     if (error) throw error;
-
-    toast.success('Ticket marcado como entregado y pagado');
+    
+    toast.success('Ticket marcado como entregado');
     return true;
   } catch (error) {
-    handleError(error, 'markTicketAsDelivered', 'Error al marcar el ticket como entregado');
+    console.error('Error marking ticket as delivered:', error);
+    toast.error('Error al marcar el ticket como entregado');
     return false;
   }
 };
 
-// Get tickets that haven't been retrieved for a specified number of days
-export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => {
+/**
+ * Get list of unretrieved tickets (tickets that have been ready for pickup for more than X days)
+ */
+export const getUnretrievedTickets = async (daysThreshold: number = 7): Promise<Ticket[]> => {
   try {
-    // Calculate the cutoff date (current date minus specified days)
-    const cutoffDate = subDays(new Date(), days);
-
-    // Use dynamic query builder for select
-    const selectColumns = await buildTicketSelectQuery(false);
+    // Calculate the threshold date
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() - daysThreshold);
     
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(selectColumns)
-      .eq('status', 'ready') // Only tickets that are ready for pickup
-      .eq('is_canceled', false) // Not canceled
-      .lte('created_at', cutoffDate.toISOString()) // Created before the cutoff date
-      .order('created_at', { ascending: false });
-
+    // First check if delivered_date column exists
+    const hasDeliveredDate = await checkDeliveredDateColumnExists();
+    
+    // Get tickets that have been ready for more than the threshold days
+    const { data, error } = await supabase.from('tickets')
+      .select(buildTicketSelectQuery(hasDeliveredDate))
+      .eq('status', 'ready')
+      .is('is_canceled', false)
+      .lte('updated_at', thresholdDate.toISOString())
+      .order('updated_at', { ascending: false });
+    
     if (error) throw error;
-
+    
     if (!data || !Array.isArray(data)) {
-      console.error('Invalid or empty data received from unretrieved tickets query');
       return [];
     }
-
-    // Transform data to match the Ticket type with better error handling
-    const tickets: Ticket[] = [];
     
-    for (const rawTicketData of data) {
-      // Skip invalid ticket data with additional safety check
-      if (!rawTicketData || typeof rawTicketData !== 'object') {
-        console.error('Invalid ticket data received:', rawTicketData);
-        continue;
+    // Transform data to match our application types
+    return data.map((ticket: any) => {
+      // Type guard to ensure we're working with valid data
+      if (!ticket || typeof ticket !== 'object') {
+        return null;
       }
       
-      try {
-        // Safe property check before accessing
-        if (rawTicketData && typeof rawTicketData === 'object' && 'customer_id' in rawTicketData) {
-          const customerId = rawTicketData.customer_id;
-          if (!customerId) {
-            console.error('Ticket has no customer_id:', 
-              'id' in rawTicketData ? rawTicketData.id : 'unknown');
-            continue;
-          }
-
-          const { data: customerData, error: customerError } = await supabase
-            .from('customers')
-            .select('name, phone')
-            .eq('id', customerId)
-            .single();
-            
-          if (customerError) {
-            console.error('Error fetching customer for ticket:', customerError);
-            continue;
-          }
-          
-          // Only proceed if we have valid ticket and customer data
-          if (customerData) {
-            // Map the ticket data using our shared utility
-            const ticketModel = mapTicketData(rawTicketData, customerData, false);
-            if (ticketModel) {
-              tickets.push(ticketModel);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error processing unretrieved ticket:', err);
-        continue;
+      const customerId = ticket.customer_id || null;
+      const customerData = ticket.customers || null;
+      
+      if (customerId && customerData && typeof customerData === 'object') {
+        return mapTicketData(ticket, hasDeliveredDate);
       }
-    }
-
-    return tickets;
+      
+      return null;
+    }).filter((ticket): ticket is Ticket => ticket !== null);
   } catch (error) {
-    handleError(error, `getUnretrievedTickets(${days} days)`, `Error al obtener tickets no retirados (${days} días)`);
+    console.error('Error fetching unretrieved tickets:', error);
     return [];
   }
 };

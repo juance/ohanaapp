@@ -1,93 +1,56 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
-import { Ticket } from '../types';
-import { getTicketServices } from './ticketServiceCore';
-import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
-import { handleError } from '../utils/errorHandling';
+import { Ticket } from '@/lib/types';
+import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 
-// Get tickets that have been delivered
-export const getDeliveredTickets = async (): Promise<Ticket[]> => {
+/**
+ * Get list of delivered tickets
+ */
+export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Promise<Ticket[]> => {
   try {
-    // Build query with dynamic columns based on whether delivered_date exists
-    const selectColumns = await buildTicketSelectQuery(true);
+    // First check if delivered_date column exists
+    const hasDeliveredDate = await checkDeliveredDateColumnExists();
     
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(selectColumns)
+    let query = supabase.from('tickets')
+      .select(buildTicketSelectQuery(hasDeliveredDate))
       .eq('status', 'delivered')
-      .eq('is_canceled', false) // Only show non-canceled tickets
       .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Get customer info for each ticket
-    const tickets: Ticket[] = [];
     
-    // Check if we have valid data
+    // Add date filters if provided
+    if (startDate) {
+      query = query.gte('date', startDate.toISOString());
+    }
+    
+    if (endDate) {
+      query = query.lte('date', endDate.toISOString());
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
     if (!data || !Array.isArray(data)) {
-      console.error('Invalid or empty data received from tickets query');
       return [];
     }
     
-    // Check for delivered_date existence for correct mapping later
-    const hasDeliveredDateColumn = await buildTicketSelectQuery(true);
-    const hasColumn = hasDeliveredDateColumn.includes('delivered_date');
-    
-    for (const ticketData of data) {
-      // Skip invalid ticket data
-      if (!ticketData || typeof ticketData !== 'object') {
-        console.error('Invalid ticket data received:', ticketData);
-        continue;
+    // Transform data to match our application types
+    return data.map((ticket: any) => {
+      // Type guard to ensure we're working with valid data
+      if (!ticket || typeof ticket !== 'object') {
+        return null;
       }
       
-      try {
-        // Safe property check before accessing
-        if (ticketData && typeof ticketData === 'object' && 'customer_id' in ticketData) {
-          const customerId = ticketData.customer_id;
-          if (!customerId) {
-            console.error('Ticket has no customer_id:', 
-              'id' in ticketData ? ticketData.id : 'unknown');
-            continue;
-          }
-
-          const { data: customerData, error: customerError } = await supabase
-            .from('customers')
-            .select('name, phone')
-            .eq('id', customerId)
-            .single();
-          
-          if (customerError) {
-            console.error('Error fetching customer for ticket:', customerError);
-            continue;
-          }
-
-          // Add explicit null checks before mapping
-          if (customerData) {
-            // Map ticket data to Ticket model with explicit null check
-            const ticketModel = mapTicketData(ticketData, customerData, hasColumn);
-            if (ticketModel) {
-              tickets.push(ticketModel);
-            }
-          }
-        }
-      } catch (err) {
-        console.error('Error processing ticket:', err);
-        continue;
+      const customerId = ticket.customer_id || null;
+      const customerData = ticket.customers || null;
+      
+      if (customerId && customerData && typeof customerData === 'object') {
+        return mapTicketData(ticket, hasDeliveredDate);
       }
-    }
-
-    // Get services for each ticket
-    for (const ticket of tickets) {
-      // Since we just created tickets array above, each ticket is guaranteed to exist and have an id
-      if (ticket && ticket.id) {
-        ticket.services = await getTicketServices(ticket.id);
-      }
-    }
-
-    return tickets;
+      
+      return null;
+    }).filter((ticket): ticket is Ticket => ticket !== null);
   } catch (error) {
-    handleError(error, 'getDeliveredTickets', 'Error fetching delivered tickets');
+    console.error('Error fetching delivered tickets:', error);
     return [];
   }
 };
