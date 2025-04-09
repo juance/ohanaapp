@@ -46,7 +46,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Export a useToast function that no longer depends on React's useState
+// Export a useToast function that doesn't depend on React's useState
 export function useToast() {
   return { toast };
 }
