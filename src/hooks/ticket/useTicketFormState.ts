@@ -1,43 +1,44 @@
 
-import { useState } from 'react';
+import { usePaymentState } from './state/usePaymentState';
+import { usePriceState } from './state/usePriceState';
+import { useTabState } from './state/useTabState';
+import { useDateState } from './state/useDateState';
 import { PaymentMethod } from '@/lib/types';
 
 export const useTicketFormState = () => {
-  // Payment method
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  // Use the smaller, focused hooks
+  const { paymentMethod, setPaymentMethod, handlePaymentMethodChange, resetPaymentState } = usePaymentState();
+  const { totalPrice, setTotalPrice, resetPriceState } = usePriceState();
+  const { activeTab, setActiveTab, resetTabState } = useTabState();
+  const { date, setDate, resetDateState } = useDateState();
   
-  // Total price
-  const [totalPrice, setTotalPrice] = useState(0);
-  
-  // Active tab
-  const [activeTab, setActiveTab] = useState('valet');
-  
-  // Date selection
-  const [date, setDate] = useState<Date>(new Date());
-  
-  // Handle payment method change
-  const handlePaymentMethodChange = (value: PaymentMethod) => {
-    setPaymentMethod(value);
-  };
-  
-  // Reset ticket form state
+  // Combine reset functions
   const resetTicketFormState = () => {
-    setPaymentMethod('cash');
-    setTotalPrice(0);
-    setActiveTab('valet');
-    setDate(new Date());
+    resetPaymentState();
+    resetPriceState();
+    resetTabState();
+    resetDateState();
   };
 
   return {
+    // Payment method state
     paymentMethod,
     setPaymentMethod,
     handlePaymentMethodChange,
+    
+    // Price state
     totalPrice,
     setTotalPrice,
+    
+    // Tab state
     activeTab,
     setActiveTab,
+    
+    // Date state
     date,
     setDate,
+    
+    // Combined reset function
     resetTicketFormState
   };
 };

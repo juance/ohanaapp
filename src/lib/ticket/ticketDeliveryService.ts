@@ -42,12 +42,12 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       }
       
       try {
-        // Explicit type check to address TS error
-        if (ticketData && 'customer_id' in ticketData) {
+        // Safe property check before accessing
+        if (ticketData && typeof ticketData === 'object' && 'customer_id' in ticketData) {
           const customerId = ticketData.customer_id;
           if (!customerId) {
             console.error('Ticket has no customer_id:', 
-              'id' in ticketData && ticketData.id ? ticketData.id : 'unknown');
+              'id' in ticketData ? ticketData.id : 'unknown');
             continue;
           }
 
