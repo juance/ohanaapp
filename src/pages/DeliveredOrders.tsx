@@ -19,7 +19,7 @@ const DeliveredOrders = () => {
   // Fetch delivered tickets
   const { data: tickets = [], isLoading, error } = useQuery({
     queryKey: ['deliveredTickets'],
-    queryFn: getDeliveredTickets
+    queryFn: () => getDeliveredTickets()
   });
 
   useEffect(() => {

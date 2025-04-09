@@ -19,7 +19,7 @@ export const usePickupOrdersLogic = () => {
 
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
-    queryFn: getPickupTickets,
+    queryFn: () => getPickupTickets(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true
   });

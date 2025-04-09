@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Ticket } from '@/lib/types';
 
 // Checks if delivered_date column exists in the tickets table
 export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
@@ -22,15 +23,9 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
 };
 
 // Builds the select query string based on available columns
-export const buildTicketSelectQuery = async (includeDeliveredDate = false): Promise<string> => {
-  // If specifying to include delivered_date, verify it exists first
-  let hasDeliveredDateColumn = false;
-  
-  if (includeDeliveredDate) {
-    hasDeliveredDateColumn = await checkDeliveredDateColumnExists();
-  }
-  
-  return `
+export const buildTicketSelectQuery = (includeDeliveredDate = false): string => {
+  // Build the base query
+  let query = `
     id,
     ticket_number,
     basket_ticket_number,
@@ -40,25 +35,37 @@ export const buildTicketSelectQuery = async (includeDeliveredDate = false): Prom
     created_at,
     updated_at,
     is_paid,
-    customer_id
-    ${hasDeliveredDateColumn ? ',delivered_date' : ''}
+    customer_id,
+    customers (
+      name,
+      phone
+    )
   `;
+  
+  // Add delivered_date if it should be included
+  if (includeDeliveredDate) {
+    query += `,delivered_date`;
+  }
+  
+  return query;
 };
 
 // Maps ticket data from database to application Ticket model
-export const mapTicketData = (ticket: any, customerData: any, hasDeliveredDateColumn: boolean): any => {
+export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Ticket | null => {
   // Verify ticket has required properties before mapping
   if (!ticket || typeof ticket !== 'object' || !ticket.id) {
     console.error('Invalid ticket data for mapping:', ticket);
     return null;
   }
+  
+  const customerData = ticket.customers || {};
 
   return {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
     basketTicketNumber: ticket.basket_ticket_number,
-    clientName: customerData?.name || '',
-    phoneNumber: customerData?.phone || '',
+    clientName: customerData.name || '',
+    phoneNumber: customerData.phone || '',
     services: [], // Will be populated by getTicketServices later
     paymentMethod: ticket.payment_method as any, // Cast to PaymentMethod
     totalPrice: ticket.total,
