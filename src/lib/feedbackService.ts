@@ -62,13 +62,15 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     if (!data) return [];
     
     // Map to application CustomerFeedback model
-    return data.map(item => ({
+    const feedbackItems = data.map(item => ({
       id: item.id,
       customerName: item.customer_name,
       rating: item.rating,
       comment: item.comment,
       createdAt: item.created_at
-    }));
+    })) as CustomerFeedback[];
+    
+    return feedbackItems;
   } catch (error) {
     console.error('Error retrieving feedback from Supabase:', error);
     

@@ -81,6 +81,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     setIsSubmitting(true);
 
     try {
+      // Pass only the required fields for feedback
       const result = await addFeedback({
         customerName,
         rating,

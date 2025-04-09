@@ -5,26 +5,32 @@ import { syncOfflineData } from './syncService';
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
 import { CustomerFeedback } from '@/lib/types';
 
+interface DailyMetrics {
+  salesByHour: Record<string, number>;
+  paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+  dryCleaningItems: Record<string, number>;
+  totalSales?: number;
+  valetCount?: number;
+}
+
+interface WeeklyMetrics {
+  salesByDay: Record<string, number>;
+  valetsByDay: Record<string, number>;
+  paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+  dryCleaningItems: Record<string, number>;
+}
+
+interface MonthlyMetrics {
+  salesByWeek: Record<string, number>;
+  valetsByWeek: Record<string, number>;
+  paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
+  dryCleaningItems: Record<string, number>;
+}
+
 interface LocalMetrics {
-  daily?: {
-    salesByHour: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    dryCleaningItems: Record<string, number>;
-    totalSales?: number;
-    valetCount?: number;
-  };
-  weekly?: {
-    salesByDay: Record<string, number>;
-    valetsByDay: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    dryCleaningItems: Record<string, number>;
-  };
-  monthly?: {
-    salesByWeek: Record<string, number>;
-    valetsByWeek: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    dryCleaningItems: Record<string, number>;
-  };
+  daily?: DailyMetrics;
+  weekly?: WeeklyMetrics;
+  monthly?: MonthlyMetrics;
 }
 
 interface LocalClient {
