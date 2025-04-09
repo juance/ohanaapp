@@ -29,7 +29,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     weekly: null,
     monthly: {
       totalTickets: 0,
-      paidTickets: 0,
+      paidTickets: 0, // Reset to zero
       totalRevenue: 0,
       salesByWeek: {
         'Week 1': 0,
@@ -70,13 +70,13 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       // For now, we'll just simulate it with a timeout
       await new Promise(resolve => setTimeout(resolve, 500));
       
-      // Sample data
+      // Sample data with paidTickets set to 0
       const sampleMetrics = {
         daily: null,
         weekly: null,
         monthly: {
           totalTickets: 125,
-          paidTickets: 102,
+          paidTickets: 0, // Reset to zero (was 102)
           totalRevenue: 15780,
           salesByWeek: {
             'Week 1': 3450,
