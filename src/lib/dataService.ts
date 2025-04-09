@@ -22,6 +22,12 @@ export {
   syncOfflineData
 } from './data/syncService';
 
+// Export sync comprehensive service
+export {
+  syncAllData,
+  getSyncStatus
+} from './data/sync/comprehensiveSync';
+
 // Export customer service
 export * from './data/customerService';
 
