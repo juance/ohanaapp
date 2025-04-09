@@ -26,7 +26,7 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
     
     // Fallback to localStorage
     try {
-      const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
       
       const newFeedback: CustomerFeedback = {
         id: crypto.randomUUID(),
