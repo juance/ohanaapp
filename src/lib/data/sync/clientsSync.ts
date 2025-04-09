@@ -14,7 +14,7 @@ export const syncClientsData = async (): Promise<boolean> => {
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
       for (const client of localClients) {
-        if (client.pendingSync) {
+        if (client && client.pendingSync) {
           // Check if client exists in Supabase
           const { data: existingClient, error: clientError } = await supabase
             .from('customers')

@@ -22,7 +22,10 @@ export const syncDashboardMetrics = async (): Promise<boolean> => {
     if (statsError) throw statsError;
     
     // Get local data to sync
-    const localMetrics: LocalMetrics = getFromLocalStorage<LocalMetrics>('dashboard_metrics') || {
+    const localMetricsData = getFromLocalStorage<LocalMetrics>('dashboard_metrics');
+    
+    // Set defaults if no data exists
+    const localMetrics: LocalMetrics = localMetricsData || {
       daily: {
         salesByHour: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
