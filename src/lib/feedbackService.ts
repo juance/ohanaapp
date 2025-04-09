@@ -1,10 +1,55 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
 import { CustomerFeedback } from './types';
+import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 
-// Instead of calling an RPC function that doesn't exist, we'll handle the feedback
-// functionality directly with standard Supabase queries
+const FEEDBACK_STORAGE_KEY = 'customer_feedback';
+
+/**
+ * Add customer feedback to Supabase
+ */
+export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('customer_feedback')
+      .insert({
+        customer_name: feedback.customerName,
+        rating: feedback.rating,
+        comment: feedback.comment
+      });
+    
+    if (error) throw error;
+    
+    return true;
+  } catch (error) {
+    console.error('Error adding feedback to Supabase:', error);
+    
+    // Fallback to localStorage
+    try {
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      
+      const newFeedback: CustomerFeedback = {
+        id: crypto.randomUUID(),
+        customerName: feedback.customerName,
+        rating: feedback.rating,
+        comment: feedback.comment,
+        createdAt: new Date().toISOString(),
+        pendingSync: true
+      };
+      
+      localFeedback.push(newFeedback);
+      saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
+      return true;
+    } catch (localError) {
+      console.error('Error saving feedback to localStorage:', localError);
+      return false;
+    }
+  }
+};
+
+/**
+ * Get all feedback from Supabase
+ */
 export const getFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
     const { data, error } = await supabase
@@ -12,49 +57,28 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) {
-      console.error('Error fetching feedback:', error);
-      return [];
-    }
+    if (error) throw error;
     
-    // Transform the data to match our application structure
-    return (data || []).map((item: any) => ({
+    // Map to application CustomerFeedback model
+    return data.map(item => ({
       id: item.id,
-      customerId: item.customer_id,
       customerName: item.customer_name,
-      comment: item.comment,
       rating: item.rating,
-      createdAt: item.created_at ? new Date(item.created_at).toLocaleDateString('es-ES') : ''
+      comment: item.comment,
+      createdAt: item.created_at
     }));
   } catch (error) {
-    console.error('Error in getFeedback:', error);
-    return [];
+    console.error('Error retrieving feedback from Supabase:', error);
+    
+    // Fallback to localStorage
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    return localFeedback;
   }
 };
 
-export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('customer_feedback')
-      .insert({
-        customer_id: feedback.customerId,
-        customer_name: feedback.customerName,
-        comment: feedback.comment,
-        rating: feedback.rating
-      });
-    
-    if (error) {
-      console.error('Error adding feedback:', error);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in addFeedback:', error);
-    return false;
-  }
-};
-
+/**
+ * Delete feedback from Supabase
+ */
 export const deleteFeedback = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -62,14 +86,21 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
       .delete()
       .eq('id', id);
     
-    if (error) {
-      console.error('Error deleting feedback:', error);
-      return false;
-    }
+    if (error) throw error;
     
     return true;
   } catch (error) {
-    console.error('Error in deleteFeedback:', error);
-    return false;
+    console.error('Error deleting feedback from Supabase:', error);
+    
+    // Try to delete from local storage if it exists there
+    try {
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const updatedFeedback = localFeedback.filter(item => item.id !== id);
+      saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+      return true;
+    } catch (localError) {
+      console.error('Error deleting feedback from localStorage:', localError);
+      return false;
+    }
   }
 };

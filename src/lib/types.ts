@@ -166,9 +166,9 @@ export interface LoyaltyReward {
 
 export interface CustomerFeedback {
   id: string;
-  customerId: string;
   customerName: string;
+  rating: number;
   comment: string;
-  rating: number; // 1-5 star rating
   createdAt: string;
+  pendingSync?: boolean;
 }

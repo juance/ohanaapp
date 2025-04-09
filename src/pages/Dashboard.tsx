@@ -5,6 +5,7 @@ import MetricsCards from '@/components/dashboard/MetricsCards';
 import ChartSection from '@/components/dashboard/ChartSection';
 import LoadingState from '@/components/dashboard/LoadingState';
 import { ResetDashboardCounters } from '@/components/dashboard/ResetDashboardCounters';
+import { SyncDataButton } from '@/components/dashboard/SyncDataButton';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -94,8 +95,9 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             frequentClients={data.clients}
           />
 
-          <div className="mt-8">
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <ResetDashboardCounters />
+            <SyncDataButton />
           </div>
         </>
       )}
