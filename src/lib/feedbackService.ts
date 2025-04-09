@@ -26,7 +26,7 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
     
     // Fallback to localStorage
     try {
-      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
       
       const newFeedback: CustomerFeedback = {
         id: crypto.randomUUID(),
@@ -62,13 +62,13 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     if (!data) return [];
     
     // Map to application CustomerFeedback model
-    const feedbackItems = data.map(item => ({
+    const feedbackItems: CustomerFeedback[] = data.map(item => ({
       id: item.id,
       customerName: item.customer_name,
       rating: item.rating,
       comment: item.comment,
       createdAt: item.created_at
-    })) as CustomerFeedback[];
+    }));
     
     return feedbackItems;
   } catch (error) {

@@ -12,16 +12,16 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
   try {
     // Get counts of data that needs to be synced
     const localTickets = getFromLocalStorage<any[]>(TICKETS_STORAGE_KEY) || [];
-    const ticketsSync = localTickets.filter((t) => t && t.pendingSync).length;
+    const ticketsSync = localTickets.filter((t) => t && typeof t === 'object' && t.pendingSync).length;
     
     const localExpenses = getFromLocalStorage<any[]>(EXPENSES_STORAGE_KEY) || [];
-    const expensesSync = localExpenses.filter((e) => e && e.pendingSync).length;
+    const expensesSync = localExpenses.filter((e) => e && typeof e === 'object' && e.pendingSync).length;
     
     const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
-    const clientsSync = localClients.filter((c) => c && c.pendingSync).length;
+    const clientsSync = localClients.filter((c) => c && typeof c === 'object' && c.pendingSync).length;
     
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
-    const feedbackSync = localFeedback.filter((f) => f && f.pendingSync).length;
+    const feedbackSync = localFeedback.filter((f) => f && typeof f === 'object' && f.pendingSync).length;
     
     return {
       ticketsSync,
