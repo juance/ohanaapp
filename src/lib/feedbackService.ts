@@ -118,3 +118,47 @@ export const getAverageRating = async (): Promise<number> => {
     return 0;
   }
 };
+
+// Add the missing exports that are being referenced elsewhere
+/**
+ * Get feedback for display in the UI
+ */
+export const getFeedback = async (): Promise<CustomerFeedback[]> => {
+  return getAllFeedback();
+};
+
+/**
+ * Add new feedback
+ */
+export const addFeedback = async (feedbackData: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
+  return storeCustomerFeedback(feedbackData);
+};
+
+/**
+ * Delete feedback by ID
+ */
+export const deleteFeedback = async (id: string): Promise<boolean> => {
+  try {
+    // Get existing feedback
+    const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    
+    // Filter out the feedback to delete
+    const updatedFeedback = existingFeedback.filter(item => item.id !== id);
+    
+    // Also delete from Supabase if possible
+    try {
+      await supabase.from('customer_feedback').delete().eq('id', id);
+    } catch (serverError) {
+      console.warn('Could not delete feedback from server:', serverError);
+      // Continue with local deletion even if server deletion fails
+    }
+    
+    // Save back to storage
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
+};

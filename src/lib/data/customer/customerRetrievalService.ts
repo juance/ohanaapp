@@ -33,7 +33,8 @@ export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer 
       return {
         id: data.id,
         name: data.name,
-        phoneNumber: data.phone,
+        phone: data.phone,
+        phoneNumber: data.phone, // Add phoneNumber for compatibility
         createdAt: data.created_at,
         lastVisit,
         loyaltyPoints: data.loyalty_points || 0,
@@ -77,7 +78,8 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
         return {
           id: customer.id,
           name: customer.name,
-          phoneNumber: customer.phone,
+          phone: customer.phone,
+          phoneNumber: customer.phone, // Add phoneNumber for compatibility
           createdAt: customer.created_at,
           lastVisit,
           loyaltyPoints: customer.loyalty_points || 0,

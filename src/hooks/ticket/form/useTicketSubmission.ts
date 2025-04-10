@@ -48,8 +48,12 @@ export const useTicketSubmission = (
         };
       });
 
-      // Prepare laundry options
-      const laundryOptions: LaundryOption[] = selectedLaundryOptions.map(option => option as LaundryOption);
+      // Prepare laundry options - convert strings to LaundryOption objects
+      const laundryOptions: LaundryOption[] = selectedLaundryOptions.map(option => ({
+        id: option,
+        name: option,
+        price: 0
+      }));
 
       // Store the ticket data
       const success = await storeTicketData(

@@ -1,105 +1,161 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
-import { logError } from '@/lib/errorService';
+import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
 
-// Default empty payment methods object that matches the required type
-const defaultPaymentMethods = {
-  cash: 0,
-  debit: 0,
-  mercadopago: 0,
-  cuentaDni: 0
+// Mock data structure for tracking metrics
+let dailyMetrics: DailyMetrics = {
+  salesByHour: {},
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  dryCleaningItems: {},
+  totalSales: 0,
+  valetCount: 0
 };
 
-// Helper function to safely access properties from JSON data
-const safeGet = (obj: any, path: string, defaultValue: any = {}) => {
-  if (!obj || typeof obj !== 'object') return defaultValue;
+let weeklyMetrics: WeeklyMetrics = {
+  salesByDay: {},
+  valetsByDay: {},
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  dryCleaningItems: {},
+  totalSales: 0,
+  valetCount: 0
+};
+
+let monthlyMetrics: MonthlyMetrics = {
+  salesByDay: {},
+  salesByWeek: {},
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  dryCleaningItems: {},
+  totalSales: 0,
+  valetCount: 0
+};
+
+// Initialize metrics
+export const initializeMetrics = () => {
+  console.log('Initializing metrics...');
   
-  // Handle nested paths like 'stats.daily.count'
-  const parts = path.split('.');
-  let current = obj;
+  // Initialize daily metrics
+  dailyMetrics = {
+    salesByHour: {},
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    dryCleaningItems: {},
+    totalSales: 0,
+    valetCount: 0
+  };
   
-  for (const part of parts) {
-    if (current === null || typeof current !== 'object') {
-      return defaultValue;
-    }
-    try {
-      current = current[part];
-    } catch (error) {
-      console.error(`Error accessing ${part} in object:`, current);
-      return defaultValue;
-    }
+  // Initialize weekly metrics
+  weeklyMetrics = {
+    salesByDay: {},
+    valetsByDay: {},
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    dryCleaningItems: {},
+    totalSales: 0,
+    valetCount: 0
+  };
+  
+  // Initialize monthly metrics
+  monthlyMetrics = {
+    salesByDay: {},
+    salesByWeek: {},
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    dryCleaningItems: {},
+    totalSales: 0,
+    valetCount: 0
+  };
+};
+
+// Update metrics when a new ticket is created
+export const updateMetrics = (type: string, data: any) => {
+  const now = new Date();
+  const hour = now.getHours();
+  const day = now.getDate();
+  const week = Math.ceil(day / 7);
+  
+  // Update daily metrics
+  if (!dailyMetrics.salesByHour[hour]) {
+    dailyMetrics.salesByHour[hour] = 0;
+  }
+  dailyMetrics.salesByHour[hour] += data.amount || 0;
+  dailyMetrics.totalSales += data.amount || 0;
+  if (type === 'valet') {
+    dailyMetrics.valetCount += data.quantity || 1;
   }
   
-  return current !== undefined ? current : defaultValue;
+  // Update payment method counts
+  if (data.paymentMethod) {
+    dailyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
+  }
+  
+  // Update weekly metrics
+  if (!weeklyMetrics.salesByDay[day]) {
+    weeklyMetrics.salesByDay[day] = 0;
+  }
+  weeklyMetrics.salesByDay[day] += data.amount || 0;
+  
+  if (!weeklyMetrics.valetsByDay[day]) {
+    weeklyMetrics.valetsByDay[day] = 0;
+  }
+  if (type === 'valet') {
+    weeklyMetrics.valetsByDay[day] += data.quantity || 1;
+  }
+  
+  weeklyMetrics.totalSales += data.amount || 0;
+  weeklyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
+  
+  if (data.paymentMethod) {
+    weeklyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
+  }
+  
+  // Update monthly metrics
+  if (!monthlyMetrics.salesByDay[day]) {
+    monthlyMetrics.salesByDay[day] = 0;
+  }
+  monthlyMetrics.salesByDay[day] += data.amount || 0;
+  
+  if (!monthlyMetrics.salesByWeek[week]) {
+    monthlyMetrics.salesByWeek[week] = 0;
+  }
+  monthlyMetrics.salesByWeek[week] += data.amount || 0;
+  
+  monthlyMetrics.totalSales += data.amount || 0;
+  monthlyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
+  
+  if (data.paymentMethod) {
+    monthlyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
+  }
 };
 
-// Instead of using a non-existent RPC function, we'll query the database directly
-export const getMetrics = async (): Promise<{ daily: DailyMetrics, weekly: WeeklyMetrics, monthly: MonthlyMetrics }> => {
+// Get the current metrics
+export const getMetrics = () => {
+  return {
+    daily: dailyMetrics,
+    weekly: weeklyMetrics,
+    monthly: monthlyMetrics
+  };
+};
+
+// Reset all metrics
+export const resetMetrics = () => {
+  initializeMetrics();
+};
+
+// Update dashboard metrics when a new ticket is created
+export const updateDashboardMetrics = (data: any) => {
   try {
-    const { data, error } = await supabase
-      .from('dashboard_stats')
-      .select('*')
-      .order('stats_date', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const ticketType = data.ticketType || 'valet';
+    const total = data.total || 0;
     
-    if (error) {
-      console.error("Error fetching dashboard stats:", error);
-      logError(error, { context: 'getMetrics', operation: 'supabase query' });
-      throw error;
-    }
+    // Update metrics for the new ticket
+    updateMetrics(ticketType, {
+      amount: total,
+      paymentMethod: data.paymentMethod || 'cash',
+      quantity: data.valetQuantity || 1
+    });
     
-    // Extract stats data from the JSON field
-    const statsData = data?.stats_data || {};
-    
-    // Transform the data to match our metrics structure
-    return {
-      daily: {
-        salesByHour: safeGet(statsData, 'daily_sales_by_hour', {}),
-        paymentMethods: safeGet(statsData, 'daily_payment_methods', defaultPaymentMethods),
-        dryCleaningItems: safeGet(statsData, 'daily_dry_cleaning_items', {}),
-        totalSales: safeGet(statsData, 'daily_total_sales', 0),
-        valetCount: safeGet(statsData, 'daily_valet_count', 0)
-      },
-      weekly: {
-        salesByDay: safeGet(statsData, 'weekly_sales_by_day', {}),
-        valetsByDay: safeGet(statsData, 'weekly_valets_by_day', {}),
-        paymentMethods: safeGet(statsData, 'weekly_payment_methods', defaultPaymentMethods),
-        dryCleaningItems: safeGet(statsData, 'weekly_dry_cleaning_items', {})
-      },
-      monthly: {
-        salesByWeek: safeGet(statsData, 'monthly_sales_by_week', {}),
-        valetsByWeek: safeGet(statsData, 'monthly_valets_by_week', {}),
-        paymentMethods: safeGet(statsData, 'monthly_payment_methods', defaultPaymentMethods),
-        dryCleaningItems: safeGet(statsData, 'monthly_dry_cleaning_items', {})
-      }
-    };
+    return true;
   } catch (error) {
-    console.error('Error fetching metrics:', error);
-    logError(error, { context: 'getMetrics', operation: 'data processing' });
-    
-    // Return default metrics if there's an error
-    return {
-      daily: {
-        salesByHour: {},
-        paymentMethods: defaultPaymentMethods,
-        dryCleaningItems: {},
-        totalSales: 0,
-        valetCount: 0
-      },
-      weekly: {
-        salesByDay: {},
-        valetsByDay: {},
-        paymentMethods: defaultPaymentMethods,
-        dryCleaningItems: {}
-      },
-      monthly: {
-        salesByWeek: {},
-        valetsByWeek: {},
-        paymentMethods: defaultPaymentMethods,
-        dryCleaningItems: {}
-      }
-    };
+    console.error('Error updating dashboard metrics:', error);
+    return false;
   }
 };
+
+// Initialize metrics on app start
+initializeMetrics();

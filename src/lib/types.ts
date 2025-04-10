@@ -18,6 +18,14 @@ export interface LaundryOption {
   selected?: boolean;
 }
 
+// Add the missing LaundryService type
+export interface LaundryService {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber?: string;
@@ -43,7 +51,7 @@ export interface Ticket {
 // Define PaymentMethod type if it's used in the app
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
 
-// Updated Customer interface
+// Updated Customer interface to ensure phone and phoneNumber coexistence
 export interface Customer {
   id: string;
   name: string;
@@ -54,6 +62,7 @@ export interface Customer {
   freeValets: number;
   createdAt?: string;
   lastVisit?: string;
+  valetsRedeemed?: number; // Add the missing property
 }
 
 export interface DryCleaningItem {
@@ -162,4 +171,23 @@ export interface LocalClient {
   valetsCount?: number;
   lastVisit?: string;
   pendingSync?: boolean;
+}
+
+// Add missing types for sync operations
+export interface LocalMetrics {
+  id: string;
+  data: any;
+  date: string;
+  pendingSync?: boolean;
+}
+
+export interface SyncStatus {
+  lastSync: string;
+  pending: {
+    tickets: number;
+    clients: number;
+    feedback: number;
+    inventory: number;
+    expenses: number;
+  };
 }

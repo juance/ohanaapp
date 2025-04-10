@@ -4,14 +4,14 @@ import { Customer } from '../../types';
 
 export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
   try {
-    // Formato de teléfono Argentina: asegurar que comience con +549
-    let phoneNumber = customer.phoneNumber;
+    // Format phone number for Argentina: ensure it starts with +549
+    let phoneNumber = customer.phone || customer.phoneNumber; // Use either phone or phoneNumber
     if (!phoneNumber.startsWith('+549')) {
-      // Si el número ya tiene + al inicio, reemplazarlo
+      // If the number already has + at the start, replace it
       if (phoneNumber.startsWith('+')) {
         phoneNumber = '+549' + phoneNumber.substring(1);
       } 
-      // Si no tiene + al inicio, simplemente agregar +549
+      // If no + at the start, simply add +549
       else {
         phoneNumber = '+549' + phoneNumber;
       }
@@ -23,8 +23,8 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
         name: customer.name, 
         phone: phoneNumber,
         loyalty_points: customer.loyaltyPoints || 0,
-        valets_count: 0,
-        free_valets: 0
+        valets_count: customer.valetsCount || 0,
+        free_valets: customer.freeValets || 0
       }])
       .select('*')
       .single();
@@ -34,7 +34,8 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
     return {
       id: data.id,
       name: data.name,
-      phoneNumber: data.phone,
+      phone: data.phone,
+      phoneNumber: data.phone, // Add phoneNumber for compatibility
       createdAt: data.created_at,
       lastVisit: data.created_at, // Initialize lastVisit with createdAt
       loyaltyPoints: data.loyalty_points || 0,
