@@ -10,16 +10,16 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
   try {
     // Get counts of data that needs to be synced
     const localTickets = getFromLocalStorage<any[]>(TICKETS_STORAGE_KEY) || [];
-    const ticketsSync = localTickets.filter((t) => t && typeof t === 'object' && 'pendingSync' in t && t.pendingSync).length;
+    const ticketsSync = localTickets.filter((ticket) => ticket && typeof ticket === 'object' && 'pendingSync' in ticket && ticket.pendingSync).length;
     
     const localExpenses = getFromLocalStorage<any[]>(EXPENSES_STORAGE_KEY) || [];
-    const expensesSync = localExpenses.filter((e) => e && typeof e === 'object' && 'pendingSync' in e && e.pendingSync).length;
+    const expensesSync = localExpenses.filter((expense) => expense && typeof expense === 'object' && 'pendingSync' in expense && expense.pendingSync).length;
     
     const localClients = getFromLocalStorage<any[]>('clients_data') || [];
-    const clientsSync = localClients.filter((c) => c && typeof c === 'object' && 'pendingSync' in c && c.pendingSync).length;
+    const clientsSync = localClients.filter((client) => client && typeof client === 'object' && 'pendingSync' in client && client.pendingSync).length;
     
     const localFeedback = getFromLocalStorage<any[]>('customer_feedback') || [];
-    const feedbackSync = localFeedback.filter((f) => f && typeof f === 'object' && 'pendingSync' in f && f.pendingSync).length;
+    const feedbackSync = localFeedback.filter((feedback) => feedback && typeof feedback === 'object' && 'pendingSync' in feedback && feedback.pendingSync).length;
     
     return {
       ticketsSync,

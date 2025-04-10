@@ -43,4 +43,4 @@ export const syncMetricsData = async (): Promise<boolean> => {
 };
 
 // Export the function with the correct name that's used in comprehensiveSync.ts
-export const syncDashboardMetrics = syncMetricsData;
+export { syncMetricsData as syncDashboardMetrics };

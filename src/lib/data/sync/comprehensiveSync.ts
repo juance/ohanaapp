@@ -1,11 +1,14 @@
 
 import { toast } from '@/lib/toast';
 import { syncOfflineData } from '../syncService';
-import { syncDashboardMetrics } from './metricsSync';
+import { syncMetricsData } from './metricsSync';
 import { syncClientsData } from './clientsSync';
 import { syncTicketAnalysis } from './analysisSync';
 import { syncFeedbackData } from './feedbackSync';
 import { getSyncStatus } from './syncStatusService';
+
+// Alias the syncMetricsData function to syncDashboardMetrics for backwards compatibility
+const syncDashboardMetrics = syncMetricsData;
 
 /**
  * Synchronize all application data between local storage and Supabase
@@ -55,3 +58,5 @@ export const syncAllData = async (): Promise<boolean> => {
 
 // Re-export getSyncStatus for easier imports
 export { getSyncStatus } from './syncStatusService';
+// Export the syncDashboardMetrics alias
+export { syncDashboardMetrics };

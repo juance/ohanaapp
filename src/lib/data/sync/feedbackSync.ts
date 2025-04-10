@@ -13,7 +13,7 @@ export const syncFeedbackData = async (): Promise<boolean> => {
     
     // Process any unsynced feedback
     for (const feedback of localFeedback) {
-      if (feedback && typeof feedback === 'object' && feedback.pendingSync) {
+      if (feedback.pendingSync) {
         const { error: feedbackError } = await supabase
           .from('customer_feedback')
           .insert({
