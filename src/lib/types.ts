@@ -43,14 +43,17 @@ export interface Ticket {
 // Define PaymentMethod type if it's used in the app
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
 
-// Añadir tipos adicionales que faltan según los errores
+// Updated Customer interface
 export interface Customer {
   id: string;
   name: string;
   phone: string;
+  phoneNumber?: string; // Added for backward compatibility
   loyaltyPoints: number;
   valetsCount: number;
   freeValets: number;
+  createdAt?: string;
+  lastVisit?: string;
 }
 
 export interface DryCleaningItem {
@@ -61,13 +64,24 @@ export interface DryCleaningItem {
   ticketId?: string;
 }
 
+// Updated ClientVisit interface
 export interface ClientVisit {
   id: string;
-  clientId: string;
-  date: string;
-  amount: number;
+  clientId?: string;
+  date?: string;
+  amount?: number;
+  // Adding fields that were being used in the codebase
+  phoneNumber?: string;
+  clientName?: string;
+  visitCount?: number;
+  lastVisit?: string;
+  loyaltyPoints?: number;
+  valetsCount?: number;
+  freeValets?: number;
+  visitFrequency?: string;
 }
 
+// Updated InventoryItem with lastUpdated field
 export interface InventoryItem {
   id: string;
   name: string;
@@ -75,29 +89,28 @@ export interface InventoryItem {
   unit?: string;
   threshold?: number;
   notes?: string;
+  lastUpdated?: string;
 }
 
-export interface LaundryService {
-  id: string;
-  name: string;
-  price: number;
-}
-
+// Updated User interface with role field
 export interface User {
   id: string;
   email: string;
   name?: string;
+  role?: Role;
 }
 
-export type Role = 'admin' | 'user';
+export type Role = 'admin' | 'user' | 'cashier' | 'operator';
 
 export interface Expense {
   id: string;
   description: string;
   amount: number;
   date: string;
+  createdAt?: string;
 }
 
+// Updated metrics interfaces to include the fields used in the codebase
 export interface DailyMetrics {
   salesByHour: Record<string, number>;
   paymentMethods: {
@@ -113,24 +126,40 @@ export interface DailyMetrics {
 
 export interface WeeklyMetrics {
   salesByDay: Record<string, number>;
+  valetsByDay?: Record<string, number>; // Added field being used in code
   paymentMethods: {
     cash: number;
     debit: number;
     mercadopago: number;
     cuentaDni: number;
   };
+  dryCleaningItems?: Record<string, number>; // Added field being used in code
   totalSales: number;
   valetCount: number;
 }
 
 export interface MonthlyMetrics {
   salesByDay: Record<string, number>;
+  salesByWeek?: Record<string, number>; // Added field being used in code
   paymentMethods: {
     cash: number;
     debit: number;
     mercadopago: number;
     cuentaDni: number;
   };
+  dryCleaningItems?: Record<string, number>; // Added field being used in code
   totalSales: number;
   valetCount: number;
+}
+
+// Define LocalClient interface for sync operations
+export interface LocalClient {
+  id: string;
+  clientName: string;
+  phoneNumber: string;
+  loyaltyPoints?: number;
+  freeValets?: number;
+  valetsCount?: number;
+  lastVisit?: string;
+  pendingSync?: boolean;
 }

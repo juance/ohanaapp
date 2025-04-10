@@ -1,4 +1,6 @@
 
+import { LaundryOption } from '@/lib/types';
+
 // Utility function to translate LaundryOption to Spanish
 export const translateOption = (option: LaundryOption | string): string => {
   const optionId = typeof option === 'string' ? option : option.id || option.name || '';
