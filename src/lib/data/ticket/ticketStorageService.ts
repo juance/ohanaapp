@@ -133,7 +133,7 @@ export const storeTicketData = async (
     if (laundryOptions.length > 0) {
       const optionsToInsert = laundryOptions.map(option => ({
         ticket_id: ticketData.id,
-        option_type: option
+        option_type: option.id || option.name || String(option)
       }));
       
       const { error: optionsError } = await supabase

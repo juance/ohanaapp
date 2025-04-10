@@ -25,6 +25,9 @@ export const createTicketForPreview = async (
     console.error('Error getting ticket number for preview:', error);
   }
   
+  // Get a random basket ticket number for preview (will be replaced by the server)
+  const basketNumber = Math.floor(Math.random() * 999) + 1;
+  
   // Format services based on ticket type
   const services = activeTab === 'valet' 
     ? [{ id: crypto.randomUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
@@ -39,7 +42,7 @@ export const createTicketForPreview = async (
   return {
     id: crypto.randomUUID(),
     ticketNumber: ticketNumber,
-    basketTicketNumber: undefined, // This will be assigned by the server
+    basketTicketNumber: basketNumber.toString(),
     clientName: customerName,
     phoneNumber,
     services,

@@ -4,61 +4,62 @@ import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { LocalClient } from './types';
 
 /**
- * Sync clients data and loyalty information
+ * Sync clients data
  */
 export const syncClientsData = async (): Promise<boolean> => {
   try {
-    // Get local clients data (if any)
+    // Get local clients data
     const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
     
-    // If there are local clients that need to be synced, process them
-    if (localClients.length > 0) {
-      for (const client of localClients) {
-        if (client.pendingSync) {
-          // Check if client exists in Supabase
-          const { data: existingClient, error: clientError } = await supabase
+    // Process any unsynced clients
+    for (const client of localClients) {
+      if (client.pendingSync) {
+        // Check if client with this phone number already exists
+        const { data: existingClient, error: queryError } = await supabase
+          .from('customers')
+          .select('id')
+          .eq('phone', client.phoneNumber)
+          .maybeSingle();
+        
+        if (queryError) throw queryError;
+        
+        if (existingClient) {
+          // Update existing client
+          const { error: updateError } = await supabase
             .from('customers')
-            .select('*')
-            .eq('phone', client.phoneNumber)
-            .maybeSingle();
+            .update({
+              name: client.clientName,
+              loyalty_points: client.loyaltyPoints || 0,
+              free_valets: client.freeValets || 0,
+              valets_count: client.valetsCount || 0,
+              last_visit: new Date().toISOString()
+            })
+            .eq('id', existingClient.id);
           
-          if (clientError) throw clientError;
+          if (updateError) throw updateError;
+        } else {
+          // Create new client
+          const { error: insertError } = await supabase
+            .from('customers')
+            .insert({
+              name: client.clientName,
+              phone: client.phoneNumber,
+              loyalty_points: client.loyaltyPoints || 0,
+              free_valets: client.freeValets || 0,
+              valets_count: client.valetsCount || 0,
+              last_visit: new Date().toISOString()
+            });
           
-          // Update or insert client
-          if (existingClient) {
-            const { error: updateError } = await supabase
-              .from('customers')
-              .update({
-                name: client.clientName,
-                loyalty_points: client.loyaltyPoints || 0,
-                free_valets: client.freeValets || 0,
-                valets_count: client.valetsCount || 0
-              })
-              .eq('id', existingClient.id);
-            
-            if (updateError) throw updateError;
-          } else {
-            const { error: insertError } = await supabase
-              .from('customers')
-              .insert({
-                name: client.clientName,
-                phone: client.phoneNumber,
-                loyalty_points: client.loyaltyPoints || 0,
-                free_valets: client.freeValets || 0,
-                valets_count: client.valetsCount || 0
-              });
-            
-            if (insertError) throw insertError;
-          }
-          
-          // Mark client as synced
-          client.pendingSync = false;
+          if (insertError) throw insertError;
         }
+        
+        // Mark as synced
+        client.pendingSync = false;
       }
-      
-      // Update local storage with synced clients
-      saveToLocalStorage('clients_data', localClients);
     }
+    
+    // Update local storage
+    saveToLocalStorage('clients_data', localClients);
     
     console.log('Clients data synced successfully');
     return true;
