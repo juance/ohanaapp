@@ -49,7 +49,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Create a React hook
+// The useToast hook should not use React.useState to avoid the error
 export function useToast() {
   return { toast };
 }
