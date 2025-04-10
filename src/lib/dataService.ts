@@ -15,7 +15,7 @@ export {
   getNextTicketNumber,
   storeTicketData,
   getStoredTickets
-} from './data/ticketService';
+} from './data/ticket/ticketStorageService';
 
 // Export sync service
 export {
@@ -29,7 +29,7 @@ export {
 } from './data/sync/comprehensiveSync';
 
 // Export customer service
-export * from './data/customerService';
+export * from './data/customer';
 
 // Export client service
 export {
@@ -44,8 +44,5 @@ export {
 // Export expense service
 export * from './data/expenseService';
 
-// Do not re-export loyalty service since we're exporting all from customerService
-// which includes these functions
-
 // Explicitly export getCustomerByPhone for direct imports
-export { getCustomerByPhone } from './data/customerService';
+export { getCustomerByPhone } from './data/customer/customerRetrievalService';

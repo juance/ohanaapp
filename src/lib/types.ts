@@ -1,3 +1,4 @@
+
 // If this file already exists, we need to add/update the CustomerFeedback type
 export interface CustomerFeedback {
   id: string;
@@ -149,6 +150,7 @@ export interface WeeklyMetrics {
 export interface MonthlyMetrics {
   salesByDay: Record<string, number>;
   salesByWeek?: Record<string, number>; // Added field being used in code
+  valetsByWeek?: Record<string, number>; // Added field being used in code
   paymentMethods: {
     cash: number;
     debit: number;

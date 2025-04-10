@@ -1,22 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '../../types';
+import { formatPhoneNumber } from './phoneUtils';
+import { logError } from '@/lib/errorService';
 
 export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
   try {
-    // Format phone number for Argentina: ensure it starts with +549
-    let phoneNumber = customer.phone || customer.phoneNumber || ''; // Use either phone or phoneNumber
-    if (!phoneNumber.startsWith('+549')) {
-      // If the number already has + at the start, replace it
-      if (phoneNumber.startsWith('+')) {
-        phoneNumber = '+549' + phoneNumber.substring(1);
-      } 
-      // If no + at the start, simply add +549
-      else {
-        phoneNumber = '+549' + phoneNumber;
-      }
-    }
-
+    // Format phone number for storage
+    const phoneNumber = formatPhoneNumber(customer.phone || customer.phoneNumber || '');
+    
     const { data, error } = await supabase
       .from('customers')
       .insert([{ 
@@ -24,7 +16,8 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
         phone: phoneNumber,
         loyalty_points: customer.loyaltyPoints || 0,
         valets_count: customer.valetsCount || 0,
-        free_valets: customer.freeValets || 0
+        free_valets: customer.freeValets || 0,
+        valets_redeemed: customer.valetsRedeemed || 0
       }])
       .select('*')
       .single();
@@ -40,15 +33,16 @@ export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>
       lastVisit: data.created_at, // Initialize lastVisit with createdAt
       loyaltyPoints: data.loyalty_points || 0,
       valetsCount: data.valets_count || 0,
-      freeValets: data.free_valets || 0
+      freeValets: data.free_valets || 0,
+      valetsRedeemed: data.valets_redeemed || 0
     };
   } catch (error) {
     console.error('Error storing customer in Supabase:', error);
+    logError(error, { context: 'storeCustomer' });
     return null;
   }
 };
 
-// Add the missing updateCustomerLastVisit function
 export const updateCustomerLastVisit = async (customerId: string): Promise<boolean> => {
   try {
     const now = new Date().toISOString();
@@ -61,6 +55,7 @@ export const updateCustomerLastVisit = async (customerId: string): Promise<boole
     return true;
   } catch (error) {
     console.error('Error updating customer last visit:', error);
+    logError(error, { context: 'updateCustomerLastVisit' });
     return false;
   }
 };

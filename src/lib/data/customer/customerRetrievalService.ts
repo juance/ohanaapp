@@ -2,50 +2,75 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '../../types';
 import { formatPhoneNumber } from './phoneUtils';
+import { logError } from '@/lib/errorService';
 
-export const getCustomerByPhone = async (phoneNumber: string): Promise<Customer | null> => {
+export const getCustomerByPhone = async (phoneNumber: string, customerName: string = ''): Promise<Customer | null> => {
   try {
-    // Format the phone number
-    const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
-
-    const { data, error } = await supabase
+    // Format phone number
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    // Check if customer exists
+    const { data: existingCustomer, error: searchError } = await supabase
       .from('customers')
       .select('*')
-      .eq('phone', formattedPhoneNumber)
-      .single();
+      .eq('phone', formattedPhone)
+      .maybeSingle();
     
-    if (error) throw error;
+    if (searchError) throw searchError;
     
-    // If customer exists, get their last visit from tickets
-    if (data) {
-      const { data: ticketData, error: ticketError } = await supabase
-        .from('tickets')
-        .select('created_at')
-        .eq('customer_id', data.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      let lastVisit = data.created_at;
-      if (!ticketError && ticketData && ticketData.length > 0) {
-        lastVisit = ticketData[0].created_at;
-      }
-      
+    // If customer exists, return it
+    if (existingCustomer) {
       return {
-        id: data.id,
-        name: data.name,
-        phone: data.phone,
-        phoneNumber: data.phone, // Add phoneNumber for compatibility
-        createdAt: data.created_at,
-        lastVisit,
-        loyaltyPoints: data.loyalty_points || 0,
-        valetsCount: data.valets_count || 0,
-        freeValets: data.free_valets || 0
+        id: existingCustomer.id,
+        name: existingCustomer.name,
+        phone: existingCustomer.phone,
+        phoneNumber: existingCustomer.phone, // Add for backwards compatibility
+        loyaltyPoints: existingCustomer.loyalty_points || 0,
+        valetsCount: existingCustomer.valets_count || 0,
+        freeValets: existingCustomer.free_valets || 0,
+        valetsRedeemed: existingCustomer.valets_redeemed || 0,
+        lastVisit: existingCustomer.last_visit,
+        createdAt: existingCustomer.created_at
       };
+    }
+    
+    // If customer does not exist and we have a name, create it
+    if (customerName.trim()) {
+      const { data: newCustomer, error: createError } = await supabase
+        .from('customers')
+        .insert({
+          name: customerName.trim(),
+          phone: formattedPhone,
+          loyalty_points: 0,
+          valets_count: 0,
+          free_valets: 0,
+          valets_redeemed: 0
+        })
+        .select()
+        .single();
+      
+      if (createError) throw createError;
+      
+      if (newCustomer) {
+        return {
+          id: newCustomer.id,
+          name: newCustomer.name,
+          phone: newCustomer.phone,
+          phoneNumber: newCustomer.phone, // Add for backwards compatibility
+          loyaltyPoints: newCustomer.loyalty_points || 0,
+          valetsCount: newCustomer.valets_count || 0,
+          freeValets: newCustomer.free_valets || 0,
+          valetsRedeemed: newCustomer.valets_redeemed || 0,
+          lastVisit: newCustomer.last_visit,
+          createdAt: newCustomer.created_at
+        };
+      }
     }
     
     return null;
   } catch (error) {
-    console.error('Error retrieving customer from Supabase:', error);
+    console.error('Error in getCustomerByPhone:', error);
+    logError(error, { context: 'getCustomerByPhone' });
     return null;
   }
 };
@@ -84,7 +109,8 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
           lastVisit,
           loyaltyPoints: customer.loyalty_points || 0,
           valetsCount: customer.valets_count || 0,
-          freeValets: customer.free_valets || 0
+          freeValets: customer.free_valets || 0,
+          valetsRedeemed: customer.valets_redeemed || 0
         };
       })
     );

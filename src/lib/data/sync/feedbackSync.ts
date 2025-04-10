@@ -1,27 +1,26 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { CustomerFeedback } from '../../types';
+import { CustomerFeedback } from '@/lib/types';
 
 /**
- * Sync customer feedback data
+ * Sync feedback data
  */
 export const syncFeedbackData = async (): Promise<boolean> => {
   try {
     // Get local feedback data
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>('feedback_data') || [];
     
-    // Process any unsynced feedback
+    // Process unsynced feedback
     for (const feedback of localFeedback) {
       if (feedback.pendingSync) {
-        // Insert feedback to Supabase
         const { error } = await supabase
           .from('customer_feedback')
           .insert({
             customer_name: feedback.customerName,
             rating: feedback.rating,
             comment: feedback.comment,
-            created_at: feedback.createdAt || new Date().toISOString()
+            created_at: feedback.createdAt
           });
         
         if (error) throw error;

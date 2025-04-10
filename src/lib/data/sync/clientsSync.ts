@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { LocalClient } from './types';
+import { LocalClient } from '@/lib/types';
 
 /**
  * Sync clients data

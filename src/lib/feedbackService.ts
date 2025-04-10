@@ -1,16 +1,72 @@
 
-import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
-import { CustomerFeedback } from './types';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomerFeedback } from './types';
+import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 
-// Define storage key
+// Local storage key for feedback
 const FEEDBACK_STORAGE_KEY = 'feedback_data';
 
 /**
- * Get all feedback from Supabase
+ * Store customer feedback
  */
-export const getFeedbackFromServer = async (): Promise<CustomerFeedback[]> => {
+export const storeFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' | 'pendingSync'>): Promise<CustomerFeedback> => {
+  const newFeedback: CustomerFeedback = {
+    id: crypto.randomUUID(),
+    customerName: feedback.customerName,
+    rating: feedback.rating,
+    comment: feedback.comment,
+    createdAt: new Date().toISOString(),
+    pendingSync: true
+  };
+
   try {
+    // Try to store in Supabase
+    const { error } = await supabase
+      .from('customer_feedback')
+      .insert({
+        customer_name: newFeedback.customerName,
+        rating: newFeedback.rating,
+        comment: newFeedback.comment
+      });
+
+    // If error, store locally for later sync
+    if (error) {
+      console.error('Error storing feedback in Supabase:', error);
+      storeLocalFeedback(newFeedback);
+      return newFeedback;
+    }
+
+    // If successful, don't mark as pending sync
+    newFeedback.pendingSync = false;
+    return newFeedback;
+  } catch (e) {
+    // In case of network errors, store locally
+    console.error('Network error storing feedback:', e);
+    storeLocalFeedback(newFeedback);
+    return newFeedback;
+  }
+};
+
+/**
+ * Store feedback locally for later sync
+ */
+const storeLocalFeedback = (feedback: CustomerFeedback): void => {
+  // Get existing local feedback
+  const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+  
+  // Add new feedback
+  existingFeedback.push(feedback);
+  
+  // Store updated array
+  saveToLocalStorage(FEEDBACK_STORAGE_KEY, existingFeedback);
+};
+
+/**
+ * Fetch all customer feedback
+ */
+export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
+  try {
+    // Fetch from Supabase
     const { data, error } = await supabase
       .from('customer_feedback')
       .select('*')
@@ -18,139 +74,56 @@ export const getFeedbackFromServer = async (): Promise<CustomerFeedback[]> => {
     
     if (error) throw error;
     
-    if (!data) return [];
-    
-    return data.map(item => ({
+    // Transform data to match our application model
+    const feedbackData: CustomerFeedback[] = (data || []).map(item => ({
       id: item.id,
       customerName: item.customer_name,
       rating: item.rating,
       comment: item.comment,
       createdAt: item.created_at,
+      pendingSync: false
     }));
-  } catch (error) {
-    console.error('Error getting feedback from server:', error);
-    return [];
-  }
-};
-
-/**
- * Store customer feedback in local storage and eventually sync to Supabase
- */
-export const storeCustomerFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
-  try {
-    // Create a complete feedback object
-    const newFeedback: CustomerFeedback = {
-      id: crypto.randomUUID(),
-      ...feedback,
-      createdAt: new Date().toISOString(),
-      pendingSync: true
-    };
     
-    // Get existing feedback
-    const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
-    
-    // Add new feedback
-    existingFeedback.push(newFeedback);
-    
-    // Save back to storage
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, existingFeedback);
-    
-    return true;
-  } catch (error) {
-    console.error('Error storing customer feedback:', error);
-    return false;
-  }
-};
-
-/**
- * Get all feedback, combining local and server data
- */
-export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
-  try {
-    // Get server feedback
-    const serverFeedback = await getFeedbackFromServer();
-    
-    // Get local feedback
+    // Also get locally stored feedback
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
     
-    // Combine and flatten the results, removing duplicates by ID
-    const feedbackMap = new Map<string, CustomerFeedback>();
-    
-    // Process server feedback first
-    serverFeedback.forEach(feedback => {
-      feedbackMap.set(feedback.id, feedback);
-    });
-    
-    // Then process local feedback, which will override server feedback if IDs match
-    localFeedback.forEach(feedback => {
-      feedbackMap.set(feedback.id, feedback);
-    });
-    
-    // Convert map back to array
-    const combinedFeedback: CustomerFeedback[] = Array.from(feedbackMap.values());
-    
-    // Sort by createdAt, most recent first
-    return combinedFeedback.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+    // Return combined results with local feedback first (they're newer)
+    return [...localFeedback, ...feedbackData];
   } catch (error) {
-    console.error('Error getting all feedback:', error);
-    return [];
+    console.error('Error fetching feedback:', error);
+    
+    // On error, return only local feedback
+    return getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
   }
 };
 
 /**
- * Get average rating from all feedback
+ * Delete customer feedback
  */
-export const getAverageRating = async (): Promise<number> => {
+export const deleteFeedback = async (feedbackId: string): Promise<boolean> => {
   try {
-    const allFeedback = await getAllFeedback();
+    // First try to delete from local storage
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const feedbackIndex = localFeedback.findIndex(f => f.id === feedbackId);
     
-    if (allFeedback.length === 0) return 0;
-    
-    const sum = allFeedback.reduce((acc, feedback) => acc + feedback.rating, 0);
-    return sum / allFeedback.length;
-  } catch (error) {
-    console.error('Error calculating average rating:', error);
-    return 0;
-  }
-};
-
-/**
- * Get feedback for display in the UI
- */
-export const getFeedback = async (): Promise<CustomerFeedback[]> => {
-  return getAllFeedback();
-};
-
-/**
- * Add new feedback
- */
-export const addFeedback = async (feedbackData: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
-  return storeCustomerFeedback(feedbackData);
-};
-
-/**
- * Delete feedback by ID
- */
-export const deleteFeedback = async (id: string): Promise<boolean> => {
-  try {
-    // Get existing feedback
-    const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
-    
-    // Filter out the feedback to delete
-    const updatedFeedback = existingFeedback.filter(item => item.id !== id);
-    
-    // Also delete from Supabase if possible
-    try {
-      await supabase.from('customer_feedback').delete().eq('id', id);
-    } catch (serverError) {
-      console.warn('Could not delete feedback from server:', serverError);
-      // Continue with local deletion even if server deletion fails
+    if (feedbackIndex >= 0) {
+      // Remove from local array
+      localFeedback.splice(feedbackIndex, 1);
+      saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
+      
+      // If it was only stored locally, we're done
+      if (localFeedback[feedbackIndex]?.pendingSync) {
+        return true;
+      }
     }
     
-    // Save back to storage
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+    // If not found locally or it was synced, try to delete from Supabase
+    const { error } = await supabase
+      .from('customer_feedback')
+      .delete()
+      .eq('id', feedbackId);
+    
+    if (error) throw error;
     
     return true;
   } catch (error) {
@@ -158,3 +131,7 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Add aliases for backward compatibility
+export const addFeedback = storeFeedback;
+export const getFeedback = getAllFeedback;
