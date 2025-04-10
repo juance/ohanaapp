@@ -33,22 +33,11 @@ export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Pro
       return [];
     }
     
-    // Transform data to match our application types
-    return data.map((ticket: any) => {
-      // Type guard to ensure we're working with valid data
-      if (!ticket || typeof ticket !== 'object') {
-        return null;
-      }
-      
-      const customerId = ticket.customer_id || null;
-      const customerData = ticket.customers || null;
-      
-      if (customerId && customerData && typeof customerData === 'object') {
-        return mapTicketData(ticket, hasDeliveredDate);
-      }
-      
-      return null;
-    }).filter((ticket): ticket is Ticket => ticket !== null);
+    // Transform data to match application types
+    return data
+      .filter(ticket => ticket && typeof ticket === 'object')
+      .map(ticket => mapTicketData(ticket, hasDeliveredDate))
+      .filter((ticket): ticket is Ticket => ticket !== null);
   } catch (error) {
     console.error('Error fetching delivered tickets:', error);
     return [];

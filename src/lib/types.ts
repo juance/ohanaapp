@@ -1,4 +1,3 @@
-
 // If this file already exists, we need to add/update the CustomerFeedback type
 export interface CustomerFeedback {
   id: string;
@@ -62,7 +61,7 @@ export interface Customer {
   freeValets: number;
   createdAt?: string;
   lastVisit?: string;
-  valetsRedeemed?: number; // Add the missing property
+  valetsRedeemed?: number;
 }
 
 export interface DryCleaningItem {

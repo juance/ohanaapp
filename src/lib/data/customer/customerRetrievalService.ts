@@ -79,7 +79,7 @@ export const getAllCustomers = async (): Promise<Customer[]> => {
           id: customer.id,
           name: customer.name,
           phone: customer.phone,
-          phoneNumber: customer.phone, // Add phoneNumber for compatibility
+          phoneNumber: customer.phone, // Add for backwards compatibility
           createdAt: customer.created_at,
           lastVisit,
           loyaltyPoints: customer.loyalty_points || 0,

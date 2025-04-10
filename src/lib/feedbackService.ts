@@ -74,7 +74,6 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
     
     // Combine and flatten the results, removing duplicates by ID
-    const combinedFeedback: CustomerFeedback[] = [];
     const feedbackMap = new Map<string, CustomerFeedback>();
     
     // Process server feedback first
@@ -88,9 +87,7 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     });
     
     // Convert map back to array
-    for (const feedback of feedbackMap.values()) {
-      combinedFeedback.push(feedback);
-    }
+    const combinedFeedback: CustomerFeedback[] = Array.from(feedbackMap.values());
     
     // Sort by createdAt, most recent first
     return combinedFeedback.sort((a, b) => {
@@ -119,7 +116,6 @@ export const getAverageRating = async (): Promise<number> => {
   }
 };
 
-// Add the missing exports that are being referenced elsewhere
 /**
  * Get feedback for display in the UI
  */

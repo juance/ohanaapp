@@ -26,7 +26,8 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
       return {
         id: existingCustomer.id,
         name: existingCustomer.name,
-        phoneNumber: existingCustomer.phone,
+        phone: existingCustomer.phone,
+        phoneNumber: existingCustomer.phone, // Add for backwards compatibility
         loyaltyPoints: existingCustomer.loyalty_points || 0,
         valetsCount: existingCustomer.valets_count || 0,
         freeValets: existingCustomer.free_valets || 0,
@@ -57,7 +58,8 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
         return {
           id: newCustomer.id,
           name: newCustomer.name,
-          phoneNumber: newCustomer.phone,
+          phone: newCustomer.phone,
+          phoneNumber: newCustomer.phone, // Add for backwards compatibility
           loyaltyPoints: newCustomer.loyalty_points || 0,
           valetsCount: newCustomer.valets_count || 0,
           freeValets: newCustomer.free_valets || 0,
@@ -89,6 +91,7 @@ export const getFrequentClients = async (limit: number = 5): Promise<ClientVisit
     
     return (data || []).map(customer => ({
       id: customer.id,
+      clientId: customer.id,
       phoneNumber: customer.phone,
       clientName: customer.name || 'Cliente',
       visitCount: customer.valets_count || 0,
@@ -187,7 +190,7 @@ export const storeCustomer = async (customerData: Omit<Customer, 'id' | 'created
       .from('customers')
       .insert({
         name: customerData.name,
-        phone: formatPhoneNumber(customerData.phoneNumber),
+        phone: customerData.phone || formatPhoneNumber(customerData.phoneNumber || ''),
         loyalty_points: customerData.loyaltyPoints || 0,
         valets_count: customerData.valetsCount || 0,
         free_valets: customerData.freeValets || 0
@@ -200,7 +203,8 @@ export const storeCustomer = async (customerData: Omit<Customer, 'id' | 'created
     return {
       id: data.id,
       name: data.name,
-      phoneNumber: data.phone,
+      phone: data.phone,
+      phoneNumber: data.phone, // Add for backwards compatibility
       loyaltyPoints: data.loyalty_points || 0,
       valetsCount: data.valets_count || 0,
       freeValets: data.free_valets || 0,

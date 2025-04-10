@@ -5,7 +5,7 @@ import { Customer } from '../../types';
 export const storeCustomer = async (customer: Omit<Customer, 'id' | 'createdAt'>): Promise<Customer | null> => {
   try {
     // Format phone number for Argentina: ensure it starts with +549
-    let phoneNumber = customer.phone || customer.phoneNumber; // Use either phone or phoneNumber
+    let phoneNumber = customer.phone || customer.phoneNumber || ''; // Use either phone or phoneNumber
     if (!phoneNumber.startsWith('+549')) {
       // If the number already has + at the start, replace it
       if (phoneNumber.startsWith('+')) {
