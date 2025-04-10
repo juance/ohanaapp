@@ -3,15 +3,6 @@ import { getFromLocalStorage } from '../coreUtils';
 import { TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from '../coreUtils';
 import { SyncStatus } from './types';
 
-// Define interfaces for local data
-interface LocalClient {
-  pendingSync?: boolean;
-}
-
-interface CustomerFeedback {
-  pendingSync?: boolean;
-}
-
 /**
  * Get synchronization status for all data types
  */
@@ -24,10 +15,10 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
     const localExpenses = getFromLocalStorage<any[]>(EXPENSES_STORAGE_KEY) || [];
     const expensesSync = localExpenses.filter((e) => e && typeof e === 'object' && 'pendingSync' in e && e.pendingSync).length;
     
-    const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
+    const localClients = getFromLocalStorage<any[]>('clients_data') || [];
     const clientsSync = localClients.filter((c) => c && typeof c === 'object' && 'pendingSync' in c && c.pendingSync).length;
     
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
+    const localFeedback = getFromLocalStorage<any[]>('customer_feedback') || [];
     const feedbackSync = localFeedback.filter((f) => f && typeof f === 'object' && 'pendingSync' in f && f.pendingSync).length;
     
     return {

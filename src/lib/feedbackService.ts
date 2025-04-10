@@ -1,17 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
+import { CustomerFeedback } from './types';
 
-// Define the CustomerFeedback interface
-interface CustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  pendingSync?: boolean;
-}
-
+// Define the feedback storage key constant
 const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
 /**
@@ -46,6 +38,7 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
         pendingSync: true
       };
       
+      // Push to array and save
       localFeedback.push(newFeedback);
       saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
       return true;

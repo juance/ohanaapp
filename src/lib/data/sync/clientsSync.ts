@@ -1,16 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-
-// Define the LocalClient interface
-interface LocalClient {
-  clientName: string;
-  phoneNumber: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
-  pendingSync?: boolean;
-}
+import { LocalClient } from './types';
 
 /**
  * Sync clients data and loyalty information

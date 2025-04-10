@@ -1,14 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-
-// Define the LocalMetrics interface
-interface LocalMetrics {
-  daily?: any;
-  weekly?: any;
-  monthly?: any;
-  pendingSync?: boolean;
-}
+import { LocalMetrics } from './types';
 
 /**
  * Sync metrics data
@@ -48,3 +41,6 @@ export const syncMetricsData = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Export the function with the correct name that's used in comprehensiveSync.ts
+export const syncDashboardMetrics = syncMetricsData;
