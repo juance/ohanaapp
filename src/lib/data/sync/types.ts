@@ -12,22 +12,23 @@ export interface DailyMetrics {
 
 export interface WeeklyMetrics {
   salesByDay: Record<string, number>;
-  valetsByDay: Record<string, number>;
   paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-  dryCleaningItems: Record<string, number>;
+  totalSales?: number;
+  valetCount?: number;
 }
 
 export interface MonthlyMetrics {
-  salesByWeek: Record<string, number>;
-  valetsByWeek: Record<string, number>;
+  salesByDay: Record<string, number>;
   paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-  dryCleaningItems: Record<string, number>;
+  totalSales?: number;
+  valetCount?: number;
 }
 
 export interface LocalMetrics {
-  daily?: DailyMetrics;
-  weekly?: WeeklyMetrics;
-  monthly?: MonthlyMetrics;
+  daily: DailyMetrics;
+  weekly: WeeklyMetrics;
+  monthly: MonthlyMetrics;
+  pendingSync?: boolean;
 }
 
 export interface LocalClient {
