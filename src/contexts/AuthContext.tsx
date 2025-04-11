@@ -56,11 +56,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // In a production app, you would use Supabase authentication
 
       // Simulate API call to check credentials
+      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('phone_number', phoneNumber)
-        .single();
+        .rpc('get_user_by_phone', { phone: phoneNumber });
 
       if (error || !data) {
         throw new Error('Usuario no encontrado o contraseña incorrecta');
@@ -111,11 +109,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
 
       // Check if user already exists
+      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
       const { data: existingUser, error: checkError } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone_number', phoneNumber)
-        .single();
+        .rpc('get_user_by_phone', { phone: phoneNumber });
 
       if (!checkError && existingUser) {
         throw new Error('El número de teléfono ya está registrado');
@@ -126,19 +122,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const hashedPassword = await bcrypt.hash(password, salt);
 
       // Create new user
+      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
       const { data, error } = await supabase
-        .from('users')
-        .insert([
-          {
-            name,
-            phone_number: phoneNumber,
-            password: hashedPassword, // Store the hashed password
-            role,
-            created_at: new Date().toISOString(),
-          }
-        ])
-        .select()
-        .single();
+        .rpc('create_user', {
+          user_name: name,
+          user_phone: phoneNumber,
+          user_password: hashedPassword,
+          user_role: role
+        });
 
       if (error || !data) {
         throw new Error('Error al crear la cuenta');

@@ -1,5 +1,5 @@
 
-import { syncClientsData } from './clientsSync';
+import { syncClientData } from './clientsSync';
 import { syncFeedbackData } from './feedbackSync';
 import { syncMetricsData } from './metricsSync';
 import { getSyncStatus as getStatus } from './syncStatusService';
@@ -14,33 +14,33 @@ export const syncAllData = async (): Promise<boolean> => {
   try {
     // Get initial sync counts to calculate how many items were synced
     const initialStatus = await getSyncStatus();
-    const initialTotal = 
-      initialStatus.ticketsSync + 
-      initialStatus.expensesSync + 
-      initialStatus.clientsSync + 
+    const initialTotal =
+      initialStatus.ticketsSync +
+      initialStatus.expensesSync +
+      initialStatus.clientsSync +
       initialStatus.feedbackSync;
-    
+
     // Sync all data types
-    const clientsSuccess = await syncClientsData();
+    const clientsSuccess = await syncClientData();
     const feedbackSuccess = await syncFeedbackData();
     const metricsSuccess = await syncMetricsData();
-    
+
     // Get final sync status to see what's left
     const finalStatus = await getSyncStatus();
-    const finalTotal = 
-      finalStatus.ticketsSync + 
-      finalStatus.expensesSync + 
-      finalStatus.clientsSync + 
+    const finalTotal =
+      finalStatus.ticketsSync +
+      finalStatus.expensesSync +
+      finalStatus.clientsSync +
       finalStatus.feedbackSync;
-    
+
     // Calculate how many items were successfully synced
     const syncedItemCount = Math.max(0, initialTotal - finalTotal);
-    
+
     // Dispatch event for notifications
     if (syncedItemCount > 0) {
       dispatchSyncCompletedEvent(syncedItemCount);
     }
-    
+
     return clientsSuccess && feedbackSuccess && metricsSuccess;
   } catch (error) {
     handleError(error, 'syncAllData', 'Error al sincronizar todos los datos', false);

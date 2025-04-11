@@ -3,6 +3,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
 
 const Navbar: React.FC = () => {
@@ -35,8 +36,8 @@ const Navbar: React.FC = () => {
   };
 
   // Filter nav items based on user role
-  const filteredNavItems = navItems.filter(item => 
-    user && checkUserPermission(item.roles)
+  const filteredNavItems = navItems.filter(item =>
+    user && checkUserPermission(item.roles as Role[])
   );
 
   return (

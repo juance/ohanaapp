@@ -1,5 +1,5 @@
 
-import { syncClientsData } from './sync/clientsSync';
+import { syncClientData } from './sync/clientsSync';
 import { syncFeedbackData } from './sync/feedbackSync';
 import { syncMetricsData } from './sync/metricsSync';
 
@@ -9,14 +9,14 @@ import { syncMetricsData } from './sync/metricsSync';
 export const syncOfflineData = async (): Promise<boolean> => {
   try {
     // Sync clients data
-    await syncClientsData();
-    
+    await syncClientData();
+
     // Sync feedback data
     await syncFeedbackData();
-    
+
     // Sync metrics data
     await syncMetricsData();
-    
+
     console.log('All offline data synced successfully');
     return true;
   } catch (error) {

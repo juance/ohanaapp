@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomerFeedback } from '@/lib/types';
-import { getFeedback, deleteFeedback } from '@/lib/feedbackService';
+import { getAllFeedback } from '@/lib/feedbackService';
+import { saveToLocalStorage } from '@/lib/data/coreUtils';
 import { Star, Trash2, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/lib/toast';
@@ -21,7 +22,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await getFeedback();
+      const data = await getAllFeedback();
       setFeedback(data);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -41,16 +42,16 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
     try {
       const confirmed = window.confirm('¿Está seguro de eliminar este comentario?');
       if (confirmed) {
-        const success = await deleteFeedback(id);
-        if (success) {
-          setFeedback(feedback.filter(item => item.id !== id));
-          toast({
-            title: "Success",
-            description: "Comentario eliminado exitosamente"
-          });
-        } else {
-          throw new Error("Error al eliminar el comentario");
-        }
+        // Implementación temporal hasta que se cree la función deleteFeedback
+        const currentFeedback = await getAllFeedback();
+        const updatedFeedback = currentFeedback.filter(item => item.id !== id);
+        saveToLocalStorage('customer_feedback', updatedFeedback);
+
+        setFeedback(feedback.filter(item => item.id !== id));
+        toast({
+          title: "Success",
+          description: "Comentario eliminado exitosamente"
+        });
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
@@ -79,9 +80,9 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
 
   if (error) {
     return (
-      <ErrorMessage 
-        title="Error al cargar comentarios" 
-        message={error.message} 
+      <ErrorMessage
+        title="Error al cargar comentarios"
+        message={error.message}
         onRetry={loadFeedback}
       />
     );
@@ -100,9 +101,9 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
         <p className="text-gray-500 text-sm md:text-base">No hay comentarios para mostrar</p>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           className="mt-4"
           onClick={loadFeedback}
         >

@@ -21,7 +21,7 @@ interface LocalClient {
 export const syncClientData = async (): Promise<boolean> => {
   try {
     // Get local client data
-    const localClients = getFromLocalStorage<LocalClient[]>('clients');
+    const localClients = getFromLocalStorage<LocalClient>('clients') || [];
 
     // Process any unsynced clients
     for (const client of localClients) {

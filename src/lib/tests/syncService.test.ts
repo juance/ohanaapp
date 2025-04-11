@@ -3,7 +3,7 @@
 // To properly use Jest, we need to install @types/jest
 // For now, commenting out the tests to avoid TypeScript errors
 
-import { syncClientsData } from '../data/sync/clientsSync';
+import { syncClientData } from '../data/sync/clientsSync';
 import { syncFeedbackData } from '../data/sync/feedbackSync';
 import { syncMetricsData } from '../data/sync/metricsSync';
 import { LocalClient } from '../data/sync/types';
@@ -18,7 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
  * 3. Update package.json with test scripts
  */
 
-/* 
+/*
 // Mock supabase client
 jest.mock('@/integrations/supabase/client', () => ({
   supabase: {
@@ -66,27 +66,27 @@ describe('Sync Services', () => {
         lastVisit: new Date().toISOString(),
         pendingSync: true
       };
-      
+
       localStorage.setItem('clients_data', JSON.stringify([testClient]));
-      
+
       // Mock the supabase response
       (supabase.maybeSingle as jest.Mock).mockResolvedValue({
         data: null,
         error: null
       });
-      
+
       (supabase.insert as jest.Mock).mockResolvedValue({
         data: { id: '123' },
         error: null
       });
-      
+
       // Call the function
-      const result = await syncClientsData();
-      
+      const result = await syncClientData();
+
       // Assert
       expect(result).toBe(true);
       expect(supabase.from).toHaveBeenCalledWith('customers');
-      
+
       // Check that localStorage was updated
       const updatedClients = JSON.parse(localStorage.getItem('clients_data') || '[]');
       expect(updatedClients[0].pendingSync).toBe(false);

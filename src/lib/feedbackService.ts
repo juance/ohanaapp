@@ -44,7 +44,9 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     // Then add local data, overwriting remote with the same ID
     if (localFeedback && localFeedback.length > 0) {
       localFeedback.forEach(item => {
-        feedbackMap.set(item.id, item);
+        if (item && item.id) {
+          feedbackMap.set(item.id, item);
+        }
       });
     }
 
@@ -96,9 +98,11 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
         if (!error) {
           // Mark as synced in local storage
           const updatedFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
-          const feedbackIndex = updatedFeedback.findIndex(f => f.id === newFeedback.id);
+          const feedbackIndex = updatedFeedback.findIndex(f => f && f.id === newFeedback.id);
           if (feedbackIndex >= 0) {
-            updatedFeedback[feedbackIndex].pendingSync = false;
+            if (updatedFeedback[feedbackIndex]) {
+              updatedFeedback[feedbackIndex].pendingSync = false;
+            }
             saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
           }
         }
