@@ -1,7 +1,7 @@
 
 import { toast } from '@/lib/toast';
 import { syncOfflineData } from '../syncService';
-import { syncDashboardMetrics } from './metricsSync';
+import { syncMetricsData } from './metricsSync';
 import { syncClientsData } from './clientsSync';
 import { syncTicketAnalysis } from './analysisSync';
 import { syncFeedbackData } from './feedbackSync';
@@ -22,7 +22,7 @@ export const syncAllData = async (): Promise<boolean> => {
     const offlineDataSynced = await syncOfflineData();
     
     // 2. Sync dashboard metrics
-    await syncDashboardMetrics();
+    await syncMetricsData();
     
     // 3. Sync clients and loyalty data
     await syncClientsData();

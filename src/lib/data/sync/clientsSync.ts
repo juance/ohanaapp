@@ -1,16 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-
-// Define the LocalClient interface
-interface LocalClient {
-  clientName: string;
-  phoneNumber: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
-  pendingSync?: boolean;
-}
+import { LocalClient } from './types';
 
 /**
  * Sync clients data and loyalty information
@@ -18,21 +9,21 @@ interface LocalClient {
 export const syncClientsData = async (): Promise<boolean> => {
   try {
     // Get local clients data (if any)
-    const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
-    
+    const localClients: LocalClient[] = getFromLocalStorage<LocalClient>('clients_data');
+
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
       for (const client of localClients) {
-        if (client && typeof client === 'object' && client.pendingSync) {
+        if (client?.pendingSync) {
           // Check if client exists in Supabase
           const { data: existingClient, error: clientError } = await supabase
             .from('customers')
             .select('*')
             .eq('phone', client.phoneNumber)
             .maybeSingle();
-          
+
           if (clientError) throw clientError;
-          
+
           // Update or insert client
           if (existingClient) {
             const { error: updateError } = await supabase
@@ -44,7 +35,7 @@ export const syncClientsData = async (): Promise<boolean> => {
                 valets_count: client.valetsCount || 0
               })
               .eq('id', existingClient.id);
-            
+
             if (updateError) throw updateError;
           } else {
             const { error: insertError } = await supabase
@@ -56,19 +47,19 @@ export const syncClientsData = async (): Promise<boolean> => {
                 free_valets: client.freeValets || 0,
                 valets_count: client.valetsCount || 0
               });
-            
+
             if (insertError) throw insertError;
           }
-          
+
           // Mark client as synced
           client.pendingSync = false;
         }
       }
-      
+
       // Update local storage with synced clients
       saveToLocalStorage('clients_data', localClients);
     }
-    
+
     console.log('Clients data synced successfully');
     return true;
   } catch (error) {

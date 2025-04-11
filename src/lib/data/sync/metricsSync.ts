@@ -1,14 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-
-// Define the LocalMetrics interface
-interface LocalMetrics {
-  daily?: any;
-  weekly?: any;
-  monthly?: any;
-  pendingSync?: boolean;
-}
+import { LocalMetrics } from './types';
 
 /**
  * Sync metrics data
@@ -16,7 +9,7 @@ interface LocalMetrics {
 export const syncMetricsData = async (): Promise<boolean> => {
   try {
     // Get local metrics data
-    const localMetrics = getFromLocalStorage<LocalMetrics>('metrics_data') || {
+    const localMetrics: LocalMetrics = getFromLocalStorage<LocalMetrics>('metrics_data') || {
       daily: {
         salesByHour: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
@@ -37,10 +30,10 @@ export const syncMetricsData = async (): Promise<boolean> => {
         valetCount: 0
       }
     };
-    
+
     // Update local storage
     saveToLocalStorage('metrics_data', localMetrics);
-    
+
     console.log('Metrics data synced successfully');
     return true;
   } catch (error) {

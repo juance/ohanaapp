@@ -1,6 +1,6 @@
 
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, EXPENSES_STORAGE_KEY } from './coreUtils';
-import { storeTicketData } from './ticketService';
+import { storeTicket } from './ticket/ticketStorageService';
 import { storeExpense } from './expenseService';
 import { toast } from '@/lib/toast';
 
@@ -18,17 +18,17 @@ export const syncOfflineData = async (): Promise<boolean> => {
     // Get tickets that need to be synced
     const localTickets = getFromLocalStorage<any>(TICKETS_STORAGE_KEY) || [];
     const ticketsToSync = localTickets.filter((ticket: any) => ticket.pendingSync);
-    
+
     if (ticketsToSync.length > 0) {
       console.log(`Found ${ticketsToSync.length} tickets to sync`);
-      
+
       // Sync each ticket
       for (const ticket of ticketsToSync) {
         const customer = {
           name: ticket.customerName,
           phoneNumber: ticket.phoneNumber
         };
-        
+
         const ticketData = {
           ticketNumber: ticket.ticketNumber,
           totalPrice: ticket.totalPrice,
@@ -36,13 +36,13 @@ export const syncOfflineData = async (): Promise<boolean> => {
           valetQuantity: ticket.valetQuantity,
           isPaidInAdvance: ticket.isPaid // Make sure we sync the paid status
         };
-        
+
         try {
           console.log(`Syncing ticket ${ticket.ticketNumber} for ${ticket.customerName}`);
-          
-          // Call the storeTicketData function but skip localStorage fallback
-          await storeTicketData(ticketData, customer, ticket.dryCleaningItems || [], ticket.laundryOptions || []);
-          
+
+          // Call the storeTicket function but skip localStorage fallback
+          await storeTicket(ticketData, customer, ticket.dryCleaningItems || [], ticket.laundryOptions || []);
+
           // Mark as synced in localStorage
           ticket.pendingSync = false;
           syncStatus.tickets++;
@@ -53,25 +53,25 @@ export const syncOfflineData = async (): Promise<boolean> => {
           // Continue with other tickets
         }
       }
-      
+
       // Update localStorage
       saveToLocalStorage(TICKETS_STORAGE_KEY, localTickets);
     }
-    
+
     // Do the same for expenses
     const localExpenses = getFromLocalStorage<any>(EXPENSES_STORAGE_KEY) || [];
     const expensesToSync = localExpenses.filter((expense: any) => expense.pendingSync);
-    
+
     if (expensesToSync.length > 0) {
       console.log(`Found ${expensesToSync.length} expenses to sync`);
-      
+
       for (const expense of expensesToSync) {
         const expenseData = {
           description: expense.description,
           amount: expense.amount,
           date: expense.date
         };
-        
+
         try {
           console.log(`Syncing expense: ${expense.description}`);
           await storeExpense(expenseData);
@@ -84,11 +84,11 @@ export const syncOfflineData = async (): Promise<boolean> => {
           // Continue with other expenses
         }
       }
-      
+
       // Update localStorage
       saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
     }
-    
+
     // Show toast with sync results if any data was synced
     if (syncStatus.tickets > 0 || syncStatus.expenses > 0) {
       if (syncStatus.success) {
@@ -104,7 +104,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
         });
       }
     }
-    
+
     return syncStatus.success;
   } catch (error) {
     console.error('Error synchronizing offline data:', error);
@@ -124,22 +124,22 @@ export const resetLocalData = (): boolean => {
   try {
     // Reset tickets in localStorage
     saveToLocalStorage(TICKETS_STORAGE_KEY, []);
-    
+
     // Reset expenses in localStorage
     saveToLocalStorage(EXPENSES_STORAGE_KEY, []);
-    
+
     // Reset other local data
     localStorage.removeItem('dashboard_metrics');
     localStorage.removeItem('clients_data');
     localStorage.removeItem('ticket_analysis_cache');
     localStorage.removeItem('customer_feedback');
-    
+
     console.log('Local data reset successfully');
     toast({
       title: "Datos locales reiniciados",
       description: "Todos los datos almacenados localmente han sido eliminados"
     });
-    
+
     return true;
   } catch (error) {
     console.error('Error resetting local data:', error);

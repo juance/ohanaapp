@@ -2,8 +2,8 @@
 // Main data service file - exports all data-related functions
 
 // Export core utilities
-export { 
-  saveToLocalStorage, 
+export {
+  saveToLocalStorage,
   getFromLocalStorage,
   formatPaymentMethod,
   TICKETS_STORAGE_KEY,
@@ -12,10 +12,16 @@ export {
 
 // Export ticket services
 export {
-  getNextTicketNumber,
-  storeTicketData,
+  getNextTicketNumber
+} from './data/ticket/ticketNumberService';
+
+export {
+  storeTicket as storeTicketData
+} from './data/ticket/ticketStorageService';
+
+export {
   getStoredTickets
-} from './data/ticketService';
+} from './data/ticket/ticketRetrievalService';
 
 // Export sync service
 export {
