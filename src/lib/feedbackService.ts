@@ -1,20 +1,10 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
-import { handleError } from './utils/errorHandling';
-import { validateFeedback } from './validationService';
+import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
 
-const FEEDBACK_STORAGE_KEY = 'customer_feedback';
-
-// Define interfaces
-interface FeedbackInput {
-  customerName: string;
-  rating: number;
-  comment: string;
-  pendingSync?: boolean;
-}
-
-export interface CustomerFeedback {
+// Define the CustomerFeedback interface
+interface CustomerFeedback {
   id: string;
   customerName: string;
   rating: number;
@@ -23,71 +13,23 @@ export interface CustomerFeedback {
   pendingSync: boolean;
 }
 
-/**
- * Add customer feedback to Supabase
- */
-export const addFeedback = async (feedback: FeedbackInput): Promise<boolean> => {
-  try {
-    // Validate feedback data
-    const validation = validateFeedback(feedback);
-    if (!validation.isValid) {
-      throw new Error("Datos de feedback inválidos");
-    }
-
-    const { error } = await supabase
-      .from('customer_feedback')
-      .insert({
-        customer_name: feedback.customerName,
-        rating: feedback.rating,
-        comment: feedback.comment
-      });
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    handleError(error, 'addFeedback', 'Error al guardar el comentario', false);
-
-    // Fallback to localStorage
-    try {
-      // Get existing feedback
-      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
-
-      // Create new feedback item
-      const newFeedback: CustomerFeedback = {
-        id: crypto.randomUUID(),
-        customerName: feedback.customerName,
-        rating: feedback.rating,
-        comment: feedback.comment,
-        createdAt: new Date().toISOString(),
-        pendingSync: true
-      };
-
-      // Add to array and save
-      localFeedback.push(newFeedback);
-      saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
-      return true;
-    } catch (localError) {
-      handleError(localError, 'addFeedbackToLocalStorage', 'Error al guardar comentario localmente', false);
-      return false;
-    }
-  }
-};
+const STORAGE_KEY = 'customer_feedback';
 
 /**
- * Get all feedback from Supabase
+ * Get all stored feedback
  */
-export const getFeedback = async (): Promise<CustomerFeedback[]> => {
+export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
-    const { data: feedbackItems, error } = await supabase
+    // Try to get from Supabase first
+    const { data, error } = await supabase
       .from('customer_feedback')
       .select('*')
       .order('created_at', { ascending: false });
-
+    
     if (error) throw error;
-
-    // Map Supabase data to our application model
-    const mappedFeedback: CustomerFeedback[] = feedbackItems.map(item => ({
+    
+    // Map to our application format
+    const feedbackData: CustomerFeedback[] = data.map(item => ({
       id: item.id,
       customerName: item.customer_name,
       rating: item.rating,
@@ -95,42 +37,109 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
       createdAt: item.created_at,
       pendingSync: false
     }));
-
-    return mappedFeedback;
+    
+    // Merge with local feedback
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
+    
+    // Combine the two sources (remote and local)
+    // Use a Map to handle duplicates (prefer local)
+    const feedbackMap = new Map();
+    
+    // Add remote data first
+    feedbackData.forEach(item => {
+      feedbackMap.set(item.id, item);
+    });
+    
+    // Then add local data, overwriting remote with the same ID
+    localFeedback.forEach(item => {
+      feedbackMap.set(item.id, item);
+    });
+    
+    // Convert back to array
+    return Array.from(feedbackMap.values());
+    
   } catch (error) {
-    handleError(error, 'getFeedback', 'Error al obtener comentarios', false);
-
-    // Fallback to localStorage
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
-    return localFeedback;
+    console.error('Error retrieving feedback from Supabase:', error);
+    
+    // Fallback to local storage
+    return getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
   }
 };
 
 /**
- * Delete feedback from Supabase
+ * Add new feedback
  */
-export const deleteFeedback = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
+export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' | 'pendingSync'>): CustomerFeedback => {
+  const newFeedback: CustomerFeedback = {
+    id: uuidv4(),
+    customerName: feedback.customerName,
+    rating: feedback.rating,
+    comment: feedback.comment,
+    createdAt: new Date().toISOString(),
+    pendingSync: true // Mark for sync
+  };
+  
+  // Get existing feedback
+  const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
+  
+  // Add new feedback
+  existingFeedback.push(newFeedback);
+  
+  // Save updated list
+  saveToLocalStorage(STORAGE_KEY, existingFeedback);
+  
+  // Attempt to sync immediately if online
+  if (navigator.onLine) {
+    supabase
       .from('customer_feedback')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    handleError(error, 'deleteFeedback', 'Error al eliminar comentario', false);
-
-    // Try to delete from local storage if it exists there
-    try {
-      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
-      const updatedFeedback = localFeedback.filter(item => item.id !== id);
-      saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
-      return true;
-    } catch (localError) {
-      handleError(localError, 'deleteFeedbackFromLocalStorage', 'Error al eliminar comentario localmente', false);
-      return false;
-    }
+      .insert({
+        id: newFeedback.id,
+        customer_name: newFeedback.customerName,
+        rating: newFeedback.rating,
+        comment: newFeedback.comment,
+        created_at: newFeedback.createdAt
+      })
+      .then(({ error }) => {
+        if (!error) {
+          // Mark as synced in local storage
+          const updatedFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
+          const feedbackIndex = updatedFeedback.findIndex(f => f.id === newFeedback.id);
+          if (feedbackIndex >= 0) {
+            updatedFeedback[feedbackIndex].pendingSync = false;
+            saveToLocalStorage(STORAGE_KEY, updatedFeedback);
+          }
+        }
+      });
   }
+  
+  return newFeedback;
+};
+
+/**
+ * Filter feedback by rating (1-5)
+ */
+export const getFeedbackByRating = async (rating: number): Promise<CustomerFeedback[]> => {
+  const allFeedback = await getAllFeedback();
+  return allFeedback.filter(item => item.rating === rating);
+};
+
+/**
+ * Get average rating
+ */
+export const getAverageRating = async (): Promise<number> => {
+  const feedback = await getAllFeedback();
+  
+  if (feedback.length === 0) return 0;
+  
+  const sum = feedback.reduce((total, item) => total + item.rating, 0);
+  return sum / feedback.length;
+};
+
+/**
+ * Get feedback by ID
+ */
+export const getFeedbackById = async (id: string): Promise<CustomerFeedback | null> => {
+  const feedback = await getAllFeedback();
+  const found = feedback.find(item => item.id === id);
+  return found || null;
 };

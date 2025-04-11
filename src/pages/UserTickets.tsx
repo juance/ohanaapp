@@ -18,15 +18,26 @@ import {
 } from '@/lib/ticket/ticketUserService';
 import { getTicketServices } from '@/lib/ticket/ticketServiceCore';
 import { Ticket } from '@/lib/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 const UserTickets = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const phoneParam = searchParams.get('phone') || '';
+  const { user } = useAuth();
   
-  const [phoneNumber, setPhoneNumber] = useState(phoneParam);
-  const [searchInput, setSearchInput] = useState(phoneParam);
+  const [phoneNumber, setPhoneNumber] = useState(phoneParam || (user?.phoneNumber || ''));
+  const [searchInput, setSearchInput] = useState(phoneParam || (user?.phoneNumber || ''));
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [ticketServices, setTicketServices] = useState<any[]>([]);
+  
+  // Initialize phone number from user if available
+  useEffect(() => {
+    if (user?.phoneNumber && !phoneNumber) {
+      setPhoneNumber(user.phoneNumber);
+      setSearchInput(user.phoneNumber);
+      setSearchParams({ phone: user.phoneNumber });
+    }
+  }, [user, phoneNumber, setSearchParams]);
   
   // Load services when a ticket is selected
   useEffect(() => {
@@ -72,11 +83,11 @@ const UserTickets = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'delivered':
-        return <Badge variant="success" className="ml-2">Entregado</Badge>;
+        return <Badge className="ml-2 bg-green-500 hover:bg-green-600">Entregado</Badge>;
       case 'ready':
-        return <Badge variant="warning" className="ml-2">Listo para retirar</Badge>;
+        return <Badge className="ml-2 bg-yellow-500 hover:bg-yellow-600">Listo para retirar</Badge>;
       case 'processing':
-        return <Badge variant="secondary" className="ml-2">En proceso</Badge>;
+        return <Badge className="ml-2 bg-blue-500 hover:bg-blue-600">En proceso</Badge>;
       default:
         return <Badge variant="outline" className="ml-2">Pendiente</Badge>;
     }
@@ -105,6 +116,9 @@ const UserTickets = () => {
     </Card>
   );
   
+  // Conditionally hide search bar for clients
+  const showSearchBar = !user || user.role !== 'client';
+  
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-gray-50">
       <Navbar />
@@ -114,19 +128,21 @@ const UserTickets = () => {
           <h1 className="text-2xl font-bold text-blue-600 mb-2">Mis Tickets</h1>
           <p className="text-gray-600 mb-6">Consulta el estado de tus tickets</p>
           
-          <div className="mb-6 flex gap-2">
-            <Input
-              type="tel"
-              placeholder="Ingresa tu número de teléfono"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="max-w-sm"
-            />
-            <Button onClick={handleSearch}>
-              <Search className="h-4 w-4 mr-2" />
-              Buscar
-            </Button>
-          </div>
+          {showSearchBar && (
+            <div className="mb-6 flex gap-2">
+              <Input
+                type="tel"
+                placeholder="Ingresa tu número de teléfono"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="max-w-sm"
+              />
+              <Button onClick={handleSearch}>
+                <Search className="h-4 w-4 mr-2" />
+                Buscar
+              </Button>
+            </div>
+          )}
           
           {phoneNumber ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

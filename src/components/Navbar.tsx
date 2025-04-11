@@ -1,27 +1,43 @@
 
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout, checkUserPermission } = useAuth();
 
   const isActive = (path: string) => {
     return location.pathname === path;
   };
 
+  // Define navigation items with required roles
   const navItems = [
-    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" /> },
-    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" /> },
-    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" /> },
-    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" /> },
-    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" /> },
-    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" /> },
-    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" /> },
-    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" /> },
-    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" /> },
-    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" /> },
+    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" />, roles: ['admin'] },
+    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" />, roles: ['admin'] },
+    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" />, roles: ['admin', 'operator'] },
+    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin'] },
+    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" />, roles: ['admin'] },
+    { path: '/user-tickets', name: 'Portal para Clientes', icon: <User className="h-4 w-4" />, roles: ['admin', 'operator', 'client'] },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/auth');
+  };
+
+  // Filter nav items based on user role
+  const filteredNavItems = navItems.filter(item => 
+    user && checkUserPermission(item.roles)
+  );
 
   return (
     <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
@@ -32,9 +48,23 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
 
+        {user && (
+          <div className="p-4 border-b">
+            <div className="flex items-center space-x-2">
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <User className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <div className="font-medium">{user.name}</div>
+                <div className="text-xs text-gray-500 capitalize">{user.role}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <nav className="flex-1 overflow-y-auto p-4">
           <ul className="space-y-1">
-            {navItems.map((item) => (
+            {filteredNavItems.map((item) => (
               <li key={item.path}>
                 <Link
                   to={item.path}
@@ -53,7 +83,26 @@ const Navbar: React.FC = () => {
         </nav>
 
         <div className="p-4 border-t">
-          <div className="text-xs text-gray-500">
+          {user ? (
+            <Button
+              variant="outline"
+              className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar Sesión
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => navigate('/auth')}
+            >
+              <User className="h-4 w-4 mr-2" />
+              Iniciar Sesión
+            </Button>
+          )}
+          <div className="text-xs text-gray-500 mt-4">
             © 2023 Lavandería Ohana
           </div>
         </div>

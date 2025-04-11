@@ -3,6 +3,8 @@ import { Routes, Route } from 'react-router-dom';
 import { Suspense, lazy } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Implement code splitting with lazy loading for each page
 const Index = lazy(() => import('@/pages/Index'));
@@ -18,6 +20,7 @@ const Loyalty = lazy(() => import('@/pages/Loyalty'));
 const DeliveredOrders = lazy(() => import('@/pages/DeliveredOrders'));
 const TicketAnalysis = lazy(() => import('@/pages/TicketAnalysis'));
 const UserTickets = lazy(() => import('@/pages/UserTickets'));
+const Auth = lazy(() => import('@/pages/Auth'));
 
 // Loading fallback with optimized rendering
 const LoadingFallback = () => (
@@ -29,24 +32,82 @@ const LoadingFallback = () => (
 
 function App() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/tickets" element={<Tickets />} />
-        <Route path="/pickup" element={<PickupOrders />} />
-        <Route path="/delivered" element={<DeliveredOrders />} />
-        <Route path="/inventory" element={<Inventory />} />
-        <Route path="/expenses" element={<Expenses />} />
-        <Route path="/feedback" element={<Feedback />} />
-        <Route path="/administration" element={<Administration />} />
-        <Route path="/clients" element={<Clients />} />
-        <Route path="/loyalty" element={<Loyalty />} />
-        <Route path="/analysis" element={<TicketAnalysis />} />
-        <Route path="/user-tickets" element={<UserTickets />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </Suspense>
+    <AuthProvider>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Admin only routes */}
+          <Route path="/dashboard" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/administration" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Administration />
+            </ProtectedRoute>
+          } />
+          <Route path="/analysis" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <TicketAnalysis />
+            </ProtectedRoute>
+          } />
+          <Route path="/feedback" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Feedback />
+            </ProtectedRoute>
+          } />
+          
+          {/* Admin and operator routes */}
+          <Route path="/tickets" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <Tickets />
+            </ProtectedRoute>
+          } />
+          <Route path="/pickup" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <PickupOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/delivered" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <DeliveredOrders />
+            </ProtectedRoute>
+          } />
+          <Route path="/inventory" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <Inventory />
+            </ProtectedRoute>
+          } />
+          <Route path="/expenses" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <Expenses />
+            </ProtectedRoute>
+          } />
+          <Route path="/clients" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <Clients />
+            </ProtectedRoute>
+          } />
+          <Route path="/loyalty" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <Loyalty />
+            </ProtectedRoute>
+          } />
+          
+          {/* All authenticated users */}
+          <Route path="/user-tickets" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator', 'client']}>
+              <UserTickets />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </AuthProvider>
   );
 }
 
