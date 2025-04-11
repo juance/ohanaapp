@@ -1,23 +1,21 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
+import { CustomerFeedback } from '@/lib/types';
 
-// Define the CustomerFeedback interface
-interface CustomerFeedback {
-  id: string;
+const FEEDBACK_STORAGE_KEY = 'customer_feedback';
+
+interface FeedbackInput {
   customerName: string;
   rating: number;
   comment: string;
-  createdAt: string;
   pendingSync?: boolean;
 }
-
-const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
 /**
  * Add customer feedback to Supabase
  */
-export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<boolean> => {
+export const addFeedback = async (feedback: FeedbackInput): Promise<boolean> => {
   try {
     const { error } = await supabase
       .from('customer_feedback')
@@ -26,17 +24,19 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
         rating: feedback.rating,
         comment: feedback.comment
       });
-    
+
     if (error) throw error;
-    
+
     return true;
   } catch (error) {
     console.error('Error adding feedback to Supabase:', error);
-    
+
     // Fallback to localStorage
     try {
-      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
-      
+      // Get existing feedback
+      const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+
+      // Create new feedback item
       const newFeedback: CustomerFeedback = {
         id: crypto.randomUUID(),
         customerName: feedback.customerName,
@@ -45,7 +45,8 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
         createdAt: new Date().toISOString(),
         pendingSync: true
       };
-      
+
+      // Add to array and save
       localFeedback.push(newFeedback);
       saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
       return true;
@@ -61,30 +62,29 @@ export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'creat
  */
 export const getFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
-    const { data, error } = await supabase
+    const { data: feedbackItems, error } = await supabase
       .from('customer_feedback')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
-    if (!data) return [];
-    
-    // Map to application CustomerFeedback model
-    const feedbackItems: CustomerFeedback[] = data.map(item => ({
+
+    // Map Supabase data to our application model
+    const mappedFeedback: CustomerFeedback[] = feedbackItems.map(item => ({
       id: item.id,
       customerName: item.customer_name,
       rating: item.rating,
       comment: item.comment,
-      createdAt: item.created_at
+      createdAt: item.created_at,
+      pendingSync: false
     }));
-    
-    return feedbackItems;
+
+    return mappedFeedback;
   } catch (error) {
     console.error('Error retrieving feedback from Supabase:', error);
-    
+
     // Fallback to localStorage
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
     return localFeedback;
   }
 };
@@ -98,16 +98,17 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
       .from('customer_feedback')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
-    
+
     return true;
   } catch (error) {
     console.error('Error deleting feedback from Supabase:', error);
-    
+
     // Try to delete from local storage if it exists there
     try {
-      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+
       const updatedFeedback = localFeedback.filter(item => item.id !== id);
       saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
       return true;

@@ -170,5 +170,5 @@ export interface CustomerFeedback {
   rating: number;
   comment: string;
   createdAt: string;
-  pendingSync?: boolean;
+  pendingSync: boolean;
 }
