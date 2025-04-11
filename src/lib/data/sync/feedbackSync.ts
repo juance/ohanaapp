@@ -1,8 +1,17 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { CustomerFeedback } from '@/lib/types';
 import { handleError } from '@/lib/utils/errorHandling';
+
+// Define the CustomerFeedback interface
+interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  pendingSync: boolean;
+}
 
 /**
  * Sync feedback data
@@ -10,7 +19,7 @@ import { handleError } from '@/lib/utils/errorHandling';
 export const syncFeedbackData = async (): Promise<boolean> => {
   try {
     // Get local feedback data
-    const localFeedback = getFromLocalStorage<CustomerFeedback>('customer_feedback');
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback');
 
     // Process any unsynced feedback
     for (const feedback of localFeedback) {

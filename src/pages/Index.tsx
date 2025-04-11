@@ -1,124 +1,123 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, Package } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { ShoppingBag, PlusCircle, ShoppingBasket, Clock, CheckSquare, ChevronRight, Search, User } from 'lucide-react';
+import Navbar from '@/components/Navbar';
 
-const Index: React.FC = () => {
-  const features = [
-    {
-      title: 'Panel de Control',
-      description: 'Visualiza métricas y estadísticas importantes',
-      icon: <BarChart className="h-8 w-8 text-blue-500" />,
-      path: '/dashboard',
-    },
-    {
-      title: 'Tickets',
-      description: 'Genera y gestiona tickets de servicio',
-      icon: <Ticket className="h-8 w-8 text-indigo-500" />,
-      path: '/tickets',
-    },
-    {
-      title: 'Ordenes Pendientes',
-      description: 'Gestiona las órdenes pendientes de entrega',
-      icon: <ShoppingBag className="h-8 w-8 text-yellow-500" />,
-      path: '/pickup',
-    },
-    {
-      title: 'Ordenes Entregadas',
-      description: 'Revisa el historial de órdenes entregadas',
-      icon: <FileText className="h-8 w-8 text-green-500" />,
-      path: '/delivered',
-    },
-    {
-      title: 'Clientes',
-      description: 'Administra la información de los clientes',
-      icon: <Users className="h-8 w-8 text-purple-500" />,
-      path: '/clients',
-    },
-    {
-      title: 'Programa de Fidelidad',
-      description: 'Gestiona puntos y recompensas para clientes',
-      icon: <Award className="h-8 w-8 text-orange-500" />,
-      path: '/loyalty',
-    },
-    {
-      title: 'Inventario',
-      description: 'Control y gestión de productos e insumos',
-      icon: <Package className="h-8 w-8 text-emerald-500" />,
-      path: '/inventory',
-    },
-    {
-      title: 'Análisis de Tickets',
-      description: 'Reportes y analíticas sobre los tickets',
-      icon: <FileText className="h-8 w-8 text-cyan-500" />,
-      path: '/analysis',
-    },
-    {
-      title: 'Gastos',
-      description: 'Control y registro de gastos del negocio',
-      icon: <DollarSign className="h-8 w-8 text-red-500" />,
-      path: '/expenses',
-    },
-    {
-      title: 'Administración',
-      description: 'Configuraciones y herramientas del sistema',
-      icon: <Settings className="h-8 w-8 text-gray-500" />,
-      path: '/administration',
-    },
-    {
-      title: 'Comentarios',
-      description: 'Gestiona comentarios de clientes',
-      icon: <FileText className="h-8 w-8 text-blue-500" />,
-      path: '/feedback',
-    },
-  ];
-
+// Modified Index component to include user tickets link
+const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex justify-between items-center">
+    <div className="flex min-h-screen flex-col md:flex-row">
+      <Navbar />
+      
+      <div className="flex-1 md:ml-64 p-6">
+        <div className="container mx-auto pt-6">
+          <header className="mb-8">
             <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
-          </div>
-        </div>
-      </header>
-
-      <main className="container mx-auto px-4 py-8">
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-center mb-12">Sistema de Gestión</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <Card key={feature.path} className="overflow-hidden transition-all duration-200 hover:shadow-md">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-xl">
-                    {feature.icon}
-                    <span>{feature.title}</span>
-                  </CardTitle>
-                  <CardDescription>{feature.description}</CardDescription>
-                </CardHeader>
-                <CardFooter className="pt-3">
-                  <Button asChild className="w-full">
-                    <Link to={feature.path} className="flex items-center justify-center">
-                      Acceder
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Link>
+            <p className="text-gray-500">Sistema de gestión</p>
+          </header>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Crear Ticket</h2>
+                  <PlusCircle className="h-6 w-6 text-blue-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Generar un nuevo ticket para un pedido</p>
+                <Link to="/tickets">
+                  <Button className="w-full">
+                    Crear Ticket
+                    <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
-                </CardFooter>
-              </Card>
-            ))}
+                </Link>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-yellow-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Pedidos por Retirar</h2>
+                  <Clock className="h-6 w-6 text-yellow-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Gestionar los pedidos listos para retirar</p>
+                <Link to="/pickup">
+                  <Button variant="outline" className="w-full">
+                    Ver Pedidos
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Pedidos Entregados</h2>
+                  <CheckSquare className="h-6 w-6 text-green-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Ver historial de pedidos entregados</p>
+                <Link to="/delivered">
+                  <Button variant="outline" className="w-full">
+                    Ver Historial
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Dashboard</h2>
+                  <ShoppingBasket className="h-6 w-6 text-purple-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Ver estadísticas y métricas</p>
+                <Link to="/dashboard">
+                  <Button variant="outline" className="w-full">
+                    Ver Dashboard
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-orange-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Clientes</h2>
+                  <ShoppingBag className="h-6 w-6 text-orange-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Gestionar listado de clientes</p>
+                <Link to="/clients">
+                  <Button variant="outline" className="w-full">
+                    Ver Clientes
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            
+            <Card className="hover:shadow-md transition-shadow border-l-4 border-l-indigo-500">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-lg font-semibold">Portal para Clientes</h2>
+                  <User className="h-6 w-6 text-indigo-500" />
+                </div>
+                <p className="text-gray-500 mb-4">Consulta el estado de tus tickets</p>
+                <Link to="/user-tickets">
+                  <Button variant="outline" className="w-full">
+                    Consultar Tickets
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
-        </section>
-      </main>
-
-      <footer className="bg-white border-t py-6">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-gray-500 text-sm">
-            © 2023 Lavandería Ohana. Todos los derechos reservados.
-          </p>
         </div>
-      </footer>
+      </div>
     </div>
   );
 };

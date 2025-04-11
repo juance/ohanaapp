@@ -1,8 +1,18 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { LocalClient } from './types';
 import { handleError } from '@/lib/utils/errorHandling';
+
+// Define the LocalClient interface
+interface LocalClient {
+  clientName: string;
+  phoneNumber: string;
+  loyaltyPoints?: number;
+  freeValets?: number;
+  valetsCount?: number;
+  lastVisit?: string;
+  pendingSync: boolean;
+}
 
 /**
  * Sync clients data and loyalty information
@@ -10,7 +20,7 @@ import { handleError } from '@/lib/utils/errorHandling';
 export const syncClientsData = async (): Promise<boolean> => {
   try {
     // Get local clients data (if any)
-    const localClients = getFromLocalStorage<LocalClient>('clients_data');
+    const localClients = getFromLocalStorage<LocalClient[]>('clients_data');
 
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {

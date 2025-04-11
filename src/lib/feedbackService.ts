@@ -1,17 +1,26 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
-import { CustomerFeedback } from '@/lib/types';
 import { handleError } from './utils/errorHandling';
 import { validateFeedback } from './validationService';
 
 const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
+// Define interfaces
 interface FeedbackInput {
   customerName: string;
   rating: number;
   comment: string;
   pendingSync?: boolean;
+}
+
+export interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  pendingSync: boolean;
 }
 
 /**
@@ -42,7 +51,7 @@ export const addFeedback = async (feedback: FeedbackInput): Promise<boolean> => 
     // Fallback to localStorage
     try {
       // Get existing feedback
-      const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
 
       // Create new feedback item
       const newFeedback: CustomerFeedback = {
@@ -92,7 +101,7 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     handleError(error, 'getFeedback', 'Error al obtener comentarios', false);
 
     // Fallback to localStorage
-    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
     return localFeedback;
   }
 };
@@ -115,7 +124,7 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
 
     // Try to delete from local storage if it exists there
     try {
-      const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
       const updatedFeedback = localFeedback.filter(item => item.id !== id);
       saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
       return true;

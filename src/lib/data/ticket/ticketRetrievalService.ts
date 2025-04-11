@@ -47,7 +47,7 @@ export const getStoredTickets = async (startDate?: Date, endDate?: Date): Promis
     console.error('Error retrieving tickets from Supabase:', error);
     
     // Fallback to localStorage
-    const localTickets = getFromLocalStorage<any>(TICKETS_STORAGE_KEY);
+    const localTickets = getFromLocalStorage<any[]>(TICKETS_STORAGE_KEY);
     
     // Filter by date if provided
     if (startDate || endDate) {
