@@ -21,7 +21,7 @@ export const syncClientsData = async (): Promise<boolean> => {
             .from('customers')
             .select('*')
             .eq('phone', client.phoneNumber)
-            .maybeSingle();
+            .single();
 
           if (clientError) throw clientError;
 
