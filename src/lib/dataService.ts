@@ -16,7 +16,7 @@ export {
 } from './data/ticket/ticketNumberService';
 
 export {
-  storeTicket as storeTicketData
+  storeTicket
 } from './data/ticket/ticketStorageService';
 
 export {
@@ -35,7 +35,7 @@ export {
 } from './data/sync/comprehensiveSync';
 
 // Export customer service
-export * from './data/customerService';
+export * from './data/customer/customerService';
 
 // Export client service
 export {
@@ -54,4 +54,4 @@ export * from './data/expenseService';
 // which includes these functions
 
 // Explicitly export getCustomerByPhone for direct imports
-export { getCustomerByPhone } from './data/customerService';
+export { getCustomerByPhone } from './data/customer/customerRetrievalService';

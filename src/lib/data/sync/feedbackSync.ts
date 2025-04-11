@@ -9,7 +9,7 @@ import { CustomerFeedback } from '@/lib/types';
 export const syncFeedbackData = async (): Promise<boolean> => {
   try {
     // Get local feedback data
-    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback>('customer_feedback');
+    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
 
     // Process any unsynced feedback
     for (const feedback of localFeedback) {
@@ -19,7 +19,8 @@ export const syncFeedbackData = async (): Promise<boolean> => {
           .insert({
             customer_name: feedback.customerName,
             rating: feedback.rating,
-            comment: feedback.comment
+            comment: feedback.comment,
+            created_at: feedback.createdAt
           });
 
         if (feedbackError) throw feedbackError;

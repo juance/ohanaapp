@@ -9,7 +9,7 @@ import { LocalClient } from './types';
 export const syncClientsData = async (): Promise<boolean> => {
   try {
     // Get local clients data (if any)
-    const localClients: LocalClient[] = getFromLocalStorage<LocalClient>('clients_data');
+    const localClients: LocalClient[] = getFromLocalStorage<LocalClient[]>('clients_data') || [];
 
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
@@ -32,7 +32,8 @@ export const syncClientsData = async (): Promise<boolean> => {
                 name: client.clientName,
                 loyalty_points: client.loyaltyPoints || 0,
                 free_valets: client.freeValets || 0,
-                valets_count: client.valetsCount || 0
+                valets_count: client.valetsCount || 0,
+                last_visit: client.lastVisit
               })
               .eq('id', existingClient.id);
 
@@ -45,7 +46,8 @@ export const syncClientsData = async (): Promise<boolean> => {
                 phone: client.phoneNumber,
                 loyalty_points: client.loyaltyPoints || 0,
                 free_valets: client.freeValets || 0,
-                valets_count: client.valetsCount || 0
+                valets_count: client.valetsCount || 0,
+                last_visit: client.lastVisit
               });
 
             if (insertError) throw insertError;
