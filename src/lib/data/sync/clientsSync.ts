@@ -10,7 +10,7 @@ import { handleError } from '@/lib/utils/errorHandling';
 export const syncClientsData = async (): Promise<boolean> => {
   try {
     // Get local clients data (if any)
-    const localClients = getFromLocalStorage<LocalClient[]>('clients_data') || [];
+    const localClients = getFromLocalStorage<LocalClient>('clients_data');
 
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
