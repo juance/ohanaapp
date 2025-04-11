@@ -2,18 +2,9 @@
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomerFeedback } from './types';
 
-// Define the CustomerFeedback interface
-interface CustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  pendingSync: boolean;
-}
-
-const STORAGE_KEY = 'customer_feedback';
+const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
 /**
  * Get all stored feedback
@@ -25,9 +16,9 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
       .from('customer_feedback')
       .select('*')
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     // Map to our application format
     const feedbackData: CustomerFeedback[] = data.map(item => ({
       id: item.id,
@@ -37,32 +28,34 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
       createdAt: item.created_at,
       pendingSync: false
     }));
-    
+
     // Merge with local feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
-    
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+
     // Combine the two sources (remote and local)
     // Use a Map to handle duplicates (prefer local)
     const feedbackMap = new Map();
-    
+
     // Add remote data first
     feedbackData.forEach(item => {
       feedbackMap.set(item.id, item);
     });
-    
+
     // Then add local data, overwriting remote with the same ID
-    localFeedback.forEach(item => {
-      feedbackMap.set(item.id, item);
-    });
-    
+    if (localFeedback && localFeedback.length > 0) {
+      localFeedback.forEach(item => {
+        feedbackMap.set(item.id, item);
+      });
+    }
+
     // Convert back to array
     return Array.from(feedbackMap.values());
-    
+
   } catch (error) {
     console.error('Error retrieving feedback from Supabase:', error);
-    
+
     // Fallback to local storage
-    return getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
+    return getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
   }
 };
 
@@ -78,16 +71,16 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
     createdAt: new Date().toISOString(),
     pendingSync: true // Mark for sync
   };
-  
+
   // Get existing feedback
-  const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
-  
+  const existingFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+
   // Add new feedback
   existingFeedback.push(newFeedback);
-  
+
   // Save updated list
-  saveToLocalStorage(STORAGE_KEY, existingFeedback);
-  
+  saveToLocalStorage(FEEDBACK_STORAGE_KEY, existingFeedback);
+
   // Attempt to sync immediately if online
   if (navigator.onLine) {
     supabase
@@ -102,16 +95,16 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
       .then(({ error }) => {
         if (!error) {
           // Mark as synced in local storage
-          const updatedFeedback = getFromLocalStorage<CustomerFeedback[]>(STORAGE_KEY);
+          const updatedFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
           const feedbackIndex = updatedFeedback.findIndex(f => f.id === newFeedback.id);
           if (feedbackIndex >= 0) {
             updatedFeedback[feedbackIndex].pendingSync = false;
-            saveToLocalStorage(STORAGE_KEY, updatedFeedback);
+            saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
           }
         }
       });
   }
-  
+
   return newFeedback;
 };
 
@@ -128,9 +121,9 @@ export const getFeedbackByRating = async (rating: number): Promise<CustomerFeedb
  */
 export const getAverageRating = async (): Promise<number> => {
   const feedback = await getAllFeedback();
-  
+
   if (feedback.length === 0) return 0;
-  
+
   const sum = feedback.reduce((total, item) => total + item.rating, 0);
   return sum / feedback.length;
 };
