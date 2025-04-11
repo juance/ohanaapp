@@ -32,3 +32,10 @@ export interface LocalMetrics {
   };
   pendingSync?: boolean;
 }
+
+export interface SyncStatus {
+  ticketsSync: number;
+  expensesSync: number;
+  clientsSync: number;
+  feedbackSync: number;
+}

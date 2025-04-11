@@ -1,6 +1,6 @@
 
 import { toast } from '@/lib/toast';
-import { storeTicketData } from '@/lib/dataService';
+import { storeTicket } from '@/lib/dataService';
 import { PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { useFormValidation } from './useFormValidation';
 
@@ -56,7 +56,7 @@ export const useTicketSubmission = (
       }));
 
       // Store the ticket data
-      const success = await storeTicketData(
+      const success = await storeTicket(
         {
           ticketNumber,
           totalPrice: calculateTotal(),

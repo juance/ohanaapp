@@ -55,3 +55,6 @@ export * from './data/expenseService';
 
 // Explicitly export getCustomerByPhone for direct imports
 export { getCustomerByPhone } from './data/customer/customerRetrievalService';
+
+// Export storeTicket as storeTicketData for backward compatibility
+export { storeTicket as storeTicketData } from './data/ticket/ticketStorageService';

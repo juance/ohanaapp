@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toast } from '@/lib/toast';
 import { LaundryOption, Ticket } from '@/lib/types';
-import { storeTicketData } from '@/lib/dataService';
+import { storeTicket } from '@/lib/dataService';
 import { updateDashboardMetrics } from '@/lib/services/metricsService';
 import { createTicketForPreview } from '@/lib/services/ticketPreviewService';
 import { validateTicketInput } from '@/lib/services/ticketValidationService';
@@ -105,7 +105,7 @@ export const useTicketSubmit = (
       const laundryOptions = getSelectedLaundryOptions();
       
       // Store the ticket
-      const success = await storeTicketData(
+      const success = await storeTicket(
         ticketData,
         customerData,
         dryCleaningItemsData,

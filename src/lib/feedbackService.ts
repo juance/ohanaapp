@@ -34,7 +34,7 @@ export const addFeedback = async (feedback: FeedbackInput): Promise<boolean> => 
     // Fallback to localStorage
     try {
       // Get existing feedback
-      const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
       // Create new feedback item
       const newFeedback: CustomerFeedback = {
@@ -84,7 +84,7 @@ export const getFeedback = async (): Promise<CustomerFeedback[]> => {
     console.error('Error retrieving feedback from Supabase:', error);
 
     // Fallback to localStorage
-    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
     return localFeedback;
   }
 };
@@ -107,7 +107,7 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
 
     // Try to delete from local storage if it exists there
     try {
-      const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+      const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
       const updatedFeedback = localFeedback.filter(item => item.id !== id);
       saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);

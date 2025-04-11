@@ -9,7 +9,7 @@ import { CustomerFeedback } from '@/lib/types';
 export const syncFeedbackData = async (): Promise<boolean> => {
   try {
     // Get local feedback data
-    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
 
     // Process any unsynced feedback
     for (const feedback of localFeedback) {

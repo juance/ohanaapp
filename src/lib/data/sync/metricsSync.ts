@@ -9,7 +9,7 @@ import { LocalMetrics } from './types';
 export const syncMetricsData = async (): Promise<boolean> => {
   try {
     // Get local metrics data
-    const localMetrics: LocalMetrics = getFromLocalStorage<LocalMetrics>('metrics_data') || {
+    const localMetrics = getFromLocalStorage<LocalMetrics>('metrics_data') || {
       daily: {
         salesByHour: {},
         paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
