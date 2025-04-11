@@ -16,20 +16,20 @@ export const addLoyaltyPoints = async (customerId: string, points: number): Prom
       .select('loyalty_points')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) throw getError;
-    
+
     const currentPoints = customer?.loyalty_points || 0;
     const newPoints = currentPoints + points;
-    
+
     // Update loyalty points
     const { error: updateError } = await supabase
       .from('customers')
       .update({ loyalty_points: newPoints })
       .eq('id', customerId);
-    
+
     if (updateError) throw updateError;
-    
+
     return newPoints;
   } catch (error) {
     console.error('Error in addLoyaltyPoints:', error);
@@ -52,30 +52,40 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
       .select('loyalty_points')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) throw getError;
-    
+
     const currentPoints = customer?.loyalty_points || 0;
-    
+
     // Ensure customer has enough points
     if (currentPoints < pointsToRedeem) {
       return false;
     }
-    
+
     const newPoints = currentPoints - pointsToRedeem;
-    
+
     // Update loyalty points
     const { error: updateError } = await supabase
       .from('customers')
       .update({ loyalty_points: newPoints })
       .eq('id', customerId);
-    
+
     if (updateError) throw updateError;
-    
+
     return true;
   } catch (error) {
     console.error('Error in redeemLoyaltyPoints:', error);
     logError(error, { context: 'redeemLoyaltyPoints' });
     return false;
   }
+};
+
+/**
+ * Update loyalty points for a customer (alias for addLoyaltyPoints)
+ * @param customerId The ID of the customer
+ * @param points The number of points to add
+ * @returns The new total points or 0 if an error occurred
+ */
+export const updateLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
+  return addLoyaltyPoints(customerId, points);
 };
