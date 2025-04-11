@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { LocalClient } from './types';
+import { handleError } from '@/lib/utils/errorHandling';
 
 /**
  * Sync clients data and loyalty information
@@ -14,7 +15,7 @@ export const syncClientsData = async (): Promise<boolean> => {
     // If there are local clients that need to be synced, process them
     if (localClients.length > 0) {
       for (const client of localClients) {
-        if (client?.pendingSync) {
+        if (client.pendingSync) {
           // Check if client exists in Supabase
           const { data: existingClient, error: clientError } = await supabase
             .from('customers')
@@ -65,7 +66,7 @@ export const syncClientsData = async (): Promise<boolean> => {
     console.log('Clients data synced successfully');
     return true;
   } catch (error) {
-    console.error('Error syncing clients data:', error);
+    handleError(error, 'syncClientsData', 'Error al sincronizar datos de clientes', false);
     return false;
   }
 };

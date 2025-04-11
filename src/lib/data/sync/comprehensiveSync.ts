@@ -1,62 +1,56 @@
 
-import { toast } from '@/lib/toast';
-import { syncOfflineData } from '../syncService';
-import { syncMetricsData } from './metricsSync';
 import { syncClientsData } from './clientsSync';
-import { syncTicketAnalysis } from './analysisSync';
 import { syncFeedbackData } from './feedbackSync';
-import { getSyncStatus } from './syncStatusService';
-
-// Alias the syncMetricsData function to syncDashboardMetrics for backwards compatibility
-const syncDashboardMetrics = syncMetricsData;
+import { syncMetricsData } from './metricsSync';
+import { getSyncStatus as getStatus } from './syncStatusService';
+import { dispatchSyncCompletedEvent } from '@/lib/notificationService';
+import { SyncStatus } from './types';
+import { handleError } from '@/lib/utils/errorHandling';
 
 /**
- * Synchronize all application data between local storage and Supabase
+ * Synchronize all data with the backend
  */
 export const syncAllData = async (): Promise<boolean> => {
   try {
-    // Display toast to inform the user
-    toast({
-      title: "Sincronización",
-      description: "Iniciando sincronización completa de datos...",
-    });
-
-    // 1. First sync any pending offline data (tickets, expenses)
-    const offlineDataSynced = await syncOfflineData();
+    // Get initial sync counts to calculate how many items were synced
+    const initialStatus = await getSyncStatus();
+    const initialTotal = 
+      initialStatus.ticketsSync + 
+      initialStatus.expensesSync + 
+      initialStatus.clientsSync + 
+      initialStatus.feedbackSync;
     
-    // 2. Sync dashboard metrics
-    await syncDashboardMetrics();
+    // Sync all data types
+    const clientsSuccess = await syncClientsData();
+    const feedbackSuccess = await syncFeedbackData();
+    const metricsSuccess = await syncMetricsData();
     
-    // 3. Sync clients and loyalty data
-    await syncClientsData();
+    // Get final sync status to see what's left
+    const finalStatus = await getSyncStatus();
+    const finalTotal = 
+      finalStatus.ticketsSync + 
+      finalStatus.expensesSync + 
+      finalStatus.clientsSync + 
+      finalStatus.feedbackSync;
     
-    // 4. Sync ticket analysis data
-    await syncTicketAnalysis();
+    // Calculate how many items were successfully synced
+    const syncedItemCount = Math.max(0, initialTotal - finalTotal);
     
-    // 5. Sync feedback data
-    await syncFeedbackData();
+    // Dispatch event for notifications
+    if (syncedItemCount > 0) {
+      dispatchSyncCompletedEvent(syncedItemCount);
+    }
     
-    // Show success message
-    toast({
-      title: "Sincronización completada",
-      description: "Todos los datos han sido sincronizados correctamente",
-    });
-    
-    return true;
+    return clientsSuccess && feedbackSuccess && metricsSuccess;
   } catch (error) {
-    console.error('Error en la sincronización completa de datos:', error);
-    
-    toast({
-      variant: "destructive",
-      title: "Error de sincronización",
-      description: "Ocurrió un error durante la sincronización de datos",
-    });
-    
+    handleError(error, 'syncAllData', 'Error al sincronizar todos los datos', false);
     return false;
   }
 };
 
-// Re-export getSyncStatus for easier imports
-export { getSyncStatus } from './syncStatusService';
-// Export the syncDashboardMetrics alias
-export { syncDashboardMetrics };
+/**
+ * Get current sync status across all data types
+ */
+export const getSyncStatus = async (): Promise<SyncStatus> => {
+  return getStatus();
+};

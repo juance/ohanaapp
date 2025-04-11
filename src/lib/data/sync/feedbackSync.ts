@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { CustomerFeedback } from '@/lib/types';
+import { handleError } from '@/lib/utils/errorHandling';
 
 /**
  * Sync feedback data
@@ -13,7 +14,7 @@ export const syncFeedbackData = async (): Promise<boolean> => {
 
     // Process any unsynced feedback
     for (const feedback of localFeedback) {
-      if (feedback?.pendingSync) {
+      if (feedback.pendingSync) {
         const { error: feedbackError } = await supabase
           .from('customer_feedback')
           .insert({
@@ -36,7 +37,7 @@ export const syncFeedbackData = async (): Promise<boolean> => {
     console.log('Feedback data synced successfully');
     return true;
   } catch (error) {
-    console.error('Error syncing feedback data:', error);
+    handleError(error, 'syncFeedbackData', 'Error al sincronizar comentarios', false);
     return false;
   }
 };

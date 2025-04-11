@@ -67,8 +67,7 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
     if (connectionStatus === 'offline') {
       toast({
         title: "Sin conexión",
-        description: "No hay conexión a internet. Los datos se sincronizarán automáticamente cuando vuelvas a estar en línea.",
-        variant: "warning"
+        description: "No hay conexión a internet. Los datos se sincronizarán automáticamente cuando vuelvas a estar en línea."
       });
       return;
     }
@@ -89,8 +88,7 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
         if (pendingSyncCount === 0) {
           toast({
             title: "Sincronización exitosa",
-            description: "Todos los datos han sido sincronizados correctamente",
-            variant: "success"
+            description: "Todos los datos han sido sincronizados correctamente"
           });
         }
       } else {
@@ -133,8 +131,7 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
       setConnectionStatus('offline');
       toast({
         title: "Sin conexión",
-        description: "No hay conexión a internet. Estás trabajando en modo sin conexión.",
-        variant: "warning"
+        description: "No hay conexión a internet. Estás trabajando en modo sin conexión."
       });
     };
 
@@ -175,24 +172,3 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
     </ConnectionContext.Provider>
   );
 };
-
-// Hook for interval
-function useInterval(callback: () => void, delay: number | null) {
-  const savedCallback = React.useRef<() => void>();
-
-  // Remember the latest callback
-  useEffect(() => {
-    savedCallback.current = callback;
-  }, [callback]);
-
-  // Set up the interval
-  useEffect(() => {
-    function tick() {
-      savedCallback.current?.();
-    }
-    if (delay !== null) {
-      const id = setInterval(tick, delay);
-      return () => clearInterval(id);
-    }
-  }, [delay]);
-}
