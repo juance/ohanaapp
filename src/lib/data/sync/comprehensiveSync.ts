@@ -1,56 +1,61 @@
 
-import { syncClientData } from './clientsSync';
 import { syncFeedbackData } from './feedbackSync';
+import { syncClientData } from './clientsSync';
 import { syncMetricsData } from './metricsSync';
-import { getSyncStatus as getStatus } from './syncStatusService';
-import { dispatchSyncCompletedEvent } from '@/lib/notificationService';
-import { SyncStatus } from './types';
+import { updateSyncStatus } from './syncStatusService';
+import { toast } from '@/lib/toast';
 import { handleError } from '@/lib/utils/errorHandling';
 
 /**
- * Synchronize all data with the backend
+ * Comprehensive sync of all data
  */
 export const syncAllData = async (): Promise<boolean> => {
   try {
-    // Get initial sync counts to calculate how many items were synced
-    const initialStatus = await getSyncStatus();
-    const initialTotal =
-      initialStatus.ticketsSync +
-      initialStatus.expensesSync +
-      initialStatus.clientsSync +
-      initialStatus.feedbackSync;
-
-    // Sync all data types
-    const clientsSuccess = await syncClientData();
-    const feedbackSuccess = await syncFeedbackData();
-    const metricsSuccess = await syncMetricsData();
-
-    // Get final sync status to see what's left
-    const finalStatus = await getSyncStatus();
-    const finalTotal =
-      finalStatus.ticketsSync +
-      finalStatus.expensesSync +
-      finalStatus.clientsSync +
-      finalStatus.feedbackSync;
-
-    // Calculate how many items were successfully synced
-    const syncedItemCount = Math.max(0, initialTotal - finalTotal);
-
-    // Dispatch event for notifications
-    if (syncedItemCount > 0) {
-      dispatchSyncCompletedEvent(syncedItemCount);
+    // Check if there is an active internet connection
+    if (!navigator.onLine) {
+      toast({
+        variant: 'destructive',
+        title: 'Sin conexión',
+        description: 'No hay conexión a internet para sincronizar datos'
+      });
+      return false;
     }
 
-    return clientsSuccess && feedbackSuccess && metricsSuccess;
+    // Sync all data types
+    const clientsResult = await syncClientData();
+    const feedbackResult = await syncFeedbackData();
+    const metricsResult = await syncMetricsData();
+    
+    // Update sync status
+    await updateSyncStatus();
+    
+    // Check if any sync operation failed
+    const success = clientsResult && feedbackResult && metricsResult;
+    
+    // Show toast with result
+    if (success) {
+      toast({
+        title: 'Sincronización completa',
+        description: 'Todos los datos han sido sincronizados correctamente'
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Sincronización parcial',
+        description: 'Algunos datos no pudieron ser sincronizados'
+      });
+    }
+    
+    return success;
   } catch (error) {
-    handleError(error, 'syncAllData', 'Error al sincronizar todos los datos', false);
+    handleError(error, 'syncAllData', 'Error durante la sincronización de datos', true);
+    
+    toast({
+      variant: 'destructive',
+      title: 'Error de sincronización',
+      description: 'No se pudieron sincronizar los datos'
+    });
+    
     return false;
   }
-};
-
-/**
- * Get current sync status across all data types
- */
-export const getSyncStatus = async (): Promise<SyncStatus> => {
-  return getStatus();
 };

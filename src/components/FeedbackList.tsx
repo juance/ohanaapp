@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CustomerFeedback } from '@/lib/types';
-import { getAllFeedback } from '@/lib/feedbackService';
+import { getAllFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { saveToLocalStorage } from '@/lib/data/coreUtils';
 import { Star, Trash2, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -42,16 +42,17 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
     try {
       const confirmed = window.confirm('¿Está seguro de eliminar este comentario?');
       if (confirmed) {
-        // Implementación temporal hasta que se cree la función deleteFeedback
-        const currentFeedback = await getAllFeedback();
-        const updatedFeedback = currentFeedback.filter(item => item.id !== id);
-        saveToLocalStorage('customer_feedback', updatedFeedback);
-
-        setFeedback(feedback.filter(item => item.id !== id));
-        toast({
-          title: "Success",
-          description: "Comentario eliminado exitosamente"
-        });
+        const success = await deleteFeedback(id);
+        
+        if (success) {
+          setFeedback(feedback.filter(item => item.id !== id));
+          toast({
+            title: "Success",
+            description: "Comentario eliminado exitosamente"
+          });
+        } else {
+          throw new Error("No se pudo eliminar el comentario");
+        }
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));

@@ -2,16 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { handleError } from '@/lib/utils/errorHandling';
-
-// Define the CustomerFeedback interface
-interface CustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  pendingSync: boolean;
-}
+import { CustomerFeedback } from '@/lib/types';
 
 /**
  * Sync feedback data

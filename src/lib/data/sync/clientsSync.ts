@@ -2,18 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { handleError } from '@/lib/utils/errorHandling';
-
-// Define the LocalClient interface
-interface LocalClient {
-  id: string;
-  clientName: string;
-  phoneNumber: string;
-  loyaltyPoints: number;
-  freeValets: number;
-  valetsCount: number;
-  lastVisit: string;
-  pendingSync: boolean;
-}
+import { LocalClient } from '@/lib/types';
 
 /**
  * Sync client data

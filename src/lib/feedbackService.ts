@@ -1,3 +1,4 @@
+
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,11 +30,11 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     }));
 
     // Merge with local feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
     // Combine the two sources (remote and local)
     // Use a Map to handle duplicates (prefer local)
-    const feedbackMap = new Map();
+    const feedbackMap = new Map<string, CustomerFeedback>();
 
     // Add remote data first
     feedbackData.forEach(item => {
@@ -51,7 +52,6 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 
     // Convert back to array
     return Array.from(feedbackMap.values());
-
   } catch (error) {
     console.error('Error retrieving feedback from Supabase:', error);
 
@@ -100,9 +100,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
           const updatedFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
           const feedbackIndex = updatedFeedback.findIndex(f => f && f.id === newFeedback.id);
           if (feedbackIndex >= 0) {
-            if (updatedFeedback[feedbackIndex]) {
-              updatedFeedback[feedbackIndex].pendingSync = false;
-            }
+            updatedFeedback[feedbackIndex].pendingSync = false;
             saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
           }
         }
@@ -110,6 +108,37 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
   }
 
   return newFeedback;
+};
+
+/**
+ * Delete feedback by ID
+ */
+export const deleteFeedback = async (id: string): Promise<boolean> => {
+  try {
+    // Get existing feedback
+    const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    
+    // Remove the feedback with the matching ID
+    const updatedFeedback = existingFeedback.filter(item => item.id !== id);
+    
+    // Save updated list
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+    
+    // Delete from Supabase if online
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from('customer_feedback')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
 };
 
 /**
