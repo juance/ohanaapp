@@ -1,44 +1,58 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { handleError } from '@/lib/utils/errorHandling';
 import { CustomerFeedback } from '@/lib/types';
 
 /**
- * Sync feedback data
+ * Sync local feedback data with Supabase
  */
-export const syncFeedbackData = async (): Promise<boolean> => {
+export const syncFeedback = async (): Promise<number> => {
+  let syncedCount = 0;
+  
   try {
-    // Get local feedback data
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
-
-    // Process any unsynced feedback
-    for (let i = 0; i < localFeedback.length; i++) {
-      const feedback = localFeedback[i];
-      if (feedback && feedback.pendingSync) {
-        const { error: feedbackError } = await supabase
-          .from('customer_feedback')
-          .insert({
-            customer_name: feedback.customerName,
-            rating: feedback.rating,
-            comment: feedback.comment,
-            created_at: feedback.createdAt
-          });
-
-        if (feedbackError) throw feedbackError;
-
-        // Mark as synced
-        localFeedback[i].pendingSync = false;
-      }
+    // Get all local feedback
+    const localFeedback = getLocalFeedback();
+    
+    // Find feedback with pendingSync flag
+    const pendingFeedback = localFeedback.filter(feedback => feedback.pendingSync);
+    
+    // Upload each pending feedback
+    for (const feedback of pendingFeedback) {
+      await supabase
+        .from('customer_feedback')
+        .insert({
+          customer_name: feedback.customerName,
+          rating: feedback.rating,
+          comment: feedback.comment,
+          created_at: feedback.createdAt
+        });
+      
+      // Mark as synced
+      feedback.pendingSync = false;
+      syncedCount++;
     }
-
-    // Update local storage
-    saveToLocalStorage('customer_feedback', localFeedback);
-
-    console.log('Feedback data synced successfully');
-    return true;
+    
+    // Save back to localStorage
+    saveLocalFeedback(localFeedback);
+    
+    return syncedCount;
   } catch (error) {
-    handleError(error, 'syncFeedbackData', 'Error al sincronizar comentarios', false);
-    return false;
+    console.error('Error syncing feedback:', error);
+    return 0;
   }
+};
+
+// Helper function to get local feedback from localStorage
+const getLocalFeedback = (): CustomerFeedback[] => {
+  try {
+    const feedbackJson = localStorage.getItem('feedback');
+    return feedbackJson ? JSON.parse(feedbackJson) : [];
+  } catch (e) {
+    console.error('Error parsing local feedback:', e);
+    return [];
+  }
+};
+
+// Helper function to save feedback to localStorage
+const saveLocalFeedback = (feedback: CustomerFeedback[]): void => {
+  localStorage.setItem('feedback', JSON.stringify(feedback));
 };

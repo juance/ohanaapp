@@ -1,66 +1,103 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage } from '../coreUtils';
-import { handleError } from '@/lib/utils/errorHandling';
-
-export interface SyncStatus {
-  ticketsSync: number;
-  expensesSync: number;
-  clientsSync: number;
-  feedbackSync: number;
-}
+import { SyncStatus } from './types';
 
 /**
  * Get current sync status
  */
 export const getSyncStatus = async (): Promise<SyncStatus> => {
+  const storedStatus = localStorage.getItem('syncStatus');
+  
+  if (storedStatus) {
+    try {
+      return JSON.parse(storedStatus);
+    } catch (e) {
+      console.error('Error parsing sync status:', e);
+    }
+  }
+  
+  // Return default sync status if none exists
+  return {
+    lastSync: '',
+    pending: {
+      tickets: 0,
+      clients: 0,
+      feedback: 0,
+      inventory: 0,
+      expenses: 0,
+    }
+  };
+};
+
+/**
+ * Update sync status with current pending counts
+ */
+export const updateSyncStatus = async (): Promise<SyncStatus> => {
   try {
-    // Count pending sync items
-    const localClients = getFromLocalStorage<any[]>('clients') || [];
-    const localFeedback = getFromLocalStorage<any[]>('customer_feedback') || [];
-    const localTickets = getFromLocalStorage<any[]>('tickets') || [];
-    const localExpenses = getFromLocalStorage<any[]>('expenses') || [];
-
-    // We need to iterate through each item in the arrays to check pendingSync
-    const pendingClientsSync = localClients.filter(client => client && client.pendingSync).length;
-    const pendingFeedbackSync = localFeedback.filter(feedback => feedback && feedback.pendingSync).length;
-    const pendingTicketsSync = localTickets.filter(ticket => ticket && ticket.pendingSync).length;
-    const pendingExpensesSync = localExpenses.filter(expense => expense && expense.pendingSync).length;
-
-    return {
-      clientsSync: pendingClientsSync,
-      feedbackSync: pendingFeedbackSync,
-      ticketsSync: pendingTicketsSync,
-      expensesSync: pendingExpensesSync
+    // Count pending items for each category
+    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
+    const clients = JSON.parse(localStorage.getItem('clients') || '[]');
+    const feedback = JSON.parse(localStorage.getItem('feedback') || '[]');
+    const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+    const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+    
+    const pendingTickets = tickets.filter((item: any) => item.pendingSync).length;
+    const pendingClients = clients.filter((item: any) => item.pendingSync).length;
+    const pendingFeedback = feedback.filter((item: any) => item.pendingSync).length;
+    const pendingInventory = inventory.filter((item: any) => item.pendingSync).length;
+    const pendingExpenses = expenses.filter((item: any) => item.pendingSync).length;
+    
+    const status: SyncStatus = {
+      lastSync: new Date().toISOString(),
+      pending: {
+        tickets: pendingTickets,
+        clients: pendingClients,
+        feedback: pendingFeedback,
+        inventory: pendingInventory,
+        expenses: pendingExpenses
+      }
     };
+    
+    // Save to localStorage
+    localStorage.setItem('syncStatus', JSON.stringify(status));
+    
+    return status;
   } catch (error) {
-    handleError(error, 'getSyncStatus', 'Error al obtener estado de sincronización', false);
-    // Return empty counts in case of error
+    console.error('Error updating sync status:', error);
+    
+    // Return default status in case of error
     return {
-      clientsSync: 0,
-      feedbackSync: 0,
-      ticketsSync: 0,
-      expensesSync: 0
+      lastSync: new Date().toISOString(),
+      pending: {
+        tickets: 0,
+        clients: 0,
+        feedback: 0,
+        inventory: 0,
+        expenses: 0
+      }
     };
   }
 };
 
 /**
- * Update sync status in local storage
- * We'll skip saving to Supabase since the sync_status table might not exist
+ * Save sync status to database
+ * Note: This is commented out since we're using localStorage for now
+ * In a real app, you'd want to connect this to Supabase
  */
-export const updateSyncStatus = async (): Promise<void> => {
+/*
+const saveSyncStatusToDb = async (status: SyncStatus): Promise<void> => {
   try {
-    const status = await getSyncStatus();
-    
-    // Store status in localStorage for now instead of Supabase
-    localStorage.setItem('sync_status', JSON.stringify({
-      status,
-      updated_at: new Date().toISOString()
-    }));
-    
-    console.log('Sync status updated:', status);
+    // This would need to be updated to match your actual database schema
+    await supabase
+      .from('sync_status')
+      .upsert([
+        {
+          id: 'main',
+          status,
+          updated_at: new Date().toISOString()
+        }
+      ]);
   } catch (error) {
-    handleError(error, 'updateSyncStatus', 'Error al actualizar estado de sincronización', false);
+    console.error('Error saving sync status to DB:', error);
   }
 };
+*/

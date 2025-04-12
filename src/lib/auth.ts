@@ -112,7 +112,7 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
       const userData: User = {
         id: phoneNumber,
         name: 'Usuario Temporal',
-        email: phoneNumber,
+        phoneNumber: phoneNumber,
         role: 'client',
         requiresPasswordChange: true
       };

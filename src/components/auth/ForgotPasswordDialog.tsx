@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/hooks/use-toast';
-import { WhatsApp, Loader2 } from 'lucide-react';
+import { MessageSquare, Loader2 } from 'lucide-react';
 import { requestPasswordReset } from '@/lib/auth';
 
 interface ForgotPasswordDialogProps {
@@ -96,7 +96,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                     </>
                   ) : (
                     <>
-                      <WhatsApp className="h-4 w-4" />
+                      <MessageSquare className="h-4 w-4" />
                       Enviar mensaje
                     </>
                   )}
@@ -115,7 +115,7 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
             
             <div className="py-6 px-4 text-center">
               <div className="flex items-center justify-center rounded-full bg-green-100 p-3 mx-auto w-16 h-16 mb-4">
-                <WhatsApp className="h-8 w-8 text-green-600" />
+                <MessageSquare className="h-8 w-8 text-green-600" />
               </div>
               <p className="text-sm text-gray-600 mb-4">
                 Cuando inicies sesión con la contraseña temporal, se te pedirá que la cambies por una nueva.

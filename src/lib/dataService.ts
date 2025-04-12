@@ -1,60 +1,76 @@
+import { syncClients } from './data/sync/clientsSync';
+import { syncFeedback } from './data/sync/feedbackSync';
+import { updateSyncStatus, getSyncStatus as getSyncStatusFn } from './data/sync/syncStatusService';
+import { syncTickets } from './data/sync/ticketsSync';
+import { syncInventory } from './data/sync/inventorySync';
+import { syncExpenses } from './data/sync/expensesSync';
+import { SyncStatus } from './types';
 
-// Main data service file - exports all data-related functions
+/**
+ * Comprehensive sync of all offline data with the Supabase backend
+ */
+const comprehensiveSync = async (): Promise<boolean> => {
+  try {
+    // Sync tickets
+    const ticketsSynced = await syncTickets();
+    console.log(`Tickets synced: ${ticketsSynced}`);
 
-// Export core utilities
-export {
-  saveToLocalStorage,
-  getFromLocalStorage,
-  formatPaymentMethod,
-  TICKETS_STORAGE_KEY,
-  EXPENSES_STORAGE_KEY
-} from './data/coreUtils';
+    // Sync clients
+    const clientsSynced = await syncClients();
+    console.log(`Clients synced: ${clientsSynced}`);
 
-// Export ticket services
-export {
-  getNextTicketNumber
-} from './data/ticket/ticketNumberService';
+    // Sync feedback
+    const feedbackSynced = await syncFeedback();
+    console.log(`Feedback synced: ${feedbackSynced}`);
 
-export {
-  storeTicket
-} from './data/ticket/ticketStorageService';
+    // Sync inventory
+    const inventorySynced = await syncInventory();
+    console.log(`Inventory synced: ${inventorySynced}`);
 
-export {
-  getStoredTickets
-} from './data/ticket/ticketRetrievalService';
+    // Sync expenses
+    const expensesSynced = await syncExpenses();
+    console.log(`Expenses synced: ${expensesSynced}`);
 
-// Export sync service
-export {
-  syncAllData,
-  resetLocalData
-} from './data/syncService';
+    // Update sync status
+    await updateSyncStatus();
 
-// Export sync comprehensive service
-export {
-  getSyncStatus
-} from './data/sync/syncStatusService';
+    return true;
+  } catch (error) {
+    console.error('Error during comprehensive sync:', error);
+    return false;
+  }
+};
 
-// Export customer service
-export * from './data/customer/customerService';
+/**
+ * Sync offline data with the Supabase backend
+ */
+export const syncAllData = async () => {
+  try {
+    const result = await comprehensiveSync();
+    return result;
+  } catch (error) {
+    console.error('Error syncing data:', error);
+    return false;
+  }
+};
 
-// Export client service
-export {
-  getClientVisitFrequency
-} from './data/clientService';
-
-// Export metrics service
-export {
-  getMetrics
-} from './data/metricsService';
-
-// Export expense service
-export * from './data/expenseService';
-
-// Do not re-export loyalty service since we're exporting all from customerService
-// which includes these functions
-
-// Explicitly export getCustomerByPhone for direct imports
-export { getCustomerByPhone } from './data/customer/customerRetrievalService';
-
-// Export storeTicket as storeTicketData for backward compatibility
-export { storeTicket as storeTicketData } from './data/ticket/ticketStorageService';
+/**
+ * Get the current sync status
+ */
+export const getSyncStatus = async (): Promise<SyncStatus> => {
+  try {
+    return await getSyncStatusFn();
+  } catch (error) {
+    console.error('Error getting sync status:', error);
+    return {
+      lastSync: '',
+      pending: {
+        tickets: 0,
+        clients: 0,
+        feedback: 0,
+        inventory: 0,
+        expenses: 0
+      }
+    };
+  }
+};
