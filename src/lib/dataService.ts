@@ -1,9 +1,7 @@
+
 import { syncClients } from './data/sync/clientsSync';
 import { syncFeedback } from './data/sync/feedbackSync';
 import { updateSyncStatus, getSyncStatus as getSyncStatusFn } from './data/sync/syncStatusService';
-import { syncTickets } from './data/sync/ticketsSync';
-import { syncInventory } from './data/sync/inventorySync';
-import { syncExpenses } from './data/sync/expensesSync';
 import { SyncStatus } from './types';
 
 /**
@@ -11,10 +9,6 @@ import { SyncStatus } from './types';
  */
 const comprehensiveSync = async (): Promise<boolean> => {
   try {
-    // Sync tickets
-    const ticketsSynced = await syncTickets();
-    console.log(`Tickets synced: ${ticketsSynced}`);
-
     // Sync clients
     const clientsSynced = await syncClients();
     console.log(`Clients synced: ${clientsSynced}`);
@@ -22,14 +16,6 @@ const comprehensiveSync = async (): Promise<boolean> => {
     // Sync feedback
     const feedbackSynced = await syncFeedback();
     console.log(`Feedback synced: ${feedbackSynced}`);
-
-    // Sync inventory
-    const inventorySynced = await syncInventory();
-    console.log(`Inventory synced: ${inventorySynced}`);
-
-    // Sync expenses
-    const expensesSynced = await syncExpenses();
-    console.log(`Expenses synced: ${expensesSynced}`);
 
     // Update sync status
     await updateSyncStatus();

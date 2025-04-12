@@ -1,5 +1,5 @@
 
-import { SyncStatus } from './types';
+import { SyncStatus } from '../../types';
 
 /**
  * Get current sync status
@@ -23,7 +23,7 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
       clients: 0,
       feedback: 0,
       inventory: 0,
-      expenses: 0,
+      expenses: 0
     }
   };
 };
@@ -77,27 +77,3 @@ export const updateSyncStatus = async (): Promise<SyncStatus> => {
     };
   }
 };
-
-/**
- * Save sync status to database
- * Note: This is commented out since we're using localStorage for now
- * In a real app, you'd want to connect this to Supabase
- */
-/*
-const saveSyncStatusToDb = async (status: SyncStatus): Promise<void> => {
-  try {
-    // This would need to be updated to match your actual database schema
-    await supabase
-      .from('sync_status')
-      .upsert([
-        {
-          id: 'main',
-          status,
-          updated_at: new Date().toISOString()
-        }
-      ]);
-  } catch (error) {
-    console.error('Error saving sync status to DB:', error);
-  }
-};
-*/

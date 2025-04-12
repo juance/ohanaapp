@@ -1,6 +1,6 @@
-
-import { User, Role } from './types';
+import { User, Role } from './types/auth';
 import { toast } from '@/hooks/use-toast';
+import bcrypt from 'bcryptjs';
 
 // Function to generate a random temporary password
 const generateTempPassword = (): string => {
@@ -13,35 +13,44 @@ const generateTempPassword = (): string => {
 };
 
 // Mock authentication - in a real app, this would connect to a backend
-export const login = (email: string, password: string): Promise<User> => {
+export const login = (phoneNumber: string, password: string): Promise<User> => {
   return new Promise((resolve, reject) => {
     // Simulate API call
     setTimeout(() => {
+      // Admin user with specific phone number
+      if (phoneNumber === '1123989718' && password === 'Juance001') {
+        resolve({
+          id: 'admin-001',
+          name: 'Admin General',
+          phoneNumber: '1123989718',
+          role: 'admin',
+        });
+      } 
       // Demo users for testing
-      if (email === 'admin@example.com' && password === 'password') {
+      else if (phoneNumber === 'admin@example.com' && password === 'password') {
         resolve({
           id: '1',
           name: 'Admin User',
           email: 'admin@example.com',
           role: 'admin',
         });
-      } else if (email === 'cashier@example.com' && password === 'password') {
+      } else if (phoneNumber === 'cashier@example.com' && password === 'password') {
         resolve({
           id: '2',
           name: 'Cashier User',
           email: 'cashier@example.com',
-          role: 'cashier',
+          role: 'operator',
         });
-      } else if (email === 'operator@example.com' && password === 'password') {
+      } else if (phoneNumber === 'operator@example.com' && password === 'password') {
         resolve({
           id: '3',
           name: 'Operator User',
           email: 'operator@example.com',
           role: 'operator',
         });
-      } else if (email.startsWith('+') && checkTemporaryPassword(email, password)) {
+      } else if (phoneNumber.startsWith('+') && checkTemporaryPassword(phoneNumber, password)) {
         // Phone login with temporary password
-        const userData = getTempPasswordUserData(email);
+        const userData = getTempPasswordUserData(phoneNumber);
         if (userData) {
           resolve(userData);
         } else {
