@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage } from '../coreUtils';
 import { handleError } from '@/lib/utils/errorHandling';
 
-interface SyncStatus {
+export interface SyncStatus {
   ticketsSync: number;
   expensesSync: number;
   clientsSync: number;
@@ -21,10 +21,11 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
     const localTickets = getFromLocalStorage<any[]>('tickets') || [];
     const localExpenses = getFromLocalStorage<any[]>('expenses') || [];
 
-    const pendingClientsSync = localClients.filter(client => client?.pendingSync).length;
-    const pendingFeedbackSync = localFeedback.filter(feedback => feedback?.pendingSync).length;
-    const pendingTicketsSync = localTickets.filter(ticket => ticket?.pendingSync).length;
-    const pendingExpensesSync = localExpenses.filter(expense => expense?.pendingSync).length;
+    // We need to iterate through each item in the arrays to check pendingSync
+    const pendingClientsSync = localClients.filter(client => client && client.pendingSync).length;
+    const pendingFeedbackSync = localFeedback.filter(feedback => feedback && feedback.pendingSync).length;
+    const pendingTicketsSync = localTickets.filter(ticket => ticket && ticket.pendingSync).length;
+    const pendingExpensesSync = localExpenses.filter(expense => expense && expense.pendingSync).length;
 
     return {
       clientsSync: pendingClientsSync,
@@ -45,26 +46,20 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
 };
 
 /**
- * Update sync status in Supabase
+ * Update sync status in local storage
+ * We'll skip saving to Supabase since the sync_status table might not exist
  */
 export const updateSyncStatus = async (): Promise<void> => {
   try {
     const status = await getSyncStatus();
     
-    // You can store the sync status in Supabase if needed
-    // This is optional and can be implemented based on requirements
-    const { error } = await supabase
-      .from('sync_status')
-      .upsert([
-        {
-          id: 'main_status',
-          status: status,
-          updated_at: new Date().toISOString()
-        }
-      ]);
-
-    if (error) throw error;
+    // Store status in localStorage for now instead of Supabase
+    localStorage.setItem('sync_status', JSON.stringify({
+      status,
+      updated_at: new Date().toISOString()
+    }));
     
+    console.log('Sync status updated:', status);
   } catch (error) {
     handleError(error, 'updateSyncStatus', 'Error al actualizar estado de sincronización', false);
   }

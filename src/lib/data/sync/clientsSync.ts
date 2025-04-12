@@ -13,8 +13,9 @@ export const syncClientData = async (): Promise<boolean> => {
     const localClients = getFromLocalStorage<LocalClient[]>('clients') || [];
 
     // Process any unsynced clients
-    for (const client of localClients) {
-      if (client.pendingSync) {
+    for (let i = 0; i < localClients.length; i++) {
+      const client = localClients[i];
+      if (client && client.pendingSync) {
         // Check if client already exists by phone number
         const { data: existingClient, error: checkError } = await supabase
           .from('customers')
@@ -60,7 +61,7 @@ export const syncClientData = async (): Promise<boolean> => {
         }
 
         // Mark as synced
-        client.pendingSync = false;
+        localClients[i].pendingSync = false;
       }
     }
 

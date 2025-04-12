@@ -13,8 +13,9 @@ export const syncFeedbackData = async (): Promise<boolean> => {
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>('customer_feedback') || [];
 
     // Process any unsynced feedback
-    for (const feedback of localFeedback) {
-      if (feedback.pendingSync) {
+    for (let i = 0; i < localFeedback.length; i++) {
+      const feedback = localFeedback[i];
+      if (feedback && feedback.pendingSync) {
         const { error: feedbackError } = await supabase
           .from('customer_feedback')
           .insert({
@@ -27,7 +28,7 @@ export const syncFeedbackData = async (): Promise<boolean> => {
         if (feedbackError) throw feedbackError;
 
         // Mark as synced
-        feedback.pendingSync = false;
+        localFeedback[i].pendingSync = false;
       }
     }
 

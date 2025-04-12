@@ -26,14 +26,13 @@ export {
 // Export sync service
 export {
   syncAllData,
-  resetLocalData as syncOfflineData
+  resetLocalData
 } from './data/syncService';
 
 // Export sync comprehensive service
 export {
-  syncAllData,
   getSyncStatus
-} from './data/sync/comprehensiveSync';
+} from './data/sync/syncStatusService';
 
 // Export customer service
 export * from './data/customer/customerService';

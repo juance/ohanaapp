@@ -59,6 +59,3 @@ export const syncAllData = async (): Promise<boolean> => {
     return false;
   }
 };
-
-// Export getSyncStatus from the syncStatusService
-export { getSyncStatus };

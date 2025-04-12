@@ -3,7 +3,7 @@ import { syncAllData } from './sync/comprehensiveSync';
 import { syncClientData } from './sync/clientsSync';
 import { syncFeedbackData } from './sync/feedbackSync';
 import { syncMetricsData } from './sync/metricsSync';
-import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
+import { getSyncStatus } from './sync/syncStatusService';
 
 // Add resetLocalData function
 export const resetLocalData = (): void => {
@@ -22,6 +22,5 @@ export {
   syncClientData,
   syncFeedbackData,
   syncMetricsData,
-  getSyncStatus,
-  updateSyncStatus
+  getSyncStatus
 };
