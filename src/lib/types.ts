@@ -107,6 +107,7 @@ export interface CustomerFeedback {
   comment: string;
   createdAt: string;
   pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 // Sync related types

@@ -1,45 +1,77 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { CustomerFeedback } from '@/lib/types';
+
+const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
 /**
  * Sync local feedback data with Supabase
+ *
+ * This function handles both uploading new feedback and deleting feedback
+ * that was marked for deletion while offline.
  */
-export const syncFeedback = async (): Promise<number> => {
+export const syncFeedbackData = async (): Promise<number> => {
   let syncedCount = 0;
-  
+
   try {
     // Get all local feedback
-    const localFeedback = getLocalFeedback();
-    
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+
+    // Process items marked for deletion
+    const pendingDeleteFeedback = localFeedback.filter(feedback => feedback && feedback.pendingDelete);
+    for (const feedback of pendingDeleteFeedback) {
+      if (!feedback) continue;
+
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('customer_feedback')
+        .delete()
+        .eq('id', feedback.id);
+
+      if (error) {
+        console.error(`Error deleting feedback ${feedback.id}:`, error);
+        continue;
+      }
+
+      // Count as synced
+      syncedCount++;
+    }
+
+    // Remove items marked for deletion from local storage
+    const updatedFeedback = localFeedback.filter(feedback => feedback && !feedback.pendingDelete);
+
     // Find feedback with pendingSync flag
-    const pendingFeedback = localFeedback.filter(feedback => feedback.pendingSync);
-    
+    const pendingFeedback = updatedFeedback.filter(feedback => feedback && feedback.pendingSync);
+
     // Upload each pending feedback
     for (const feedback of pendingFeedback) {
+      if (!feedback) continue;
+
       // Insert feedback to Supabase
       const { error } = await supabase
-        .from('feedback')
+        .from('customer_feedback')
         .insert({
+          id: feedback.id,
           customer_name: feedback.customerName,
           rating: feedback.rating,
           comment: feedback.comment,
           created_at: feedback.createdAt
         });
-      
+
       if (error) {
-        console.error('Error syncing feedback item:', error);
+        console.error(`Error syncing feedback ${feedback.id}:`, error);
         continue;
       }
-      
+
       // Mark as synced
       feedback.pendingSync = false;
       syncedCount++;
     }
-    
+
     // Save back to localStorage
-    saveLocalFeedback(localFeedback);
-    
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+
     return syncedCount;
   } catch (error) {
     console.error('Error syncing feedback:', error);
@@ -47,18 +79,9 @@ export const syncFeedback = async (): Promise<number> => {
   }
 };
 
-// Helper function to get local feedback from localStorage
-const getLocalFeedback = (): CustomerFeedback[] => {
-  try {
-    const feedbackJson = localStorage.getItem('feedback');
-    return feedbackJson ? JSON.parse(feedbackJson) : [];
-  } catch (e) {
-    console.error('Error parsing local feedback:', e);
-    return [];
-  }
-};
+/**
+ * Alias for syncFeedbackData for backward compatibility
+ */
+export const syncFeedback = syncFeedbackData;
 
-// Helper function to save feedback to localStorage
-const saveLocalFeedback = (feedback: CustomerFeedback[]): void => {
-  localStorage.setItem('feedback', JSON.stringify(feedback));
-};
+

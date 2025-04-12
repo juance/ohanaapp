@@ -63,9 +63,39 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 
 /**
  * Delete feedback by ID
+ *
+ * This function deletes feedback from both Supabase and local storage.
+ * If the device is offline, it will mark the feedback for deletion and
+ * attempt to delete it from Supabase when the device comes back online.
+ *
+ * @param id - The ID of the feedback to delete
+ * @returns A promise that resolves to true if the deletion was successful, false otherwise
  */
 export const deleteFeedback = async (id: string): Promise<boolean> => {
   try {
+    // First check if the feedback exists
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+    const feedbackExists = localFeedback.some(item => item && item.id === id);
+
+    if (!feedbackExists) {
+      console.warn(`Feedback with ID ${id} not found in local storage`);
+
+      // Still try to delete from Supabase if online
+      if (navigator.onLine) {
+        const { error } = await supabase
+          .from('customer_feedback')
+          .delete()
+          .eq('id', id);
+
+        if (error) {
+          console.error('Error deleting feedback from Supabase:', error);
+          return false;
+        }
+      }
+
+      return true; // Return true since it doesn't exist locally anyway
+    }
+
     // Delete from Supabase if online
     if (navigator.onLine) {
       const { error } = await supabase
@@ -73,13 +103,36 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting feedback from Supabase:', error);
+
+        // Mark for deletion later when online
+        const updatedFeedback = localFeedback.map(item => {
+          if (item && item.id === id) {
+            return { ...item, pendingDelete: true };
+          }
+          return item;
+        });
+
+        saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+        return false;
+      }
+    } else {
+      // If offline, mark for deletion later
+      const updatedFeedback = localFeedback.map(item => {
+        if (item && item.id === id) {
+          return { ...item, pendingDelete: true };
+        }
+        return item;
+      });
+
+      saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+      console.log(`Feedback with ID ${id} marked for deletion when online`);
     }
 
-    // Delete from local storage
-    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
-    const updatedFeedback = localFeedback.filter(item => item && item.id !== id);
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+    // Remove from local storage display (or mark as deleted)
+    const filteredFeedback = localFeedback.filter(item => item && item.id !== id);
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, filteredFeedback);
 
     return true;
   } catch (error) {
