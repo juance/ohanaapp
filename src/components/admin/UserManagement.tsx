@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { User, Role } from '@/lib/types/auth';
 import { getAllUsers, deleteUser } from '@/lib/userService';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,99 @@ import { Loading } from '@/components/ui/loading';
 import { UserDialog } from './UserDialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Plus, Pencil, Trash2, RefreshCw } from 'lucide-react';
+
+// User card component optimized with memo
+const UserCard = React.memo(({
+  user,
+  onEdit,
+  onDelete
+}: {
+  user: User,
+  onEdit: (user: User) => void,
+  onDelete: (userId: string) => void
+}) => {
+  const getRoleBadgeColor = (role: Role) => {
+    switch (role) {
+      case 'admin':
+        return 'bg-red-500 hover:bg-red-600';
+      case 'operator':
+        return 'bg-blue-500 hover:bg-blue-600';
+      case 'client':
+        return 'bg-green-500 hover:bg-green-600';
+      default:
+        return 'bg-gray-500 hover:bg-gray-600';
+    }
+  };
+
+  const getRoleLabel = (role: Role) => {
+    switch (role) {
+      case 'admin':
+        return 'Administrador';
+      case 'operator':
+        return 'Operador';
+      case 'client':
+        return 'Cliente';
+      default:
+        return role;
+    }
+  };
+
+  return (
+    <Card key={user.id} className="overflow-hidden">
+      <CardHeader className="pb-2">
+        <div className="flex justify-between items-start">
+          <CardTitle className="text-lg">{user.name}</CardTitle>
+          <Badge className={getRoleBadgeColor(user.role)}>
+            {getRoleLabel(user.role)}
+          </Badge>
+        </div>
+        <CardDescription>
+          {user.email && (
+            <div className="truncate">{user.email}</div>
+          )}
+          {user.phoneNumber && (
+            <div>{user.phoneNumber}</div>
+          )}
+        </CardDescription>
+      </CardHeader>
+      <CardFooter className="pt-2 flex justify-end gap-2">
+        <Button
+          onClick={() => onEdit(user)}
+          variant="outline"
+          size="sm"
+        >
+          <Pencil className="h-4 w-4 mr-1" />
+          Editar
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Eliminar
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta acción no se puede deshacer. Se eliminará permanentemente el usuario {user.name}.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => onDelete(user.id)}
+                className="bg-red-500 hover:bg-red-600"
+              >
+                Eliminar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </CardFooter>
+    </Card>
+  );
+});
 
 export const UserManagement: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -41,17 +134,17 @@ export const UserManagement: React.FC = () => {
     fetchUsers();
   }, [refreshTrigger]);
 
-  const handleAddUser = () => {
+  const handleAddUser = useCallback(() => {
     setSelectedUser(null);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleEditUser = (user: User) => {
+  const handleEditUser = useCallback((user: User) => {
     setSelectedUser(user);
     setIsDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = useCallback(async (userId: string) => {
     try {
       await deleteUser(userId);
       setUsers(users.filter(user => user.id !== userId));
@@ -67,40 +160,14 @@ export const UserManagement: React.FC = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [users]);
 
-  const handleDialogClose = (refresh: boolean = false) => {
+  const handleDialogClose = useCallback((refresh: boolean = false) => {
     setIsDialogOpen(false);
     if (refresh) {
       setRefreshTrigger(prev => prev + 1);
     }
-  };
-
-  const getRoleBadgeColor = (role: Role) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-500 hover:bg-red-600';
-      case 'operator':
-        return 'bg-blue-500 hover:bg-blue-600';
-      case 'client':
-        return 'bg-green-500 hover:bg-green-600';
-      default:
-        return 'bg-gray-500 hover:bg-gray-600';
-    }
-  };
-
-  const getRoleLabel = (role: Role) => {
-    switch (role) {
-      case 'admin':
-        return 'Administrador';
-      case 'operator':
-        return 'Operador';
-      case 'client':
-        return 'Cliente';
-      default:
-        return role;
-    }
-  };
+  }, [refreshTrigger]);
 
   return (
     <div className="space-y-6">
@@ -129,9 +196,9 @@ export const UserManagement: React.FC = () => {
         <div className="bg-red-50 p-4 rounded-md text-red-800">
           <p className="font-medium">Error al cargar usuarios</p>
           <p>{error.message}</p>
-          <Button 
-            onClick={() => setRefreshTrigger(prev => prev + 1)} 
-            variant="outline" 
+          <Button
+            onClick={() => setRefreshTrigger(prev => prev + 1)}
+            variant="outline"
             className="mt-2"
           >
             Reintentar
@@ -140,61 +207,14 @@ export const UserManagement: React.FC = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {users.map(user => (
-            <Card key={user.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{user.name}</CardTitle>
-                  <Badge className={getRoleBadgeColor(user.role)}>
-                    {getRoleLabel(user.role)}
-                  </Badge>
-                </div>
-                <CardDescription>
-                  {user.email && (
-                    <div className="truncate">{user.email}</div>
-                  )}
-                  {user.phoneNumber && (
-                    <div>{user.phoneNumber}</div>
-                  )}
-                </CardDescription>
-              </CardHeader>
-              <CardFooter className="pt-2 flex justify-end gap-2">
-                <Button 
-                  onClick={() => handleEditUser(user)} 
-                  variant="outline" 
-                  size="sm"
-                >
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm">
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Eliminar
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Esta acción no se puede deshacer. Se eliminará permanentemente el usuario {user.name}.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction 
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        Eliminar
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
-            </Card>
+            <UserCard
+              key={user.id}
+              user={user}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+            />
           ))}
-          
+
           {users.length === 0 && (
             <div className="col-span-full p-8 text-center bg-gray-50 rounded-lg">
               <p className="text-gray-500">No hay usuarios registrados</p>
@@ -207,10 +227,10 @@ export const UserManagement: React.FC = () => {
         </div>
       )}
 
-      <UserDialog 
-        open={isDialogOpen} 
-        onClose={handleDialogClose} 
-        user={selectedUser} 
+      <UserDialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        user={selectedUser}
       />
     </div>
   );

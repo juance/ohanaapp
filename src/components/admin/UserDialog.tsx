@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { User, Role } from '@/lib/types/auth';
 import { UserWithPassword, createUser, updateUser } from '@/lib/userService';
 import { toast } from '@/lib/toast';
+import { validatePassword, PasswordStrength, getPasswordStrengthColor } from '@/lib/passwordValidator';
 
 interface UserDialogProps {
   open: boolean;
@@ -48,6 +49,8 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
     }
   }, [user, open]);
 
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>(PasswordStrength.WEAK);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
@@ -67,8 +70,12 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
       newErrors.password = 'La contraseña es obligatoria';
     }
 
-    if (formData.password && formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    if (formData.password) {
+      // Validate password strength
+      const validation = validatePassword(formData.password);
+      if (!validation.isValid) {
+        newErrors.password = validation.errors[0];
+      }
     }
 
     if (formData.password && formData.password !== confirmPassword) {
@@ -82,6 +89,12 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Update password strength when password changes
+    if (name === 'password' && value) {
+      const validation = validatePassword(value);
+      setPasswordStrength(validation.strength);
+    }
   };
 
   const handleRoleChange = (value: string) => {
@@ -225,6 +238,21 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
               placeholder="Contraseña"
               className={errors.password ? 'border-red-500' : ''}
             />
+            {formData.password && (
+              <div className="mt-1">
+                <div className="flex items-center gap-2">
+                  <div className="text-sm">Fortaleza:</div>
+                  <div
+                    className="h-2 flex-1 rounded-full"
+                    style={{ backgroundColor: getPasswordStrengthColor(passwordStrength) }}
+                  />
+                  <div className="text-sm">
+                    {passwordStrength === PasswordStrength.STRONG ? 'Fuerte' :
+                     passwordStrength === PasswordStrength.MEDIUM ? 'Media' : 'Débil'}
+                  </div>
+                </div>
+              </div>
+            )}
             {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
 

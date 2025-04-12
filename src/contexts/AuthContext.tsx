@@ -38,19 +38,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Check for stored user on initial load
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const storedUser = sessionStorage.getItem('user');
+    const storedExpiry = sessionStorage.getItem('user_expiry');
+
+    if (storedUser && storedExpiry) {
       try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        
-        // If user requires password change, redirect to password change page
-        if (userData.requiresPasswordChange) {
-          navigate('/change-password');
+        // Check if session has expired
+        const expiryTime = parseInt(storedExpiry, 10);
+        const now = Date.now();
+
+        if (now > expiryTime) {
+          // Session expired, clear storage
+          sessionStorage.removeItem('user');
+          sessionStorage.removeItem('user_expiry');
+        } else {
+          // Session valid, load user
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+
+          // If user requires password change, redirect to password change page
+          if (userData.requiresPasswordChange) {
+            navigate('/change-password');
+          }
         }
       } catch (err) {
         console.error('Error parsing stored user:', err);
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('user_expiry');
       }
     }
     setLoading(false);
@@ -89,8 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: userData.role as Role,
       };
 
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(authenticatedUser));
+      // Store user in sessionStorage with 8-hour expiry
+      const expiryTime = Date.now() + (8 * 60 * 60 * 1000); // 8 hours from now
+      sessionStorage.setItem('user', JSON.stringify(authenticatedUser));
+      sessionStorage.setItem('user_expiry', expiryTime.toString());
       setUser(authenticatedUser);
 
       toast({
@@ -154,8 +170,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: userData.role as Role,
       };
 
-      // Store user in localStorage
-      localStorage.setItem('user', JSON.stringify(newUser));
+      // Store user in sessionStorage with 8-hour expiry
+      const expiryTime = Date.now() + (8 * 60 * 60 * 1000); // 8 hours from now
+      sessionStorage.setItem('user', JSON.stringify(newUser));
+      sessionStorage.setItem('user_expiry', expiryTime.toString());
       setUser(newUser);
 
       toast({
@@ -179,7 +197,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Logout function
   const logout = async () => {
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
+    sessionStorage.removeItem('user_expiry');
     setUser(null);
     toast({
       title: "Sesión cerrada",
@@ -192,28 +211,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const changePassword = async (oldPassword: string, newPassword: string) => {
     try {
       setLoading(true);
-      
+
       if (!user || !user.phoneNumber) {
         throw new Error('Usuario no autenticado');
       }
-      
+
       // In a real app, you would verify the old password and update to the new one
       // For now, we'll simulate a successful password change
-      
+
       // Update user data to remove requiresPasswordChange flag
       const updatedUser = { ...user, requiresPasswordChange: false };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
-      
+
       toast({
         title: "Contraseña actualizada",
         description: "Tu contraseña ha sido actualizada correctamente",
         variant: "default",
       });
-      
+
       // Redirect to home page
       navigate('/');
-      
+
     } catch (err: any) {
       setError(err.message || 'Error al cambiar la contraseña');
       toast({
