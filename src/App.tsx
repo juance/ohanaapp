@@ -21,6 +21,7 @@ const DeliveredOrders = lazy(() => import('@/pages/DeliveredOrders'));
 const TicketAnalysis = lazy(() => import('@/pages/TicketAnalysis'));
 const UserTickets = lazy(() => import('@/pages/UserTickets'));
 const Auth = lazy(() => import('@/pages/Auth'));
+const ChangePassword = lazy(() => import('@/pages/ChangePassword'));
 
 // Loading fallback with optimized rendering
 const LoadingFallback = () => (
@@ -37,6 +38,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/change-password" element={<ChangePassword />} />
           
           {/* Admin only routes */}
           <Route path="/dashboard" element={

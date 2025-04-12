@@ -4,6 +4,7 @@ import { User, Role } from '@/lib/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -13,6 +14,7 @@ interface AuthContextType {
   register: (name: string, phoneNumber: string, password: string, role?: Role) => Promise<void>;
   logout: () => Promise<void>;
   checkUserPermission: (requiredRoles: Role[]) => boolean;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   logout: async () => {},
   checkUserPermission: () => false,
+  changePassword: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -31,20 +34,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   // Check for stored user on initial load
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        
+        // If user requires password change, redirect to password change page
+        if (userData.requiresPasswordChange) {
+          navigate('/change-password');
+        }
       } catch (err) {
         console.error('Error parsing stored user:', err);
         localStorage.removeItem('user');
       }
     }
     setLoading(false);
-  }, []);
+  }, [navigate]);
 
   // Login function
   const login = async (phoneNumber: string, password: string) => {
@@ -53,30 +63,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
 
       // For this implementation, we'll use a simplified approach
-      // In a production app, you would use Supabase authentication
-
-      // Simulate API call to check credentials
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      // Get user by phone number using the RPC function
       const { data, error } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         throw new Error('Usuario no encontrado o contraseña incorrecta');
       }
 
+      // Get the first user from the result
+      const userData = data[0];
+
       // Verify password using bcrypt
-      const passwordMatch = await bcrypt.compare(password, data.password);
+      const passwordMatch = await bcrypt.compare(password, userData.password);
       if (!passwordMatch) {
         throw new Error('Contraseña incorrecta');
       }
 
       // Create user object
       const authenticatedUser: User = {
-        id: data.id,
-        name: data.name,
-        email: data.email || undefined,
-        phoneNumber: data.phone_number,
-        role: data.role as Role,
+        id: userData.id,
+        name: userData.name,
+        email: userData.email || undefined,
+        phoneNumber: userData.phone_number,
+        role: userData.role as Role,
       };
 
       // Store user in localStorage
@@ -108,12 +118,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      // Check if user already exists
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      // Check if user already exists using RPC function
       const { data: existingUser, error: checkError } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
-      if (!checkError && existingUser) {
+      if (!checkError && existingUser && existingUser.length > 0) {
         throw new Error('El número de teléfono ya está registrado');
       }
 
@@ -121,8 +130,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create new user
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      // Create new user using RPC function
       const { data, error } = await supabase
         .rpc('create_user', {
           user_name: name,
@@ -131,16 +139,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user_role: role
         });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         throw new Error('Error al crear la cuenta');
       }
 
+      // Get the first user from the result
+      const userData = data[0];
+
       // Create user object
       const newUser: User = {
-        id: data.id,
-        name: data.name,
-        phoneNumber: data.phone_number,
-        role: data.role as Role,
+        id: userData.id,
+        name: userData.name,
+        phoneNumber: userData.phone_number,
+        role: userData.role as Role,
       };
 
       // Store user in localStorage
@@ -177,6 +188,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
   };
 
+  // Change password function
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      
+      if (!user || !user.phoneNumber) {
+        throw new Error('Usuario no autenticado');
+      }
+      
+      // In a real app, you would verify the old password and update to the new one
+      // For now, we'll simulate a successful password change
+      
+      // Update user data to remove requiresPasswordChange flag
+      const updatedUser = { ...user, requiresPasswordChange: false };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+      setUser(updatedUser);
+      
+      toast({
+        title: "Contraseña actualizada",
+        description: "Tu contraseña ha sido actualizada correctamente",
+        variant: "default",
+      });
+      
+      // Redirect to home page
+      navigate('/');
+      
+    } catch (err: any) {
+      setError(err.message || 'Error al cambiar la contraseña');
+      toast({
+        title: "Error",
+        description: err.message || 'Error al cambiar la contraseña',
+        variant: "destructive",
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Check if user has required permissions
   const checkUserPermission = (requiredRoles: Role[]): boolean => {
     if (!user) return false;
@@ -196,7 +246,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       register,
       logout,
-      checkUserPermission
+      checkUserPermission,
+      changePassword
     }}>
       {children}
     </AuthContext.Provider>

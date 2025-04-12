@@ -2,6 +2,8 @@
 import { syncClientData } from './sync/clientsSync';
 import { syncFeedbackData } from './sync/feedbackSync';
 import { syncMetricsData } from './sync/metricsSync';
+import { performComprehensiveSync } from './sync/comprehensiveSync';
+import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
 
 /**
  * Sync all offline data to Supabase
@@ -38,4 +40,11 @@ export const resetLocalData = (): boolean => {
     console.error('Error resetting local data:', error);
     return false;
   }
+};
+
+// Re-export functions
+export {
+  performComprehensiveSync,
+  getSyncStatus,
+  updateSyncStatus
 };

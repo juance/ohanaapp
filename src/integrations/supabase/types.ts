@@ -357,6 +357,36 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string
+          password: string
+          phone_number: string
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          password: string
+          phone_number: string
+          role?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          password?: string
+          phone_number?: string
+          role?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -366,9 +396,37 @@ export type Database = {
         Args: { ticket_id: string }
         Returns: undefined
       }
+      create_user: {
+        Args: {
+          user_name: string
+          user_phone: string
+          user_password: string
+          user_role?: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone_number: string
+          role: string
+          created_at: string
+        }[]
+      }
       get_next_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: number
+      }
+      get_user_by_phone: {
+        Args: { phone: string }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone_number: string
+          password: string
+          role: string
+          created_at: string
+        }[]
       }
       reset_ticket_sequence: {
         Args: Record<PropertyKey, never>

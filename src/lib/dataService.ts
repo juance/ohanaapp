@@ -1,60 +1,69 @@
 
-// Main data service file - exports all data-related functions
+import { syncClients } from './data/sync/clientsSync';
+import { syncFeedback } from './data/sync/feedbackSync';
+import { updateSyncStatus, getSyncStatus as getSyncStatusFn } from './data/sync/syncStatusService';
+import { SyncStatus, Customer, ClientVisit } from './types';
 
-// Export core utilities
-export {
-  saveToLocalStorage,
-  getFromLocalStorage,
-  formatPaymentMethod,
-  TICKETS_STORAGE_KEY,
-  EXPENSES_STORAGE_KEY
-} from './data/coreUtils';
+/**
+ * Comprehensive sync of all offline data with the Supabase backend
+ */
+const comprehensiveSync = async (): Promise<boolean> => {
+  try {
+    // Sync clients
+    const clientsSynced = await syncClients();
+    console.log(`Clients synced: ${clientsSynced}`);
 
-// Export ticket services
-export {
-  getNextTicketNumber
-} from './data/ticket/ticketNumberService';
+    // Sync feedback
+    const feedbackSynced = await syncFeedback();
+    console.log(`Feedback synced: ${feedbackSynced}`);
 
-export {
-  storeTicket
-} from './data/ticket/ticketStorageService';
+    // Update sync status
+    await updateSyncStatus();
 
-export {
-  getStoredTickets
-} from './data/ticket/ticketRetrievalService';
+    return true;
+  } catch (error) {
+    console.error('Error during comprehensive sync:', error);
+    return false;
+  }
+};
 
-// Export sync service
-export {
-  syncOfflineData
-} from './data/syncService';
+/**
+ * Sync offline data with the Supabase backend
+ */
+export const syncAllData = async () => {
+  try {
+    const result = await comprehensiveSync();
+    return result;
+  } catch (error) {
+    console.error('Error syncing data:', error);
+    return false;
+  }
+};
 
-// Export sync comprehensive service
-export {
-  syncAllData,
-  getSyncStatus
-} from './data/sync/comprehensiveSync';
+/**
+ * Get the current sync status
+ */
+export const getSyncStatus = async (): Promise<SyncStatus> => {
+  try {
+    return await getSyncStatusFn();
+  } catch (error) {
+    console.error('Error getting sync status:', error);
+    return {
+      lastSync: '',
+      pending: {
+        tickets: 0,
+        clients: 0,
+        feedback: 0,
+        inventory: 0,
+        expenses: 0
+      }
+    };
+  }
+};
 
-// Export customer service
-export * from './data/customer/customerService';
-
-// Export client service
-export {
-  getClientVisitFrequency
-} from './data/clientService';
-
-// Export metrics service
-export {
-  getMetrics
-} from './data/metricsService';
-
-// Export expense service
-export * from './data/expenseService';
-
-// Do not re-export loyalty service since we're exporting all from customerService
-// which includes these functions
-
-// Explicitly export getCustomerByPhone for direct imports
+// Re-export functions from other modules that are needed elsewhere
 export { getCustomerByPhone } from './data/customer/customerRetrievalService';
-
-// Export storeTicket as storeTicketData for backward compatibility
-export { storeTicket as storeTicketData } from './data/ticket/ticketStorageService';
+export { storeTicket } from './data/ticket/ticketStorageService';
+export { getClientVisitFrequency } from './data/clientService';
+export { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
+export { storeExpense, getStoredExpenses } from './data/expenseService';

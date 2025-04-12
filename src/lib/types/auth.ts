@@ -5,8 +5,9 @@ export interface User {
   id: string;
   name: string;
   email?: string;
-  phoneNumber: string;
+  phoneNumber?: string;
   role: Role;
+  requiresPasswordChange?: boolean;
 }
 
 export interface AuthState {

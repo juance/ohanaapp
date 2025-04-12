@@ -1,5 +1,105 @@
 
-// If this file already exists, we need to add/update the CustomerFeedback type
+export type Role = 'admin' | 'operator' | 'client';
+
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  phoneNumber?: string;
+  role: Role;
+  requiresPasswordChange?: boolean;
+}
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+}
+
+// Customer related types
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string;
+  phoneNumber?: string;
+  email?: string;
+  createdAt?: string;
+  lastVisit?: string;
+  loyaltyPoints?: number;
+  valetsCount?: number;
+  freeValets?: number;
+  valetsRedeemed?: number;
+}
+
+export interface ClientVisit {
+  id: string;
+  clientId?: string;
+  phoneNumber: string;
+  clientName: string;
+  visitCount: number;
+  lastVisit?: string;
+  valetsCount?: number;
+  freeValets?: number;
+  loyaltyPoints?: number;
+}
+
+// Ticket related types
+export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
+
+export interface Ticket {
+  id?: string;
+  ticketNumber: string;
+  basketTicketNumber?: string;
+  clientName: string;
+  phoneNumber: string;
+  totalPrice: number;
+  paymentMethod: PaymentMethod;
+  createdAt: string;
+  delivered?: boolean;
+  deliveredAt?: string;
+  valetQuantity?: number;
+  services: Array<{
+    name: string;
+    price?: number;
+    quantity?: number;
+  }>;
+  isPaidInAdvance?: boolean;
+  usesFreeValet?: boolean;
+}
+
+export interface DryCleaningItem {
+  id?: string;
+  ticketId?: string;
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+export interface LaundryOption {
+  id: string;
+  name: string;
+  price?: number;
+}
+
+export interface LaundryService {
+  id: string;
+  name: string;
+  price: number;
+  isSelected?: boolean;
+}
+
+// Inventory related types
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  threshold: number;
+  unit: string;
+  lastUpdated?: string;
+  pendingSync?: boolean;
+}
+
+// Feedback related types
 export interface CustomerFeedback {
   id: string;
   customerName: string;
@@ -9,117 +109,30 @@ export interface CustomerFeedback {
   pendingSync?: boolean;
 }
 
-// Define any additional types needed (this will be merged with existing types)
-export interface LaundryOption {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  selected?: boolean;
+// Sync related types
+export interface SyncStatus {
+  lastSync: string;
+  pending: {
+    tickets: number;
+    clients: number;
+    feedback: number;
+    inventory: number;
+    expenses: number;
+  }
 }
 
-// Add the missing LaundryService type
-export interface LaundryService {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-}
-
-export interface Ticket {
-  id: string;
-  ticketNumber?: string;
+export interface LocalClient {
+  clientId: string;
   clientName: string;
   phoneNumber: string;
-  createdAt: string;
-  totalPrice: number;
-  isPaid: boolean;
-  pendingSync?: boolean;
-  basketTicketNumber?: string;
-  services?: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity?: number;
-  }>;
-  paymentMethod?: PaymentMethod;
-  status?: string;
-  updatedAt?: string;
-  deliveredDate?: string;
-}
-
-// Define PaymentMethod type if it's used in the app
-export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
-
-// Updated Customer interface to ensure phone and phoneNumber coexistence
-export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  phoneNumber?: string; // Added for backward compatibility
   loyaltyPoints: number;
-  valetsCount: number;
   freeValets: number;
-  createdAt?: string;
+  valetsCount: number;
   lastVisit?: string;
-  valetsRedeemed?: number;
+  pendingSync: boolean;
 }
 
-export interface DryCleaningItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  ticketId?: string;
-}
-
-// Updated ClientVisit interface
-export interface ClientVisit {
-  id: string;
-  clientId?: string;
-  date?: string;
-  amount?: number;
-  // Adding fields that were being used in the codebase
-  phoneNumber?: string;
-  clientName?: string;
-  visitCount?: number;
-  lastVisit?: string;
-  loyaltyPoints?: number;
-  valetsCount?: number;
-  freeValets?: number;
-  visitFrequency?: string;
-}
-
-// Updated InventoryItem with lastUpdated field
-export interface InventoryItem {
-  id: string;
-  name: string;
-  quantity: number;
-  unit?: string;
-  threshold?: number;
-  notes?: string;
-  lastUpdated?: string;
-}
-
-// Updated User interface with role field
-export interface User {
-  id: string;
-  email: string;
-  name?: string;
-  role?: Role;
-}
-
-export type Role = 'admin' | 'user' | 'cashier' | 'operator';
-
-export interface Expense {
-  id: string;
-  description: string;
-  amount: number;
-  date: string;
-  createdAt?: string;
-}
-
-// Updated metrics interfaces to include the fields used in the codebase
+// Metrics related types
 export interface DailyMetrics {
   salesByHour: Record<string, number>;
   paymentMethods: {
@@ -135,60 +148,35 @@ export interface DailyMetrics {
 
 export interface WeeklyMetrics {
   salesByDay: Record<string, number>;
-  valetsByDay?: Record<string, number>; // Added field being used in code
   paymentMethods: {
     cash: number;
     debit: number;
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems?: Record<string, number>; // Added field being used in code
   totalSales: number;
   valetCount: number;
 }
 
 export interface MonthlyMetrics {
   salesByDay: Record<string, number>;
-  salesByWeek?: Record<string, number>; // Added field being used in code
-  valetsByWeek?: Record<string, number>; // Added field being used in code
   paymentMethods: {
     cash: number;
     debit: number;
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems?: Record<string, number>; // Added field being used in code
   totalSales: number;
   valetCount: number;
 }
 
-// Define LocalClient interface for sync operations
-export interface LocalClient {
+// Expense related types
+export interface Expense {
   id: string;
-  clientName: string;
-  phoneNumber: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
-  lastVisit?: string;
-  pendingSync?: boolean;
-}
-
-// Add missing types for sync operations
-export interface LocalMetrics {
-  id: string;
-  data: any;
+  description: string;
+  amount: number;
+  category: string;
   date: string;
+  createdAt: string;
   pendingSync?: boolean;
-}
-
-export interface SyncStatus {
-  lastSync: string;
-  pending: {
-    tickets: number;
-    clients: number;
-    feedback: number;
-    inventory: number;
-    expenses: number;
-  };
 }

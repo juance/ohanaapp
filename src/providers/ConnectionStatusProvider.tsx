@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { toast } from '@/lib/toast';
-import { syncAllData, getSyncStatus } from '@/lib/data/sync/comprehensiveSync';
+import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
+import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 import { DataStatusIndicator } from '@/components/ui/data-status-indicator';
 import { useInterval } from '@/hooks/use-interval';
 

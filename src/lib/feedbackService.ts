@@ -62,6 +62,33 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 };
 
 /**
+ * Delete feedback by ID
+ */
+export const deleteFeedback = async (id: string): Promise<boolean> => {
+  try {
+    // Delete from Supabase if online
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from('customer_feedback')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    }
+
+    // Delete from local storage
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+    const updatedFeedback = localFeedback.filter(item => item && item.id !== id);
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
+};
+
+/**
  * Add new feedback
  */
 export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' | 'pendingSync'>): CustomerFeedback => {
@@ -118,33 +145,6 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
 export const getFeedbackByRating = async (rating: number): Promise<CustomerFeedback[]> => {
   const allFeedback = await getAllFeedback();
   return allFeedback.filter(item => item.rating === rating);
-};
-
-/**
- * Delete feedback by ID
- */
-export const deleteFeedback = async (id: string): Promise<boolean> => {
-  try {
-    // Delete from Supabase if online
-    if (navigator.onLine) {
-      const { error } = await supabase
-        .from('customer_feedback')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-    }
-
-    // Delete from local storage
-    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
-    const updatedFeedback = localFeedback.filter(item => item && item.id !== id);
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
-
-    return true;
-  } catch (error) {
-    console.error('Error deleting feedback:', error);
-    return false;
-  }
 };
 
 /**

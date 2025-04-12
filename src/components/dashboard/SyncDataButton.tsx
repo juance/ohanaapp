@@ -2,7 +2,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { RepeatIcon, CheckIcon } from 'lucide-react';
-import { syncAllData, getSyncStatus } from '@/lib/data/sync/comprehensiveSync';
+import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
+import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 import { toast } from '@/lib/toast';
 
 export const SyncDataButton = () => {

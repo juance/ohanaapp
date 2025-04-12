@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Lock, UserPlus } from 'lucide-react';
+import { User, Lock, UserPlus, Phone } from 'lucide-react';
+import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
 
 const Auth = () => {
   const { user, login, register, loading } = useAuth();
@@ -21,6 +22,9 @@ const Auth = () => {
   const [registerPhone, setRegisterPhone] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
   const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState('');
+  
+  // Forgot password dialog state
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   
   // If user is already logged in, redirect to appropriate page
   if (user) {
@@ -111,6 +115,14 @@ const Auth = () => {
                     autoComplete="current-password"
                   />
                 </div>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="px-0 text-sm text-blue-600"
+                  onClick={() => setForgotPasswordOpen(true)}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -173,6 +185,11 @@ const Auth = () => {
           </TabsContent>
         </Tabs>
       </Card>
+      
+      <ForgotPasswordDialog
+        open={forgotPasswordOpen}
+        onOpenChange={setForgotPasswordOpen}
+      />
     </div>
   );
 };
