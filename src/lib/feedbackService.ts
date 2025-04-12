@@ -1,4 +1,3 @@
-
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
@@ -30,7 +29,7 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     }));
 
     // Merge with local feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY);
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY);
 
     // Combine the two sources (remote and local)
     // Use a Map to handle duplicates (prefer local)
@@ -57,7 +56,8 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     console.error('Error retrieving feedback from Supabase:', error);
 
     // Fallback to local storage
-    return getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    return localFeedback;
   }
 };
 
@@ -75,7 +75,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
   };
 
   // Get existing feedback
-  const existingFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+  const existingFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
   // Add new feedback
   existingFeedback.push(newFeedback);
@@ -97,7 +97,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
       .then(({ error }) => {
         if (!error) {
           // Mark as synced in local storage
-          const updatedFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+          const updatedFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
           const feedbackIndex = updatedFeedback.findIndex(f => f && f.id === newFeedback.id);
           if (feedbackIndex >= 0) {
             if (updatedFeedback[feedbackIndex]) {

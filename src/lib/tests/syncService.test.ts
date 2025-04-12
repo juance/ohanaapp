@@ -1,8 +1,9 @@
-
 // This is a placeholder test file to be implemented once test framework is set up
 // To properly use Jest, we need to install @types/jest
 // For now, commenting out the tests to avoid TypeScript errors
 
+import { syncOfflineData, resetLocalData } from '../data/syncService';
+import { getFromLocalStorage, saveToLocalStorage } from '../data/coreUtils';
 import { syncClientData } from '../data/sync/clientsSync';
 import { syncFeedbackData } from '../data/sync/feedbackSync';
 import { syncMetricsData } from '../data/sync/metricsSync';

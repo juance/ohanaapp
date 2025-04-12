@@ -54,9 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // For this implementation, we'll use a simplified approach
       // In a production app, you would use Supabase authentication
-
-      // Simulate API call to check credentials
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      
+      // Simulate API call by using RPC function
       const { data, error } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
@@ -108,8 +107,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      // Check if user already exists
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      // Check if user already exists using RPC function
       const { data: existingUser, error: checkError } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
@@ -121,8 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create new user
-      // Usamos una consulta SQL directa ya que la tabla 'users' no está en el esquema público de Supabase
+      // Create new user using RPC function
       const { data, error } = await supabase
         .rpc('create_user', {
           user_name: name,

@@ -17,17 +17,17 @@ const Navbar: React.FC = () => {
 
   // Define navigation items with required roles
   const navItems = [
-    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" />, roles: ['admin'] },
-    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" />, roles: ['admin'] },
-    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" />, roles: ['admin', 'operator'] },
-    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin'] },
-    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" />, roles: ['admin'] },
-    { path: '/user-tickets', name: 'Portal para Clientes', icon: <User className="h-4 w-4" />, roles: ['admin', 'operator', 'client'] },
+    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/user-tickets', name: 'Portal para Clientes', icon: <User className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role, 'client' as Role] },
   ];
 
   const handleLogout = async () => {
