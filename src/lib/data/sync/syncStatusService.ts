@@ -40,11 +40,11 @@ export const updateSyncStatus = async (): Promise<SyncStatus> => {
     const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
     const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
     
-    const pendingTickets = tickets.filter((item: any) => item.pendingSync).length;
-    const pendingClients = clients.filter((item: any) => item.pendingSync).length;
-    const pendingFeedback = feedback.filter((item: any) => item.pendingSync).length;
-    const pendingInventory = inventory.filter((item: any) => item.pendingSync).length;
-    const pendingExpenses = expenses.filter((item: any) => item.pendingSync).length;
+    const pendingTickets = Array.isArray(tickets) ? tickets.filter(item => item.pendingSync).length : 0;
+    const pendingClients = Array.isArray(clients) ? clients.filter(item => item.pendingSync).length : 0;
+    const pendingFeedback = Array.isArray(feedback) ? feedback.filter(item => item.pendingSync).length : 0;
+    const pendingInventory = Array.isArray(inventory) ? inventory.filter(item => item.pendingSync).length : 0;
+    const pendingExpenses = Array.isArray(expenses) ? expenses.filter(item => item.pendingSync).length : 0;
     
     const status: SyncStatus = {
       lastSync: new Date().toISOString(),

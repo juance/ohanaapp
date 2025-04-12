@@ -1,154 +1,131 @@
 
-import { CustomerFeedback } from './types';
-import { toast } from '@/hooks/use-toast';
-import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
+import { CustomerFeedback } from './types';
 
-// Get all feedback items
 export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
   try {
-    let feedback: CustomerFeedback[] = [];
-    
-    // Try to get feedback from Supabase first
+    // First try to get feedback from Supabase
     const { data, error } = await supabase
-      .from('customer_feedback')
+      .from('feedback')
       .select('*')
       .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    // Transform to our internal format
+    return data.map(item => ({
+      id: item.id,
+      customerName: item.customer_name,
+      rating: item.rating,
+      comment: item.comment,
+      createdAt: item.created_at
+    }));
+  } catch (error) {
+    console.error('Error fetching feedback from Supabase:', error);
+    
+    // Fallback to local storage if Supabase is unavailable
+    const localFeedback = localStorage.getItem('feedback');
+    if (localFeedback) {
+      try {
+        return JSON.parse(localFeedback);
+      } catch (parseError) {
+        console.error('Error parsing local feedback:', parseError);
+      }
+    }
+    
+    return [];
+  }
+};
+
+export const deleteFeedback = async (id: string): Promise<boolean> => {
+  try {
+    // First try to delete from Supabase
+    const { error } = await supabase
+      .from('feedback')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw error;
+    }
+
+    // Also delete from local storage if exists
+    const localFeedback = localStorage.getItem('feedback');
+    if (localFeedback) {
+      try {
+        const feedbackItems: CustomerFeedback[] = JSON.parse(localFeedback);
+        const updatedFeedback = feedbackItems.filter(item => item.id !== id);
+        localStorage.setItem('feedback', JSON.stringify(updatedFeedback));
+      } catch (parseError) {
+        console.error('Error updating local feedback:', parseError);
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
+};
+
+export const addFeedback = async (feedback: Omit<CustomerFeedback, 'id' | 'createdAt'>): Promise<CustomerFeedback | null> => {
+  try {
+    const newFeedback: CustomerFeedback = {
+      id: `feedback-${Date.now()}`,
+      ...feedback,
+      createdAt: new Date().toISOString(),
+      pendingSync: true
+    };
+    
+    // First try to add to Supabase
+    const { data, error } = await supabase
+      .from('feedback')
+      .insert({
+        customer_name: newFeedback.customerName,
+        rating: newFeedback.rating,
+        comment: newFeedback.comment
+      })
+      .select()
+      .single();
     
     if (error) {
       throw error;
     }
     
-    if (data) {
-      // Transform to our app format
-      feedback = data.map((item: any) => ({
-        id: item.id,
-        customerName: item.customer_name,
-        rating: item.rating,
-        comment: item.comment,
-        createdAt: item.created_at
-      }));
-    }
+    // If successful, use the Supabase ID and don't mark as pendingSync
+    newFeedback.id = data.id;
+    newFeedback.pendingSync = false;
     
-    // Also fetch local feedback
-    const localFeedback = getLocalFeedback();
+    // Also save to local storage
+    const localFeedback = localStorage.getItem('feedback');
+    const feedbackItems: CustomerFeedback[] = localFeedback ? JSON.parse(localFeedback) : [];
+    feedbackItems.push(newFeedback);
+    localStorage.setItem('feedback', JSON.stringify(feedbackItems));
     
-    // Combine both sources, avoiding duplicates
-    for (const feedbackItem of localFeedback) {
-      if (!feedback.some(fb => fb.id === feedbackItem.id)) {
-        feedback.push(feedbackItem);
-      }
-    }
-    
-    return feedback;
+    return newFeedback;
   } catch (error) {
-    console.error('Error fetching feedback:', error);
+    console.error('Error adding feedback:', error);
     
-    // Fall back to local storage if API fails
-    return getLocalFeedback();
-  }
-};
-
-// Get feedback from local storage
-export const getLocalFeedback = (): CustomerFeedback[] => {
-  try {
-    const feedbackJson = localStorage.getItem('feedback');
-    return feedbackJson ? JSON.parse(feedbackJson) : [];
-  } catch (e) {
-    console.error('Error parsing local feedback:', e);
-    return [];
-  }
-};
-
-// Save a new feedback item
-export const saveFeedback = async (feedbackItem: CustomerFeedback): Promise<void> => {
-  try {
-    // Generate ID if not provided
-    if (!feedbackItem.id) {
-      feedbackItem.id = uuidv4();
-    }
-    
-    // Set creation time if not provided
-    if (!feedbackItem.createdAt) {
-      feedbackItem.createdAt = new Date().toISOString();
-    }
-    
-    // Mark as pending sync
-    feedbackItem.pendingSync = true;
-    
-    // Save to local storage first
-    const existingFeedback = getLocalFeedback();
-    existingFeedback.push(feedbackItem);
-    localStorage.setItem('feedback', JSON.stringify(existingFeedback));
-    
-    // Try to save to Supabase if available
+    // If Supabase fails, still save to local storage for later sync
     try {
-      const { error } = await supabase
-        .from('customer_feedback')
-        .insert({
-          id: feedbackItem.id,
-          customer_name: feedbackItem.customerName,
-          rating: feedbackItem.rating,
-          comment: feedbackItem.comment,
-          created_at: feedbackItem.createdAt
-        });
+      const newFeedback: CustomerFeedback = {
+        id: `feedback-${Date.now()}`,
+        ...feedback,
+        createdAt: new Date().toISOString(),
+        pendingSync: true
+      };
       
-      if (!error) {
-        // If saved to Supabase, update local copy to not pending
-        feedbackItem.pendingSync = false;
-        const updatedFeedback = getLocalFeedback().map(item => 
-          item.id === feedbackItem.id ? { ...item, pendingSync: false } : item
-        );
-        localStorage.setItem('feedback', JSON.stringify(updatedFeedback));
-      }
-    } catch (err) {
-      // Supabase save failed, but local save succeeded
-      console.error('Error saving feedback to Supabase:', err);
+      const localFeedback = localStorage.getItem('feedback');
+      const feedbackItems: CustomerFeedback[] = localFeedback ? JSON.parse(localFeedback) : [];
+      feedbackItems.push(newFeedback);
+      localStorage.setItem('feedback', JSON.stringify(feedbackItems));
+      
+      return newFeedback;
+    } catch (localError) {
+      console.error('Error saving feedback locally:', localError);
+      return null;
     }
-    
-    toast({
-      title: "¡Gracias por tu opinión!",
-      description: "Tu comentario ha sido guardado correctamente."
-    });
-  } catch (e) {
-    console.error('Error saving feedback:', e);
-    toast({
-      title: "Error",
-      description: "No se pudo guardar tu opinión. Por favor, intenta nuevamente.",
-      variant: "destructive"
-    });
-  }
-};
-
-// Delete a feedback item
-export const deleteFeedback = async (id: string): Promise<void> => {
-  try {
-    // Remove from local storage
-    const existingFeedback = getLocalFeedback();
-    const updatedFeedback = existingFeedback.filter(item => item.id !== id);
-    localStorage.setItem('feedback', JSON.stringify(updatedFeedback));
-    
-    // Try to delete from Supabase if available
-    try {
-      await supabase
-        .from('customer_feedback')
-        .delete()
-        .eq('id', id);
-    } catch (err) {
-      console.error('Error deleting feedback from Supabase:', err);
-      // Continue anyway as we've deleted from local storage
-    }
-    
-    toast({
-      title: "Eliminado",
-      description: "El comentario ha sido eliminado correctamente."
-    });
-  } catch (e) {
-    console.error('Error deleting feedback:', e);
-    toast({
-      title: "Error",
-      description: "No se pudo eliminar el comentario. Por favor, intenta nuevamente.",
-      variant: "destructive"
-    });
   }
 };

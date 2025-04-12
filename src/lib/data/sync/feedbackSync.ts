@@ -17,14 +17,20 @@ export const syncFeedback = async (): Promise<number> => {
     
     // Upload each pending feedback
     for (const feedback of pendingFeedback) {
-      await supabase
-        .from('customer_feedback')
+      // Insert feedback to Supabase
+      const { error } = await supabase
+        .from('feedback')
         .insert({
           customer_name: feedback.customerName,
           rating: feedback.rating,
           comment: feedback.comment,
           created_at: feedback.createdAt
         });
+      
+      if (error) {
+        console.error('Error syncing feedback item:', error);
+        continue;
+      }
       
       // Mark as synced
       feedback.pendingSync = false;

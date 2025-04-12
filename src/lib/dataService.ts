@@ -2,7 +2,7 @@
 import { syncClients } from './data/sync/clientsSync';
 import { syncFeedback } from './data/sync/feedbackSync';
 import { updateSyncStatus, getSyncStatus as getSyncStatusFn } from './data/sync/syncStatusService';
-import { SyncStatus } from './types';
+import { SyncStatus, Customer, ClientVisit } from './types';
 
 /**
  * Comprehensive sync of all offline data with the Supabase backend
@@ -60,3 +60,10 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
     };
   }
 };
+
+// Re-export functions from other modules that are needed elsewhere
+export { getCustomerByPhone } from './data/customer/customerRetrievalService';
+export { storeTicket } from './data/ticket/ticketStorageService';
+export { getClientVisitFrequency } from './data/clientService';
+export { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
+export { storeExpense, getStoredExpenses } from './data/expenseService';

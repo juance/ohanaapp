@@ -34,14 +34,11 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
     try {
       // Call the function to request password reset
       await requestPasswordReset(phoneNumber);
-      
-      // Show success message
       setStep('success');
-      
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: "Error",
-        description: error.message || "No se pudo enviar el mensaje de recuperación. Intenta nuevamente.",
+        description: error instanceof Error ? error.message : "No se pudo procesar la solicitud",
         variant: "destructive",
       });
     } finally {
@@ -50,16 +47,14 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
   };
 
   const handleClose = () => {
+    // Reset state when dialog is closed
+    setPhoneNumber('');
+    setStep('request');
     onOpenChange(false);
-    // Reset state for next time
-    setTimeout(() => {
-      setStep('request');
-      setPhoneNumber('');
-    }, 300);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         {step === 'request' ? (
           <>
@@ -69,36 +64,35 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
                 Ingresa tu número de teléfono y te enviaremos un WhatsApp con una contraseña temporal.
               </DialogDescription>
             </DialogHeader>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4 py-4">
               <div className="space-y-2">
                 <Input
                   id="phoneNumber"
-                  type="tel"
                   placeholder="Número de teléfono"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   disabled={isLoading}
-                  className="w-full"
                 />
               </div>
               
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={handleClose}
+                  disabled={isLoading}
+                >
                   Cancelar
                 </Button>
-                
-                <Button type="submit" disabled={isLoading} className="gap-2">
+                <Button type="submit" disabled={isLoading}>
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Enviando...
                     </>
                   ) : (
-                    <>
-                      <MessageSquare className="h-4 w-4" />
-                      Enviar mensaje
-                    </>
+                    'Enviar contraseña'
                   )}
                 </Button>
               </DialogFooter>
@@ -107,23 +101,31 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>¡Listo!</DialogTitle>
+              <DialogTitle>Contraseña temporal enviada</DialogTitle>
               <DialogDescription>
-                Hemos enviado un mensaje de WhatsApp al número {phoneNumber} con tu contraseña temporal.
+                Te hemos enviado un WhatsApp con tu contraseña temporal.
               </DialogDescription>
             </DialogHeader>
             
-            <div className="py-6 px-4 text-center">
-              <div className="flex items-center justify-center rounded-full bg-green-100 p-3 mx-auto w-16 h-16 mb-4">
-                <MessageSquare className="h-8 w-8 text-green-600" />
+            <div className="py-6 flex justify-center">
+              <div className="bg-blue-50 text-blue-700 p-4 rounded-lg flex items-start">
+                <MessageSquare className="h-5 w-5 mr-2 mt-0.5" />
+                <div>
+                  <p className="font-medium">Instrucciones:</p>
+                  <ol className="list-decimal ml-5 mt-1 text-sm space-y-1">
+                    <li>Revisa tu WhatsApp en el número {phoneNumber}</li>
+                    <li>Usa la contraseña temporal para iniciar sesión</li>
+                    <li>Al iniciar sesión, se te pedirá crear una nueva contraseña</li>
+                  </ol>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 mb-4">
-                Cuando inicies sesión con la contraseña temporal, se te pedirá que la cambies por una nueva.
-              </p>
             </div>
             
             <DialogFooter>
-              <Button type="button" onClick={handleClose} className="w-full">
+              <Button 
+                onClick={handleClose}
+                className="w-full"
+              >
                 Entendido
               </Button>
             </DialogFooter>

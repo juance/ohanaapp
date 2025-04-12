@@ -1,26 +1,14 @@
 
-import { syncAllData } from './sync/comprehensiveSync';
-import { syncClientData } from './sync/clientsSync';
-import { syncFeedbackData } from './sync/feedbackSync';
-import { syncMetricsData } from './sync/metricsSync';
-import { getSyncStatus } from './sync/syncStatusService';
+import { performComprehensiveSync } from './sync/comprehensiveSync';
+import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
+import { syncClients } from './sync/clientsSync';
+import { syncFeedback } from './sync/feedbackSync';
 
-// Add resetLocalData function
-export const resetLocalData = (): void => {
-  localStorage.removeItem('clients');
-  localStorage.removeItem('customer_feedback');
-  localStorage.removeItem('tickets');
-  localStorage.removeItem('expenses');
-  console.log('Local data has been reset');
-};
-
-// Add syncOfflineData alias for backward compatibility
-export const syncOfflineData = syncAllData;
-
+// Re-export functions
 export {
-  syncAllData,
-  syncClientData,
-  syncFeedbackData,
-  syncMetricsData,
-  getSyncStatus
+  performComprehensiveSync,
+  getSyncStatus,
+  updateSyncStatus,
+  syncClients,
+  syncFeedback
 };
