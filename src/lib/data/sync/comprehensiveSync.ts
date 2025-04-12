@@ -1,16 +1,20 @@
 
 import { updateSyncStatus } from './syncStatusService';
-import { syncFeedback } from './feedbackSync';
-import { syncClients } from './clientsSync';
+import { syncFeedbackData } from './feedbackSync';
+import { syncClientData } from './clientsSync';
 
+/**
+ * Perform a comprehensive sync of all data
+ * This is the main function to sync all data types
+ */
 export const performComprehensiveSync = async (): Promise<boolean> => {
   try {
     // Sync clients
-    const clientsResult = await syncClients();
+    const clientsResult = await syncClientData();
     console.log(`Synced ${clientsResult} clients`);
 
     // Sync feedback
-    const feedbackResult = await syncFeedback();
+    const feedbackResult = await syncFeedbackData();
     console.log(`Synced ${feedbackResult} feedback items`);
 
     // Update sync status
@@ -22,3 +26,9 @@ export const performComprehensiveSync = async (): Promise<boolean> => {
     return false;
   }
 };
+
+/**
+ * Sync all data
+ * This is an alias for performComprehensiveSync for backward compatibility
+ */
+export const syncAllData = performComprehensiveSync;

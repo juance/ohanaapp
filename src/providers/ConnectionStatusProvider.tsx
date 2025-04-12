@@ -7,11 +7,11 @@ import { DataStatusIndicator } from '@/components/ui/data-status-indicator';
 import { useInterval } from '@/hooks/use-interval';
 
 type ConnectionStatus = 'online' | 'offline';
-type SyncStatus = 'idle' | 'syncing' | 'error' | 'success';
+type SyncStatusState = 'idle' | 'syncing' | 'error' | 'success';
 
 interface ConnectionContextType {
   connectionStatus: ConnectionStatus;
-  syncStatus: SyncStatus;
+  syncStatus: SyncStatusState;
   pendingSyncCount: number;
   lastSyncedAt: Date | null;
   syncData: () => Promise<void>;
@@ -34,14 +34,14 @@ interface ConnectionStatusProviderProps {
   autoSyncInterval?: number; // in minutes
 }
 
-export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({ 
-  children, 
+export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({
+  children,
   autoSyncInterval = 5 // default to 5 minutes
 }) => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
     navigator.onLine ? 'online' : 'offline'
   );
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+  const [syncStatus, setSyncStatus] = useState<SyncStatusState>('idle');
   const [pendingSyncCount, setPendingSyncCount] = useState(0);
   const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
   const [isPendingSync, setIsPendingSync] = useState(false);
@@ -50,14 +50,20 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
   const checkPendingSyncs = async () => {
     try {
       const status = await getSyncStatus();
-      const totalPending = 
-        status.ticketsSync + 
-        status.expensesSync + 
-        status.clientsSync + 
-        status.feedbackSync;
-      
+      const totalPending =
+        status.pending.tickets +
+        status.pending.expenses +
+        status.pending.clients +
+        status.pending.feedback +
+        status.pending.inventory;
+
       setPendingSyncCount(totalPending);
       setIsPendingSync(totalPending > 0);
+
+      // Update last synced time if available
+      if (status.lastSync) {
+        setLastSyncedAt(new Date(status.lastSync));
+      }
     } catch (error) {
       console.error('Error checking sync status:', error);
     }
@@ -80,12 +86,12 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
     try {
       setSyncStatus('syncing');
       const success = await syncAllData();
-      
+
       if (success) {
         setSyncStatus('success');
         setLastSyncedAt(new Date());
         await checkPendingSyncs();
-        
+
         if (pendingSyncCount === 0) {
           toast({
             title: "Sincronización exitosa",
@@ -138,7 +144,7 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     // Initial check
     checkPendingSyncs();
 

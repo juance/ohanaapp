@@ -9,10 +9,11 @@ import { toast } from '@/lib/toast';
 export const SyncDataButton = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncCounts, setSyncCounts] = useState({
-    ticketsSync: 0,
-    expensesSync: 0,
-    clientsSync: 0,
-    feedbackSync: 0
+    tickets: 0,
+    expenses: 0,
+    clients: 0,
+    feedback: 0,
+    inventory: 0
   });
 
   // Load initial sync status
@@ -22,7 +23,7 @@ export const SyncDataButton = () => {
 
   const checkSyncStatus = async () => {
     const status = await getSyncStatus();
-    setSyncCounts(status);
+    setSyncCounts(status.pending);
   };
 
   const handleSync = async () => {
@@ -30,7 +31,7 @@ export const SyncDataButton = () => {
     try {
       await syncAllData();
       await checkSyncStatus();
-      
+
       toast({
         title: "Sincronización exitosa",
         description: "Todos los datos han sido sincronizados correctamente con Supabase",
@@ -47,35 +48,40 @@ export const SyncDataButton = () => {
     }
   };
 
-  const totalPendingSync = 
-    syncCounts.ticketsSync + 
-    syncCounts.expensesSync + 
-    syncCounts.clientsSync + 
-    syncCounts.feedbackSync;
+  const totalPendingSync =
+    syncCounts.tickets +
+    syncCounts.expenses +
+    syncCounts.clients +
+    syncCounts.feedback +
+    syncCounts.inventory;
 
   return (
     <div className="rounded-lg border p-4 shadow-sm">
       <h3 className="text-lg font-medium mb-2">Sincronización de datos</h3>
-      
+
       <div className="space-y-2 mb-4 text-sm">
         <div className="flex justify-between">
           <span>Tickets pendientes:</span>
-          <span className="font-medium">{syncCounts.ticketsSync}</span>
+          <span className="font-medium">{syncCounts.tickets}</span>
         </div>
         <div className="flex justify-between">
           <span>Gastos pendientes:</span>
-          <span className="font-medium">{syncCounts.expensesSync}</span>
+          <span className="font-medium">{syncCounts.expenses}</span>
         </div>
         <div className="flex justify-between">
           <span>Clientes pendientes:</span>
-          <span className="font-medium">{syncCounts.clientsSync}</span>
+          <span className="font-medium">{syncCounts.clients}</span>
         </div>
         <div className="flex justify-between">
           <span>Comentarios pendientes:</span>
-          <span className="font-medium">{syncCounts.feedbackSync}</span>
+          <span className="font-medium">{syncCounts.feedback}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Inventario pendiente:</span>
+          <span className="font-medium">{syncCounts.inventory}</span>
         </div>
       </div>
-      
+
       <Button
         onClick={handleSync}
         className="w-full"
