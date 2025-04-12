@@ -50,31 +50,31 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
       newErrors.name = 'El nombre es obligatorio';
     }
-    
+
     if (!formData.phoneNumber?.trim()) {
       newErrors.phoneNumber = 'El número de teléfono es obligatorio';
     }
-    
+
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'El correo electrónico no es válido';
     }
-    
+
     if (!user && !formData.password) {
       newErrors.password = 'La contraseña es obligatoria';
     }
-    
+
     if (formData.password && formData.password.length < 6) {
       newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
     }
-    
+
     if (formData.password && formData.password !== confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -90,13 +90,13 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       if (user) {
         // Update existing user
@@ -113,13 +113,28 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
           description: 'El usuario ha sido creado correctamente',
         });
       }
-      
+
       onClose(true); // Close dialog and refresh user list
     } catch (err) {
       console.error('Error saving user:', err);
+
+      // Extract error message
+      let errorMessage = 'Error al guardar el usuario';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null) {
+        // Handle Supabase error object
+        const supabaseError = err as any;
+        if (supabaseError.message) {
+          errorMessage = supabaseError.message;
+        } else if (supabaseError.error && supabaseError.error.message) {
+          errorMessage = supabaseError.error.message;
+        }
+      }
+
       toast({
         title: 'Error',
-        description: err instanceof Error ? err.message : 'Error al guardar el usuario',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -133,12 +148,12 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
         <DialogHeader>
           <DialogTitle>{user ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle>
           <DialogDescription>
-            {user 
-              ? 'Actualiza los datos del usuario existente.' 
+            {user
+              ? 'Actualiza los datos del usuario existente.'
               : 'Completa los datos para crear un nuevo usuario.'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
@@ -152,7 +167,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             />
             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Teléfono</Label>
             <Input
@@ -165,7 +180,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             />
             {errors.phoneNumber && <p className="text-sm text-red-500">{errors.phoneNumber}</p>}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">Correo Electrónico (opcional)</Label>
             <Input
@@ -179,7 +194,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="role">Rol</Label>
             <Select
@@ -196,7 +211,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="password">
               {user ? 'Contraseña (dejar en blanco para no cambiar)' : 'Contraseña'}
@@ -212,7 +227,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             />
             {errors.password && <p className="text-sm text-red-500">{errors.password}</p>}
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirmar Contraseña</Label>
             <Input
@@ -229,11 +244,11 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
               <p className="text-sm text-red-500">{errors.confirmPassword}</p>
             )}
           </div>
-          
+
           <DialogFooter className="pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onClose()}
               disabled={loading}
             >

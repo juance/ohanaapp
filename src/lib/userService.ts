@@ -14,9 +14,9 @@ export const getAllUsers = async (): Promise<User[]> => {
   try {
     const { data, error } = await supabase
       .rpc('get_all_users');
-    
+
     if (error) throw error;
-    
+
     // Transform to our internal format
     const users: User[] = data.map((user: any) => ({
       id: user.id,
@@ -25,7 +25,7 @@ export const getAllUsers = async (): Promise<User[]> => {
       phoneNumber: user.phone_number,
       role: user.role as Role,
     }));
-    
+
     return users;
   } catch (error) {
     console.error('Error fetching users:', error);
@@ -40,9 +40,9 @@ export const getUserById = async (id: string): Promise<User | null> => {
   try {
     const { data, error } = await supabase
       .rpc('get_user_by_id', { user_id: id });
-    
+
     if (error || !data || data.length === 0) return null;
-    
+
     // Transform to our internal format
     const user: User = {
       id: data[0].id,
@@ -51,7 +51,7 @@ export const getUserById = async (id: string): Promise<User | null> => {
       phoneNumber: data[0].phone_number,
       role: data[0].role as Role,
     };
-    
+
     return user;
   } catch (error) {
     console.error(`Error fetching user with ID ${id}:`, error);
@@ -67,11 +67,19 @@ export const createUser = async (userData: UserWithPassword): Promise<User> => {
     if (!userData.password) {
       throw new Error('Password is required');
     }
-    
+
+    // Check if user with this phone number already exists
+    const { data: existingUser } = await supabase
+      .rpc('get_user_by_phone', { phone: userData.phoneNumber });
+
+    if (existingUser && existingUser.length > 0) {
+      throw new Error('Ya existe un usuario con este número de teléfono');
+    }
+
     // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(userData.password, salt);
-    
+
     // Create the user
     const { data, error } = await supabase
       .rpc('create_user', {
@@ -81,11 +89,11 @@ export const createUser = async (userData: UserWithPassword): Promise<User> => {
         user_password: hashedPassword,
         user_role: userData.role
       });
-    
+
     if (error || !data || data.length === 0) {
       throw error || new Error('Failed to create user');
     }
-    
+
     // Return the created user
     return {
       id: data[0].id,
@@ -112,22 +120,22 @@ export const updateUser = async (id: string, userData: UserWithPassword): Promis
       user_email: userData.email || null,
       user_role: userData.role
     };
-    
+
     // If password is provided, hash it
     if (userData.password) {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(userData.password, salt);
       updateData.user_password = hashedPassword;
     }
-    
+
     // Update the user
     const { data, error } = await supabase
       .rpc('update_user', updateData);
-    
+
     if (error || !data || data.length === 0) {
       throw error || new Error('Failed to update user');
     }
-    
+
     // Return the updated user
     return {
       id: data[0].id,
@@ -149,9 +157,9 @@ export const deleteUser = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
       .rpc('delete_user', { user_id: id });
-    
+
     if (error) throw error;
-    
+
     return true;
   } catch (error) {
     console.error(`Error deleting user with ID ${id}:`, error);
