@@ -28,7 +28,7 @@ export const syncOfflineData = async (): Promise<boolean> => {
 /**
  * Reset local data (for debugging/development)
  */
-export const resetLocalData = async (): Promise<boolean> => {
+export const resetLocalData = (): boolean => {
   try {
     // Clear localStorage
     localStorage.clear();

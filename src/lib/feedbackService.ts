@@ -121,6 +121,33 @@ export const getFeedbackByRating = async (rating: number): Promise<CustomerFeedb
 };
 
 /**
+ * Delete feedback by ID
+ */
+export const deleteFeedback = async (id: string): Promise<boolean> => {
+  try {
+    // Delete from Supabase if online
+    if (navigator.onLine) {
+      const { error } = await supabase
+        .from('customer_feedback')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+    }
+
+    // Delete from local storage
+    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+    const updatedFeedback = localFeedback.filter(item => item && item.id !== id);
+    saveToLocalStorage(FEEDBACK_STORAGE_KEY, updatedFeedback);
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting feedback:', error);
+    return false;
+  }
+};
+
+/**
  * Get average rating
  */
 export const getAverageRating = async (): Promise<number> => {
