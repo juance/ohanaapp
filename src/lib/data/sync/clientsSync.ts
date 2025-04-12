@@ -7,14 +7,14 @@ import { LocalClient } from '@/lib/types';
  */
 export const syncClients = async (): Promise<number> => {
   let syncedCount = 0;
-  
+
   try {
     // Get all local clients
     const localClients = getLocalClients();
-    
+
     // Find clients with pendingSync flag
     const pendingClients = localClients.filter(client => client.pendingSync);
-    
+
     // Upload each pending client
     for (const client of pendingClients) {
       // First check if client already exists by phone number
@@ -23,7 +23,7 @@ export const syncClients = async (): Promise<number> => {
         .select('*')
         .eq('phone', client.phoneNumber)
         .single();
-      
+
       if (existingClient) {
         // Update existing client
         await supabase
@@ -50,21 +50,26 @@ export const syncClients = async (): Promise<number> => {
             last_visit: client.lastVisit || null
           });
       }
-      
+
       // Mark as synced
       client.pendingSync = false;
       syncedCount++;
     }
-    
+
     // Save back to localStorage
     saveLocalClients(localClients);
-    
+
     return syncedCount;
   } catch (error) {
     console.error('Error syncing clients:', error);
     return 0;
   }
 };
+
+/**
+ * Alias for syncClients for backward compatibility
+ */
+export const syncClientData = syncClients;
 
 // Helper function to get local clients from localStorage
 const getLocalClients = (): LocalClient[] => {
