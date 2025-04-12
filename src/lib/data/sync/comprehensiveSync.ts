@@ -2,7 +2,7 @@
 import { syncFeedbackData } from './feedbackSync';
 import { syncClientData } from './clientsSync';
 import { syncMetricsData } from './metricsSync';
-import { updateSyncStatus } from './syncStatusService';
+import { getSyncStatus, updateSyncStatus } from './syncStatusService';
 import { toast } from '@/lib/toast';
 import { handleError } from '@/lib/utils/errorHandling';
 
@@ -59,3 +59,6 @@ export const syncAllData = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Export getSyncStatus from the syncStatusService
+export { getSyncStatus };

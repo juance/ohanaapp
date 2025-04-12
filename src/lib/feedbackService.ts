@@ -38,7 +38,9 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 
     // Add remote data first
     feedbackData.forEach(item => {
-      feedbackMap.set(item.id, item);
+      if (item && item.id) {
+        feedbackMap.set(item.id, item);
+      }
     });
 
     // Then add local data, overwriting remote with the same ID

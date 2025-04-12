@@ -25,7 +25,8 @@ export {
 
 // Export sync service
 export {
-  syncOfflineData
+  syncAllData,
+  resetLocalData as syncOfflineData
 } from './data/syncService';
 
 // Export sync comprehensive service

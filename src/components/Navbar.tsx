@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
 
   // Filter nav items based on user role
   const filteredNavItems = navItems.filter(item =>
-    user && checkUserPermission(item.roles as Role[])
+    user && checkUserPermission(item.roles)
   );
 
   return (

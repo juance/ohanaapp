@@ -53,29 +53,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
 
       // For this implementation, we'll use a simplified approach
-      // In a production app, you would use Supabase authentication
-      
-      // Simulate API call by using RPC function
+      // Get user by phone number using the RPC function
       const { data, error } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         throw new Error('Usuario no encontrado o contraseña incorrecta');
       }
 
+      // Get the first user from the result
+      const userData = data[0];
+
       // Verify password using bcrypt
-      const passwordMatch = await bcrypt.compare(password, data.password);
+      const passwordMatch = await bcrypt.compare(password, userData.password);
       if (!passwordMatch) {
         throw new Error('Contraseña incorrecta');
       }
 
       // Create user object
       const authenticatedUser: User = {
-        id: data.id,
-        name: data.name,
-        email: data.email || undefined,
-        phoneNumber: data.phone_number,
-        role: data.role as Role,
+        id: userData.id,
+        name: userData.name,
+        email: userData.email || undefined,
+        phoneNumber: userData.phone_number,
+        role: userData.role as Role,
       };
 
       // Store user in localStorage
@@ -111,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: existingUser, error: checkError } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
-      if (!checkError && existingUser) {
+      if (!checkError && existingUser && existingUser.length > 0) {
         throw new Error('El número de teléfono ya está registrado');
       }
 
@@ -128,16 +129,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           user_role: role
         });
 
-      if (error || !data) {
+      if (error || !data || data.length === 0) {
         throw new Error('Error al crear la cuenta');
       }
 
+      // Get the first user from the result
+      const userData = data[0];
+
       // Create user object
       const newUser: User = {
-        id: data.id,
-        name: data.name,
-        phoneNumber: data.phone_number,
-        role: data.role as Role,
+        id: userData.id,
+        name: userData.name,
+        phoneNumber: userData.phone_number,
+        role: userData.role as Role,
       };
 
       // Store user in localStorage
