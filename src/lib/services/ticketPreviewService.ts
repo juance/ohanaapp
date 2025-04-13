@@ -1,6 +1,7 @@
 
 import { LaundryOption, Ticket } from '@/lib/types';
 import { getNextTicketNumber } from '@/lib/data/ticket/ticketNumberService';
+import { generateUUID } from '@/lib/utils/uuidUtils';
 
 /**
  * Create a ticket object for preview/printing
@@ -24,23 +25,23 @@ export const createTicketForPreview = async (
   } catch (error) {
     console.error('Error getting ticket number for preview:', error);
   }
-  
+
   // Get a random basket ticket number for preview (will be replaced by the server)
   const basketNumber = Math.floor(Math.random() * 999) + 1;
-  
+
   // Format services based on ticket type
-  const services = activeTab === 'valet' 
-    ? [{ id: crypto.randomUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }] 
+  const services = activeTab === 'valet'
+    ? [{ id: generateUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }]
     : dryCleaningItems.map(item => ({
-        id: crypto.randomUUID(),
+        id: generateUUID(),
         name: item.name,
         price: item.price,
         quantity: item.quantity
       }));
-      
+
   // Create the ticket object
   return {
-    id: crypto.randomUUID(),
+    id: generateUUID(),
     ticketNumber: ticketNumber,
     basketTicketNumber: basketNumber.toString(),
     clientName: customerName,
