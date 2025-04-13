@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
-import { setupGlobalErrorHandling } from './lib/errorService.ts';
+import { setupGlobalErrorHandling, initErrorService } from './lib/errorService.ts';
 import { Toaster } from './components/ui/toaster';
 
 // Create a client with optimized settings for production
@@ -33,8 +33,8 @@ if (!rootElement) {
 // Performance timing
 const startTime = performance.now();
 
-// Inicializar sistema de captura de errores global
-setupGlobalErrorHandling();
+// Inicializar sistema de captura y registro de errores
+initErrorService();
 
 // Create and render the root
 try {
@@ -52,7 +52,7 @@ try {
       </BrowserRouter>
     </StrictMode>
   );
-  
+
   const loadTime = Math.round(performance.now() - startTime);
   console.log(`Application rendered in ${loadTime}ms`);
 } catch (error) {
