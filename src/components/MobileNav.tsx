@@ -21,8 +21,9 @@ const MobileNav: React.FC = () => {
   const navItems = [
     { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
-    { path: '/pickup', name: 'Ordenes Pendientes', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
-    { path: '/delivered', name: 'Ordenes Entregadas', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/pending', name: 'En Proceso', icon: <Clock className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/pickup', name: 'Listos para Retirar', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/delivered', name: 'Entregados', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
     { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
     { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
     { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },

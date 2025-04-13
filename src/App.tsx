@@ -10,6 +10,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const Index = lazy(() => import('@/pages/Index'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
+const PendingOrders = lazy(() => import('@/pages/PendingOrders'));
 const PickupOrders = lazy(() => import('@/pages/PickupOrders'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const Expenses = lazy(() => import('@/pages/Expenses'));
@@ -39,7 +40,7 @@ function App() {
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/change-password" element={<ChangePassword />} />
-          
+
           {/* Admin only routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute allowedRoles={['admin']}>
@@ -61,11 +62,16 @@ function App() {
               <Feedback />
             </ProtectedRoute>
           } />
-          
+
           {/* Admin and operator routes */}
           <Route path="/tickets" element={
             <ProtectedRoute allowedRoles={['admin', 'operator']}>
               <Tickets />
+            </ProtectedRoute>
+          } />
+          <Route path="/pending" element={
+            <ProtectedRoute allowedRoles={['admin', 'operator']}>
+              <PendingOrders />
             </ProtectedRoute>
           } />
           <Route path="/pickup" element={
@@ -98,14 +104,14 @@ function App() {
               <Loyalty />
             </ProtectedRoute>
           } />
-          
+
           {/* All authenticated users */}
           <Route path="/user-tickets" element={
             <ProtectedRoute allowedRoles={['admin', 'operator', 'client']}>
               <UserTickets />
             </ProtectedRoute>
           } />
-          
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>

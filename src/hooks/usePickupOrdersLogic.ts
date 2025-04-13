@@ -3,7 +3,7 @@ import { useState, useRef } from 'react';
 import { Ticket } from '@/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
-import { getPendingTickets } from '@/lib/ticket/ticketPendingService';
+import { getPickupTickets } from '@/lib/ticket/ticketPickupService';
 import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -19,8 +19,8 @@ export const usePickupOrdersLogic = () => {
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['pendingTickets'],
-    queryFn: () => getPendingTickets(),
+    queryKey: ['pickupTickets'],
+    queryFn: () => getPickupTickets(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true
   });
