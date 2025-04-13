@@ -44,8 +44,12 @@ const Navbar: React.FC = () => {
     <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
-          <Link to="/" className="flex items-center space-x-2">
-            <span className="font-bold text-xl text-blue-600">Lavandería Ohana</span>
+          <Link to="/" className="flex items-center justify-center">
+            <img
+              src="/images/ohana-logo.svg"
+              alt="Lavandería Ohana"
+              className="h-16 w-auto"
+            />
           </Link>
         </div>
 
@@ -104,7 +108,7 @@ const Navbar: React.FC = () => {
             </Button>
           )}
           <div className="text-xs text-gray-500 mt-4">
-            © 2023 Lavandería Ohana
+            © 2025 Lavandería Ohana
           </div>
         </div>
       </div>

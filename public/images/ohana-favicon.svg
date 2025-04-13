@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Background -->
+  <rect width="64" height="64" rx="12" fill="#ffffff"/>
+  
+  <!-- Stylized "O" for Ohana -->
+  <path d="M32,10 C19.85,10 10,19.85 10,32 C10,44.15 19.85,54 32,54 C44.15,54 54,44.15 54,32 C54,19.85 44.15,10 32,10 Z M32,48 C23.16,48 16,40.84 16,32 C16,23.16 23.16,16 32,16 C40.84,16 48,23.16 48,32 C48,40.84 40.84,48 32,48 Z" fill="#0a2540"/>
+  
+  <!-- Hibiscus flower -->
+  <path d="M42,28 C45,25 50,27 48,32 C46,37 41,35 42,28 Z" fill="#0a2540"/>
+</svg>
