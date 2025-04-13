@@ -2,7 +2,8 @@
 import { useState, useRef } from 'react';
 import { Ticket } from '@/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getPickupTickets, getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
+import { getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
+import { getPendingTickets } from '@/lib/ticket/ticketPendingService';
 import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -18,8 +19,8 @@ export const usePickupOrdersLogic = () => {
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['pickupTickets'],
-    queryFn: () => getPickupTickets(),
+    queryKey: ['pendingTickets'],
+    queryFn: () => getPendingTickets(),
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true
   });
@@ -32,6 +33,7 @@ export const usePickupOrdersLogic = () => {
   const handleMarkAsDelivered = async (ticketId: string) => {
     const success = await markTicketAsDelivered(ticketId);
     if (success) {
+      queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
       queryClient.invalidateQueries({ queryKey: ['metrics'] });
@@ -62,6 +64,7 @@ export const usePickupOrdersLogic = () => {
     if (success) {
       setCancelDialogOpen(false);
       setSelectedTicket(null);
+      queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
       queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
       refetch();
     }
