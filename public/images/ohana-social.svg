@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Fondo -->
+  <rect width="1200" height="630" fill="#f8fafc" />
+  
+  <!-- Patrón de fondo -->
+  <g opacity="0.1" fill="#4a9f5d">
+    <path d="M100,100 C150,50 250,75 225,150 C200,225 100,200 100,100 Z" />
+    <path d="M1000,150 C1050,100 1150,125 1125,200 C1100,275 1000,250 1000,150 Z" />
+    <path d="M200,450 C250,400 350,425 325,500 C300,575 200,550 200,450 Z" />
+    <path d="M900,500 C950,450 1050,475 1025,550 C1000,625 900,600 900,500 Z" />
+    <!-- Flores de hibisco -->
+    <path d="M350,200 C400,150 500,200 450,300 C400,400 300,300 350,200 Z" />
+    <path d="M800,250 C850,200 950,250 900,350 C850,450 750,350 800,250 Z" />
+    <path d="M250,400 C300,350 400,400 350,500 C300,600 200,500 250,400 Z" />
+    <path d="M850,450 C900,400 1000,450 950,550 C900,650 800,550 850,450 Z" />
+  </g>
+  
+  <!-- Acento de flor de hibisco rojo -->
+  <g opacity="0.3" fill="#e74c3c">
+    <path d="M150,300 C200,250 300,275 275,375 C250,475 150,400 150,300 Z" />
+    <path d="M950,350 C1000,300 1100,325 1075,425 C1050,525 950,450 950,350 Z" />
+  </g>
+  
+  <!-- Contenedor principal -->
+  <rect x="250" y="165" width="700" height="300" rx="20" fill="white" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Logo y texto -->
+  <text x="600" y="250" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#64748b">LAVANDERÍA Y TINTORERÍA</text>
+  <text x="600" y="320" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="#0a2540">Ohana</text>
+  
+  <!-- Flor de hibisco junto a Ohana -->
+  <path d="M750,310 C760,295 780,300 775,320 C770,340 740,325 750,310 Z" fill="#0a2540" />
+  
+  <!-- Dirección y teléfono -->
+  <text x="600" y="380" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#64748b">CAMARGO 590 | CABA | + 54 9 11 3642 4871</text>
+  
+  <!-- Barra de color en la parte inferior -->
+  <rect x="250" y="465" width="700" height="10" fill="#3b82f6" />
+</svg>

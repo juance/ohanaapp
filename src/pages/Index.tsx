@@ -4,13 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingBag, PlusCircle, ShoppingBasket, Clock, CheckSquare, ChevronRight, Search, User, LogIn } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const renderClientPortalCard = () => (
     <Card className="hover:shadow-md transition-shadow border-l-4 border-l-indigo-500">
       <CardContent className="p-6">
@@ -28,7 +28,7 @@ const Index = () => {
       </CardContent>
     </Card>
   );
-  
+
   const renderAuthCard = () => (
     <Card className="hover:shadow-md transition-shadow border-l-4 border-l-indigo-500">
       <CardContent className="p-6">
@@ -48,7 +48,7 @@ const Index = () => {
       </CardContent>
     </Card>
   );
-  
+
   // Different card sets based on user role
   const renderAdminOperatorCards = () => (
     <>
@@ -67,7 +67,7 @@ const Index = () => {
           </Link>
         </CardContent>
       </Card>
-      
+
       <Card className="hover:shadow-md transition-shadow border-l-4 border-l-yellow-500">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -83,7 +83,7 @@ const Index = () => {
           </Link>
         </CardContent>
       </Card>
-      
+
       <Card className="hover:shadow-md transition-shadow border-l-4 border-l-green-500">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -99,7 +99,7 @@ const Index = () => {
           </Link>
         </CardContent>
       </Card>
-      
+
       {user?.role === 'admin' && (
         <Card className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
           <CardContent className="p-6">
@@ -117,7 +117,7 @@ const Index = () => {
           </CardContent>
         </Card>
       )}
-      
+
       <Card className="hover:shadow-md transition-shadow border-l-4 border-l-orange-500">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
@@ -133,30 +133,30 @@ const Index = () => {
           </Link>
         </CardContent>
       </Card>
-      
+
       {renderClientPortalCard()}
     </>
   );
-  
+
   const renderClientCards = () => (
     <>
       {renderClientPortalCard()}
     </>
   );
-  
+
   const renderGuestCards = () => (
     <>
       {renderClientPortalCard()}
       {renderAuthCard()}
     </>
   );
-  
+
   // Select which cards to render based on user role
   const renderCards = () => {
     if (!user) {
       return renderGuestCards();
     }
-    
+
     switch (user.role) {
       case 'admin':
       case 'operator':
@@ -167,24 +167,18 @@ const Index = () => {
         return renderGuestCards();
     }
   };
-  
+
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Navbar />
-      
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <header className="mb-8">
-            <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
-            <p className="text-gray-500">Sistema de gestión</p>
-          </header>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {renderCards()}
-          </div>
-        </div>
+    <Layout>
+      <header className="mb-8 pt-6">
+        <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
+        <p className="text-gray-500">Sistema de gestión</p>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {renderCards()}
       </div>
-    </div>
+    </Layout>
   );
 };
 

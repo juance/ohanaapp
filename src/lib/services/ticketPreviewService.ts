@@ -2,6 +2,7 @@
 import { LaundryOption, Ticket } from '@/lib/types';
 import { getNextTicketNumber } from '@/lib/data/ticket/ticketNumberService';
 import { generateUUID } from '@/lib/utils/uuidUtils';
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
 
 /**
  * Create a ticket object for preview/printing
@@ -49,7 +50,7 @@ export const createTicketForPreview = async (
     services,
     paymentMethod: paymentMethod as any,
     totalPrice: useFreeValet ? 0 : totalPrice, // If it's a free valet, set price to 0
-    status: 'ready',
+    status: TICKET_STATUS.READY,
     createdAt: date.toISOString(),
     updatedAt: date.toISOString(),
     isPaid: isPaidInAdvance // Add the paid status

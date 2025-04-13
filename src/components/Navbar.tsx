@@ -5,6 +5,7 @@ import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, File
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
+import AnimatedLogo from '@/components/AnimatedLogo';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -44,13 +45,7 @@ const Navbar: React.FC = () => {
     <div className="fixed hidden h-screen w-64 bg-white border-r md:block">
       <div className="flex flex-col h-full">
         <div className="p-4 border-b">
-          <Link to="/" className="flex items-center justify-center">
-            <img
-              src="/images/ohana-logo.svg"
-              alt="Lavandería Ohana"
-              className="h-16 w-auto"
-            />
-          </Link>
+          <AnimatedLogo size="lg" />
         </div>
 
         {user && (
