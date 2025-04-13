@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User } from 'lucide-react';
+import { Menu, X, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
