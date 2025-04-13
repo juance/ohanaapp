@@ -1,6 +1,6 @@
 /**
  * Ticket Status Service
- * 
+ *
  * This module provides a unified interface for working with ticket statuses.
  * It simplifies the ticket status workflow and provides helper functions
  * for status transitions and validation.
@@ -35,24 +35,24 @@ export const mapToSimplifiedStatus = (dbStatus: string): TicketStatusSimplified 
  * @returns The database status to use
  */
 export const mapToDatabaseStatus = (
-  simplifiedStatus: TicketStatusSimplified, 
+  simplifiedStatus: TicketStatusSimplified,
   currentDbStatus?: string
 ): string => {
   if (simplifiedStatus === 'DELIVERED') {
     return TICKET_STATUS.DELIVERED;
   }
-  
+
   // If we're setting to PENDING, preserve the current pending status if it exists
   if (currentDbStatus && [
-    TICKET_STATUS.PENDING, 
-    TICKET_STATUS.PROCESSING, 
+    TICKET_STATUS.PENDING,
+    TICKET_STATUS.PROCESSING,
     TICKET_STATUS.READY
   ].includes(currentDbStatus)) {
     return currentDbStatus;
   }
-  
-  // Default to READY for new pending tickets
-  return TICKET_STATUS.READY;
+
+  // Default to PENDING for new tickets (changed from READY to implement new workflow)
+  return TICKET_STATUS.PENDING;
 };
 
 /**
@@ -137,25 +137,27 @@ export const getStatusBadgeClass = (status: string): string => {
 
 /**
  * Ticket Status Workflow Documentation
- * 
+ *
  * The ticket status workflow is as follows:
- * 
- * 1. When a ticket is created, it is set to 'ready' by default
- *    - This means it's ready for pickup by the customer
- * 
+ *
+ * 1. When a ticket is created, it is set to 'pending' by default
+ *    - This means the clothes have been received but not yet processed
+ *
  * 2. A ticket can be in one of four states:
  *    - 'pending': Initial state, ticket is registered but not being processed yet
  *    - 'processing': Ticket is being processed (e.g., clothes are being washed)
  *    - 'ready': Ticket is ready for pickup
  *    - 'delivered': Ticket has been delivered to the customer
- * 
+ *
  * 3. For simplicity in the UI, we group the first three states ('pending', 'processing', 'ready')
  *    into a single 'PENDING' state, meaning the ticket is not yet delivered
- * 
+ *
  * 4. The typical workflow is:
- *    - Create ticket → 'ready' (default)
+ *    - Create ticket → 'pending' (default)
+ *    - Start processing → 'processing'
+ *    - Finish processing → 'ready'
  *    - Customer picks up → 'delivered'
- * 
+ *
  * 5. A ticket can be canceled at any point before it's delivered
  *    - Canceled tickets are not deleted but marked with 'is_canceled = true'
  *    - Canceled tickets are excluded from all queries by default
