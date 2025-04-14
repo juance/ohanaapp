@@ -55,8 +55,10 @@ export interface Ticket {
   totalPrice: number;
   paymentMethod: PaymentMethod;
   createdAt: string;
-  delivered?: boolean;
-  deliveredAt?: string;
+  updatedAt?: string;
+  status: 'pending' | 'processing' | 'ready' | 'delivered';
+  deliveredDate?: string;
+  isPaid?: boolean;
   valetQuantity?: number;
   services: Array<{
     name: string;

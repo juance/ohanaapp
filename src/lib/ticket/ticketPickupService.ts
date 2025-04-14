@@ -21,6 +21,26 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     // Get tickets with status 'ready' and not canceled
     console.log('Querying tickets with status:', TICKET_STATUS.READY);
+
+    // First, check if there are any tickets in the database
+    const { count, error: countError } = await supabase
+      .from('tickets')
+      .select('*', { count: 'exact', head: true });
+
+    console.log('Total tickets in database:', count);
+
+    if (countError) {
+      console.error('Error counting tickets:', countError);
+      throw countError;
+    }
+
+    // If there are no tickets, return empty array
+    if (count === 0) {
+      console.log('No tickets found in database');
+      return [];
+    }
+
+    // Get tickets with status 'ready' and not canceled
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
@@ -34,10 +54,21 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       throw error;
     }
 
+    if (!ticketsData || !Array.isArray(ticketsData) || ticketsData.length === 0) {
+      console.log('No ready tickets found');
+      return [];
+    }
+
     // Map to application Ticket model
     console.log('Mapping ticket data');
     const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket, hasDeliveredDateColumn))
+      .map(ticket => {
+        const mappedTicket = mapTicketData(ticket, hasDeliveredDateColumn);
+        if (!mappedTicket) {
+          console.error('Failed to map ticket:', ticket);
+        }
+        return mappedTicket;
+      })
       .filter(ticket => ticket !== null) as Ticket[];
 
     console.log('Mapped tickets:', tickets.length);

@@ -87,7 +87,9 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     id: ticket.id,
     ticket_number: ticket.ticket_number,
     status: ticket.status,
-    customer: ticket.customers
+    customer: ticket.customers,
+    total: ticket.total,
+    payment_method: ticket.payment_method
   }, null, 2));
 
   const customerData = ticket.customers || {};
@@ -100,6 +102,32 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     } else if (ticket.delivered_at) {
       deliveredDate = ticket.delivered_at;
     }
+  }
+
+  // Ensure all required fields are present
+  if (!ticket.ticket_number) {
+    console.error('Missing required field ticket_number:', ticket);
+    return null;
+  }
+
+  if (ticket.total === undefined || ticket.total === null) {
+    console.error('Missing required field total:', ticket);
+    return null;
+  }
+
+  if (!ticket.payment_method) {
+    console.error('Missing required field payment_method:', ticket);
+    return null;
+  }
+
+  if (!ticket.status) {
+    console.error('Missing required field status:', ticket);
+    return null;
+  }
+
+  if (!ticket.created_at) {
+    console.error('Missing required field created_at:', ticket);
+    return null;
   }
 
   const mappedTicket = {
@@ -122,7 +150,9 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     id: mappedTicket.id,
     ticketNumber: mappedTicket.ticketNumber,
     status: mappedTicket.status,
-    clientName: mappedTicket.clientName
+    clientName: mappedTicket.clientName,
+    totalPrice: mappedTicket.totalPrice,
+    paymentMethod: mappedTicket.paymentMethod
   }, null, 2));
 
   return mappedTicket;

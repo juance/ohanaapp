@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { usePickupOrdersLogic } from '@/hooks/usePickupOrdersLogic';
@@ -9,6 +9,7 @@ import PickupActionButtons from '@/components/orders/PickupActionButtons';
 import PickupTicketList from '@/components/orders/PickupTicketList';
 import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
 import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 const PickupOrders = () => {
   const {
@@ -76,6 +77,13 @@ const PickupOrders = () => {
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           <OrderHeader title="Pedidos Listos para Retirar" />
+
+          <DebugPanel
+            tickets={tickets}
+            isLoading={isLoading}
+            error={error}
+            refetch={refetch}
+          />
 
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-4">Pedidos Listos para Retirar</h2>
