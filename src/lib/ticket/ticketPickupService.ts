@@ -41,6 +41,16 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     // Get tickets with status 'ready' and not canceled
     console.log('Querying tickets with status:', TICKET_STATUS.READY);
 
+    // Log the actual query we're about to execute
+    console.log('Query parameters:', {
+      table: 'tickets',
+      select: selectQuery,
+      filters: {
+        status: TICKET_STATUS.READY,
+        is_canceled: false
+      }
+    });
+
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
@@ -48,6 +58,22 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       .eq('is_canceled', false);
 
     console.log('Query result:', ticketsData ? `Found ${ticketsData.length} tickets` : 'No tickets found');
+
+    // If no tickets found, let's do a broader query to see if there are any tickets at all
+    if (!ticketsData || ticketsData.length === 0) {
+      console.log('No ready tickets found, checking for any tickets...');
+
+      const { data: allTickets, error: allTicketsError } = await supabase
+        .from('tickets')
+        .select('id, ticket_number, status, is_canceled')
+        .limit(10);
+
+      if (allTicketsError) {
+        console.error('Error querying all tickets:', allTicketsError);
+      } else {
+        console.log('All tickets sample:', allTickets);
+      }
+    }
 
     if (error) {
       console.error('Error querying tickets:', error);
