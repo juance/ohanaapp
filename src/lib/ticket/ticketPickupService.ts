@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
+import { getDatabaseStatuses } from './ticketStatusService';
 import { differenceInDays } from 'date-fns';
 import { toast } from '@/lib/toast';
 
@@ -38,15 +39,17 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Get tickets with status 'ready' and not canceled
-    console.log('Querying tickets with status:', TICKET_STATUS.READY);
+    // Get all "pending" tickets (using the simplified status)
+    // This will include 'pending', 'processing', and 'ready' statuses
+    const pendingStatuses = getDatabaseStatuses('PENDING');
+    console.log('Querying tickets with statuses:', pendingStatuses);
 
     // Log the actual query we're about to execute
     console.log('Query parameters:', {
       table: 'tickets',
       select: selectQuery,
       filters: {
-        status: TICKET_STATUS.READY,
+        status: pendingStatuses,
         is_canceled: false
       }
     });
@@ -54,7 +57,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
-      .eq('status', TICKET_STATUS.READY)
+      .in('status', pendingStatuses)
       .eq('is_canceled', false);
 
     console.log('Query result:', ticketsData ? `Found ${ticketsData.length} tickets` : 'No tickets found');
@@ -65,7 +68,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     // If no tickets found, let's do a broader query to see if there are any tickets at all
     if (!ticketsData || ticketsData.length === 0) {
-      console.log('No ready tickets found, checking for any tickets...');
+      console.log('No pending tickets found, checking for any tickets...');
 
       const { data: allTickets, error: allTicketsError } = await supabase
         .from('tickets')
@@ -89,7 +92,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     }
 
     if (!ticketsData || !Array.isArray(ticketsData) || ticketsData.length === 0) {
-      console.log('No ready tickets found');
+      console.log('No pending tickets found');
       return [];
     }
 
