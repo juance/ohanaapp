@@ -7,20 +7,39 @@ import { supabase } from '@/integrations/supabase/client';
 export const getNextTicketNumber = async (): Promise<string> => {
   try {
     console.log('Getting next ticket number from database');
-    console.log('Calling RPC function get_next_ticket_number');
-    const { data, error } = await supabase
-      .rpc('get_next_ticket_number');
 
-    console.log('RPC response:', { data, error: error ? error.message : null });
+    // Alternativa: Actualizar directamente la tabla ticket_sequence
+    const { data: sequenceData, error: sequenceError } = await supabase
+      .from('ticket_sequence')
+      .select('last_number')
+      .eq('id', 1)
+      .single();
 
-    if (error) {
-      console.error('Error from RPC function:', error);
-      throw error;
+    if (sequenceError) {
+      console.error('Error getting ticket sequence:', sequenceError);
+      throw sequenceError;
     }
 
-    // La función ahora devuelve directamente el número formateado como texto
-    console.log('Ticket number generated successfully:', data);
-    return data;
+    console.log('Current sequence value:', sequenceData.last_number);
+
+    // Incrementar el número
+    const nextNumber = (sequenceData.last_number || 0) + 1;
+
+    // Actualizar la secuencia
+    const { error: updateError } = await supabase
+      .from('ticket_sequence')
+      .update({ last_number: nextNumber })
+      .eq('id', 1);
+
+    if (updateError) {
+      console.error('Error updating ticket sequence:', updateError);
+      throw updateError;
+    }
+
+    // Formatear el número con ceros a la izquierda (8 dígitos)
+    const formattedNumber = nextNumber.toString().padStart(8, '0');
+    console.log('Ticket number generated successfully:', formattedNumber);
+    return formattedNumber;
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
