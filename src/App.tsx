@@ -13,6 +13,7 @@ const Tickets = lazy(() => import('@/pages/Tickets'));
 const PendingOrders = lazy(() => import('@/pages/PendingOrders'));
 const PickupOrders = lazy(() => import('@/pages/PickupOrders'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
+const Diagnostics = lazy(() => import('@/pages/Diagnostics'));
 const Expenses = lazy(() => import('@/pages/Expenses'));
 const Feedback = lazy(() => import('@/pages/Feedback'));
 const Administration = lazy(() => import('@/pages/Administration'));
@@ -109,6 +110,12 @@ function App() {
           <Route path="/user-tickets" element={
             <ProtectedRoute allowedRoles={['admin', 'operator', 'client']}>
               <UserTickets />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/diagnostics" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Diagnostics />
             </ProtectedRoute>
           } />
 
