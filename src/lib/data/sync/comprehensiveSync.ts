@@ -1,34 +1,45 @@
 
-import { updateSyncStatus } from './syncStatusService';
-import { syncFeedbackData } from './feedbackSync';
-import { syncClientData } from './clientsSync';
+import { syncExpenses } from './expensesSync';
+import { syncFeedback } from './feedbackSync';
+import { syncClients } from './clientsSync';
+import { syncTickets } from './ticketsSync';
+import { SyncStatus } from '@/lib/types';
 
-/**
- * Perform a comprehensive sync of all data
- * This is the main function to sync all data types
- */
-export const performComprehensiveSync = async (): Promise<boolean> => {
+export const syncAllData = async (): Promise<SyncStatus> => {
   try {
-    // Sync clients
-    const clientsResult = await syncClientData();
-    console.log(`Synced ${clientsResult} clients`);
-
+    console.log('Starting comprehensive data sync...');
+    
+    // Sync clients first (as tickets might depend on them)
+    const clientsStatus = await syncClients();
+    console.log('Client sync status:', clientsStatus);
+    
+    // Then sync tickets
+    const ticketsStatus = await syncTickets();
+    console.log('Tickets sync status:', ticketsStatus);
+    
+    // Sync expenses
+    const expensesStatus = await syncExpenses();
+    console.log('Expenses sync status:', expensesStatus);
+    
     // Sync feedback
-    const feedbackResult = await syncFeedbackData();
-    console.log(`Synced ${feedbackResult} feedback items`);
-
-    // Update sync status
-    await updateSyncStatus();
-
-    return true;
+    const feedbackStatus = await syncFeedback();
+    console.log('Feedback sync status:', feedbackStatus);
+    
+    // Return combined sync status
+    return {
+      clientsSync: clientsStatus,
+      ticketsSync: ticketsStatus,
+      expensesSync: expensesStatus,
+      feedbackSync: feedbackStatus
+    };
   } catch (error) {
     console.error('Error during comprehensive sync:', error);
-    return false;
+    // Return failure status
+    return {
+      clientsSync: 0,
+      ticketsSync: 0,
+      expensesSync: 0,
+      feedbackSync: 0
+    };
   }
 };
-
-/**
- * Sync all data
- * This is an alias for performComprehensiveSync for backward compatibility
- */
-export const syncAllData = performComprehensiveSync;
