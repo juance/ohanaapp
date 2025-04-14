@@ -1,6 +1,6 @@
 /**
  * Ticket Status Tests
- * 
+ *
  * These tests verify that tickets are correctly displayed in the appropriate sections
  * based on their status, and that status transitions work as expected.
  */
@@ -17,24 +17,24 @@ import { mapToSimplifiedStatus, getDatabaseStatuses } from '@/lib/ticket/ticketS
 // Mock the Supabase client
 vi.mock('@/integrations/supabase/client', () => {
   const mockTickets = [
-    { 
-      id: '1', 
-      ticket_number: '00000001', 
-      status: 'ready', 
+    {
+      id: '1',
+      ticket_number: '00000001',
+      status: 'ready',
       is_canceled: false,
       customers: { name: 'Test Customer', phone: '1234567890' }
     },
-    { 
-      id: '2', 
-      ticket_number: '00000002', 
-      status: 'pending', 
+    {
+      id: '2',
+      ticket_number: '00000002',
+      status: 'pending',
       is_canceled: false,
       customers: { name: 'Test Customer 2', phone: '0987654321' }
     },
-    { 
-      id: '3', 
-      ticket_number: '00000003', 
-      status: 'delivered', 
+    {
+      id: '3',
+      ticket_number: '00000003',
+      status: 'delivered',
       is_canceled: false,
       customers: { name: 'Test Customer 3', phone: '5555555555' }
     }
@@ -61,22 +61,22 @@ vi.mock('@/integrations/supabase/client', () => {
             })
           }),
           in: vi.fn().mockReturnValue({
-            eq: vi.fn().mockResolvedValue({ 
-              data: mockTickets.filter(t => ['pending', 'processing', 'ready'].includes(t.status)), 
-              error: null 
+            eq: vi.fn().mockResolvedValue({
+              data: mockTickets.filter(t => ['pending', 'processing', 'ready'].includes(t.status)),
+              error: null
             })
           }),
           limit: vi.fn().mockResolvedValue({ data: [{ delivered_date: null }], error: null })
         }),
         insert: vi.fn().mockReturnValue({
           select: vi.fn().mockReturnValue({
-            single: vi.fn().mockResolvedValue({ 
-              data: { 
-                id: '4', 
-                ticket_number: '00000004', 
-                status: 'ready' 
-              }, 
-              error: null 
+            single: vi.fn().mockResolvedValue({
+              data: {
+                id: '4',
+                ticket_number: '00000004',
+                status: 'ready'
+              },
+              error: null
             })
           })
         }),
@@ -190,21 +190,21 @@ describe('Ticket Status Workflow', () => {
       totalPrice: 150,
       paymentMethod: 'cash'
     });
-    
+
     expect(createResult.success).toBe(true);
     expect(createResult.ticketId).toBeDefined();
-    
+
     if (!createResult.ticketId) return; // TypeScript guard
-    
+
     // 2. Verify it appears in pending tickets
     const pendingTickets = await getPendingTickets();
     const pendingIds = pendingTickets.map(t => t.id);
     expect(pendingIds).toContain(createResult.ticketId);
-    
+
     // 3. Mark as delivered
     const deliveredSuccess = await markTicketAsDelivered(createResult.ticketId);
     expect(deliveredSuccess).toBe(true);
-    
+
     // 4. Verify it no longer appears in pending tickets
     const updatedPendingTickets = await getPendingTickets();
     const updatedPendingIds = updatedPendingTickets.map(t => t.id);
