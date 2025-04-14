@@ -1,6 +1,6 @@
 /**
  * Ticket Unified Service
- * 
+ *
  * This module provides a centralized interface for creating tickets,
  * combining the functionality of createTicket and storeTicket.
  */
@@ -46,10 +46,10 @@ export interface TicketCreationResult {
 
 /**
  * Create a new ticket
- * 
+ *
  * This function centralizes the ticket creation logic, replacing both
  * createTicket and storeTicket functions.
- * 
+ *
  * @param params The ticket creation parameters
  * @returns A promise resolving to the ticket creation result
  */
@@ -57,11 +57,11 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
   try {
     // Get the next ticket number
     const ticketNumber = await getNextTicketNumber();
-    
+
     // Get or create customer
     const customer = await getCustomerByPhone(params.phoneNumber);
     let customerId = customer?.id;
-    
+
     if (!customerId) {
       // Create new customer if not found
       const { data: newCustomer, error: customerError } = await supabase
@@ -75,14 +75,14 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         })
         .select('id')
         .single();
-      
+
       if (customerError) throw customerError;
       customerId = newCustomer.id;
     } else {
       // Update customer's last visit
       await updateCustomerLastVisit(customerId);
     }
-    
+
     // Handle loyalty program if applicable
     if (params.valetQuantity && params.valetQuantity > 0) {
       if (params.useFreeValet) {
@@ -92,11 +92,11 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         await addLoyaltyPoints(customerId, Math.floor(params.totalPrice / 100));
       }
     }
-    
+
     // Create the ticket
     const now = new Date().toISOString();
     const ticketId = uuidv4();
-    
+
     const { error: ticketError } = await supabase
       .from('tickets')
       .insert({
@@ -105,16 +105,16 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         customer_id: customerId,
         total: params.totalPrice,
         payment_method: params.paymentMethod,
-        status: TICKET_STATUS.PENDING, // Use the new initial status
+        status: TICKET_STATUS.READY, // Set status to READY by default so tickets appear in 'Pedidos Listos para Retirar'
         created_at: now,
         updated_at: now,
         is_paid: params.isPaidInAdvance || false,
         is_canceled: false,
         valet_quantity: params.valetQuantity || 0
       });
-    
+
     if (ticketError) throw ticketError;
-    
+
     // Create ticket services if provided
     if (params.services && params.services.length > 0) {
       const serviceEntries = params.services.map(service => ({
@@ -124,14 +124,14 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         price: service.price,
         quantity: service.quantity
       }));
-      
+
       const { error: servicesError } = await supabase
         .from('ticket_services')
         .insert(serviceEntries);
-      
+
       if (servicesError) throw servicesError;
     }
-    
+
     // Create ticket options if provided
     if (params.laundryOptions && params.laundryOptions.length > 0) {
       const optionEntries = params.laundryOptions.map(option => ({
@@ -139,16 +139,16 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         ticket_id: ticketId,
         option_name: option
       }));
-      
+
       const { error: optionsError } = await supabase
         .from('ticket_options')
         .insert(optionEntries);
-      
+
       if (optionsError) throw optionsError;
     }
-    
+
     toast.success('Ticket creado exitosamente');
-    
+
     return {
       success: true,
       ticketId,
@@ -157,7 +157,7 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
   } catch (error) {
     console.error('Error creating ticket:', error);
     handleError(error, 'Error al crear el ticket');
-    
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error desconocido'
@@ -194,29 +194,29 @@ export const getTicketById = async (ticketId: string): Promise<Ticket | null> =>
       `)
       .eq('id', ticketId)
       .single();
-    
+
     if (error) throw error;
-    
+
     if (!data) return null;
-    
+
     // Get ticket services
     const { data: servicesData, error: servicesError } = await supabase
       .from('ticket_services')
       .select('id, name, price, quantity')
       .eq('ticket_id', ticketId);
-    
+
     if (servicesError) throw servicesError;
-    
+
     // Get ticket options
     const { data: optionsData, error: optionsError } = await supabase
       .from('ticket_options')
       .select('option_name')
       .eq('ticket_id', ticketId);
-    
+
     if (optionsError) throw optionsError;
-    
+
     const customerData = data.customers || {};
-    
+
     return {
       id: data.id,
       ticketNumber: data.ticket_number,

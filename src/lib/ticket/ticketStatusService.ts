@@ -140,8 +140,8 @@ export const getStatusBadgeClass = (status: string): string => {
  *
  * The ticket status workflow is as follows:
  *
- * 1. When a ticket is created, it is set to 'pending' by default
- *    - This means the clothes have been received but not yet processed
+ * 1. When a ticket is created, it is set to 'ready' by default
+ *    - This means the ticket will appear immediately in the "Pedidos Listos para Retirar" section
  *
  * 2. A ticket can be in one of four states:
  *    - 'pending': Initial state, ticket is registered but not being processed yet

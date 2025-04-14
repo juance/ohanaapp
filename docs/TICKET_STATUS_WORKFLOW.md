@@ -26,7 +26,7 @@ Para simplificar la interfaz de usuario y la lógica de negocio, agrupamos los e
 
 El flujo de trabajo típico para un ticket es el siguiente:
 
-1. **Creación del Ticket**: Cuando se crea un nuevo ticket, se le asigna automáticamente el estado `ready` (listo para recoger).
+1. **Creación del Ticket**: Cuando se crea un nuevo ticket, se le asigna automáticamente el estado `ready` (listo para recoger) para que aparezca inmediatamente en la sección "Pedidos Listos para Retirar".
 
 2. **Entrega al Cliente**: Cuando el cliente recoge su pedido, el ticket se marca como `delivered` (entregado).
 
@@ -55,7 +55,7 @@ Los estados de tickets están definidos como constantes en `src/lib/constants/ap
 export const TICKET_STATUS = {
   PENDING: 'pending',
   PROCESSING: 'processing',
-  READY: 'ready', 
+  READY: 'ready',
   DELIVERED: 'delivered'
 } as const;
 ```
