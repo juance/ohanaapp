@@ -5,7 +5,7 @@ import { syncClients } from './sync/clientsSync';
 import { syncFeedback } from './sync/feedbackSync';
 import { syncExpenses } from './sync/expensesSync';
 import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
-import { syncComprehensive, syncAllData } from './sync/comprehensiveSync';
+import { syncComprehensive } from './sync/comprehensiveSync';
 
 export {
   syncTickets,
@@ -15,5 +15,5 @@ export {
   getSyncStatus,
   updateSyncStatus,
   syncComprehensive,
-  syncAllData
+  syncComprehensive as syncAllData  // Alias for backward compatibility
 };
