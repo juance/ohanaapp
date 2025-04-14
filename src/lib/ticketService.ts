@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Ticket, DryCleaningItem } from './types';
 
 // Re-export from ticketServiceCore
-export { 
-  getTicketServices,
+export {
   getTicketOptions,
   cancelTicket,
   markTicketAsPaidInAdvance
@@ -64,14 +63,14 @@ export const getTicketServices = async (ticketId: string): Promise<DryCleaningIt
       .from('dry_cleaning_items')
       .select('*')
       .eq('ticket_id', ticketId);
-    
+
     if (error) {
       console.error('Error retrieving ticket services:', error);
       throw error;
     }
-    
+
     console.log(`Found ${data.length} services for ticket ${ticketId}`);
-    
+
     // Map the data to match the DryCleaningItem type
     return data.map(item => ({
       id: item.id,
