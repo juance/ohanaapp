@@ -4,6 +4,7 @@ import { Ticket } from '@/lib/types';
 import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
 import { differenceInDays } from 'date-fns';
+import { toast } from '@/lib/toast';
 
 /**
  * Get tickets ready for pickup from Supabase
@@ -39,7 +40,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     // Get tickets with status 'ready' and not canceled
     console.log('Querying tickets with status:', TICKET_STATUS.READY);
-    
+
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
@@ -72,10 +73,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       .filter(ticket => ticket !== null) as Ticket[];
 
     console.log('Mapped tickets count:', tickets.length);
-    console.log('Mapped tickets:', JSON.stringify(tickets.map(t => ({ 
-      id: t.id, 
-      status: t.status, 
-      clientName: t.clientName 
+    console.log('Mapped tickets:', JSON.stringify(tickets.map(t => ({
+      id: t.id,
+      status: t.status,
+      clientName: t.clientName
     })), null, 2));
 
     return tickets;
@@ -154,5 +155,35 @@ export const getUnretrievedTickets = async (daysThreshold: number): Promise<Tick
   } catch (error) {
     console.error(`Error retrieving unretrieved tickets (${daysThreshold} days):`, error);
     return [];
+  }
+};
+
+/**
+ * Cancel a ticket
+ */
+export const cancelTicket = async (ticketId: string, reason: string): Promise<boolean> => {
+  try {
+    console.log('Canceling ticket:', ticketId, 'Reason:', reason);
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        is_canceled: true,
+        cancel_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error canceling ticket:', error);
+      throw error;
+    }
+
+    console.log('Ticket canceled successfully');
+    toast.success('Ticket anulado correctamente');
+    return true;
+  } catch (error) {
+    console.error('Error canceling ticket:', error);
+    toast.error('Error al anular el ticket');
+    return false;
   }
 };
