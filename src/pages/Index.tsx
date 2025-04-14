@@ -68,32 +68,18 @@ const Index = () => {
         </CardContent>
       </Card>
 
-      <Card className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">En Proceso</h2>
-            <Clock className="h-6 w-6 text-blue-500" />
-          </div>
-          <p className="text-gray-500 mb-4">Gestionar los pedidos en proceso</p>
-          <Link to="/pending">
-            <Button variant="outline" className="w-full">
-              Ver Pedidos en Proceso
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
-        </CardContent>
-      </Card>
+
 
       <Card className="hover:shadow-md transition-shadow border-l-4 border-l-yellow-500">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">Listos para Retirar</h2>
+            <h2 className="text-lg font-semibold">Pedidos a Retirar</h2>
             <ShoppingBag className="h-6 w-6 text-yellow-500" />
           </div>
           <p className="text-gray-500 mb-4">Gestionar los pedidos listos para retirar</p>
           <Link to="/pickup">
             <Button variant="outline" className="w-full">
-              Ver Pedidos Listos
+              Ver Pedidos a Retirar
               <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>

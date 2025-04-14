@@ -76,7 +76,7 @@ const PickupOrders = () => {
 
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
-          <OrderHeader title="Pedidos Listos para Retirar" />
+          <OrderHeader title="Pedidos a Retirar" />
 
           <DebugPanel
             tickets={tickets}
@@ -86,7 +86,7 @@ const PickupOrders = () => {
           />
 
           <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">Pedidos Listos para Retirar</h2>
+            <h2 className="text-xl font-bold mb-4">Pedidos a Retirar</h2>
 
             <PickupActionButtons
               tickets={tickets}

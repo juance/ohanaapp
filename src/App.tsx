@@ -10,7 +10,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const Index = lazy(() => import('@/pages/Index'));
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Tickets = lazy(() => import('@/pages/Tickets'));
-const PendingOrders = lazy(() => import('@/pages/PendingOrders'));
+
 const PickupOrders = lazy(() => import('@/pages/PickupOrders'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const Diagnostics = lazy(() => import('@/pages/Diagnostics'));
@@ -70,11 +70,7 @@ function App() {
               <Tickets />
             </ProtectedRoute>
           } />
-          <Route path="/pending" element={
-            <ProtectedRoute allowedRoles={['admin', 'operator']}>
-              <PendingOrders />
-            </ProtectedRoute>
-          } />
+
           <Route path="/pickup" element={
             <ProtectedRoute allowedRoles={['admin', 'operator']}>
               <PickupOrders />
