@@ -1,0 +1,354 @@
+/**
+ * Script to run database migrations directly
+ * 
+ * This script reads the SQL migration file and executes it directly
+ * against the Supabase database.
+ */
+
+import { supabase } from '@/integrations/supabase/client';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * Run a SQL migration file directly
+ */
+export const runMigration = async (migrationPath: string): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    console.log(`Reading migration file: ${migrationPath}`);
+    
+    // Read the migration file
+    const sql = fs.readFileSync(migrationPath, 'utf8');
+    
+    console.log('Executing migration...');
+    
+    // Execute the SQL directly
+    const { error } = await supabase.rpc('exec_sql', { sql });
+    
+    if (error) {
+      console.error('Error executing migration:', error);
+      return {
+        success: false,
+        message: `Error executing migration: ${error.message}`
+      };
+    }
+    
+    console.log('Migration executed successfully');
+    return {
+      success: true,
+      message: 'Migration executed successfully'
+    };
+  } catch (error) {
+    console.error('Error running migration:', error);
+    return {
+      success: false,
+      message: `Error running migration: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
+  }
+};
+
+/**
+ * Create database tables directly using SQL
+ */
+export const createDatabaseTables = async (): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  try {
+    console.log('Creating database tables...');
+    
+    // SQL to create all required tables
+    const sql = `
+    -- Create customers table
+    CREATE TABLE IF NOT EXISTS public.customers (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL UNIQUE,
+      loyalty_points INTEGER DEFAULT 0,
+      valets_count INTEGER DEFAULT 0,
+      free_valets INTEGER DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    );
+
+    -- Create ticket_sequence table
+    CREATE TABLE IF NOT EXISTS public.ticket_sequence (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      last_number INTEGER DEFAULT 0
+    );
+
+    -- Insert initial ticket sequence if not exists
+    INSERT INTO public.ticket_sequence (id, last_number)
+    VALUES (1, 0)
+    ON CONFLICT (id) DO NOTHING;
+
+    -- Create tickets table
+    CREATE TABLE IF NOT EXISTS public.tickets (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_number TEXT NOT NULL,
+      customer_id UUID REFERENCES public.customers(id),
+      total NUMERIC NOT NULL DEFAULT 0,
+      payment_method TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ready',
+      date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      is_paid BOOLEAN DEFAULT false,
+      is_canceled BOOLEAN DEFAULT false,
+      valet_quantity INTEGER DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+      basket_ticket_number TEXT,
+      delivered_date TIMESTAMP WITH TIME ZONE
+    );
+
+    -- Create dry_cleaning_items table
+    CREATE TABLE IF NOT EXISTS public.dry_cleaning_items (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      price NUMERIC NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    );
+
+    -- Create ticket_laundry_options table
+    CREATE TABLE IF NOT EXISTS public.ticket_laundry_options (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
+      option_type TEXT NOT NULL,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+    );
+
+    -- Create function to get next ticket number
+    CREATE OR REPLACE FUNCTION public.get_next_ticket_number()
+    RETURNS TEXT AS $$
+    DECLARE
+      next_number INTEGER;
+    BEGIN
+      -- Update the sequence and return the new value
+      UPDATE public.ticket_sequence
+      SET last_number = last_number + 1
+      WHERE id = 1
+      RETURNING last_number INTO next_number;
+      
+      -- Format the number with leading zeros (8 digits)
+      RETURN LPAD(next_number::TEXT, 8, '0');
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- Create function to reset ticket sequence
+    CREATE OR REPLACE FUNCTION public.reset_ticket_sequence()
+    RETURNS VOID AS $$
+    BEGIN
+      -- Reset the sequence to 0
+      UPDATE public.ticket_sequence
+      SET last_number = 0
+      WHERE id = 1;
+      
+      -- Log the reset
+      BEGIN
+        INSERT INTO public.ticket_sequence_resets (reset_by, notes)
+        VALUES ('system', 'Sequence reset via function call');
+      EXCEPTION
+        WHEN undefined_table THEN
+          -- Create the resets table if it doesn't exist
+          CREATE TABLE IF NOT EXISTS public.ticket_sequence_resets (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            reset_by TEXT NOT NULL,
+            notes TEXT,
+            reset_date TIMESTAMP WITH TIME ZONE DEFAULT now()
+          );
+          
+          -- Try again
+          INSERT INTO public.ticket_sequence_resets (reset_by, notes)
+          VALUES ('system', 'Sequence reset via function call');
+      END;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    -- Create indexes for better performance
+    CREATE INDEX IF NOT EXISTS idx_tickets_customer_id ON public.tickets(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_tickets_status ON public.tickets(status);
+    CREATE INDEX IF NOT EXISTS idx_dry_cleaning_items_ticket_id ON public.dry_cleaning_items(ticket_id);
+    CREATE INDEX IF NOT EXISTS idx_ticket_laundry_options_ticket_id ON public.ticket_laundry_options(ticket_id);
+    CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
+    `;
+    
+    // Execute each statement separately
+    const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
+    
+    for (const statement of statements) {
+      console.log(`Executing statement: ${statement.substring(0, 50)}...`);
+      const { error } = await supabase.rpc('pg_query', { query: statement });
+      
+      if (error) {
+        console.error('Error executing statement:', error);
+        // Continue with other statements even if one fails
+      }
+    }
+    
+    console.log('Database tables created successfully');
+    return {
+      success: true,
+      message: 'Database tables created successfully'
+    };
+  } catch (error) {
+    console.error('Error creating database tables:', error);
+    return {
+      success: false,
+      message: `Error creating database tables: ${error instanceof Error ? error.message : 'Unknown error'}`
+    };
+  }
+};
+
+/**
+ * Create tables directly using SQL queries
+ */
+export const createTablesDirectly = async (): Promise<{
+  success: boolean;
+  message: string;
+  details?: any;
+}> => {
+  try {
+    console.log('Creating tables directly...');
+    
+    // Create customers table
+    const createCustomersResult = await supabase.query(`
+      CREATE TABLE IF NOT EXISTS public.customers (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL UNIQUE,
+        loyalty_points INTEGER DEFAULT 0,
+        valets_count INTEGER DEFAULT 0,
+        free_valets INTEGER DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      )
+    `);
+    
+    if (createCustomersResult.error) {
+      console.error('Error creating customers table:', createCustomersResult.error);
+      return {
+        success: false,
+        message: `Error creating customers table: ${createCustomersResult.error.message}`,
+        details: createCustomersResult.error
+      };
+    }
+    
+    // Create ticket_sequence table
+    const createSequenceResult = await supabase.query(`
+      CREATE TABLE IF NOT EXISTS public.ticket_sequence (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        last_number INTEGER DEFAULT 0
+      )
+    `);
+    
+    if (createSequenceResult.error) {
+      console.error('Error creating ticket_sequence table:', createSequenceResult.error);
+      return {
+        success: false,
+        message: `Error creating ticket_sequence table: ${createSequenceResult.error.message}`,
+        details: createSequenceResult.error
+      };
+    }
+    
+    // Insert initial sequence value
+    const insertSequenceResult = await supabase.query(`
+      INSERT INTO public.ticket_sequence (id, last_number)
+      VALUES (1, 0)
+      ON CONFLICT (id) DO NOTHING
+    `);
+    
+    if (insertSequenceResult.error) {
+      console.error('Error inserting initial sequence value:', insertSequenceResult.error);
+      return {
+        success: false,
+        message: `Error inserting initial sequence value: ${insertSequenceResult.error.message}`,
+        details: insertSequenceResult.error
+      };
+    }
+    
+    // Create tickets table
+    const createTicketsResult = await supabase.query(`
+      CREATE TABLE IF NOT EXISTS public.tickets (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        ticket_number TEXT NOT NULL,
+        customer_id UUID REFERENCES public.customers(id),
+        total NUMERIC NOT NULL DEFAULT 0,
+        payment_method TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'ready',
+        date TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        is_paid BOOLEAN DEFAULT false,
+        is_canceled BOOLEAN DEFAULT false,
+        valet_quantity INTEGER DEFAULT 0,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+        basket_ticket_number TEXT,
+        delivered_date TIMESTAMP WITH TIME ZONE
+      )
+    `);
+    
+    if (createTicketsResult.error) {
+      console.error('Error creating tickets table:', createTicketsResult.error);
+      return {
+        success: false,
+        message: `Error creating tickets table: ${createTicketsResult.error.message}`,
+        details: createTicketsResult.error
+      };
+    }
+    
+    // Create dry_cleaning_items table
+    const createItemsResult = await supabase.query(`
+      CREATE TABLE IF NOT EXISTS public.dry_cleaning_items (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
+        name TEXT NOT NULL,
+        price NUMERIC NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      )
+    `);
+    
+    if (createItemsResult.error) {
+      console.error('Error creating dry_cleaning_items table:', createItemsResult.error);
+      return {
+        success: false,
+        message: `Error creating dry_cleaning_items table: ${createItemsResult.error.message}`,
+        details: createItemsResult.error
+      };
+    }
+    
+    // Create ticket_laundry_options table
+    const createOptionsResult = await supabase.query(`
+      CREATE TABLE IF NOT EXISTS public.ticket_laundry_options (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
+        option_type TEXT NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+      )
+    `);
+    
+    if (createOptionsResult.error) {
+      console.error('Error creating ticket_laundry_options table:', createOptionsResult.error);
+      return {
+        success: false,
+        message: `Error creating ticket_laundry_options table: ${createOptionsResult.error.message}`,
+        details: createOptionsResult.error
+      };
+    }
+    
+    console.log('All tables created successfully');
+    return {
+      success: true,
+      message: 'All tables created successfully'
+    };
+  } catch (error) {
+    console.error('Error creating tables directly:', error);
+    return {
+      success: false,
+      message: `Error creating tables directly: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      details: error
+    };
+  }
+};

@@ -3,8 +3,9 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Database } from 'lucide-react';
 import { runDatabaseDiagnostics } from '@/scripts/dbDiagnostic';
+import { createTablesDirectly } from '@/scripts/runMigration';
 import { supabase } from '@/integrations/supabase/client';
 
 const Diagnostics = () => {
@@ -37,7 +38,7 @@ const Diagnostics = () => {
       // In a real application, you might want to use a more reliable method
       const response = await fetch('https://api.ipify.org?format=json');
       const data = await response.json();
-      
+
       setNetworkInfo({
         ip: data.ip,
         hostname: window.location.hostname
@@ -319,13 +320,41 @@ const Diagnostics = () => {
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex flex-wrap gap-2 justify-between">
               <Button onClick={runDiagnostics} disabled={isLoading}>
                 Ejecutar diagnóstico
               </Button>
-              <Button onClick={createTestTicket} disabled={isLoading} variant="outline">
-                Crear ticket de prueba
-              </Button>
+              <div className="flex gap-2">
+                {diagnosticResults && !diagnosticResults.structureOk && (
+                  <Button
+                    onClick={async () => {
+                      setIsLoading(true);
+                      try {
+                        const result = await createTablesDirectly();
+                        if (result.success) {
+                          alert('Tablas creadas correctamente. Ejecutando diagnóstico...');
+                          await runDiagnostics();
+                        } else {
+                          alert(`Error al crear tablas: ${result.message}`);
+                        }
+                      } catch (error) {
+                        console.error('Error creating tables:', error);
+                        alert(`Error al crear tablas: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Database className="h-4 w-4 mr-2" />
+                    Crear tablas faltantes
+                  </Button>
+                )}
+                <Button onClick={createTestTicket} disabled={isLoading} variant="outline">
+                  Crear ticket de prueba
+                </Button>
+              </div>
             </CardFooter>
           </Card>
 
