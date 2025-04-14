@@ -126,7 +126,7 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
       }));
 
       const { error: servicesError } = await supabase
-        .from('ticket_services')
+        .from('dry_cleaning_items')
         .insert(serviceEntries);
 
       if (servicesError) throw servicesError;
@@ -137,11 +137,11 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
       const optionEntries = params.laundryOptions.map(option => ({
         id: uuidv4(),
         ticket_id: ticketId,
-        option_name: option
+        option_type: option
       }));
 
       const { error: optionsError } = await supabase
-        .from('ticket_options')
+        .from('ticket_laundry_options')
         .insert(optionEntries);
 
       if (optionsError) throw optionsError;
@@ -201,7 +201,7 @@ export const getTicketById = async (ticketId: string): Promise<Ticket | null> =>
 
     // Get ticket services
     const { data: servicesData, error: servicesError } = await supabase
-      .from('ticket_services')
+      .from('dry_cleaning_items')
       .select('id, name, price, quantity')
       .eq('ticket_id', ticketId);
 
@@ -209,8 +209,8 @@ export const getTicketById = async (ticketId: string): Promise<Ticket | null> =>
 
     // Get ticket options
     const { data: optionsData, error: optionsError } = await supabase
-      .from('ticket_options')
-      .select('option_name')
+      .from('ticket_laundry_options')
+      .select('option_type')
       .eq('ticket_id', ticketId);
 
     if (optionsError) throw optionsError;
@@ -231,7 +231,7 @@ export const getTicketById = async (ticketId: string): Promise<Ticket | null> =>
       updatedAt: data.updated_at,
       deliveredDate: data.delivered_date,
       isPaid: data.is_paid,
-      options: optionsData ? optionsData.map(o => o.option_name) : []
+      options: optionsData ? optionsData.map(o => o.option_type) : []
     };
   } catch (error) {
     console.error('Error getting ticket by ID:', error);
