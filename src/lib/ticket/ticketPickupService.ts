@@ -10,29 +10,42 @@ import { differenceInDays } from 'date-fns';
  */
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
+    console.log('Getting pickup tickets');
     // Check if delivered_date column exists
     const hasDeliveredDateColumn = await checkDeliveredDateColumnExists();
+    console.log('Has delivered_date column:', hasDeliveredDateColumn);
 
     // Build select query based on available columns
     const selectQuery = buildTicketSelectQuery(hasDeliveredDateColumn);
+    console.log('Select query:', selectQuery);
 
     // Get tickets with status 'ready' and not canceled
+    console.log('Querying tickets with status:', TICKET_STATUS.READY);
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
       .eq('status', TICKET_STATUS.READY) // Use constant for consistency
       .eq('is_canceled', false);
 
-    if (error) throw error;
+    console.log('Query result:', ticketsData ? `Found ${ticketsData.length} tickets` : 'No tickets found');
+
+    if (error) {
+      console.error('Error querying tickets:', error);
+      throw error;
+    }
 
     // Map to application Ticket model
+    console.log('Mapping ticket data');
     const tickets = ticketsData
       .map(ticket => mapTicketData(ticket, hasDeliveredDateColumn))
       .filter(ticket => ticket !== null) as Ticket[];
 
+    console.log('Mapped tickets:', tickets.length);
+
     return tickets;
   } catch (error) {
     console.error('Error retrieving pickup tickets:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     return [];
   }
 };

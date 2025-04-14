@@ -55,11 +55,16 @@ export interface TicketCreationResult {
  */
 export const createUnifiedTicket = async (params: TicketCreationParams): Promise<TicketCreationResult> => {
   try {
+    console.log('Creating unified ticket with params:', JSON.stringify(params, null, 2));
     // Get the next ticket number
+    console.log('Getting next ticket number');
     const ticketNumber = await getNextTicketNumber();
+    console.log('Got ticket number:', ticketNumber);
 
     // Get or create customer
+    console.log('Getting customer by phone:', params.phoneNumber);
     const customer = await getCustomerByPhone(params.phoneNumber);
+    console.log('Customer found:', customer ? 'Yes' : 'No');
     let customerId = customer?.id;
 
     if (!customerId) {
@@ -96,27 +101,40 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
     // Create the ticket
     const now = new Date().toISOString();
     const ticketId = uuidv4();
+    console.log('Creating ticket with ID:', ticketId);
+
+    const ticketData = {
+      id: ticketId,
+      ticket_number: ticketNumber,
+      customer_id: customerId,
+      total: params.totalPrice,
+      payment_method: params.paymentMethod,
+      status: TICKET_STATUS.READY, // Set status to READY by default so tickets appear in 'Pedidos Listos para Retirar'
+      created_at: now,
+      updated_at: now,
+      is_paid: params.isPaidInAdvance || false,
+      is_canceled: false,
+      valet_quantity: params.valetQuantity || 0,
+      date: now // Add date field which is required
+    };
+
+    console.log('Ticket data to insert:', JSON.stringify(ticketData, null, 2));
 
     const { error: ticketError } = await supabase
       .from('tickets')
-      .insert({
-        id: ticketId,
-        ticket_number: ticketNumber,
-        customer_id: customerId,
-        total: params.totalPrice,
-        payment_method: params.paymentMethod,
-        status: TICKET_STATUS.READY, // Set status to READY by default so tickets appear in 'Pedidos Listos para Retirar'
-        created_at: now,
-        updated_at: now,
-        is_paid: params.isPaidInAdvance || false,
-        is_canceled: false,
-        valet_quantity: params.valetQuantity || 0
-      });
+      .insert(ticketData);
+    if (ticketError) {
+      console.error('Error creating ticket:', ticketError);
+      throw ticketError;
+    } else {
+      console.log('Ticket created successfully');
+    }
 
-    if (ticketError) throw ticketError;
+
 
     // Create ticket services if provided
     if (params.services && params.services.length > 0) {
+      console.log('Creating ticket services:', JSON.stringify(params.services, null, 2));
       const serviceEntries = params.services.map(service => ({
         id: uuidv4(),
         ticket_id: ticketId,
@@ -129,11 +147,17 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         .from('dry_cleaning_items')
         .insert(serviceEntries);
 
-      if (servicesError) throw servicesError;
+      if (servicesError) {
+        console.error('Error creating ticket services:', servicesError);
+        throw servicesError;
+      } else {
+        console.log('Ticket services created successfully');
+      }
     }
 
     // Create ticket options if provided
     if (params.laundryOptions && params.laundryOptions.length > 0) {
+      console.log('Creating ticket options:', JSON.stringify(params.laundryOptions, null, 2));
       const optionEntries = params.laundryOptions.map(option => ({
         id: uuidv4(),
         ticket_id: ticketId,
@@ -144,9 +168,15 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
         .from('ticket_laundry_options')
         .insert(optionEntries);
 
-      if (optionsError) throw optionsError;
+      if (optionsError) {
+        console.error('Error creating ticket options:', optionsError);
+        throw optionsError;
+      } else {
+        console.log('Ticket options created successfully');
+      }
     }
 
+    console.log('Ticket creation completed successfully');
     toast.success('Ticket creado exitosamente');
 
     return {
@@ -156,6 +186,7 @@ export const createUnifiedTicket = async (params: TicketCreationParams): Promise
     };
   } catch (error) {
     console.error('Error creating ticket:', error);
+    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     handleError(error, 'Error al crear el ticket');
 
     return {

@@ -75,11 +75,20 @@ export const buildTicketSelectQuery = (includeDeliveredDate = false): string => 
 
 // Maps ticket data from database to application Ticket model
 export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Ticket | null => {
+  console.log('Mapping ticket data:', ticket ? ticket.id : 'null');
+
   // Verify ticket has required properties before mapping
   if (!ticket || typeof ticket !== 'object' || !ticket.id) {
     console.error('Invalid ticket data for mapping:', ticket);
     return null;
   }
+
+  console.log('Ticket data to map:', JSON.stringify({
+    id: ticket.id,
+    ticket_number: ticket.ticket_number,
+    status: ticket.status,
+    customer: ticket.customers
+  }, null, 2));
 
   const customerData = ticket.customers || {};
 
@@ -93,7 +102,7 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     }
   }
 
-  return {
+  const mappedTicket = {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
     basketTicketNumber: ticket.basket_ticket_number,
@@ -108,4 +117,13 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     deliveredDate: deliveredDate,
     isPaid: ticket.is_paid
   };
+
+  console.log('Mapped ticket:', JSON.stringify({
+    id: mappedTicket.id,
+    ticketNumber: mappedTicket.ticketNumber,
+    status: mappedTicket.status,
+    clientName: mappedTicket.clientName
+  }, null, 2));
+
+  return mappedTicket;
 };
