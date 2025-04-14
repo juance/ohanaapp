@@ -14,8 +14,7 @@ export {
 export {
   getPickupTickets,
   markTicketAsDelivered,
-  getUnretrievedTickets,
-  cancelTicket as cancelPickupTicket
+  getUnretrievedTickets
 } from './ticket/ticketPickupService';
 
 // Re-export from ticketDeliveryService
