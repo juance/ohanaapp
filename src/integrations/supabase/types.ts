@@ -154,6 +154,53 @@ export type Database = {
           },
         ]
       }
+      error_logs: {
+        Row: {
+          browser_info: Json | null
+          component: string | null
+          created_at: string
+          error_context: Json | null
+          error_message: string
+          error_stack: string | null
+          id: string
+          resolved: boolean
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          browser_info?: Json | null
+          component?: string | null
+          created_at?: string
+          error_context?: Json | null
+          error_message: string
+          error_stack?: string | null
+          id?: string
+          resolved?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          browser_info?: Json | null
+          component?: string | null
+          created_at?: string
+          error_context?: Json | null
+          error_message?: string
+          error_stack?: string | null
+          id?: string
+          resolved?: boolean
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expenses: {
         Row: {
           amount: number
@@ -211,24 +258,51 @@ export type Database = {
       system_version: {
         Row: {
           changes: Json | null
+          commit_sha: string | null
+          created_at: string | null
+          github_url: string | null
           id: string
           is_active: boolean | null
           release_date: string | null
+          updated_at: string | null
           version: string
         }
         Insert: {
           changes?: Json | null
+          commit_sha?: string | null
+          created_at?: string | null
+          github_url?: string | null
           id?: string
           is_active?: boolean | null
           release_date?: string | null
+          updated_at?: string | null
           version: string
         }
         Update: {
           changes?: Json | null
+          commit_sha?: string | null
+          created_at?: string | null
+          github_url?: string | null
           id?: string
           is_active?: boolean | null
           release_date?: string | null
+          updated_at?: string | null
           version?: string
+        }
+        Relationships: []
+      }
+      test_table: {
+        Row: {
+          id: number
+          name: string | null
+        }
+        Insert: {
+          id?: number
+          name?: string | null
+        }
+        Update: {
+          id?: number
+          name?: string | null
         }
         Relationships: []
       }
@@ -307,6 +381,7 @@ export type Database = {
           created_at: string | null
           customer_id: string | null
           date: string | null
+          delivered_date: string | null
           id: string
           is_canceled: boolean | null
           is_paid: boolean | null
@@ -325,6 +400,7 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           date?: string | null
+          delivered_date?: string | null
           id?: string
           is_canceled?: boolean | null
           is_paid?: boolean | null
@@ -343,6 +419,7 @@ export type Database = {
           created_at?: string | null
           customer_id?: string | null
           date?: string | null
+          delivered_date?: string | null
           id?: string
           is_canceled?: boolean | null
           is_paid?: boolean | null
@@ -402,7 +479,23 @@ export type Database = {
           user_phone: string
           user_password: string
           user_role?: string
+          user_email?: string
         }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone_number: string
+          role: string
+          created_at: string
+        }[]
+      }
+      delete_user: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      get_all_users: {
+        Args: Record<PropertyKey, never>
         Returns: {
           id: string
           name: string
@@ -414,7 +507,18 @@ export type Database = {
       }
       get_next_ticket_number: {
         Args: Record<PropertyKey, never>
-        Returns: number
+        Returns: string
+      }
+      get_user_by_id: {
+        Args: { user_id: string }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone_number: string
+          role: string
+          created_at: string
+        }[]
       }
       get_user_by_phone: {
         Args: { phone: string }
@@ -431,6 +535,24 @@ export type Database = {
       reset_ticket_sequence: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_user: {
+        Args: {
+          user_id: string
+          user_name: string
+          user_phone: string
+          user_email?: string
+          user_role?: string
+          user_password?: string
+        }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          phone_number: string
+          role: string
+          created_at: string
+        }[]
       }
     }
     Enums: {

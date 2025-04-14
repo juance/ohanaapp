@@ -2,78 +2,61 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 
-// Checks if delivered_date or delivered_at column exists in the tickets table
+/**
+ * Check if delivered_date column exists in the tickets table
+ */
 export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   try {
-    // First try with delivered_date
-    try {
-      const { data: data1, error: error1 } = await supabase
-        .from('tickets')
-        .select('delivered_date')
-        .limit(1);
+    const { data, error } = await supabase
+      .from('information_schema.columns')
+      .select('column_name')
+      .eq('table_name', 'tickets')
+      .eq('column_name', 'delivered_date');
 
-      if (!error1) {
-        console.log('delivered_date column exists');
-        return true;
-      }
-    } catch (e) {
-      // Silently fail and try the next option
-    }
+    if (error) throw error;
 
-    // Then try with delivered_at
-    try {
-      const { data: data2, error: error2 } = await supabase
-        .from('tickets')
-        .select('delivered_at')
-        .limit(1);
-
-      if (!error2) {
-        console.log('delivered_at column exists');
-        return true;
-      }
-    } catch (e) {
-      // Silently fail
-    }
-
-    console.error('Neither delivered_date nor delivered_at column exists');
-    return false;
+    return data && data.length > 0;
   } catch (error) {
-    console.error('Error checking for delivered date columns:', error);
+    console.error('Error checking for delivered_date column:', error);
     return false;
   }
 };
 
-// Builds the select query string based on available columns
-export const buildTicketSelectQuery = (includeDeliveredDate = false): string => {
-  // Build the base query
-  let query = `
+/**
+ * Build the select query based on available columns
+ */
+export const buildTicketSelectQuery = (hasDeliveredDateColumn: boolean): string => {
+  let baseQuery = `
     id,
     ticket_number,
-    basket_ticket_number,
     total,
     payment_method,
     status,
-    created_at,
-    updated_at,
+    date,
     is_paid,
     is_canceled,
-    customer_id,
+    valet_quantity,
+    created_at,
+    updated_at,
+    basket_ticket_number,
     customers (
+      id,
       name,
       phone
     )
   `;
 
-  // Add delivered_date if it should be included
-  if (includeDeliveredDate) {
-    // We'll try to handle both column names in the mapping function
-    query += `,delivered_date,delivered_at`;
+  // Add delivered_date if it exists
+  if (hasDeliveredDateColumn) {
+    baseQuery += `, delivered_date`;
   }
 
-  return query;
+  return baseQuery;
 };
 
-// Maps ticket data from database to application Ticket model
+/**
+ * Map ticket data from Supabase to application Ticket model
+ */
 export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Ticket | null => {
   console.log('Mapping ticket data:', ticket ? ticket.id : 'null');
 
@@ -143,7 +126,10 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     createdAt: ticket.created_at,
     updatedAt: ticket.updated_at,
     deliveredDate: deliveredDate,
-    isPaid: ticket.is_paid
+    deliveredAt: ticket.delivered_at,
+    isPaid: ticket.is_paid,
+    isCanceled: ticket.is_canceled || false,
+    valetQuantity: ticket.valet_quantity || 0
   };
 
   console.log('Mapped ticket:', JSON.stringify({

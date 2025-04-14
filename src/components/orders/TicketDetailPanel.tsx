@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Ticket } from '@/lib/types';
 
 interface TicketDetailPanelProps {
@@ -17,59 +18,85 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
 }) => {
   if (!selectedTicket) {
     return (
-      <p className="text-center text-gray-500">Seleccione un ticket para ver los detalles</p>
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">Seleccione un ticket para ver los detalles</p>
+      </div>
     );
   }
 
   const ticket = tickets.find(t => t.id === selectedTicket);
+
   if (!ticket) {
-    return <p>No se encontró el ticket seleccionado</p>;
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-gray-500">Ticket no encontrado</p>
+      </div>
+    );
   }
 
   return (
-    <div className="w-full space-y-4">
-      <h3 className="text-lg font-medium">Detalles del Ticket</h3>
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Cliente:</p>
-            <p className="font-medium">{ticket.clientName}</p>
+    <div>
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Detalles del Ticket</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Número de Ticket</p>
+            <p className="font-medium">{ticket.ticketNumber}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Teléfono:</p>
-            <p className="font-medium">{ticket.phoneNumber}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Fecha de creación:</p>
+          <div>
+            <p className="text-sm text-gray-500">Fecha</p>
             <p className="font-medium">{formatDate(ticket.createdAt)}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500">Fecha de entrega:</p>
-            <p className="font-medium">{formatDate(ticket.deliveredDate || '')}</p>
+          {ticket.deliveredAt && (
+            <div>
+              <p className="text-sm text-gray-500">Fecha de Entrega</p>
+              <p className="font-medium">{formatDate(ticket.deliveredAt)}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-sm text-gray-500">Estado de Pago</p>
+            <Badge variant={ticket.isPaid ? "success" : "outline"}>
+              {ticket.isPaid ? "Pagado" : "Pendiente de pago"}
+            </Badge>
           </div>
         </div>
-        
-        <div className="border-t pt-3">
-          <p className="font-medium mb-2">Servicios:</p>
+      </div>
+
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">Cliente</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Nombre</p>
+            <p className="font-medium">{ticket.clientName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Teléfono</p>
+            <p className="font-medium">{ticket.phoneNumber}</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Servicios</h3>
+        {ticketServices.length > 0 ? (
           <div className="space-y-2">
-            {ticketServices.length > 0 ? (
-              ticketServices.map((service, index) => (
-                <div key={index} className="flex justify-between text-sm border-b pb-1">
-                  <span>
-                    {service.name} x{service.quantity}
-                  </span>
-                  <span>$ {(service.price * service.quantity).toLocaleString()}</span>
+            {ticketServices.map(service => (
+              <div key={service.id} className="flex justify-between items-center border-b pb-2">
+                <div>
+                  <span className="font-medium">{service.name}</span>
+                  {service.quantity > 1 && <span className="ml-1 text-sm text-gray-500">x{service.quantity}</span>}
                 </div>
-              ))
-            ) : (
-              <p className="text-sm text-gray-500">Cargando servicios...</p>
-            )}
+                <span className="font-medium">${service.price.toLocaleString()}</span>
+              </div>
+            ))}
+            <div className="flex justify-between items-center pt-4">
+              <span className="font-bold">Total</span>
+              <span className="font-bold text-blue-700">${ticket.totalPrice.toLocaleString()}</span>
+            </div>
           </div>
-          <div className="flex justify-between font-medium mt-3 text-blue-700">
-            <span>Total:</span>
-            <span>$ {ticket.totalPrice.toLocaleString()}</span>
-          </div>
-        </div>
+        ) : (
+          <p className="text-gray-500">No hay servicios registrados para este ticket</p>
+        )}
       </div>
     </div>
   );
