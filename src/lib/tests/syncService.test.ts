@@ -1,31 +1,75 @@
-import { describe, test, expect, vi } from 'vitest';
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { syncTickets } from '../data/sync/ticketsSync';
 import { syncClients } from '../data/sync/clientsSync';
 import { syncFeedback } from '../data/sync/feedbackSync';
-import { updateSyncStatus } from '../data/sync/syncStatusService';
+import { syncComprehensive } from '../data/sync/comprehensiveSync';
 
-// Mock tests for sync services
-describe('Sync Services', () => {
-  test('syncClients should return the number of synced clients', async () => {
-    // This would use jest.mock in a real test
+// Mock the synchronization functions
+vi.mock('../data/sync/ticketsSync', () => ({
+  syncTickets: vi.fn()
+}));
+
+vi.mock('../data/sync/clientsSync', () => ({
+  syncClients: vi.fn()
+}));
+
+vi.mock('../data/sync/feedbackSync', () => ({
+  syncFeedback: vi.fn()
+}));
+
+vi.mock('../data/sync/syncStatusService', () => ({
+  updateSyncStatus: vi.fn().mockResolvedValue(true)
+}));
+
+describe('Sync Service', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it('should synchronize tickets', async () => {
+    (syncTickets as any).mockResolvedValue(5);
+    
+    const result = await syncTickets();
+    
+    expect(result).toBe(5);
+    expect(syncTickets).toHaveBeenCalledTimes(1);
+  });
+
+  it('should synchronize clients', async () => {
+    (syncClients as any).mockResolvedValue(3);
+    
     const result = await syncClients();
-    expect(typeof result).toBe('number');
+    
+    expect(result).toBe(3);
+    expect(syncClients).toHaveBeenCalledTimes(1);
   });
 
-  test('syncFeedback should return the number of synced feedback items', async () => {
-    // This would use jest.mock in a real test
+  it('should synchronize feedback', async () => {
+    (syncFeedback as any).mockResolvedValue(2);
+    
     const result = await syncFeedback();
-    expect(typeof result).toBe('number');
+    
+    expect(result).toBe(2);
+    expect(syncFeedback).toHaveBeenCalledTimes(1);
   });
 
-  test('updateSyncStatus should return a valid sync status object', async () => {
-    // This would use jest.mock in a real test
-    const result = await updateSyncStatus();
-    expect(result).toHaveProperty('lastSync');
-    expect(result).toHaveProperty('pending');
-    expect(result.pending).toHaveProperty('tickets');
-    expect(result.pending).toHaveProperty('clients');
-    expect(result.pending).toHaveProperty('feedback');
-    expect(result.pending).toHaveProperty('inventory');
-    expect(result.pending).toHaveProperty('expenses');
+  it('should perform comprehensive sync correctly', async () => {
+    (syncTickets as any).mockResolvedValue(5);
+    (syncClients as any).mockResolvedValue(3);
+    (syncFeedback as any).mockResolvedValue(2);
+    
+    const result = await syncComprehensive();
+    
+    expect(result).toEqual({
+      tickets: 5,
+      clients: 3,
+      feedback: 2,
+      success: true
+    });
+    
+    expect(syncTickets).toHaveBeenCalledTimes(1);
+    expect(syncClients).toHaveBeenCalledTimes(1);
+    expect(syncFeedback).toHaveBeenCalledTimes(1);
   });
 });

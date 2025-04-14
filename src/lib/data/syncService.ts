@@ -1,50 +1,16 @@
 
-import { syncClientData } from './sync/clientsSync';
-import { syncFeedbackData } from './sync/feedbackSync';
-import { syncMetricsData } from './sync/metricsSync';
-import { performComprehensiveSync } from './sync/comprehensiveSync';
+// This file re-exports all synchronization-related functionality
+import { syncTickets } from './sync/ticketsSync';
+import { syncClients } from './sync/clientsSync';
+import { syncFeedback } from './sync/feedbackSync';
 import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
+import { syncComprehensive } from './sync/comprehensiveSync';
 
-/**
- * Sync all offline data to Supabase
- */
-export const syncOfflineData = async (): Promise<boolean> => {
-  try {
-    // Sync clients data
-    await syncClientData();
-
-    // Sync feedback data
-    await syncFeedbackData();
-
-    // Sync metrics data
-    await syncMetricsData();
-
-    console.log('All offline data synced successfully');
-    return true;
-  } catch (error) {
-    console.error('Error syncing offline data:', error);
-    return false;
-  }
-};
-
-/**
- * Reset local data (for debugging/development)
- */
-export const resetLocalData = (): boolean => {
-  try {
-    // Clear localStorage
-    localStorage.clear();
-    console.log('Local data reset successfully');
-    return true;
-  } catch (error) {
-    console.error('Error resetting local data:', error);
-    return false;
-  }
-};
-
-// Re-export functions
 export {
-  performComprehensiveSync,
+  syncTickets,
+  syncClients,
+  syncFeedback,
   getSyncStatus,
-  updateSyncStatus
+  updateSyncStatus,
+  syncComprehensive
 };

@@ -14,7 +14,8 @@ export {
 export {
   getPickupTickets,
   markTicketAsDelivered,
-  getUnretrievedTickets
+  getUnretrievedTickets,
+  cancelTicket as cancelPickupTicket
 } from './ticket/ticketPickupService';
 
 // Re-export from ticketDeliveryService
@@ -51,6 +52,15 @@ export {
   getStatusDisplayName,
   getStatusBadgeClass
 } from './ticket/ticketStatusService';
+
+// Re-export status transition service functions
+export {
+  markTicketAsProcessing,
+  markTicketAsReady,
+  markTicketAsPending,
+  getNextStatus,
+  moveToNextStatus
+} from './ticket/ticketStatusTransitionService';
 
 /**
  * Get services associated with a ticket

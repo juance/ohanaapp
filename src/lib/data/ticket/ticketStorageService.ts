@@ -75,7 +75,8 @@ export const storeTicket = async (
       console.log('Created new customer:', customerId);
     }
 
-    // Now create the ticket
+    // Now create the ticket - IMPORTANT: Set status to READY so it appears in Pickup page
+    console.log('Creating new ticket with status:', TICKET_STATUS.READY);
     const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
       .insert({
@@ -84,7 +85,7 @@ export const storeTicket = async (
         total: ticketData.totalPrice,
         payment_method: ticketData.paymentMethod,
         valet_quantity: ticketData.valetQuantity,
-        status: TICKET_STATUS.READY, // Set to ready by default
+        status: TICKET_STATUS.READY, // Set to ready by default to show up in pickup page
         date: ticketData.customDate ? ticketData.customDate.toISOString() : new Date().toISOString(),
         is_paid: ticketData.isPaidInAdvance || false
       })
@@ -96,7 +97,7 @@ export const storeTicket = async (
       throw ticketError;
     }
     
-    console.log('Created ticket:', ticket.id);
+    console.log('Created ticket:', ticket.id, 'with status:', TICKET_STATUS.READY);
 
     // Store dry cleaning items if any
     if (dryCleaningItems.length > 0) {
@@ -160,7 +161,7 @@ export const storeTicket = async (
         paymentMethod: ticketData.paymentMethod,
         valetQuantity: ticketData.valetQuantity,
         createdAt: now,
-        status: TICKET_STATUS.READY,
+        status: TICKET_STATUS.READY, // Set to ready by default to show up in pickup page
         isPaid: ticketData.isPaidInAdvance || false,
         pendingSync: true,
         dryCleaningItems,

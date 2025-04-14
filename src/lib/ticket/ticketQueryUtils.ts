@@ -54,8 +54,7 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
   }
 
   console.log('Mapping ticket:', ticket.id, ticket.ticket_number, ticket.status);
-  console.log('Full ticket data:', JSON.stringify(ticket, null, 2));
-
+  
   const customerData = ticket.customers || {};
   console.log('Customer data:', customerData);
 

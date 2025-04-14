@@ -40,7 +40,10 @@ export const usePickupOrdersLogic = () => {
   // Log tickets when they change
   useEffect(() => {
     console.log('Tickets in usePickupOrdersLogic:', tickets.length);
-    console.log('Ticket sample:', tickets.slice(0, 2));
+    if (tickets.length > 0) {
+      console.log('Ticket sample:', tickets[0]);
+      console.log('Ticket statuses:', tickets.map(t => t.status).join(', '));
+    }
   }, [tickets]);
 
   const loadTicketServices = async (ticketId: string) => {

@@ -1,271 +1,128 @@
+
 /**
- * Ticket Unified Service
- *
- * This module provides a centralized interface for creating tickets,
- * combining the functionality of createTicket and storeTicket.
+ * Unified Ticket Service
+ * 
+ * This service provides a unified interface for ticket operations across different
+ * status transitions. It abstracts the complexity of the different ticket statuses
+ * and provides a simple API for ticket operations.
  */
 
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
-import { PaymentMethod, Ticket, LaundryOption } from '@/lib/types';
-import { handleError } from '@/lib/utils/errorHandling';
-import { getNextTicketNumber } from '@/lib/data/ticket/ticketNumberService';
-import { getCustomerByPhone, updateValetsCount, useFreeValet, addLoyaltyPoints } from '@/lib/data/customerService';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
-import { v4 as uuidv4 } from 'uuid';
-import { updateCustomerLastVisit } from '@/lib/data/customer/customerStorageService';
+import { toast } from '@/lib/toast';
 
 /**
- * Interface for ticket creation parameters
+ * Create a unified ticket with the given information
+ * The ticket will be created with the 'ready' status by default
  */
-export interface TicketCreationParams {
+export const createUnifiedTicket = async ({
+  customerName,
+  phoneNumber,
+  totalPrice,
+  paymentMethod,
+  valetQuantity = 0,
+  customDate,
+  isPaidInAdvance = false
+}: {
   customerName: string;
   phoneNumber: string;
   totalPrice: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: string;
   valetQuantity?: number;
-  useFreeValet?: boolean;
-  services?: Array<{
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-  laundryOptions?: LaundryOption[];
+  customDate?: Date;
   isPaidInAdvance?: boolean;
-}
-
-/**
- * Interface for ticket creation result
- */
-export interface TicketCreationResult {
-  success: boolean;
-  ticketId?: string;
-  ticketNumber?: string;
-  error?: string;
-}
-
-/**
- * Create a new ticket
- *
- * This function centralizes the ticket creation logic, replacing both
- * createTicket and storeTicket functions.
- *
- * @param params The ticket creation parameters
- * @returns A promise resolving to the ticket creation result
- */
-export const createUnifiedTicket = async (params: TicketCreationParams): Promise<TicketCreationResult> => {
+}) => {
   try {
-    console.log('Creating unified ticket with params:', JSON.stringify(params, null, 2));
-    // Get the next ticket number
-    console.log('Getting next ticket number');
-    const ticketNumber = await getNextTicketNumber();
-    console.log('Got ticket number:', ticketNumber);
-
-    // Get or create customer
-    console.log('Getting customer by phone:', params.phoneNumber);
-    const customer = await getCustomerByPhone(params.phoneNumber);
-    console.log('Customer found:', customer ? 'Yes' : 'No');
-    let customerId = customer?.id;
-
-    if (!customerId) {
-      // Create new customer if not found
-      const { data: newCustomer, error: customerError } = await supabase
+    console.log('Creating unified ticket');
+    // First, get the next ticket number
+    const { data: ticketNumber, error: ticketNumberError } = await supabase
+      .rpc('get_next_ticket_number');
+    
+    if (ticketNumberError) {
+      console.error('Error getting next ticket number:', ticketNumberError);
+      throw ticketNumberError;
+    }
+    
+    // Find or create customer
+    let customerId: string | null = null;
+    
+    // Check if customer exists
+    const { data: existingCustomer, error: customerQueryError } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('phone', phoneNumber)
+      .maybeSingle();
+    
+    if (customerQueryError) {
+      console.error('Error finding customer:', customerQueryError);
+      throw customerQueryError;
+    }
+    
+    if (existingCustomer) {
+      customerId = existingCustomer.id;
+    } else {
+      // Create new customer
+      const { data: newCustomer, error: createCustomerError } = await supabase
         .from('customers')
         .insert({
-          name: params.customerName,
-          phone: params.phoneNumber,
-          loyalty_points: 0,
-          valets_count: 0,
-          free_valets: 0
+          name: customerName,
+          phone: phoneNumber
         })
         .select('id')
         .single();
-
-      if (customerError) throw customerError;
-      customerId = newCustomer.id;
-    } else {
-      // Update customer's last visit
-      await updateCustomerLastVisit(customerId);
-    }
-
-    // Handle loyalty program if applicable
-    if (params.valetQuantity && params.valetQuantity > 0) {
-      if (params.useFreeValet) {
-        await useFreeValet(customerId);
-      } else {
-        await updateValetsCount(customerId, params.valetQuantity);
-        await addLoyaltyPoints(customerId, Math.floor(params.totalPrice / 100));
+      
+      if (createCustomerError) {
+        console.error('Error creating customer:', createCustomerError);
+        throw createCustomerError;
       }
+      
+      customerId = newCustomer.id;
     }
-
-    // Create the ticket
+    
+    // Now create the ticket
     const now = new Date().toISOString();
-    const ticketId = uuidv4();
-    console.log('Creating ticket with ID:', ticketId);
-
-    const ticketData = {
-      id: ticketId,
-      ticket_number: ticketNumber,
-      customer_id: customerId,
-      total: params.totalPrice,
-      payment_method: params.paymentMethod,
-      status: TICKET_STATUS.READY, // Set status to READY by default so tickets appear in 'Pedidos Listos para Retirar'
-      created_at: now,
-      updated_at: now,
-      is_paid: params.isPaidInAdvance || false,
-      is_canceled: false,
-      valet_quantity: params.valetQuantity || 0,
-      date: now // Add date field which is required
-    };
-
-    console.log('Ticket data to insert:', JSON.stringify(ticketData, null, 2));
-
-    const { error: ticketError } = await supabase
+    const ticketDate = customDate ? customDate.toISOString() : now;
+    
+    const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
-      .insert(ticketData);
+      .insert({
+        ticket_number: ticketNumber,
+        customer_id: customerId,
+        total: totalPrice,
+        payment_method: paymentMethod,
+        valet_quantity: valetQuantity,
+        status: TICKET_STATUS.READY, // Set the status to READY by default
+        date: ticketDate,
+        created_at: now,
+        updated_at: now,
+        is_paid: isPaidInAdvance
+      })
+      .select('id')
+      .single();
+    
     if (ticketError) {
       console.error('Error creating ticket:', ticketError);
       throw ticketError;
-    } else {
-      console.log('Ticket created successfully');
     }
-
-
-
-    // Create ticket services if provided
-    if (params.services && params.services.length > 0) {
-      console.log('Creating ticket services:', JSON.stringify(params.services, null, 2));
-      const serviceEntries = params.services.map(service => ({
-        id: uuidv4(),
-        ticket_id: ticketId,
-        name: service.name,
-        price: service.price,
-        quantity: service.quantity
-      }));
-
-      const { error: servicesError } = await supabase
-        .from('dry_cleaning_items')
-        .insert(serviceEntries);
-
-      if (servicesError) {
-        console.error('Error creating ticket services:', servicesError);
-        throw servicesError;
-      } else {
-        console.log('Ticket services created successfully');
-      }
-    }
-
-    // Create ticket options if provided
-    if (params.laundryOptions && params.laundryOptions.length > 0) {
-      console.log('Creating ticket options:', JSON.stringify(params.laundryOptions, null, 2));
-      const optionEntries = params.laundryOptions.map(option => ({
-        id: uuidv4(),
-        ticket_id: ticketId,
-        option_type: option
-      }));
-
-      const { error: optionsError } = await supabase
-        .from('ticket_laundry_options')
-        .insert(optionEntries);
-
-      if (optionsError) {
-        console.error('Error creating ticket options:', optionsError);
-        throw optionsError;
-      } else {
-        console.log('Ticket options created successfully');
-      }
-    }
-
-    console.log('Ticket creation completed successfully');
-    toast.success('Ticket creado exitosamente');
-
+    
+    // Update customer last visit
+    await supabase
+      .from('customers')
+      .update({ last_visit: now })
+      .eq('id', customerId);
+    
     return {
       success: true,
-      ticketId,
-      ticketNumber
+      ticketId: ticket.id,
+      ticketNumber: ticketNumber
     };
   } catch (error) {
-    console.error('Error creating ticket:', error);
-    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-    handleError(error, 'Error al crear el ticket');
-
+    console.error('Error creating unified ticket:', error);
+    toast.error('Error al crear el ticket');
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Error desconocido'
+      ticketId: null,
+      ticketNumber: null
     };
-  }
-};
-
-/**
- * Get a ticket by ID
- * @param ticketId The ID of the ticket to retrieve
- * @returns A promise resolving to the ticket or null if not found
- */
-export const getTicketById = async (ticketId: string): Promise<Ticket | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(`
-        id,
-        ticket_number,
-        basket_ticket_number,
-        total,
-        payment_method,
-        status,
-        created_at,
-        updated_at,
-        is_paid,
-        is_canceled,
-        delivered_date,
-        customer_id,
-        customers (
-          name,
-          phone
-        )
-      `)
-      .eq('id', ticketId)
-      .single();
-
-    if (error) throw error;
-
-    if (!data) return null;
-
-    // Get ticket services
-    const { data: servicesData, error: servicesError } = await supabase
-      .from('dry_cleaning_items')
-      .select('id, name, price, quantity')
-      .eq('ticket_id', ticketId);
-
-    if (servicesError) throw servicesError;
-
-    // Get ticket options
-    const { data: optionsData, error: optionsError } = await supabase
-      .from('ticket_laundry_options')
-      .select('option_type')
-      .eq('ticket_id', ticketId);
-
-    if (optionsError) throw optionsError;
-
-    const customerData = data.customers || {};
-
-    return {
-      id: data.id,
-      ticketNumber: data.ticket_number,
-      basketTicketNumber: data.basket_ticket_number,
-      clientName: customerData.name || '',
-      phoneNumber: customerData.phone || '',
-      services: servicesData || [],
-      paymentMethod: data.payment_method as PaymentMethod,
-      totalPrice: data.total,
-      status: data.status,
-      createdAt: data.created_at,
-      updatedAt: data.updated_at,
-      deliveredDate: data.delivered_date,
-      isPaid: data.is_paid,
-      options: optionsData ? optionsData.map(o => o.option_type) : []
-    };
-  } catch (error) {
-    console.error('Error getting ticket by ID:', error);
-    return null;
   }
 };

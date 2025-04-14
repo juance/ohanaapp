@@ -1,45 +1,55 @@
 
-import { syncExpenses } from './expensesSync';
+import { syncTickets } from './ticketsSync';
 import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
-import { syncTickets } from './ticketsSync';
-import { SyncStatus } from '@/lib/types';
+import { updateSyncStatus } from './syncStatusService';
 
-export const syncAllData = async (): Promise<SyncStatus> => {
+/**
+ * Perform a comprehensive synchronization of all offline data
+ * @returns Object with counts of synced items
+ */
+export const syncComprehensive = async (): Promise<{
+  tickets: number;
+  clients: number;
+  feedback: number;
+  success: boolean;
+}> => {
   try {
-    console.log('Starting comprehensive data sync...');
+    console.log('Starting comprehensive data sync');
     
-    // Sync clients first (as tickets might depend on them)
-    const clientsStatus = await syncClients();
-    console.log('Client sync status:', clientsStatus);
+    // Sync tickets
+    const ticketsCount = await syncTickets();
+    console.log(`Synced ${ticketsCount} tickets`);
     
-    // Then sync tickets
-    const ticketsStatus = await syncTickets();
-    console.log('Tickets sync status:', ticketsStatus);
-    
-    // Sync expenses
-    const expensesStatus = await syncExpenses();
-    console.log('Expenses sync status:', expensesStatus);
+    // Sync clients
+    const clientsCount = await syncClients();
+    console.log(`Synced ${clientsCount} clients`);
     
     // Sync feedback
-    const feedbackStatus = await syncFeedback();
-    console.log('Feedback sync status:', feedbackStatus);
+    const feedbackCount = await syncFeedback();
+    console.log(`Synced ${feedbackCount} feedback entries`);
     
-    // Return combined sync status
+    // Update sync status
+    await updateSyncStatus({
+      ticketsSync: ticketsCount,
+      clientsSync: clientsCount,
+      feedbackSync: feedbackCount,
+      expensesSync: 0
+    });
+    
     return {
-      clientsSync: clientsStatus,
-      ticketsSync: ticketsStatus,
-      expensesSync: expensesStatus,
-      feedbackSync: feedbackStatus
+      tickets: ticketsCount,
+      clients: clientsCount,
+      feedback: feedbackCount,
+      success: true
     };
   } catch (error) {
-    console.error('Error during comprehensive sync:', error);
-    // Return failure status
+    console.error('Error in comprehensive sync:', error);
     return {
-      clientsSync: 0,
-      ticketsSync: 0,
-      expensesSync: 0,
-      feedbackSync: 0
+      tickets: 0,
+      clients: 0,
+      feedback: 0,
+      success: false
     };
   }
 };

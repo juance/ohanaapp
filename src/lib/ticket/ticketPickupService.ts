@@ -58,6 +58,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       .eq('is_canceled', false);
 
     console.log('Query result:', ticketsData ? `Found ${ticketsData.length} tickets` : 'No tickets found');
+    
+    if (ticketsData) {
+      console.log('Ticket statuses:', ticketsData.map(t => t.status).join(', '));
+    }
 
     // If no tickets found, let's do a broader query to see if there are any tickets at all
     if (!ticketsData || ticketsData.length === 0) {
@@ -72,6 +76,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         console.error('Error querying all tickets:', allTicketsError);
       } else {
         console.log('All tickets sample:', allTickets);
+        if (allTickets && allTickets.length > 0) {
+          console.log('Statuses of all tickets:', allTickets.map(t => t.status).join(', '));
+          console.log('Canceled tickets:', allTickets.filter(t => t.is_canceled).length);
+        }
       }
     }
 

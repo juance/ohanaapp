@@ -18,6 +18,9 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
   setSelectedTicket,
   formatDate
 }) => {
+  console.log("PickupTicketList renderizando con", tickets.length, "tickets");
+  console.log("Ticket statuses:", tickets.map(t => t.status).join(", "));
+  
   if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center p-6 text-gray-500">
@@ -53,7 +56,11 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
                 </div>
               </div>
             </div>
-            <div className="text-sm text-gray-500">Fecha: {formatDate(ticket.createdAt)}</div>
+            <div className="text-sm text-gray-500">
+              <div>Fecha: {formatDate(ticket.createdAt)}</div>
+              <div>Ticket #: {ticket.ticketNumber}</div>
+              <div>Estado: {ticket.status}</div>
+            </div>
             <div className="mt-2 flex justify-between items-center">
               <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
             </div>
