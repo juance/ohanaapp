@@ -11,16 +11,16 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
   try {
     // Format phone number
     const formattedPhone = formatPhoneNumber(phoneNumber);
-    
+
     // Check if customer exists
     const { data: existingCustomer, error: searchError } = await supabase
       .from('customers')
       .select('*')
       .eq('phone', formattedPhone)
       .maybeSingle();
-    
+
     if (searchError) throw searchError;
-    
+
     // If customer exists, return it
     if (existingCustomer) {
       return {
@@ -36,7 +36,7 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
         createdAt: existingCustomer.created_at
       };
     }
-    
+
     // If customer does not exist and we have a name, create it
     if (customerName.trim()) {
       const { data: newCustomer, error: createError } = await supabase
@@ -51,9 +51,9 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
         })
         .select()
         .single();
-      
+
       if (createError) throw createError;
-      
+
       if (newCustomer) {
         return {
           id: newCustomer.id,
@@ -69,7 +69,7 @@ export const getCustomerByPhone = async (phoneNumber: string, customerName: stri
         };
       }
     }
-    
+
     return null;
   } catch (error) {
     console.error('Error in getCustomerByPhone:', error);
@@ -86,9 +86,9 @@ export const getFrequentClients = async (limit: number = 5): Promise<ClientVisit
       .select('*')
       .order('valets_count', { ascending: false })
       .limit(limit);
-    
+
     if (error) throw error;
-    
+
     return (data || []).map(customer => ({
       id: customer.id,
       clientId: customer.id,
@@ -116,20 +116,20 @@ export const addLoyaltyPoints = async (customerId: string, points: number): Prom
       .select('loyalty_points')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) throw getError;
-    
+
     const currentPoints = customer?.loyalty_points || 0;
     const newPoints = currentPoints + points;
-    
+
     // Update loyalty points
     const { error: updateError } = await supabase
       .from('customers')
       .update({ loyalty_points: newPoints })
       .eq('id', customerId);
-    
+
     if (updateError) throw updateError;
-    
+
     return newPoints;
   } catch (error) {
     console.error('Error in addLoyaltyPoints:', error);
@@ -147,26 +147,26 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
       .select('loyalty_points')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) throw getError;
-    
+
     const currentPoints = customer?.loyalty_points || 0;
-    
+
     // Ensure customer has enough points
     if (currentPoints < pointsToRedeem) {
       return false;
     }
-    
+
     const newPoints = currentPoints - pointsToRedeem;
-    
+
     // Update loyalty points
     const { error: updateError } = await supabase
       .from('customers')
       .update({ loyalty_points: newPoints })
       .eq('id', customerId);
-    
+
     if (updateError) throw updateError;
-    
+
     return true;
   } catch (error) {
     console.error('Error in redeemLoyaltyPoints:', error);
@@ -176,8 +176,8 @@ export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: nu
 };
 
 // Re-export necessary functions from sub-modules
-export { 
-  updateCustomerLastVisit, 
+export {
+  updateCustomerLastVisit,
   getCustomerValetCount,
   updateValetsCount,
   useFreeValet
@@ -221,4 +221,49 @@ export const storeCustomer = async (customerData: Omit<Customer, 'id' | 'created
 // Add the missing updateLoyaltyPoints function
 export const updateLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
   return addLoyaltyPoints(customerId, points);
+};
+
+// Create a new customer
+export const createCustomer = async (customerName: string, phoneNumber: string): Promise<Customer | null> => {
+  try {
+    // Format phone number
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+
+    // Create the customer
+    const { data: newCustomer, error } = await supabase
+      .from('customers')
+      .insert({
+        name: customerName.trim(),
+        phone: formattedPhone,
+        loyalty_points: 0,
+        valets_count: 0,
+        free_valets: 0,
+        valets_redeemed: 0
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    if (newCustomer) {
+      return {
+        id: newCustomer.id,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        phoneNumber: newCustomer.phone, // Add for backwards compatibility
+        loyaltyPoints: newCustomer.loyalty_points || 0,
+        valetsCount: newCustomer.valets_count || 0,
+        freeValets: newCustomer.free_valets || 0,
+        valetsRedeemed: newCustomer.valets_redeemed || 0,
+        lastVisit: newCustomer.last_visit,
+        createdAt: newCustomer.created_at
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error creating customer:', error);
+    logError(error, { context: 'createCustomer' });
+    return null;
+  }
 };
