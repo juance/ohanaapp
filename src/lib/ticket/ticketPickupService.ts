@@ -19,9 +19,6 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     const selectQuery = buildTicketSelectQuery(hasDeliveredDateColumn);
     console.log('Select query:', selectQuery);
 
-    // Get tickets with status 'ready' and not canceled
-    console.log('Querying tickets with status:', TICKET_STATUS.READY);
-
     // First, check if there are any tickets in the database
     const { count, error: countError } = await supabase
       .from('tickets')
@@ -41,10 +38,12 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     }
 
     // Get tickets with status 'ready' and not canceled
+    console.log('Querying tickets with status:', TICKET_STATUS.READY);
+    
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
-      .eq('status', TICKET_STATUS.READY) // Use constant for consistency
+      .eq('status', TICKET_STATUS.READY)
       .eq('is_canceled', false);
 
     console.log('Query result:', ticketsData ? `Found ${ticketsData.length} tickets` : 'No tickets found');
@@ -63,15 +62,21 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     console.log('Mapping ticket data');
     const tickets = ticketsData
       .map(ticket => {
+        console.log('Raw ticket data:', JSON.stringify(ticket, null, 2));
         const mappedTicket = mapTicketData(ticket, hasDeliveredDateColumn);
         if (!mappedTicket) {
-          console.error('Failed to map ticket:', ticket);
+          console.error('Failed to map ticket:', ticket.id);
         }
         return mappedTicket;
       })
       .filter(ticket => ticket !== null) as Ticket[];
 
-    console.log('Mapped tickets:', tickets.length);
+    console.log('Mapped tickets count:', tickets.length);
+    console.log('Mapped tickets:', JSON.stringify(tickets.map(t => ({ 
+      id: t.id, 
+      status: t.status, 
+      clientName: t.clientName 
+    })), null, 2));
 
     return tickets;
   } catch (error) {
@@ -86,20 +91,25 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
  */
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
+    console.log('Marking ticket as delivered:', ticketId);
     const now = new Date().toISOString();
 
     const { error } = await supabase
       .from('tickets')
       .update({
-        status: TICKET_STATUS.DELIVERED, // Use constant for consistency
+        status: TICKET_STATUS.DELIVERED,
         is_paid: true,
         updated_at: now,
         delivered_date: now
       })
       .eq('id', ticketId);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error marking ticket as delivered:', error);
+      throw error;
+    }
 
+    console.log('Ticket marked as delivered successfully');
     return true;
   } catch (error) {
     console.error('Error marking ticket as delivered:', error);
@@ -122,7 +132,7 @@ export const getUnretrievedTickets = async (daysThreshold: number): Promise<Tick
     const { data: ticketsData, error } = await supabase
       .from('tickets')
       .select(selectQuery)
-      .eq('status', TICKET_STATUS.READY) // Use constant for consistency
+      .eq('status', TICKET_STATUS.READY)
       .eq('is_canceled', false);
 
     if (error) throw error;

@@ -1,9 +1,9 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Ticket } from '@/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getTicketServices, markTicketAsDelivered, cancelTicket } from '@/lib/ticketService';
-import { getPickupTickets } from '@/lib/ticket/ticketPickupService';
+import { getTicketServices } from '@/lib/ticketService';
+import { getPickupTickets, markTicketAsDelivered, cancelTicket } from '@/lib/ticket/ticketPickupService';
 import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -18,28 +18,63 @@ export const usePickupOrdersLogic = () => {
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
+  // Query for pickup tickets
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
-    queryFn: () => getPickupTickets(),
+    queryFn: async () => {
+      console.log('Fetching pickup tickets');
+      const result = await getPickupTickets();
+      console.log('Pickup tickets result:', result.length, 'tickets');
+      return result;
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: true
   });
 
+  // Fetch tickets when component mounts
+  useEffect(() => {
+    console.log('usePickupOrdersLogic mounted, fetching tickets');
+    refetch();
+  }, [refetch]);
+
+  // Log tickets when they change
+  useEffect(() => {
+    console.log('Tickets in usePickupOrdersLogic:', tickets.length);
+    console.log('Ticket sample:', tickets.slice(0, 2));
+  }, [tickets]);
+
   const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services);
+    try {
+      console.log('Loading ticket services for:', ticketId);
+      const services = await getTicketServices(ticketId);
+      console.log('Ticket services loaded:', services.length);
+      setTicketServices(services);
+    } catch (error) {
+      console.error('Error loading ticket services:', error);
+      setTicketServices([]);
+    }
   };
 
   const handleMarkAsDelivered = async (ticketId: string) => {
-    const success = await markTicketAsDelivered(ticketId);
-    if (success) {
-      queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
-      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
-      queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
-      queryClient.invalidateQueries({ queryKey: ['metrics'] });
-      setSelectedTicket(null);
-      refetch();
-      toast.success('Ticket marcado como entregado y pagado exitosamente');
+    try {
+      console.log('Marking ticket as delivered:', ticketId);
+      const success = await markTicketAsDelivered(ticketId);
+      
+      if (success) {
+        console.log('Ticket marked as delivered successfully');
+        queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
+        queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+        queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
+        queryClient.invalidateQueries({ queryKey: ['metrics'] });
+        setSelectedTicket(null);
+        refetch();
+        toast.success('Ticket marcado como entregado y pagado exitosamente');
+      } else {
+        toast.error('Error al marcar el ticket como entregado');
+      }
+    } catch (error) {
+      console.error('Error in handleMarkAsDelivered:', error);
+      toast.error('Error al marcar el ticket como entregado');
     }
   };
 
@@ -60,13 +95,21 @@ export const usePickupOrdersLogic = () => {
       return;
     }
 
-    const success = await cancelTicket(selectedTicket, cancelReason);
-    if (success) {
-      setCancelDialogOpen(false);
-      setSelectedTicket(null);
-      queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
-      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
-      refetch();
+    try {
+      const success = await cancelTicket(selectedTicket, cancelReason);
+      if (success) {
+        setCancelDialogOpen(false);
+        setSelectedTicket(null);
+        queryClient.invalidateQueries({ queryKey: ['pendingTickets'] });
+        queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+        refetch();
+        toast.success('Ticket anulado exitosamente');
+      } else {
+        toast.error('Error al anular el ticket');
+      }
+    } catch (error) {
+      console.error('Error canceling ticket:', error);
+      toast.error('Error al anular el ticket');
     }
   };
 
@@ -221,9 +264,9 @@ export const usePickupOrdersLogic = () => {
   const filteredTickets = searchQuery.trim()
     ? tickets.filter(ticket => {
         if (searchFilter === 'name') {
-          return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+          return ticket.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
         } else { // 'phone'
-          return ticket.phoneNumber.includes(searchQuery);
+          return ticket.phoneNumber?.includes(searchQuery);
         }
       })
     : tickets;
@@ -232,6 +275,7 @@ export const usePickupOrdersLogic = () => {
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
     } catch (e) {
+      console.error('Error formatting date:', e);
       return dateString;
     }
   };

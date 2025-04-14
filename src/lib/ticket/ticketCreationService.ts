@@ -1,47 +1,126 @@
-import { PaymentMethod } from '../types';
-import { createUnifiedTicket } from './ticketUnifiedService';
-
-// This file is now a wrapper around the unified ticket service
-// It's maintained for backward compatibility
 
 /**
- * Create a new ticket in the database
+ * Ticket Creation Service
  * 
- * This is now a wrapper around the unified ticket service for backward compatibility
+ * Handles ticket creation operations with the Supabase database.
  */
-export const createTicket = async ({
-  customerName,
-  phoneNumber,
-  totalPrice,
+
+import { supabase } from '@/integrations/supabase/client';
+import { PaymentMethod } from '@/lib/types';
+import { toast } from '@/lib/toast';
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
+import { getCustomerByPhone, createCustomer } from '@/lib/data/customerService';
+
+/**
+ * Create a new ticket in Supabase
+ */
+export const createTicket = async ({ 
+  customerName, 
+  phoneNumber, 
+  totalPrice, 
   paymentMethod,
   valetQuantity = 0,
-  isPaidInAdvance = false,
-  usesFreeValet = false,
-  customDate,
-  services = [],
-  options = []
+  customDate = null
 }: {
   customerName: string;
   phoneNumber: string;
   totalPrice: number;
   paymentMethod: PaymentMethod;
   valetQuantity?: number;
-  isPaidInAdvance?: boolean;
-  usesFreeValet?: boolean;
-  customDate?: Date;
-  services?: Array<{ name: string; quantity: number; price: number }>;
-  options?: string[];
-}): Promise<{ success: boolean; ticketId?: string; ticketNumber?: string }> => {
-  // Simply delegate to the unified service
-  return createUnifiedTicket({
-    customerName,
-    phoneNumber,
-    totalPrice,
-    paymentMethod,
-    valetQuantity,
-    useFreeValet: usesFreeValet,
-    isPaidInAdvance,
-    services,
-    laundryOptions: options
-  });
+  customDate?: Date | null;
+}): Promise<{
+  success: boolean;
+  ticketNumber?: string;
+  ticketId?: string;
+  message?: string;
+}> => {
+  try {
+    console.log('Creating ticket with the following information:');
+    console.log(`Customer: ${customerName}, Phone: ${phoneNumber}`);
+    console.log(`Total: ${totalPrice}, Payment Method: ${paymentMethod}`);
+    console.log(`Valet Quantity: ${valetQuantity}`);
+
+    // Get customer or create if not exists
+    let customer = await getCustomerByPhone(phoneNumber);
+    
+    if (!customer) {
+      console.log('Customer not found. Creating new customer.');
+      customer = await createCustomer(customerName, phoneNumber);
+      
+      if (!customer) {
+        throw new Error('Failed to create customer');
+      }
+    }
+    
+    console.log('Customer ID:', customer.id);
+
+    // Get next ticket number
+    const { data: ticketNumber, error: rpcError } = await supabase.rpc('get_next_ticket_number');
+    
+    if (rpcError) {
+      console.error('Error getting next ticket number:', rpcError);
+      throw rpcError;
+    }
+    
+    console.log('Generated Ticket Number:', ticketNumber);
+    
+    const now = new Date();
+    const ticketDate = customDate ? customDate : now;
+    
+    // Create the ticket with status READY by default
+    const { data: ticket, error } = await supabase
+      .from('tickets')
+      .insert({
+        ticket_number: ticketNumber,
+        customer_id: customer.id,
+        total: totalPrice,
+        payment_method: paymentMethod,
+        status: TICKET_STATUS.READY, // Use the constant for consistency
+        date: ticketDate.toISOString(),
+        valet_quantity: valetQuantity,
+        is_paid: false // New tickets are not paid by default
+      })
+      .select('*')
+      .single();
+    
+    if (error) {
+      console.error('Error creating ticket:', error);
+      throw error;
+    }
+    
+    console.log('Ticket created successfully:', ticket);
+    
+    return {
+      success: true,
+      ticketNumber: ticket.ticket_number,
+      ticketId: ticket.id
+    };
+  } catch (error) {
+    console.error('Error in createTicket:', error);
+    toast.error('Error al crear el ticket');
+    
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+};
+
+/**
+ * Calculate the total price for a ticket based on service type and options
+ */
+export const calculateTicketTotal = (
+  serviceType: 'valet' | 'tintoreria',
+  valetQuantity: number = 0,
+  dryCleaningItems: Array<{ quantity: number; price: number }> = []
+): number => {
+  if (serviceType === 'valet') {
+    // Valet price calculation
+    return valetQuantity * 50; // $50 per valet
+  } else {
+    // Dry cleaning price calculation - sum of all items
+    return dryCleaningItems.reduce((total, item) => {
+      return total + (item.quantity * item.price);
+    }, 0);
+  }
 };

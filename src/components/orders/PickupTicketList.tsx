@@ -8,7 +8,7 @@ import { Ticket } from '@/lib/types';
 interface PickupTicketListProps {
   tickets: Ticket[];
   selectedTicket: string | null;
-  setSelectedTicket: (id: string) => void;
+  setSelectedTicket: (id: string | undefined) => void;
   formatDate: (dateString: string) => string;
 }
 
@@ -18,7 +18,7 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
   setSelectedTicket,
   formatDate
 }) => {
-  if (tickets.length === 0) {
+  if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center p-6 text-gray-500">
         No hay tickets pendientes de entrega
@@ -40,8 +40,8 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
           <CardContent className="p-4">
             <div className="flex justify-between items-start mb-3">
               <div>
-                <div className="font-medium">{ticket.clientName}</div>
-                <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+                <div className="font-medium">{ticket.clientName || 'Cliente sin nombre'}</div>
+                <div className="text-sm text-gray-500">{ticket.phoneNumber || 'Sin teléfono'}</div>
               </div>
               <div className="flex flex-col gap-1 items-end">
                 <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">

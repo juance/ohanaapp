@@ -1,3 +1,4 @@
+
 /**
  * Ticket Status Service
  *
@@ -22,9 +23,11 @@ export type TicketStatusSimplified = 'PENDING' | 'DELIVERED';
  * @returns The simplified status (PENDING or DELIVERED)
  */
 export const mapToSimplifiedStatus = (dbStatus: string): TicketStatusSimplified => {
+  console.log('Mapping DB status to simplified status:', dbStatus);
   if (dbStatus === TICKET_STATUS.DELIVERED) {
     return 'DELIVERED';
   }
+  // All non-delivered statuses are considered PENDING
   return 'PENDING';
 };
 
@@ -47,12 +50,12 @@ export const mapToDatabaseStatus = (
     TICKET_STATUS.PENDING,
     TICKET_STATUS.PROCESSING,
     TICKET_STATUS.READY
-  ].includes(currentDbStatus)) {
+  ].includes(currentDbStatus as any)) {
     return currentDbStatus;
   }
 
-  // Default to PENDING for new tickets (changed from READY to implement new workflow)
-  return TICKET_STATUS.PENDING;
+  // Default to READY for new tickets to make them appear in the pickup page
+  return TICKET_STATUS.READY;
 };
 
 /**
@@ -134,31 +137,3 @@ export const getStatusBadgeClass = (status: string): string => {
       return 'bg-gray-500 hover:bg-gray-600';
   }
 };
-
-/**
- * Ticket Status Workflow Documentation
- *
- * The ticket status workflow is as follows:
- *
- * 1. When a ticket is created, it is set to 'ready' by default
- *    - This means the ticket will appear immediately in the "Pedidos Listos para Retirar" section
- *
- * 2. A ticket can be in one of four states:
- *    - 'pending': Initial state, ticket is registered but not being processed yet
- *    - 'processing': Ticket is being processed (e.g., clothes are being washed)
- *    - 'ready': Ticket is ready for pickup
- *    - 'delivered': Ticket has been delivered to the customer
- *
- * 3. For simplicity in the UI, we group the first three states ('pending', 'processing', 'ready')
- *    into a single 'PENDING' state, meaning the ticket is not yet delivered
- *
- * 4. The typical workflow is:
- *    - Create ticket → 'pending' (default)
- *    - Start processing → 'processing'
- *    - Finish processing → 'ready'
- *    - Customer picks up → 'delivered'
- *
- * 5. A ticket can be canceled at any point before it's delivered
- *    - Canceled tickets are not deleted but marked with 'is_canceled = true'
- *    - Canceled tickets are excluded from all queries by default
- */
