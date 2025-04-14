@@ -8,9 +8,10 @@ import { Ticket } from '@/lib/types';
 export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase
-      .from('tickets')
-      .select('delivered_date')
-      .limit(1);
+      .rpc('check_column_exists', {
+        table_name: 'tickets',
+        column_name: 'delivered_date'
+      });
 
     if (error && error.message.includes('column "delivered_date" does not exist')) {
       console.log('delivered_date column does not exist');

@@ -105,9 +105,25 @@ EXCEPTION
 END;
 $$ LANGUAGE plpgsql;
 
+-- Create function to check if a column exists in a table
+CREATE OR REPLACE FUNCTION public.check_column_exists(
+  p_table_name TEXT,
+  p_column_name TEXT
+) RETURNS TABLE (column_name TEXT) AS $$
+BEGIN
+  RETURN QUERY
+  SELECT c.column_name
+  FROM information_schema.columns c
+  WHERE c.table_name = p_table_name
+    AND c.column_name = p_column_name;
+END;
+$$ LANGUAGE plpgsql;
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_tickets_customer_id ON public.tickets(customer_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_status ON public.tickets(status);
 CREATE INDEX IF NOT EXISTS idx_dry_cleaning_items_ticket_id ON public.dry_cleaning_items(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_ticket_laundry_options_ticket_id ON public.ticket_laundry_options(ticket_id);
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
+
+
