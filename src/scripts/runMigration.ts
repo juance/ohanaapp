@@ -1,6 +1,6 @@
 /**
  * Script to run database migrations directly
- * 
+ *
  * This script reads the SQL migration file and executes it directly
  * against the Supabase database.
  */
@@ -18,15 +18,15 @@ export const runMigration = async (migrationPath: string): Promise<{
 }> => {
   try {
     console.log(`Reading migration file: ${migrationPath}`);
-    
+
     // Read the migration file
     const sql = fs.readFileSync(migrationPath, 'utf8');
-    
+
     console.log('Executing migration...');
-    
+
     // Execute the SQL directly
     const { error } = await supabase.rpc('exec_sql', { sql });
-    
+
     if (error) {
       console.error('Error executing migration:', error);
       return {
@@ -34,7 +34,7 @@ export const runMigration = async (migrationPath: string): Promise<{
         message: `Error executing migration: ${error.message}`
       };
     }
-    
+
     console.log('Migration executed successfully');
     return {
       success: true,
@@ -58,7 +58,7 @@ export const createDatabaseTables = async (): Promise<{
 }> => {
   try {
     console.log('Creating database tables...');
-    
+
     // SQL to create all required tables
     const sql = `
     -- Create customers table
@@ -131,7 +131,7 @@ export const createDatabaseTables = async (): Promise<{
       SET last_number = last_number + 1
       WHERE id = 1
       RETURNING last_number INTO next_number;
-      
+
       -- Format the number with leading zeros (8 digits)
       RETURN LPAD(next_number::TEXT, 8, '0');
     END;
@@ -145,7 +145,7 @@ export const createDatabaseTables = async (): Promise<{
       UPDATE public.ticket_sequence
       SET last_number = 0
       WHERE id = 1;
-      
+
       -- Log the reset
       BEGIN
         INSERT INTO public.ticket_sequence_resets (reset_by, notes)
@@ -159,7 +159,7 @@ export const createDatabaseTables = async (): Promise<{
             notes TEXT,
             reset_date TIMESTAMP WITH TIME ZONE DEFAULT now()
           );
-          
+
           -- Try again
           INSERT INTO public.ticket_sequence_resets (reset_by, notes)
           VALUES ('system', 'Sequence reset via function call');
@@ -174,20 +174,20 @@ export const createDatabaseTables = async (): Promise<{
     CREATE INDEX IF NOT EXISTS idx_ticket_laundry_options_ticket_id ON public.ticket_laundry_options(ticket_id);
     CREATE INDEX IF NOT EXISTS idx_customers_phone ON public.customers(phone);
     `;
-    
+
     // Execute each statement separately
     const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
-    
+
     for (const statement of statements) {
       console.log(`Executing statement: ${statement.substring(0, 50)}...`);
       const { error } = await supabase.rpc('pg_query', { query: statement });
-      
+
       if (error) {
         console.error('Error executing statement:', error);
         // Continue with other statements even if one fails
       }
     }
-    
+
     console.log('Database tables created successfully');
     return {
       success: true,
@@ -212,9 +212,9 @@ export const createTablesDirectly = async (): Promise<{
 }> => {
   try {
     console.log('Creating tables directly...');
-    
+
     // Create customers table
-    const createCustomersResult = await supabase.query(`
+    const customersSQL = `
       CREATE TABLE IF NOT EXISTS public.customers (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         name TEXT NOT NULL,
@@ -225,52 +225,58 @@ export const createTablesDirectly = async (): Promise<{
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
       )
-    `);
-    
-    if (createCustomersResult.error) {
-      console.error('Error creating customers table:', createCustomersResult.error);
+    `;
+
+    const { error: createCustomersError } = await supabase.rpc('pg_query', { query: customersSQL });
+
+    if (createCustomersError) {
+      console.error('Error creating customers table:', createCustomersError);
       return {
         success: false,
-        message: `Error creating customers table: ${createCustomersResult.error.message}`,
-        details: createCustomersResult.error
+        message: `Error creating customers table: ${createCustomersError.message}`,
+        details: createCustomersError
       };
     }
-    
+
     // Create ticket_sequence table
-    const createSequenceResult = await supabase.query(`
+    const sequenceSQL = `
       CREATE TABLE IF NOT EXISTS public.ticket_sequence (
         id INTEGER PRIMARY KEY DEFAULT 1,
         last_number INTEGER DEFAULT 0
       )
-    `);
-    
-    if (createSequenceResult.error) {
-      console.error('Error creating ticket_sequence table:', createSequenceResult.error);
+    `;
+
+    const { error: createSequenceError } = await supabase.rpc('pg_query', { query: sequenceSQL });
+
+    if (createSequenceError) {
+      console.error('Error creating ticket_sequence table:', createSequenceError);
       return {
         success: false,
-        message: `Error creating ticket_sequence table: ${createSequenceResult.error.message}`,
-        details: createSequenceResult.error
+        message: `Error creating ticket_sequence table: ${createSequenceError.message}`,
+        details: createSequenceError
       };
     }
-    
+
     // Insert initial sequence value
-    const insertSequenceResult = await supabase.query(`
+    const insertSequenceSQL = `
       INSERT INTO public.ticket_sequence (id, last_number)
       VALUES (1, 0)
       ON CONFLICT (id) DO NOTHING
-    `);
-    
-    if (insertSequenceResult.error) {
-      console.error('Error inserting initial sequence value:', insertSequenceResult.error);
+    `;
+
+    const { error: insertSequenceError } = await supabase.rpc('pg_query', { query: insertSequenceSQL });
+
+    if (insertSequenceError) {
+      console.error('Error inserting initial sequence value:', insertSequenceError);
       return {
         success: false,
-        message: `Error inserting initial sequence value: ${insertSequenceResult.error.message}`,
-        details: insertSequenceResult.error
+        message: `Error inserting initial sequence value: ${insertSequenceError.message}`,
+        details: insertSequenceError
       };
     }
-    
+
     // Create tickets table
-    const createTicketsResult = await supabase.query(`
+    const ticketsSQL = `
       CREATE TABLE IF NOT EXISTS public.tickets (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         ticket_number TEXT NOT NULL,
@@ -287,19 +293,21 @@ export const createTablesDirectly = async (): Promise<{
         basket_ticket_number TEXT,
         delivered_date TIMESTAMP WITH TIME ZONE
       )
-    `);
-    
-    if (createTicketsResult.error) {
-      console.error('Error creating tickets table:', createTicketsResult.error);
+    `;
+
+    const { error: createTicketsError } = await supabase.rpc('pg_query', { query: ticketsSQL });
+
+    if (createTicketsError) {
+      console.error('Error creating tickets table:', createTicketsError);
       return {
         success: false,
-        message: `Error creating tickets table: ${createTicketsResult.error.message}`,
-        details: createTicketsResult.error
+        message: `Error creating tickets table: ${createTicketsError.message}`,
+        details: createTicketsError
       };
     }
-    
+
     // Create dry_cleaning_items table
-    const createItemsResult = await supabase.query(`
+    const itemsSQL = `
       CREATE TABLE IF NOT EXISTS public.dry_cleaning_items (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
@@ -308,36 +316,40 @@ export const createTablesDirectly = async (): Promise<{
         quantity INTEGER NOT NULL DEFAULT 1,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
       )
-    `);
-    
-    if (createItemsResult.error) {
-      console.error('Error creating dry_cleaning_items table:', createItemsResult.error);
+    `;
+
+    const { error: createItemsError } = await supabase.rpc('pg_query', { query: itemsSQL });
+
+    if (createItemsError) {
+      console.error('Error creating dry_cleaning_items table:', createItemsError);
       return {
         success: false,
-        message: `Error creating dry_cleaning_items table: ${createItemsResult.error.message}`,
-        details: createItemsResult.error
+        message: `Error creating dry_cleaning_items table: ${createItemsError.message}`,
+        details: createItemsError
       };
     }
-    
+
     // Create ticket_laundry_options table
-    const createOptionsResult = await supabase.query(`
+    const optionsSQL = `
       CREATE TABLE IF NOT EXISTS public.ticket_laundry_options (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         ticket_id UUID REFERENCES public.tickets(id) ON DELETE CASCADE,
         option_type TEXT NOT NULL,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
       )
-    `);
-    
-    if (createOptionsResult.error) {
-      console.error('Error creating ticket_laundry_options table:', createOptionsResult.error);
+    `;
+
+    const { error: createOptionsError } = await supabase.rpc('pg_query', { query: optionsSQL });
+
+    if (createOptionsError) {
+      console.error('Error creating ticket_laundry_options table:', createOptionsError);
       return {
         success: false,
-        message: `Error creating ticket_laundry_options table: ${createOptionsResult.error.message}`,
-        details: createOptionsResult.error
+        message: `Error creating ticket_laundry_options table: ${createOptionsError.message}`,
+        details: createOptionsError
       };
     }
-    
+
     console.log('All tables created successfully');
     return {
       success: true,
