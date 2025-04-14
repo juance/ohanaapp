@@ -2,6 +2,7 @@
 import { syncTickets } from './ticketsSync';
 import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
+import { syncExpenses } from './expensesSync';
 import { updateSyncStatus } from './syncStatusService';
 
 /**
@@ -12,6 +13,7 @@ export const syncComprehensive = async (): Promise<{
   tickets: number;
   clients: number;
   feedback: number;
+  expenses: number;
   success: boolean;
 }> => {
   try {
@@ -29,18 +31,23 @@ export const syncComprehensive = async (): Promise<{
     const feedbackCount = await syncFeedback();
     console.log(`Synced ${feedbackCount} feedback entries`);
     
+    // Sync expenses
+    const expensesCount = await syncExpenses();
+    console.log(`Synced ${expensesCount} expense entries`);
+    
     // Update sync status
     await updateSyncStatus({
       ticketsSync: ticketsCount,
       clientsSync: clientsCount,
       feedbackSync: feedbackCount,
-      expensesSync: 0
+      expensesSync: expensesCount
     });
     
     return {
       tickets: ticketsCount,
       clients: clientsCount,
       feedback: feedbackCount,
+      expenses: expensesCount,
       success: true
     };
   } catch (error) {
@@ -49,7 +56,11 @@ export const syncComprehensive = async (): Promise<{
       tickets: 0,
       clients: 0,
       feedback: 0,
+      expenses: 0,
       success: false
     };
   }
 };
+
+// Alias for backward compatibility
+export const syncAllData = syncComprehensive;

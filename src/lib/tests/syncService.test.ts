@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { syncTickets } from '../data/sync/ticketsSync';
 import { syncClients } from '../data/sync/clientsSync';
 import { syncFeedback } from '../data/sync/feedbackSync';
+import { syncExpenses } from '../data/sync/expensesSync';
 import { syncComprehensive } from '../data/sync/comprehensiveSync';
 
 // Mock the synchronization functions
@@ -16,6 +17,10 @@ vi.mock('../data/sync/clientsSync', () => ({
 
 vi.mock('../data/sync/feedbackSync', () => ({
   syncFeedback: vi.fn()
+}));
+
+vi.mock('../data/sync/expensesSync', () => ({
+  syncExpenses: vi.fn()
 }));
 
 vi.mock('../data/sync/syncStatusService', () => ({
@@ -54,10 +59,20 @@ describe('Sync Service', () => {
     expect(syncFeedback).toHaveBeenCalledTimes(1);
   });
 
+  it('should synchronize expenses', async () => {
+    (syncExpenses as any).mockResolvedValue(4);
+    
+    const result = await syncExpenses();
+    
+    expect(result).toBe(4);
+    expect(syncExpenses).toHaveBeenCalledTimes(1);
+  });
+
   it('should perform comprehensive sync correctly', async () => {
     (syncTickets as any).mockResolvedValue(5);
     (syncClients as any).mockResolvedValue(3);
     (syncFeedback as any).mockResolvedValue(2);
+    (syncExpenses as any).mockResolvedValue(4);
     
     const result = await syncComprehensive();
     
@@ -65,11 +80,13 @@ describe('Sync Service', () => {
       tickets: 5,
       clients: 3,
       feedback: 2,
+      expenses: 4,
       success: true
     });
     
     expect(syncTickets).toHaveBeenCalledTimes(1);
     expect(syncClients).toHaveBeenCalledTimes(1);
     expect(syncFeedback).toHaveBeenCalledTimes(1);
+    expect(syncExpenses).toHaveBeenCalledTimes(1);
   });
 });

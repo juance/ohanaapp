@@ -1,73 +1,63 @@
-import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { Expense } from '@/lib/types';
 
-const EXPENSES_STORAGE_KEY = 'expenses';
+import { supabase } from '@/integrations/supabase/client';
+import { getFromLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Sync local expenses data with Supabase
- * 
- * This function handles both uploading new expenses and updating existing ones
- * that were modified while offline.
+ * Synchronize locally stored expenses with Supabase
+ * @returns Number of successfully synced expenses
  */
 export const syncExpenses = async (): Promise<number> => {
-  let syncedCount = 0;
-
   try {
-    // Get all local expenses
-    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
-
-    // Find expenses with pendingSync flag
-    const pendingExpenses = localExpenses.filter(expense => expense.pendingSync);
-
-    if (pendingExpenses.length === 0) {
+    // Get locally stored expenses
+    const localExpenses = getFromLocalStorage(EXPENSES_STORAGE_KEY, []);
+    
+    // Check if there are expenses to sync
+    const expensesToSync = localExpenses.filter(expense => expense.pendingSync);
+    
+    if (expensesToSync.length === 0) {
       console.log('No expenses to sync');
       return 0;
     }
-
-    console.log(`Found ${pendingExpenses.length} expenses to sync`);
-
-    // Upload each pending expense
-    for (const expense of pendingExpenses) {
-      // Insert expense to Supabase
-      const { error } = await supabase
-        .from('expenses')
-        .insert({
-          id: expense.id,
-          description: expense.description,
-          amount: expense.amount,
-          category: expense.category,
-          date: expense.date,
-          created_at: expense.createdAt || new Date().toISOString()
-        });
-
-      if (error) {
-        console.error(`Error syncing expense ${expense.id}:`, error);
-        continue;
-      }
-
-      // Mark as synced
-      expense.pendingSync = false;
-      syncedCount++;
-    }
-
-    // Save back to localStorage with updated sync status
-    const updatedExpenses = localExpenses.map(expense => {
-      const matchingPendingExpense = pendingExpenses.find(pe => pe.id === expense.id);
-      return matchingPendingExpense || expense;
-    });
     
-    saveToLocalStorage(EXPENSES_STORAGE_KEY, updatedExpenses);
-
-    console.log(`Successfully synced ${syncedCount} out of ${pendingExpenses.length} expenses`);
+    console.log(`Found ${expensesToSync.length} expenses to sync`);
+    
+    // Track successfully synced expenses
+    let syncedCount = 0;
+    
+    // Process each expense
+    for (const expense of expensesToSync) {
+      try {
+        // Create expense in Supabase
+        const { data: createdExpense, error: expenseError } = await supabase
+          .from('expenses')
+          .insert({
+            id: uuidv4(),
+            description: expense.description,
+            amount: expense.amount,
+            date: expense.date || new Date().toISOString()
+          })
+          .select('id')
+          .single();
+        
+        if (expenseError) throw expenseError;
+        
+        // Mark as synced in local storage
+        expense.pendingSync = false;
+        expense.synced = true;
+        syncedCount++;
+      } catch (expenseSyncError) {
+        console.error(`Error syncing expense ${expense.id}:`, expenseSyncError);
+      }
+    }
+    
+    // Update local storage with synced status
+    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(localExpenses));
+    
+    console.log(`Successfully synced ${syncedCount} out of ${expensesToSync.length} expenses`);
     return syncedCount;
   } catch (error) {
     console.error('Error syncing expenses:', error);
     return 0;
   }
 };
-
-/**
- * Alias for syncExpenses for backward compatibility
- */
-export const syncExpensesData = syncExpenses;
