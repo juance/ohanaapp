@@ -36,6 +36,7 @@ export interface Ticket {
   updated_at?: string;
   created_at?: string;
   valet_quantity?: number;
+  updatedAt?: string;
 }
 
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
