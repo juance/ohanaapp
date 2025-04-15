@@ -5,22 +5,10 @@ import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
 import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 import { DataStatusIndicator } from '@/components/ui/data-status-indicator';
 import { useInterval } from '@/hooks/use-interval';
+import { SyncStatus, SyncStats, SyncStatusResponse } from '@/lib/types/sync.types';
 
 type ConnectionStatus = 'online' | 'offline';
 type SyncStatusState = 'idle' | 'syncing' | 'error' | 'success';
-
-interface SyncStats {
-  tickets: number;
-  expenses: number;
-  clients: number;
-  feedback: number;
-  inventory: number;
-}
-
-interface SyncStatusResponse {
-  pending: SyncStats;
-  lastSync: string | null;
-}
 
 interface ConnectionContextType {
   connectionStatus: ConnectionStatus;
@@ -62,14 +50,25 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
   // Check for pending syncs
   const checkPendingSyncs = async () => {
     try {
-      const status: SyncStatusResponse = await getSyncStatus();
-      if (status && status.pending) {
-        const totalPending =
-          (status.pending.tickets || 0) +
-          (status.pending.expenses || 0) +
-          (status.pending.clients || 0) +
-          (status.pending.feedback || 0) +
-          (status.pending.inventory || 0);
+      const status = await getSyncStatus();
+      if (status) {
+        let totalPending = 0;
+        
+        if (status.pending) {
+          if (typeof status.pending === 'boolean') {
+            // If it's just a boolean flag, consider it as 1 pending item
+            totalPending = status.pending ? 1 : 0;
+          } else {
+            // If it's a SyncStats object, sum the values
+            const pendingStats = status.pending as SyncStats;
+            totalPending =
+              (pendingStats.tickets || 0) +
+              (pendingStats.expenses || 0) +
+              (pendingStats.clients || 0) +
+              (pendingStats.feedback || 0) +
+              (pendingStats.inventory || 0);
+          }
+        }
 
         setPendingSyncCount(totalPending);
         setIsPendingSync(totalPending > 0);

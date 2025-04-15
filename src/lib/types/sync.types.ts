@@ -5,7 +5,20 @@ export interface SyncStatus {
   clientsSync: number;
   feedbackSync: number;
   lastSync?: string;
-  pending?: boolean;
+  pending?: boolean | SyncStats;
+}
+
+export interface SyncStats {
+  tickets: number;
+  expenses: number;
+  clients: number;
+  feedback: number;
+  inventory: number;
+}
+
+export interface SyncStatusResponse {
+  pending: SyncStats;
+  lastSync: string | null;
 }
 
 export interface LocalClient {

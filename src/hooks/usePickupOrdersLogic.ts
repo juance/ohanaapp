@@ -10,7 +10,7 @@ import { Ticket } from '@/lib/types';
 
 export const usePickupOrdersLogic = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFilter, setSearchFilter] = useState('name');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);

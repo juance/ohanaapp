@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
 import { Ticket } from '@/lib/types/ticket.types';

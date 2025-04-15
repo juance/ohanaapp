@@ -37,3 +37,7 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
     return [];
   }
 };
+
+// Alias functions for backward compatibility
+export const addExpense = storeExpense;
+export const getExpenses = getStoredExpenses;

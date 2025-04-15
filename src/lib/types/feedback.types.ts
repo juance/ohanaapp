@@ -7,4 +7,5 @@ export interface CustomerFeedback {
   createdAt: string;
   pendingSync?: boolean;
   pendingDelete?: boolean;
+  synced?: boolean;
 }

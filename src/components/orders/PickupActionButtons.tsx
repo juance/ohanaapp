@@ -1,17 +1,15 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Bell, CheckCircle, Printer, Share2, XCircle } from 'lucide-react';
-import { toast } from '@/lib/toast';
-import { Ticket } from '@/lib/types';
+import { Check, Printer, Share2, X } from 'lucide-react';
 
 interface PickupActionButtonsProps {
-  tickets: Ticket[];
+  tickets: any[];
   selectedTicket: string | null;
-  handleMarkAsDelivered: (ticketId: string) => Promise<void>;
+  handleMarkAsDelivered: (ticketId: string) => void;
   handleOpenCancelDialog: () => void;
-  handlePrintTicket: () => void;
-  handleShareWhatsApp: () => void;
+  handlePrintTicket: (ticketId: string) => void;
+  handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => void;
 }
 
 const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
@@ -22,80 +20,56 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
   handlePrintTicket,
   handleShareWhatsApp
 }) => {
-  const handleNotifyClient = () => {
-    if (!selectedTicket) {
-      toast.error('Seleccione un ticket primero');
-      return;
-    }
-
-    const ticket = tickets.find(t => t.id === selectedTicket);
-    if (!ticket) {
-      toast.error('Ticket no encontrado');
-      return;
-    }
-
-    const whatsappMessage = encodeURIComponent(
-      `Hola ${ticket.clientName}, su pedido está listo para retirar en Lavandería Ohana.`
-    );
-    const whatsappUrl = `https://wa.me/${ticket.phoneNumber.replace(/\D/g, '')}?text=${whatsappMessage}`;
-
-    window.open(whatsappUrl, '_blank');
-
-    toast.success(`Notificación enviada a ${ticket.clientName}`, {
-      description: `Se notificó que su pedido está listo para retirar.`
-    });
-  };
-
+  const isButtonDisabled = !selectedTicket;
+  
+  const selectedTicketObject = tickets.find((ticket) => ticket.id === selectedTicket);
+  
   return (
-    <div className="flex flex-wrap justify-end mb-4 gap-2">
-      <Button
-        variant="outline"
-        className="flex items-center space-x-2"
-        onClick={handleNotifyClient}
-        disabled={!selectedTicket}
-      >
-        <Bell className="h-4 w-4" />
-        <span>Avisar al cliente</span>
-      </Button>
-
-      <Button
-        variant="outline"
-        className="flex items-center space-x-2"
-        onClick={handlePrintTicket}
-        disabled={!selectedTicket}
-      >
-        <Printer className="h-4 w-4" />
-        <span>IMPRIMIR</span>
-      </Button>
-
-      <Button
-        variant="outline"
-        className="flex items-center space-x-2"
-        onClick={handleShareWhatsApp}
-        disabled={!selectedTicket}
-      >
-        <Share2 className="h-4 w-4" />
-        <span>ENVIAR POR WHATSAPP</span>
-      </Button>
-
-      <Button
-        variant="destructive"
-        className="flex items-center space-x-2"
-        onClick={handleOpenCancelDialog}
-        disabled={!selectedTicket}
-      >
-        <XCircle className="h-4 w-4" />
-        <span>ANULAR</span>
-      </Button>
-
+    <div className="flex flex-wrap gap-2 mb-4">
       <Button
         variant="default"
-        className="flex items-center space-x-2 bg-green-600 hover:bg-green-700"
-        onClick={() => selectedTicket ? handleMarkAsDelivered(selectedTicket) : toast.error('Seleccione un ticket primero')}
-        disabled={!selectedTicket}
+        size="sm"
+        className="gap-1"
+        disabled={isButtonDisabled}
+        onClick={() => selectedTicket && handleMarkAsDelivered(selectedTicket)}
       >
-        <CheckCircle className="h-4 w-4" />
-        <span>ENTREGADO</span>
+        <Check className="h-4 w-4" />
+        Marcar como Entregado
+      </Button>
+      
+      <Button
+        variant="destructive"
+        size="sm" 
+        className="gap-1"
+        disabled={isButtonDisabled}
+        onClick={handleOpenCancelDialog}
+      >
+        <X className="h-4 w-4" />
+        Cancelar Ticket
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1"
+        disabled={isButtonDisabled}
+        onClick={() => selectedTicket && handlePrintTicket(selectedTicket)}
+      >
+        <Printer className="h-4 w-4" />
+        Imprimir
+      </Button>
+      
+      <Button
+        variant="outline"
+        size="sm"
+        className="gap-1"
+        disabled={isButtonDisabled || !selectedTicketObject?.phoneNumber}
+        onClick={() => selectedTicket && selectedTicketObject && 
+          handleShareWhatsApp(selectedTicket, selectedTicketObject.phoneNumber)
+        }
+      >
+        <Share2 className="h-4 w-4" />
+        Compartir por WhatsApp
       </Button>
     </div>
   );
