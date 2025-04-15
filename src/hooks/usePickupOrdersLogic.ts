@@ -16,15 +16,18 @@ export const usePickupOrdersLogic = () => {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const ticketDetailRef = useRef<HTMLDivElement>(null);
-  
+
   // Fetch tickets
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
-    queryFn: getPickupTickets
+    queryFn: getPickupTickets,
+    refetchInterval: 5000, // Refetch every 5 seconds
+    refetchOnWindowFocus: true, // Refetch when window gets focus
+    staleTime: 0 // Consider data stale immediately
   });
-  
+
   // Filter tickets based on search query
-  const filteredTickets = searchQuery.trim() 
+  const filteredTickets = searchQuery.trim()
     ? tickets.filter((ticket: Ticket) => {
         if (searchFilter === 'name' && ticket.clientName) {
           return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
@@ -34,7 +37,7 @@ export const usePickupOrdersLogic = () => {
         return false;
       })
     : tickets;
-  
+
   // Load ticket services
   const loadTicketServices = async (ticketId: string) => {
     try {
@@ -45,7 +48,7 @@ export const usePickupOrdersLogic = () => {
       setTicketServices([]);
     }
   };
-  
+
   // Handle mark as delivered
   const handleMarkAsDelivered = async (ticketId: string) => {
     try {
@@ -58,19 +61,19 @@ export const usePickupOrdersLogic = () => {
       toast.error('Error al marcar el ticket como entregado');
     }
   };
-  
+
   // Handle cancel dialog open
   const handleOpenCancelDialog = () => {
     setCancelDialogOpen(true);
   };
-  
+
   // Handle cancel ticket
   const handleCancelTicket = async () => {
     if (!selectedTicket || !cancelReason.trim()) {
       toast.error('Debe proporcionar un motivo para cancelar el ticket');
       return;
     }
-    
+
     try {
       await cancelTicket(selectedTicket, cancelReason);
       toast.success('Ticket cancelado correctamente');
@@ -83,24 +86,24 @@ export const usePickupOrdersLogic = () => {
       toast.error('Error al cancelar el ticket');
     }
   };
-  
+
   // Handle print ticket
   const handlePrintTicket = (ticketId: string) => {
     console.log('Imprimir ticket:', ticketId);
     // Implementación de impresión
   };
-  
+
   // Handle share WhatsApp
   const handleShareWhatsApp = (ticketId: string, phoneNumber?: string) => {
     if (!phoneNumber) {
       toast.error('El cliente no tiene número de teléfono registrado');
       return;
     }
-    
+
     console.log('Compartir por WhatsApp:', ticketId, phoneNumber);
     // Implementación de compartir por WhatsApp
   };
-  
+
   // Format date
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -110,7 +113,7 @@ export const usePickupOrdersLogic = () => {
       return dateString;
     }
   };
-  
+
   return {
     tickets,
     filteredTickets,
