@@ -35,9 +35,6 @@ export const useTicketSubmission = (
     }
 
     try {
-      // Generate ticket number
-      const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
-
       // Prepare dry cleaning items
       const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
         const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
@@ -58,10 +55,10 @@ export const useTicketSubmission = (
       // Store the ticket data
       const success = await storeTicket(
         {
-          ticketNumber,
           totalPrice: calculateTotal(),
           paymentMethod,
           valetQuantity: 1 // Default to 1, could be made configurable
+          // Note: removed ticketNumber as it's not in the expected type
         },
         {
           name: clientName,
@@ -74,7 +71,7 @@ export const useTicketSubmission = (
       if (success) {
         // Show success message
         toast.success('Ticket created successfully', {
-          description: `Ticket #${ticketNumber} for ${clientName}`,
+          description: `Ticket for ${clientName}`,
         });
 
         // Reset form

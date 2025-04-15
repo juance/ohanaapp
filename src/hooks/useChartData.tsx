@@ -40,13 +40,13 @@ export const useChartData = (
       // Convert weekly data to chart format
       return Object.entries(metrics.weekly.salesByDay || {}).map(([day, total]) => ({
         name: day.substring(0, 3),  // Abbreviate day names
-        total
+        total: Number(total) || 0   // Ensure total is a number
       }));
     } else if (period === 'monthly' && metrics.monthly) {
       // Convert monthly data to chart format
       return Object.entries(metrics.monthly.salesByWeek || {}).map(([week, total]) => ({
         name: week,
-        total
+        total: Number(total) || 0   // Ensure total is a number
       }));
     }
     
@@ -65,7 +65,7 @@ export const useChartData = (
         
         return {
           name: day.substring(0, 3),
-          income,
+          income: Number(income) || 0,  // Ensure income is a number
           expenses: dailyExpenseEstimate
         };
       });
@@ -76,7 +76,7 @@ export const useChartData = (
         
         return {
           name: week,
-          income,
+          income: Number(income) || 0,  // Ensure income is a number
           expenses: weeklyExpenseEstimate
         };
       });
@@ -105,7 +105,7 @@ export const useChartData = (
     // Convert to chart format
     const chartData = Object.entries(dryCleaningItems).map(([name, value]) => ({
       name,
-      value
+      value: Number(value) || 0  // Ensure value is a number
     }));
     
     // Return default data if empty

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { getStoredExpenses } from '@/lib/dataService';
 
@@ -33,7 +34,20 @@ export const useExpensesData = (): UseExpensesDataReturn => {
       const endOfDay = new Date(today);
       endOfDay.setHours(23, 59, 59, 999);
       
-      const dailyExpenses = await getStoredExpenses(startOfDay, endOfDay);
+      // Implement a try-catch to handle potential mismatch in function signature
+      let dailyExpenses = [];
+      try {
+        dailyExpenses = await getStoredExpenses();
+        // Filter for today's expenses only
+        dailyExpenses = dailyExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          return expDate >= startOfDay && expDate <= endOfDay;
+        });
+      } catch (err) {
+        console.error("Error fetching daily expenses:", err);
+        dailyExpenses = [];
+      }
+      
       const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       
       // Get expenses for current week
@@ -45,7 +59,20 @@ export const useExpensesData = (): UseExpensesDataReturn => {
       endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
       endOfWeek.setHours(23, 59, 59, 999);
       
-      const weeklyExpenses = await getStoredExpenses(startOfWeek, endOfWeek);
+      // Try-catch for weekly expenses
+      let weeklyExpenses = [];
+      try {
+        weeklyExpenses = await getStoredExpenses();
+        // Filter for this week's expenses
+        weeklyExpenses = weeklyExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          return expDate >= startOfWeek && expDate <= endOfWeek;
+        });
+      } catch (err) {
+        console.error("Error fetching weekly expenses:", err);
+        weeklyExpenses = [];
+      }
+      
       const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       
       // Get expenses for current month
@@ -53,7 +80,20 @@ export const useExpensesData = (): UseExpensesDataReturn => {
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       endOfMonth.setHours(23, 59, 59, 999);
       
-      const monthlyExpenses = await getStoredExpenses(startOfMonth, endOfMonth);
+      // Try-catch for monthly expenses
+      let monthlyExpenses = [];
+      try {
+        monthlyExpenses = await getStoredExpenses();
+        // Filter for this month's expenses
+        monthlyExpenses = monthlyExpenses.filter(exp => {
+          const expDate = new Date(exp.date);
+          return expDate >= startOfMonth && expDate <= endOfMonth;
+        });
+      } catch (err) {
+        console.error("Error fetching monthly expenses:", err);
+        monthlyExpenses = [];
+      }
+      
       const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
       
       setExpenses({
