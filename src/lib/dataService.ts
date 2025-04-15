@@ -4,6 +4,7 @@ import { syncFeedback } from './data/sync/feedbackSync';
 import { updateSyncStatus, getSyncStatus as getSyncStatusFn } from './data/sync/syncStatusService';
 import { SyncStatus, Customer, ClientVisit } from './types';
 import { syncComprehensive } from './data/sync/comprehensiveSync';
+import { addExpense, getExpenses } from './data/expenseService';
 
 /**
  * Comprehensive sync of all offline data with the Supabase backend
@@ -72,4 +73,7 @@ export { getCustomerByPhone } from './data/customer/customerRetrievalService';
 export { storeTicket } from './data/ticket/ticketStorageService';
 export { getClientVisitFrequency } from './data/clientService';
 export { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
-export { storeExpense, getStoredExpenses } from './data/expenseService';
+
+// Export the expense-related functions with aliases for compatibility
+export const storeExpense = addExpense;
+export const getStoredExpenses = getExpenses;

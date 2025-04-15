@@ -24,7 +24,7 @@ export const getExpenses = async (): Promise<Expense[]> => {
       description: item.description,
       amount: item.amount,
       date: item.date,
-      category: (item.category as ExpenseCategory) || 'other', // Valor por defecto si no existe
+      category: item.category as ExpenseCategory || 'other', // Valor por defecto si no existe
       created_at: item.created_at
     }));
   } catch (error) {
@@ -116,4 +116,13 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
     
     return false;
   }
+};
+
+// Additional functions for compatibility with existing code
+export const storeExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense> => {
+  return await addExpense(expense);
+};
+
+export const getStoredExpenses = async (): Promise<Expense[]> => {
+  return await getExpenses();
 };
