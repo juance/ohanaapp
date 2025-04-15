@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
 import { Ticket } from '@/lib/types/ticket.types';
@@ -182,5 +181,56 @@ export const cancelTicket = async (ticketId: string, reason: string) => {
       } as GenericStringError;
     }
     throw error;
+  }
+};
+
+/**
+ * Gets tickets that have not been retrieved by customers after a specified number of days
+ * @param days Number of days to look back
+ * @returns Array of unretrieved tickets
+ */
+export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => {
+  try {
+    const now = new Date();
+    
+    // Calculate the date X days ago
+    const dateXDaysAgo = new Date(now);
+    dateXDaysAgo.setDate(now.getDate() - days);
+    
+    // Query for tickets that are ready but haven't been retrieved since X days ago
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, customers(name, phone)')
+      .eq('status', 'ready')
+      .eq('is_canceled', false)
+      .lt('created_at', dateXDaysAgo.toISOString())
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    
+    // Map the data to the application's expected format
+    return (data || []).map(ticket => {
+      const customerData = ticket.customers as { name: string; phone: string } | null;
+      
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerData?.name || 'Cliente sin nombre',
+        phoneNumber: customerData?.phone || '',
+        totalPrice: ticket.total,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        // Mantener los campos originales también
+        ...ticket
+      };
+    });
+  } catch (error) {
+    console.error(`Error al obtener tickets no retirados después de ${days} días:`, error);
+    return [];
   }
 };
