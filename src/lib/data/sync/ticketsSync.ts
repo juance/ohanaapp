@@ -4,10 +4,6 @@ import { Ticket } from '@/lib/types/ticket.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { TICKETS_STORAGE_KEY } from '@/lib/types/error.types';
 
-/**
- * Syncs ticket data with the Supabase backend
- * @returns The number of tickets synced
- */
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
@@ -62,16 +58,15 @@ export const syncTickets = async (): Promise<number> => {
           .from('tickets')
           .insert({
             id: ticket.id,
-            ticket_number: ticket.ticketNumber,
-            basket_ticket_number: ticket.basketTicketNumber,
+            ticket_number: ticket.ticketNumber || ticket.ticket_number,
+            basket_ticket_number: ticket.basketTicketNumber || ticket.basket_ticket_number,
             total: ticket.totalPrice,
             payment_method: ticket.paymentMethod,
             status: ticket.status,
             valet_quantity: ticket.valetQuantity,
             is_paid: ticket.isPaid,
             customer_id: customerId,
-            date: ticket.createdAt,
-            created_at: ticket.createdAt
+            date: ticket.createdAt
           });
 
         if (ticketError) {
@@ -79,14 +74,13 @@ export const syncTickets = async (): Promise<number> => {
           continue;
         }
 
-        // Handle dry cleaning items if any
+        // Handle dry cleaning items
         if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
           const dryCleaningItemsToInsert = ticket.dryCleaningItems.map((item) => ({
             ticket_id: ticket.id,
             name: item.name,
             price: item.price,
-            quantity: item.quantity,
-            notes: ''
+            quantity: item.quantity || 1
           }));
 
           const { error: dryCleaningError } = await supabase
@@ -98,7 +92,7 @@ export const syncTickets = async (): Promise<number> => {
           }
         }
 
-        // Handle laundry options if any
+        // Handle laundry options
         if (ticket.laundryOptions && ticket.laundryOptions.length > 0) {
           const laundryOptionsToInsert = ticket.laundryOptions.map((option) => ({
             ticket_id: ticket.id,
@@ -120,19 +114,16 @@ export const syncTickets = async (): Promise<number> => {
           localTickets[index].pendingSync = false;
         }
         syncedCount++;
-
-        console.log(`Synced ticket ${ticket.ticketNumber} successfully`);
       } catch (ticketSyncError) {
         console.error(`Error syncing ticket:`, ticketSyncError);
       }
     }
 
-    // Save updated tickets to local storage
     saveToLocalStorage(TICKETS_STORAGE_KEY, localTickets);
 
     return syncedCount;
   } catch (error) {
-    console.error('Error in syncTickets:', error);
+    console.error('Error syncing tickets:', error);
     return 0;
   }
 };

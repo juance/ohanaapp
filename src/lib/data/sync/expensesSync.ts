@@ -33,7 +33,7 @@ export const syncExpenses = async (): Promise<number> => {
 
         if (error) throw error;
 
-        // Actualizar el estado local
+        // Update local state
         const index = localExpenses.findIndex(e => e.id === expense.id);
         if (index !== -1) {
           localExpenses[index].pendingSync = false;

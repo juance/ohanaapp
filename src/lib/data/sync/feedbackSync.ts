@@ -4,10 +4,6 @@ import { CustomerFeedback } from '@/lib/types/feedback.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { FEEDBACK_STORAGE_KEY } from '@/lib/types/error.types';
 
-/**
- * Syncs feedback data with the Supabase backend
- * @returns The number of records synced
- */
 export const syncFeedback = async (): Promise<number> => {
   try {
     // Get locally stored feedback
@@ -18,7 +14,6 @@ export const syncFeedback = async (): Promise<number> => {
 
     for (const feedback of feedbackToDelete) {
       try {
-        // Send delete request to Supabase
         const { error } = await supabase
           .from('customer_feedback')
           .delete()
@@ -29,7 +24,6 @@ export const syncFeedback = async (): Promise<number> => {
           continue;
         }
 
-        // Remove from local array if successfully deleted
         const index = localFeedback.findIndex(f => f.id === feedback.id);
         if (index !== -1) {
           localFeedback.splice(index, 1);
@@ -58,7 +52,6 @@ export const syncFeedback = async (): Promise<number> => {
 
         if (error) throw error;
 
-        // Actualizar el estado local
         const index = localFeedback.findIndex(f => f.id === feedback.id);
         if (index !== -1) {
           localFeedback[index].pendingSync = false;
@@ -69,7 +62,6 @@ export const syncFeedback = async (): Promise<number> => {
       }
     }
 
-    // Save updated local data
     saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
 
     return syncedCount + feedbackToDelete.length;

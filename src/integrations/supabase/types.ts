@@ -505,6 +505,10 @@ export type Database = {
           created_at: string
         }[]
       }
+      get_column_exists: {
+        Args: { table_name: string; column_name: string }
+        Returns: boolean
+      }
       get_next_ticket_number: {
         Args: Record<PropertyKey, never>
         Returns: string
