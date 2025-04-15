@@ -13,6 +13,9 @@ interface TicketPrintContentProps {
  * Content component for the ticket print preview
  */
 const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selectedOptions }) => {
+  // Ensure services property exists
+  const services = ticket.services || [];
+  
   return (
     <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
       <div className="text-center mb-4">
@@ -50,15 +53,15 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       
       <div className="flex space-x-6 mb-4">
         <div className="flex items-center">
-          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${ticket.services.some(s => s.name.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
-            {ticket.services.some(s => s.name.includes('Valet')) && '✓'}
+          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
+            {services.some(s => s.name?.includes('Valet')) && '✓'}
           </div>
           <span>Lavandería</span>
         </div>
         
         <div className="flex items-center">
-          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${ticket.services.some(s => !s.name.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
-            {ticket.services.some(s => !s.name.includes('Valet')) && '✓'}
+          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => !s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
+            {services.some(s => !s.name?.includes('Valet')) && '✓'}
           </div>
           <span>Tintorería</span>
         </div>
@@ -66,7 +69,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       
       {/* Display services with quantities */}
       <div className="mb-4">
-        {ticket.services.map((service, index) => (
+        {services.map((service, index) => (
           <div key={index} className="flex justify-between items-center my-1">
             <div className="flex items-center">
               <div className="w-4 h-4 border border-gray-400 mr-2 bg-blue-500 text-white flex items-center justify-center">✓</div>
@@ -93,7 +96,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Cantidad:</span>
-          <span>{ticket.services.reduce((sum, service) => {
+          <span>{services.reduce((sum, service) => {
             const quantity = 'quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1;
             return sum + quantity;
           }, 0)}</span>

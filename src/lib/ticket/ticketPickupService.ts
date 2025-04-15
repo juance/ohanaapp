@@ -107,3 +107,58 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
     throw error;
   }
 };
+
+// Agregamos la función faltante para obtener tickets
+export const getPickupTickets = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('status', 'ready')
+      .eq('is_canceled', false)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error al obtener tickets para recoger:', error);
+    return [];
+  }
+};
+
+// Agregamos la función para cancelar tickets
+export const cancelTicket = async (ticketId: string, reason: string) => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .update({
+        is_canceled: true,
+        cancel_reason: reason
+      })
+      .eq('id', ticketId)
+      .select()
+      .single();
+
+    if (error) {
+      throw {
+        message: `Error al cancelar el ticket: ${error.message}`,
+        id: ticketId
+      } as GenericStringError;
+    }
+
+    return {
+      success: true,
+      message: 'Ticket cancelado correctamente',
+      data
+    };
+  } catch (error) {
+    console.error('Error al cancelar el ticket:', error);
+    if (error instanceof Error) {
+      throw {
+        message: error.message,
+        id: ticketId
+      } as GenericStringError;
+    }
+    throw error;
+  }
+};

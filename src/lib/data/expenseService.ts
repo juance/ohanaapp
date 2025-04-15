@@ -1,62 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
 import { Expense, ExpenseCategory } from '@/lib/types';
+import { v4 as uuidv4 } from 'uuid';
+import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
 import { EXPENSES_STORAGE_KEY } from '@/lib/types/error.types';
 
-// Helper functions for localStorage interaction
-const getStorageData = <T>(key: string): T | null => {
+/**
+ * Obtener todos los gastos
+ */
+export const getExpenses = async (): Promise<Expense[]> => {
   try {
-    const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : null;
-  } catch (e) {
-    console.error(`Error getting ${key} from localStorage:`, e);
-    return null;
-  }
-};
-
-const saveStorageData = <T>(key: string, data: T): void => {
-  try {
-    localStorage.setItem(key, JSON.stringify(data));
-  } catch (e) {
-    console.error(`Error saving ${key} to localStorage:`, e);
-  }
-};
-
-export const storeExpense = async (expenseData: Omit<Expense, 'id' | 'created_at'>): Promise<Expense | null> => {
-  try {
-    const newExpense: Expense = {
-      id: uuidv4(),
-      ...expenseData,
-      created_at: new Date().toISOString(),
-      pendingSync: false
-    };
-    
-    // Try to add to Supabase
-    const { data, error } = await supabase
-      .from('expenses')
-      .insert({
-        description: newExpense.description,
-        amount: newExpense.amount,
-        category: newExpense.category,
-        date: newExpense.date
-      })
-      .select()
-      .single();
-    
-    if (error) {
-      throw error;
-    }
-    
-    return newExpense;
-  } catch (error) {
-    console.error('Error storing expense:', error);
-    return null;
-  }
-};
-
-export const getStoredExpenses = async (): Promise<Expense[]> => {
-  try {
+    // Intentar obtener gastos de la API
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
@@ -64,17 +18,102 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
     
     if (error) throw error;
     
-    return data.map(item => ({
+    // Si la API responde correctamente, formatear y devolver los datos
+    return (data || []).map(item => ({
       id: item.id,
-      description: item.description || '',
+      description: item.description,
       amount: item.amount,
-      category: (item.category as ExpenseCategory) || ExpenseCategory.OTHER,
       date: item.date,
-      created_at: item.created_at,
-      pendingSync: false
+      category: item.category as ExpenseCategory,
+      created_at: item.created_at
     }));
   } catch (error) {
-    console.error('Error getting expenses:', error);
-    return [];
+    console.error('Error getting expenses from API, falling back to local storage:', error);
+    
+    // Si hay un error, obtener los datos del almacenamiento local
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    return localExpenses;
+  }
+};
+
+/**
+ * Agregar un nuevo gasto
+ */
+export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense> => {
+  try {
+    const newExpense: Expense = {
+      ...expense,
+      id: uuidv4(),
+      pendingSync: true
+    };
+    
+    // Intentar guardar en la API
+    const { error } = await supabase
+      .from('expenses')
+      .insert({
+        id: newExpense.id,
+        description: newExpense.description,
+        amount: newExpense.amount,
+        date: newExpense.date,
+        category: newExpense.category
+      });
+    
+    if (error) throw error;
+    
+    // Si se guarda correctamente en la API, no es necesario marcarlo como pendiente
+    newExpense.pendingSync = false;
+    
+    // Guardar en almacenamiento local (con o sin sincronización pendiente)
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    localExpenses.push(newExpense);
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
+    
+    return newExpense;
+  } catch (error) {
+    console.error('Error saving expense to API, stored locally:', error);
+    
+    // Si hay un error, guardar solo localmente con marca de sincronización pendiente
+    const newExpense: Expense = {
+      ...expense,
+      id: uuidv4(),
+      pendingSync: true
+    };
+    
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    localExpenses.push(newExpense);
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
+    
+    return newExpense;
+  }
+};
+
+/**
+ * Eliminar un gasto
+ */
+export const deleteExpense = async (id: string): Promise<boolean> => {
+  try {
+    // Intentar eliminar de la API
+    const { error } = await supabase
+      .from('expenses')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    // Si se elimina correctamente de la API, eliminar del almacenamiento local
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const updatedExpenses = localExpenses.filter(expense => expense.id !== id);
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, updatedExpenses);
+    
+    return true;
+  } catch (error) {
+    console.error('Error deleting expense from API:', error);
+    
+    // Si hay un error en la API, intentar eliminar solo localmente
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const updatedExpenses = localExpenses.filter(expense => expense.id !== id);
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, updatedExpenses);
+    
+    return false;
   }
 };

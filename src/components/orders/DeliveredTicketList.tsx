@@ -56,7 +56,7 @@ const DeliveredTicketList: React.FC<DeliveredTicketListProps> = ({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Fecha de entrega:</span>
-                <span>{formatDate(ticket.deliveredDate || '')}</span>
+                <span>{formatDate(ticket.deliveredDate || ticket.deliveredAt || '')}</span>
               </div>
             </div>
             <div className="flex justify-between items-center mt-3">
