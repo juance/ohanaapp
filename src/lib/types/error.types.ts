@@ -28,15 +28,7 @@ export interface GenericStringError {
 }
 
 // Categorías de gastos
-export enum ExpenseCategory {
-  UTILITIES = 'utilities',
-  SUPPLIES = 'supplies',
-  RENT = 'rent',
-  PAYROLL = 'payroll',
-  MARKETING = 'marketing',
-  MAINTENANCE = 'maintenance',
-  OTHER = 'other'
-}
+export type ExpenseCategory = 'utilities' | 'supplies' | 'rent' | 'payroll' | 'marketing' | 'maintenance' | 'other';
 
 // Constantes para almacenamiento local
 export const EXPENSES_STORAGE_KEY = 'expenses';
