@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
-import { Expense, ExpenseCategory } from '@/lib/types';
+// import { toast } from 'react-hot-toast';
+import { Expense } from '@/lib/types/expense.types';
+import { ExpenseCategory } from '@/lib/types/error.types';
 import { storeExpense, getStoredExpenses } from '@/lib/data/expenseService';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,41 +32,41 @@ const Expenses = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!description || !amount || !date) {
       toast.error('Please fill out all fields');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     const result = await storeExpense({
       description,
       amount: parseFloat(amount.toString()),
       date,
       category: 'operations' // Adding default category
     });
-    
+
     if (result) {
       toast.success('Expense added successfully');
       setDescription('');
       setAmount(0);
       setDate('');
-      
+
       // Refresh expenses list
       const updatedExpenses = await getStoredExpenses();
       setExpenses(updatedExpenses);
     } else {
       toast.error('Failed to add expense');
     }
-    
+
     setIsSubmitting(false);
   };
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Expenses</h1>
-      
+
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -117,12 +118,12 @@ const Expenses = () => {
             </Popover>
           </div>
         </div>
-        
+
         <Button type="submit" disabled={isSubmitting} className="mt-4">
           {isSubmitting ? 'Submitting...' : 'Add Expense'}
         </Button>
       </form>
-      
+
       <div>
         <h2 className="text-xl font-semibold mb-2">Expense List</h2>
         {expenses.length === 0 ? (

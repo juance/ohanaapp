@@ -120,19 +120,19 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
+
     // Mapear los datos de la BD al formato que espera la aplicación
     return (data || []).map(ticket => {
       // Safely handle the customer data, ensuring it's not an error object
       let customerName = 'Cliente sin nombre';
       let customerPhone = '';
-      
-      if (ticket.customers && typeof ticket.customers === 'object' && 
+
+      if (ticket.customers && typeof ticket.customers === 'object' &&
           'name' in ticket.customers && 'phone' in ticket.customers) {
-        customerName = ticket.customers.name || customerName;
-        customerPhone = ticket.customers.phone || customerPhone;
+        customerName = ticket.customers?.name || customerName;
+        customerPhone = ticket.customers?.phone || customerPhone;
       }
-      
+
       return {
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
@@ -164,11 +164,11 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => {
   try {
     const now = new Date();
-    
+
     // Calculate the date X days ago
     const dateXDaysAgo = new Date(now);
     dateXDaysAgo.setDate(now.getDate() - days);
-    
+
     // Query for tickets that are ready but haven't been retrieved since X days ago
     const { data, error } = await supabase
       .from('tickets')
@@ -177,21 +177,21 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       .eq('is_canceled', false)
       .lt('created_at', dateXDaysAgo.toISOString())
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     // Map the data to the application's expected format
     return (data || []).map(ticket => {
       // Safely handle the customer data, ensuring it's not an error object
       let customerName = 'Cliente sin nombre';
       let customerPhone = '';
-      
-      if (ticket.customers && typeof ticket.customers === 'object' && 
+
+      if (ticket.customers && typeof ticket.customers === 'object' &&
           'name' in ticket.customers && 'phone' in ticket.customers) {
-        customerName = ticket.customers.name || customerName;
-        customerPhone = ticket.customers.phone || customerPhone;
+        customerName = ticket.customers?.name || customerName;
+        customerPhone = ticket.customers?.phone || customerPhone;
       }
-      
+
       return {
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
@@ -212,5 +212,44 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
   } catch (error) {
     console.error(`Error al obtener tickets no retirados después de ${days} días:`, error);
     return [];
+  }
+};
+
+/**
+ * Cancels a ticket by updating its status to 'canceled' and setting is_canceled to true
+ * @param ticketId The ID of the ticket to cancel
+ * @param reason Optional reason for cancellation
+ * @returns The updated ticket or an error object
+ */
+export const cancelTicket = async (ticketId: string, reason?: string): Promise<any> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .update({
+        status: 'canceled',
+        is_canceled: true,
+        cancel_reason: reason || 'No reason provided'
+      })
+      .eq('id', ticketId)
+      .select()
+      .single();
+
+    if (error) {
+      throw {
+        message: `Error canceling ticket: ${error.message}`,
+        id: ticketId
+      } as GenericStringError;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error canceling ticket:', error);
+    if (error instanceof Error) {
+      throw {
+        message: error.message,
+        id: ticketId
+      } as GenericStringError;
+    }
+    throw error;
   }
 };
