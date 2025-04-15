@@ -1,13 +1,18 @@
 
-export type ExpenseCategory = 'supplies' | 'utilities' | 'rent' | 'salaries' | 'other';
-
 export interface Expense {
   id: string;
-  date: string;
-  category: ExpenseCategory;
+  description: string;
   amount: number;
-  description?: string;
-  createdAt?: string;
+  date: string;
+  category?: string;
+  created_at?: string;
   pendingSync?: boolean;
   synced?: boolean;
 }
+
+export interface ExpenseServiceInterface {
+  storeExpense: (expense: Omit<Expense, 'id'>) => Promise<Expense | null>;
+  getStoredExpenses: () => Promise<Expense[]>;
+}
+
+export const EXPENSES_STORAGE_KEY = 'expenses';
