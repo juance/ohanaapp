@@ -30,16 +30,24 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
   };
 
   const handleClearResolved = async () => {
-    const count = await clearResolvedErrors();
-    if (count > 0) {
+    try {
+      const count = await clearResolvedErrors();
+      if (count > 0) {
+        toast({
+          title: "Errores resueltos eliminados",
+          description: `Se han eliminado ${count} errores resueltos.`
+        });
+      } else {
+        toast({
+          title: "No hay errores resueltos",
+          description: "No hay errores resueltos para eliminar."
+        });
+      }
+    } catch (error) {
+      console.error("Error clearing resolved errors:", error);
       toast({
-        title: "Errores resueltos eliminados",
-        description: `Se han eliminado ${count} errores resueltos.`
-      });
-    } else {
-      toast({
-        title: "No hay errores resueltos",
-        description: "No hay errores resueltos para eliminar."
+        title: "Error",
+        description: "No se pudieron eliminar los errores resueltos."
       });
     }
   };
