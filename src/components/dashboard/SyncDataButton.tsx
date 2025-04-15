@@ -22,8 +22,10 @@ export const SyncDataButton = () => {
     toast.info('Iniciando sincronización de datos...');
     
     try {
-      // Transform the result to match our SyncStatus interface
+      // Call the synchronization function
       const result = await syncAllData();
+      
+      // Map the result fields to match our SyncStatus interface
       const mappedResult: SyncStatus = {
         ticketsSync: result.tickets || 0,
         expensesSync: result.expenses || 0,

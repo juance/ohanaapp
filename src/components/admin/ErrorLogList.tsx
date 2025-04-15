@@ -29,8 +29,8 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
     }
   };
 
-  const handleClearResolved = () => {
-    const count = clearResolvedErrors();
+  const handleClearResolved = async () => {
+    const count = await clearResolvedErrors();
     if (count > 0) {
       toast({
         title: "Errores resueltos eliminados",

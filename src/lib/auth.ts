@@ -23,8 +23,8 @@ export const login = (phoneNumber: string, password: string): Promise<User> => {
         resolve({
           id: 'admin-001',
           name: 'Admin General',
-          phoneNumber: '1123989718',
           role: 'admin',
+          phoneNumber: '1123989718',
         });
       } 
       // Demo users for testing
@@ -40,14 +40,14 @@ export const login = (phoneNumber: string, password: string): Promise<User> => {
           id: '2',
           name: 'Cashier User',
           email: 'cashier@example.com',
-          role: 'operator',
+          role: 'staff',
         });
       } else if (phoneNumber === 'operator@example.com' && password === 'password') {
         resolve({
           id: '3',
           name: 'Operator User',
           email: 'operator@example.com',
-          role: 'operator',
+          role: 'staff',
         });
       } else if (phoneNumber.startsWith('+') && checkTemporaryPassword(phoneNumber, password)) {
         // Phone login with temporary password
@@ -123,7 +123,7 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
         id: phoneNumber,
         name: 'Usuario Temporal',
         phoneNumber: phoneNumber,
-        role: 'client', // This is now a valid Role
+        role: 'staff', // Changed from 'client' to 'staff' to match allowed Role values
         requiresPasswordChange: true
       };
       

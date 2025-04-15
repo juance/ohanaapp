@@ -8,6 +8,7 @@ export interface Customer {
   freeValets: number;
   createdAt: string;
   updatedAt: string;
+  lastVisit?: string;
   phoneNumber?: string; // Added for compatibility with components using phoneNumber
   valetsRedeemed?: number; // Added for compatibility
 }
@@ -32,6 +33,8 @@ export interface CustomerFeedback {
   comment: string;
   rating: number;
   createdAt: string;
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 // Inventory related types
@@ -53,9 +56,9 @@ export interface Expense {
   category: ExpenseCategory;
   amount: number;
   description?: string;
-  createdAt?: string; // Added for compatibility
-  pendingSync?: boolean; // Added for sync functionality
-  synced?: boolean; // Added for sync functionality
+  createdAt?: string; 
+  pendingSync?: boolean;
+  synced?: boolean;
 }
 
 // Feedback related types
@@ -106,14 +109,9 @@ export interface Ticket {
   usesFreeValet?: boolean;
   isCanceled?: boolean;
   deliveredAt?: string;
-}
-
-export interface LaundryService {
-  id: string;
-  name: string;
-  price: number;
-  isSelected?: boolean;
-  quantity?: number;
+  dryCleaningItems?: Array<DryCleaningItem>;
+  laundryOptions?: Array<LaundryOption>;
+  pendingSync?: boolean;
 }
 
 // Dashboard related types
@@ -133,6 +131,8 @@ export interface DailyMetrics {
   totalRevenue: number;
   salesByHour: Record<string, number>;
   dryCleaningItems: Record<string, number>;
+  totalSales: number;
+  valetCount: number;
   paymentMethods?: {
     cash: number;
     debit: number;
@@ -147,6 +147,8 @@ export interface WeeklyMetrics {
   totalRevenue: number;
   salesByDay: Record<string, number>;
   dryCleaningItems: Record<string, number>;
+  totalSales: number;
+  valetCount: number;
   paymentMethods?: {
     cash: number;
     debit: number;
@@ -160,7 +162,10 @@ export interface MonthlyMetrics {
   paidTickets: number;
   totalRevenue: number;
   salesByWeek: Record<string, number>;
+  salesByDay: Record<string, number>;
   dryCleaningItems: Record<string, number>;
+  totalSales: number;
+  valetCount: number;
   paymentMethods?: {
     cash: number;
     debit: number;
@@ -181,6 +186,7 @@ export interface SyncStatus {
   expensesSync: number;
   clientsSync: number;
   feedbackSync: number;
+  lastSync?: string;
 }
 
 // Local storage types
@@ -219,11 +225,24 @@ export interface LocalMetrics {
 }
 
 // User and auth related types
+export type Role = 'admin' | 'staff' | 'manager';
+
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   name?: string;
   role: Role;
+  phoneNumber?: string;
+  requiresPasswordChange?: boolean;
 }
 
-export type Role = 'admin' | 'staff' | 'manager';
+// System Error type for error logging
+export interface SystemError {
+  id: string;
+  message: string;
+  stack?: string;
+  timestamp: Date;
+  context: Record<string, any>;
+  resolved: boolean;
+  component?: string;
+}
