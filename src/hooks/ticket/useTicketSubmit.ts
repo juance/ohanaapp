@@ -6,6 +6,7 @@ import { storeTicket } from '@/lib/dataService';
 import { updateDashboardMetrics } from '@/lib/services/metricsService';
 import { createTicketForPreview } from '@/lib/services/ticketPreviewService';
 import { validateTicketInput } from '@/lib/services/ticketValidationService';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Types for the form state
 interface TicketFormState {
@@ -31,13 +32,14 @@ export const useTicketSubmit = (
   onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void
 ) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) return;
     setIsSubmitting(true);
-    
+
     try {
       const {
         customerName,
@@ -56,23 +58,23 @@ export const useTicketSubmit = (
         resetTicketFormState,
         isPaidInAdvance
       } = formState;
-      
+
       // Validate form input
       if (!validateTicketInput(
-        customerName, 
-        phoneNumber, 
-        activeTab, 
-        valetQuantity, 
-        useFreeValet, 
+        customerName,
+        phoneNumber,
+        activeTab,
+        valetQuantity,
+        useFreeValet,
         selectedDryCleaningItems
       )) {
         setIsSubmitting(false);
         return;
       }
-      
+
       // Adjust the valet quantity if using a free one
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
-      
+
       // Prepare ticket data
       const ticketData = {
         totalPrice: useFreeValet ? 0 : totalPrice, // If it's free, set price to 0
@@ -82,15 +84,15 @@ export const useTicketSubmit = (
         usesFreeValet: useFreeValet, // Indicate if a free valet is being used
         isPaidInAdvance: isPaidInAdvance // Add the paid in advance flag
       };
-      
+
       // Prepare customer data
       const customerData = {
         name: customerName,
         phoneNumber,
       };
-      
+
       // Prepare dry cleaning items
-      const dryCleaningItemsData = activeTab === 'tintoreria' 
+      const dryCleaningItemsData = activeTab === 'tintoreria'
         ? selectedDryCleaningItems.map(item => {
             const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
             return {
@@ -100,10 +102,10 @@ export const useTicketSubmit = (
             };
           })
         : [];
-      
+
       // Collect laundry options
       const laundryOptions = getSelectedLaundryOptions();
-      
+
       // Store the ticket
       const success = await storeTicket(
         ticketData,
@@ -128,6 +130,9 @@ export const useTicketSubmit = (
           // This error shouldn't block the ticket creation process
         }
 
+        // Invalidate the pickupTickets query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+
         // Show success message
         if (useFreeValet) {
           toast.success('Ticket de valet gratis generado correctamente');
@@ -136,7 +141,7 @@ export const useTicketSubmit = (
         } else {
           toast.success('Ticket generado correctamente');
         }
-        
+
         // Create a ticket object for printing
         if (onTicketGenerated) {
           const ticketForPrint = await createTicketForPreview(
@@ -151,10 +156,10 @@ export const useTicketSubmit = (
             useFreeValet,
             isPaidInAdvance || false
           );
-          
+
           onTicketGenerated(ticketForPrint, laundryOptions);
         }
-        
+
         // Reset form
         resetCustomerForm();
         resetValetForm();

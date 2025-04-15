@@ -3,6 +3,7 @@ import { toast } from '@/lib/toast';
 import { storeTicket } from '@/lib/dataService';
 import { PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { useFormValidation } from './useFormValidation';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useTicketSubmission = (
   clientName: string,
@@ -18,6 +19,7 @@ export const useTicketSubmission = (
   resetForm: () => void
 ) => {
   const { validateClientInfo, validateServices } = useFormValidation();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +70,9 @@ export const useTicketSubmission = (
       );
 
       if (success) {
+        // Invalidate the pickupTickets query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+
         // Show success message
         toast.success('Ticket created successfully', {
           description: `Ticket for ${clientName}`,
