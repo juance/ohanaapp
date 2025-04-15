@@ -7,7 +7,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
   try {
     // First try to get items from Supabase
     const { data, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')  // Changed from 'inventory' to 'inventory_items' to match Supabase table name
       .select('*')
       .order('name');
     
@@ -17,12 +17,12 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
     
     // Transform to our internal format
     return data.map(item => ({
-      id: item.id,
+      id: String(item.id),  // Ensure id is a string
       name: item.name,
       quantity: item.quantity,
       threshold: item.threshold,
       unit: item.unit,
-      lastUpdated: item.updated_at
+      lastUpdated: item.updated_at || item.created_at
     }));
   } catch (error) {
     console.error('Error fetching inventory from Supabase:', error);

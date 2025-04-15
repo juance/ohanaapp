@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Expense } from '../types';
+import { Expense, ExpenseCategory } from '../types';
 
 export const storeExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<Expense | null> => {
   try {
@@ -77,7 +77,7 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
       id: item.id,
       description: item.description,
       amount: item.amount,
-      category: item.category,
+      category: item.category as ExpenseCategory || 'other',
       date: item.date,
       createdAt: item.created_at
     }));

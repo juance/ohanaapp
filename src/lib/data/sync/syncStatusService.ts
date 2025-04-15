@@ -42,7 +42,7 @@ export const updateSyncStatus = async (status: Partial<SyncStatus>): Promise<boo
     const updatedStatus: SyncStatus = {
       ...currentStatus,
       ...status,
-      lastSync: new Date().toISOString()
+      lastSync: status.lastSync || new Date().toISOString()
     };
     
     // Save updated status
@@ -64,7 +64,8 @@ export const setPendingSyncStatus = async (pending: boolean): Promise<boolean> =
     // Update with new pending value
     const updatedStatus: SyncStatus = {
       ...currentStatus,
-      pending
+      pending,
+      lastSync: new Date().toISOString()
     };
     
     // Save updated status

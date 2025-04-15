@@ -27,10 +27,10 @@ export const SyncDataButton = () => {
       
       // Create a SyncStatus object from the result
       const mappedResult: SyncStatus = {
-        ticketsSync: result.tickets || 0,
-        expensesSync: result.expenses || 0,
-        clientsSync: result.clients || 0,
-        feedbackSync: result.feedback || 0
+        ticketsSync: result.tickets,
+        expensesSync: result.expenses,
+        clientsSync: result.clients,
+        feedbackSync: result.feedback
       };
       
       setSyncStatus(mappedResult);

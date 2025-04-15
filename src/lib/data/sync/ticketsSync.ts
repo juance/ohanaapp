@@ -1,7 +1,10 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, TICKETS_STORAGE_KEY } from '../coreUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+
+const TICKETS_STORAGE_KEY = 'tickets';
 
 /**
  * Synchronize locally stored tickets with Supabase
@@ -10,7 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
-    const localTickets = getFromLocalStorage(TICKETS_STORAGE_KEY);
+    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
     
     // Check if there are tickets to sync
     const ticketsToSync = localTickets.filter(ticket => ticket.pendingSync);
@@ -28,31 +31,35 @@ export const syncTickets = async (): Promise<number> => {
     // Process each ticket
     for (const ticket of ticketsToSync) {
       try {
-        // Find or create customer
+        // First try to get or create customer
         let customerId: string | null = null;
         
-        // Check if customer exists by phone
-        const { data: existingCustomer } = await supabase
-          .from('customers')
-          .select('id')
-          .eq('phone', ticket.phoneNumber)
-          .maybeSingle();
-        
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-        } else {
-          // Create customer
-          const { data: newCustomer, error: customerError } = await supabase
+        if (ticket.phoneNumber) {
+          // Check if customer exists
+          const { data: existingCustomer } = await supabase
             .from('customers')
-            .insert({
-              name: ticket.clientName,
-              phone: ticket.phoneNumber
-            })
             .select('id')
-            .single();
-          
-          if (customerError) throw customerError;
-          customerId = newCustomer.id;
+            .eq('phone', ticket.phoneNumber)
+            .maybeSingle();
+            
+          if (existingCustomer) {
+            customerId = existingCustomer.id;
+          } else {
+            // Create new customer
+            const { data: newCustomer, error: customerError } = await supabase
+              .from('customers')
+              .insert({
+                name: ticket.clientName,
+                phone: ticket.phoneNumber,
+                valets_count: ticket.valetQuantity || 0,
+                free_valets: 0
+              })
+              .select('id')
+              .single();
+              
+            if (customerError) throw customerError;
+            customerId = newCustomer.id;
+          }
         }
         
         // Create ticket in Supabase
@@ -60,52 +67,43 @@ export const syncTickets = async (): Promise<number> => {
           .from('tickets')
           .insert({
             ticket_number: ticket.ticketNumber,
-            customer_id: customerId,
+            basket_ticket_number: ticket.basketTicketNumber,
             total: ticket.totalPrice,
             payment_method: ticket.paymentMethod,
             status: ticket.status,
-            valet_quantity: ticket.valetQuantity,
+            valet_quantity: ticket.valetQuantity || 0,
             is_paid: ticket.isPaid || false,
-            date: ticket.createdAt
+            customer_id: customerId,
+            created_at: ticket.createdAt
           })
           .select('id')
           .single();
-        
+          
         if (ticketError) throw ticketError;
         
-        // Sync dry cleaning items if any
+        // Add dry cleaning items if any
         if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
-          const itemsToInsert = ticket.dryCleaningItems.map(item => ({
-            ticket_id: createdTicket.id,
-            name: item.name,
-            price: item.price,
-            quantity: item.quantity,
-            id: uuidv4()
-          }));
-          
-          const { error: itemsError } = await supabase
-            .from('dry_cleaning_items')
-            .insert(itemsToInsert);
-          
-          if (itemsError) {
-            console.error('Error syncing dry cleaning items:', itemsError);
+          for (const item of ticket.dryCleaningItems) {
+            await supabase
+              .from('dry_cleaning_items')
+              .insert({
+                ticket_id: createdTicket.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+              });
           }
         }
         
-        // Sync laundry options if any
+        // Add laundry options if any
         if (ticket.laundryOptions && ticket.laundryOptions.length > 0) {
-          const optionsToInsert = ticket.laundryOptions.map(option => ({
-            ticket_id: createdTicket.id,
-            option_type: typeof option === 'string' ? option : option.name,
-            id: uuidv4()
-          }));
-          
-          const { error: optionsError } = await supabase
-            .from('ticket_laundry_options')
-            .insert(optionsToInsert);
-          
-          if (optionsError) {
-            console.error('Error syncing laundry options:', optionsError);
+          for (const option of ticket.laundryOptions) {
+            await supabase
+              .from('ticket_laundry_options')
+              .insert({
+                ticket_id: createdTicket.id,
+                option_type: option.name
+              });
           }
         }
         
@@ -118,7 +116,7 @@ export const syncTickets = async (): Promise<number> => {
     }
     
     // Update local storage with synced status
-    localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(localTickets));
+    saveToLocalStorage(TICKETS_STORAGE_KEY, localTickets);
     
     console.log(`Successfully synced ${syncedCount} out of ${ticketsToSync.length} tickets`);
     return syncedCount;

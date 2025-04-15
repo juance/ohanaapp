@@ -16,7 +16,7 @@ export const syncFeedbackData = async (): Promise<number> => {
 
   try {
     // Get all local feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
     // Process items marked for deletion
     const pendingDeleteFeedback = localFeedback.filter(feedback => feedback && feedback.pendingDelete);
@@ -83,5 +83,3 @@ export const syncFeedbackData = async (): Promise<number> => {
  * Alias for syncFeedbackData for backward compatibility
  */
 export const syncFeedback = syncFeedbackData;
-
-

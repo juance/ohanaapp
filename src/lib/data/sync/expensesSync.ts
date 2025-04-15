@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
 import { v4 as uuidv4 } from 'uuid';
+import { Expense } from '@/lib/types';
 
 /**
  * Synchronize locally stored expenses with Supabase
@@ -10,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
-    const localExpenses = getFromLocalStorage(EXPENSES_STORAGE_KEY, []);
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Check if there are expenses to sync
     const expensesToSync = localExpenses.filter(expense => expense.pendingSync);
@@ -35,7 +36,8 @@ export const syncExpenses = async (): Promise<number> => {
             id: uuidv4(),
             description: expense.description,
             amount: expense.amount,
-            date: expense.date || new Date().toISOString()
+            date: expense.date || new Date().toISOString(),
+            category: expense.category
           })
           .select('id')
           .single();

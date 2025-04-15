@@ -8,7 +8,7 @@ export interface Customer {
   valetsCount: number;
   freeValets: number;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string; // Making this optional to fix the errors
   lastVisit?: string;
   valetsRedeemed?: number; // Added for compatibility
 }
@@ -16,6 +16,7 @@ export interface Customer {
 // Client Visit type for frequent clients functionality
 export interface ClientVisit {
   id: string;
+  clientId?: string;
   clientName: string;
   phoneNumber: string;
   visitCount: number;
@@ -45,6 +46,7 @@ export interface InventoryItem {
   threshold: number;
   unit: string;
   lastUpdated?: string;
+  pendingSync?: boolean;
 }
 
 // Expense related types
@@ -240,4 +242,22 @@ export interface SystemError {
   context: Record<string, any>;
   resolved: boolean;
   component?: string;
+}
+
+// Auth related types
+export type Role = 'admin' | 'staff' | 'manager' | 'operator' | 'client';
+
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  phoneNumber?: string;
+  role: Role;
+  requiresPasswordChange?: boolean;
+}
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
 }
