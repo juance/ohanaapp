@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Clock, AlertTriangle, MessageCircle } from "lucide-react";
 import { toast } from "@/lib/toast";
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets } from '@/lib/ticketService';
+import { getUnretrievedTickets } from '@/lib/ticket/ticketPickupService';
 import { Ticket } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';

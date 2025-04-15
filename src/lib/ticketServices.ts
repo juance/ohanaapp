@@ -1,17 +1,16 @@
 
 // Re-export all ticket-related services from the new modular files
-import { getTicketServices } from './ticketService';
-
 export { 
   getTicketServices,
   getTicketOptions,
   cancelTicket,
   markTicketAsPaidInAdvance
-} from './ticketService';
+} from './ticket/ticketServiceCore';
 
 export {
   getPickupTickets,
   markTicketAsDelivered,
+  markTicketAsPending,
   getUnretrievedTickets
 } from './ticket/ticketPickupService';
 

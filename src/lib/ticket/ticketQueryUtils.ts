@@ -92,7 +92,7 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     deliveredDate: deliveredDate,
     deliveredAt: ticket.delivered_at,
     isPaid: ticket.is_paid || false,
-    isCanceled: ticket.is_canceled || false,
+    is_canceled: ticket.is_canceled || false, // Use the original property name
     valetQuantity: ticket.valet_quantity || 0
   };
 

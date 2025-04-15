@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
 import { Ticket } from '@/lib/types/ticket.types';
@@ -122,14 +123,22 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     
     // Mapear los datos de la BD al formato que espera la aplicación
     return (data || []).map(ticket => {
-      const customerData = ticket.customers as { name: string; phone: string } | null;
+      // Safely handle the customer data, ensuring it's not an error object
+      let customerName = 'Cliente sin nombre';
+      let customerPhone = '';
+      
+      if (ticket.customers && typeof ticket.customers === 'object' && 
+          'name' in ticket.customers && 'phone' in ticket.customers) {
+        customerName = ticket.customers.name || customerName;
+        customerPhone = ticket.customers.phone || customerPhone;
+      }
       
       return {
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
         basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerData?.name || 'Cliente sin nombre',
-        phoneNumber: customerData?.phone || '',
+        clientName: customerName,
+        phoneNumber: customerPhone,
         totalPrice: ticket.total,
         paymentMethod: ticket.payment_method,
         status: ticket.status,
@@ -144,43 +153,6 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
   } catch (error) {
     console.error('Error al obtener tickets para recoger:', error);
     return [];
-  }
-};
-
-// Agregamos la función para cancelar tickets
-export const cancelTicket = async (ticketId: string, reason: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .update({
-        is_canceled: true,
-        cancel_reason: reason
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
-
-    if (error) {
-      throw {
-        message: `Error al cancelar el ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
-    }
-
-    return {
-      success: true,
-      message: 'Ticket cancelado correctamente',
-      data
-    };
-  } catch (error) {
-    console.error('Error al cancelar el ticket:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
   }
 };
 
@@ -210,14 +182,22 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     
     // Map the data to the application's expected format
     return (data || []).map(ticket => {
-      const customerData = ticket.customers as { name: string; phone: string } | null;
+      // Safely handle the customer data, ensuring it's not an error object
+      let customerName = 'Cliente sin nombre';
+      let customerPhone = '';
+      
+      if (ticket.customers && typeof ticket.customers === 'object' && 
+          'name' in ticket.customers && 'phone' in ticket.customers) {
+        customerName = ticket.customers.name || customerName;
+        customerPhone = ticket.customers.phone || customerPhone;
+      }
       
       return {
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
         basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerData?.name || 'Cliente sin nombre',
-        phoneNumber: customerData?.phone || '',
+        clientName: customerName,
+        phoneNumber: customerPhone,
         totalPrice: ticket.total,
         paymentMethod: ticket.payment_method,
         status: ticket.status,
