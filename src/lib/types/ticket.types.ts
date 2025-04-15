@@ -22,6 +22,20 @@ export interface Ticket {
     price: number;
     quantity?: number;
   }>;
+  // Campos adicionales que vienen de la base de datos
+  basket_ticket_number?: string;
+  cancel_reason?: string;
+  customer_id?: string;
+  date?: string;
+  delivered_date?: string;
+  is_canceled?: boolean;
+  is_paid?: boolean;
+  payment_amount?: number;
+  payment_status?: string;
+  ticket_number?: string;
+  updated_at?: string;
+  created_at?: string;
+  valet_quantity?: number;
 }
 
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';

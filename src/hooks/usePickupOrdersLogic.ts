@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getPickupTickets, cancelTicket, markTicketAsDelivered } from '@/lib/ticket/ticketPickupService';
 import { getTicketServices } from '@/lib/ticketService';
+import { Ticket } from '@/lib/types';
 
 export const usePickupOrdersLogic = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,7 +25,7 @@ export const usePickupOrdersLogic = () => {
   
   // Filter tickets based on search query
   const filteredTickets = searchQuery.trim() 
-    ? tickets.filter(ticket => {
+    ? tickets.filter((ticket: Ticket) => {
         if (searchFilter === 'name' && ticket.clientName) {
           return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
         } else if (searchFilter === 'phone' && ticket.phoneNumber) {
@@ -102,6 +103,7 @@ export const usePickupOrdersLogic = () => {
   
   // Format date
   const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     try {
       return format(new Date(dateString), 'dd/MM/yyyy', { locale: es });
     } catch (e) {

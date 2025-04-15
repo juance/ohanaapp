@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
+import { Ticket } from '@/lib/types/ticket.types';
 
 export const markTicketAsDelivered = async (ticketId: string) => {
   try {
@@ -108,18 +109,39 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
   }
 };
 
-// Agregamos la función faltante para obtener tickets
-export const getPickupTickets = async () => {
+// Función para obtener tickets listos para recoger
+export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select('*, customers(name, phone)')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data || [];
+    
+    // Mapear los datos de la BD al formato que espera la aplicación
+    return (data || []).map(ticket => {
+      const customerData = ticket.customers as { name: string; phone: string } | null;
+      
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerData?.name || 'Cliente sin nombre',
+        phoneNumber: customerData?.phone || '',
+        totalPrice: ticket.total,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        // Mantener los campos originales también
+        ...ticket
+      };
+    });
   } catch (error) {
     console.error('Error al obtener tickets para recoger:', error);
     return [];

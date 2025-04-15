@@ -24,7 +24,7 @@ export const getExpenses = async (): Promise<Expense[]> => {
       description: item.description,
       amount: item.amount,
       date: item.date,
-      category: item.category as ExpenseCategory,
+      category: item.category as ExpenseCategory || 'other', // Valor por defecto si no existe
       created_at: item.created_at
     }));
   } catch (error) {
