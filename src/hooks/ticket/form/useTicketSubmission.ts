@@ -58,7 +58,6 @@ export const useTicketSubmission = (
           totalPrice: calculateTotal(),
           paymentMethod,
           valetQuantity: 1 // Default to 1, could be made configurable
-          // Removed ticketNumber as it's not in the expected type
         },
         {
           name: clientName,

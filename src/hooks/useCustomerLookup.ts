@@ -26,7 +26,7 @@ export const useCustomerLookup = (
 
       if (customer) {
         setCustomerName(customer.name);
-        setPhoneNumber(customer.phone); // Use phone property instead of phoneNumber
+        setPhoneNumber(customer.phone); // Use phone property
         setFoundCustomer(customer);
 
         // Si el cliente tiene valets gratis, mostrar la opción

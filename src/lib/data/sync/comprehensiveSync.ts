@@ -36,12 +36,14 @@ export const syncComprehensive = async (): Promise<{
     console.log(`Synced ${expensesCount} expense entries`);
     
     // Update sync status
-    await updateSyncStatus({
+    const syncStatus = {
       ticketsSync: ticketsCount,
       clientsSync: clientsCount,
       feedbackSync: feedbackCount,
       expensesSync: expensesCount
-    });
+    };
+    
+    await updateSyncStatus(syncStatus);
     
     return {
       tickets: ticketsCount,

@@ -1,5 +1,5 @@
 
-import { User, Role } from './types';
+import { User, Role } from './types/auth';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
 
@@ -123,7 +123,7 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
         id: phoneNumber,
         name: 'Usuario Temporal',
         phoneNumber: phoneNumber,
-        role: 'staff', // Changed from 'client' to 'staff' to match allowed Role values
+        role: 'staff', // Using a valid Role type
         requiresPasswordChange: true
       };
       

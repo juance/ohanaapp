@@ -25,7 +25,7 @@ export const SyncDataButton = () => {
       // Call the synchronization function
       const result = await syncAllData();
       
-      // Map the result fields to match our SyncStatus interface
+      // Create a SyncStatus object from the result
       const mappedResult: SyncStatus = {
         ticketsSync: result.tickets || 0,
         expensesSync: result.expenses || 0,

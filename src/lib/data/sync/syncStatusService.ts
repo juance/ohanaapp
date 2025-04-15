@@ -1,79 +1,78 @@
 
-import { SyncStatus } from '../../types';
+import { SyncStatus } from '@/lib/types';
 
-/**
- * Get current sync status
- */
+// Get the current sync status
 export const getSyncStatus = async (): Promise<SyncStatus> => {
-  const storedStatus = localStorage.getItem('syncStatus');
-  
-  if (storedStatus) {
-    try {
-      return JSON.parse(storedStatus);
-    } catch (e) {
-      console.error('Error parsing sync status:', e);
+  try {
+    const currentStatus = localStorage.getItem('syncStatus');
+    
+    if (currentStatus) {
+      return JSON.parse(currentStatus);
+    } else {
+      // Return default values if no status is saved
+      return {
+        ticketsSync: 0,
+        expensesSync: 0,
+        clientsSync: 0,
+        feedbackSync: 0,
+        lastSync: null,
+        pending: false
+      };
     }
+  } catch (error) {
+    console.error('Error retrieving sync status:', error);
+    return {
+      ticketsSync: 0,
+      expensesSync: 0,
+      clientsSync: 0,
+      feedbackSync: 0,
+      lastSync: null,
+      pending: false
+    };
   }
-  
-  // Return default sync status if none exists
-  return {
-    lastSync: '',
-    pending: {
-      tickets: 0,
-      clients: 0,
-      feedback: 0,
-      inventory: 0,
-      expenses: 0
-    }
-  };
 };
 
-/**
- * Update sync status with current pending counts
- */
-export const updateSyncStatus = async (): Promise<SyncStatus> => {
+// Update the sync status
+export const updateSyncStatus = async (status: Partial<SyncStatus>): Promise<boolean> => {
   try {
-    // Count pending items for each category
-    const tickets = JSON.parse(localStorage.getItem('tickets') || '[]');
-    const clients = JSON.parse(localStorage.getItem('clients') || '[]');
-    const feedback = JSON.parse(localStorage.getItem('feedback') || '[]');
-    const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
-    const expenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+    // Get current status
+    const currentStatus = await getSyncStatus();
     
-    const pendingTickets = Array.isArray(tickets) ? tickets.filter(item => item.pendingSync).length : 0;
-    const pendingClients = Array.isArray(clients) ? clients.filter(item => item.pendingSync).length : 0;
-    const pendingFeedback = Array.isArray(feedback) ? feedback.filter(item => item.pendingSync).length : 0;
-    const pendingInventory = Array.isArray(inventory) ? inventory.filter(item => item.pendingSync).length : 0;
-    const pendingExpenses = Array.isArray(expenses) ? expenses.filter(item => item.pendingSync).length : 0;
-    
-    const status: SyncStatus = {
-      lastSync: new Date().toISOString(),
-      pending: {
-        tickets: pendingTickets,
-        clients: pendingClients,
-        feedback: pendingFeedback,
-        inventory: pendingInventory,
-        expenses: pendingExpenses
-      }
+    // Update with new values
+    const updatedStatus: SyncStatus = {
+      ...currentStatus,
+      ...status,
+      lastSync: new Date().toISOString()
     };
     
-    // Save to localStorage
-    localStorage.setItem('syncStatus', JSON.stringify(status));
+    // Save updated status
+    localStorage.setItem('syncStatus', JSON.stringify(updatedStatus));
     
-    return status;
+    return true;
   } catch (error) {
     console.error('Error updating sync status:', error);
+    return false;
+  }
+};
+
+// Set the pending status
+export const setPendingSyncStatus = async (pending: boolean): Promise<boolean> => {
+  try {
+    // Get current status
+    const currentStatus = await getSyncStatus();
     
-    // Return default status in case of error
-    return {
-      lastSync: new Date().toISOString(),
-      pending: {
-        tickets: 0,
-        clients: 0,
-        feedback: 0,
-        inventory: 0,
-        expenses: 0
-      }
+    // Update with new pending value
+    const updatedStatus: SyncStatus = {
+      ...currentStatus,
+      pending
     };
+    
+    // Save updated status
+    localStorage.setItem('syncStatus', JSON.stringify(updatedStatus));
+    
+    return true;
+  } catch (error) {
+    console.error('Error setting pending sync status:', error);
+    return false;
   }
 };

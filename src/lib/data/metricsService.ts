@@ -1,31 +1,39 @@
 
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
 
-// Mock data structure for tracking metrics
+// Initialize metrics with the correct properties
 let dailyMetrics: DailyMetrics = {
+  totalTickets: 0,
+  paidTickets: 0,
+  totalRevenue: 0,
   salesByHour: {},
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
   dryCleaningItems: {},
   totalSales: 0,
-  valetCount: 0
+  valetCount: 0,
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
 };
 
 let weeklyMetrics: WeeklyMetrics = {
+  totalTickets: 0,
+  paidTickets: 0,
+  totalRevenue: 0,
   salesByDay: {},
-  valetsByDay: {},
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
   dryCleaningItems: {},
   totalSales: 0,
-  valetCount: 0
+  valetCount: 0,
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
 };
 
 let monthlyMetrics: MonthlyMetrics = {
-  salesByDay: {},
+  totalTickets: 0,
+  paidTickets: 0,
+  totalRevenue: 0,
   salesByWeek: {},
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  salesByDay: {},
   dryCleaningItems: {},
   totalSales: 0,
-  valetCount: 0
+  valetCount: 0,
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
 };
 
 // Initialize metrics
@@ -34,31 +42,39 @@ export const initializeMetrics = () => {
   
   // Initialize daily metrics
   dailyMetrics = {
+    totalTickets: 0,
+    paidTickets: 0,
+    totalRevenue: 0,
     salesByHour: {},
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
     dryCleaningItems: {},
     totalSales: 0,
-    valetCount: 0
+    valetCount: 0,
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
   };
   
   // Initialize weekly metrics
   weeklyMetrics = {
+    totalTickets: 0,
+    paidTickets: 0,
+    totalRevenue: 0,
     salesByDay: {},
-    valetsByDay: {},
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
     dryCleaningItems: {},
     totalSales: 0,
-    valetCount: 0
+    valetCount: 0,
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
   };
   
   // Initialize monthly metrics
   monthlyMetrics = {
-    salesByDay: {},
+    totalTickets: 0,
+    paidTickets: 0,
+    totalRevenue: 0,
     salesByWeek: {},
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    salesByDay: {},
     dryCleaningItems: {},
     totalSales: 0,
-    valetCount: 0
+    valetCount: 0,
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
   };
 };
 
@@ -80,7 +96,7 @@ export const updateMetrics = (type: string, data: any) => {
   }
   
   // Update payment method counts
-  if (data.paymentMethod) {
+  if (data.paymentMethod && dailyMetrics.paymentMethods) {
     dailyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
   }
   
@@ -90,17 +106,10 @@ export const updateMetrics = (type: string, data: any) => {
   }
   weeklyMetrics.salesByDay[day] += data.amount || 0;
   
-  if (!weeklyMetrics.valetsByDay[day]) {
-    weeklyMetrics.valetsByDay[day] = 0;
-  }
-  if (type === 'valet') {
-    weeklyMetrics.valetsByDay[day] += data.quantity || 1;
-  }
-  
   weeklyMetrics.totalSales += data.amount || 0;
   weeklyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
   
-  if (data.paymentMethod) {
+  if (data.paymentMethod && weeklyMetrics.paymentMethods) {
     weeklyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
   }
   
@@ -118,7 +127,7 @@ export const updateMetrics = (type: string, data: any) => {
   monthlyMetrics.totalSales += data.amount || 0;
   monthlyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
   
-  if (data.paymentMethod) {
+  if (data.paymentMethod && monthlyMetrics.paymentMethods) {
     monthlyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
   }
 };

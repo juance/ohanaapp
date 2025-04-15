@@ -3,13 +3,13 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  phoneNumber?: string; // Added for compatibility with components using phoneNumber
   loyaltyPoints: number;
   valetsCount: number;
   freeValets: number;
   createdAt: string;
   updatedAt: string;
   lastVisit?: string;
-  phoneNumber?: string; // Added for compatibility with components using phoneNumber
   valetsRedeemed?: number; // Added for compatibility
 }
 
@@ -81,6 +81,12 @@ export interface DryCleaningItem {
 }
 
 export interface LaundryOption {
+  id: string;
+  name: string;
+  price: number;
+}
+
+export interface LaundryService {
   id: string;
   name: string;
   price: number;
@@ -187,6 +193,7 @@ export interface SyncStatus {
   clientsSync: number;
   feedbackSync: number;
   lastSync?: string;
+  pending?: boolean;
 }
 
 // Local storage types
@@ -222,18 +229,6 @@ export interface LocalMetrics {
     valetCount: number;
   };
   pendingSync?: boolean;
-}
-
-// User and auth related types
-export type Role = 'admin' | 'staff' | 'manager';
-
-export interface User {
-  id: string;
-  email?: string;
-  name?: string;
-  role: Role;
-  phoneNumber?: string;
-  requiresPasswordChange?: boolean;
 }
 
 // System Error type for error logging
