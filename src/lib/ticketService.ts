@@ -1,9 +1,9 @@
 
 // Re-export all ticket-related services from the modular files
 
-export { 
+export {
   getTicketOptions,
-  cancelTicket,
+  // cancelTicket, // Comentado para evitar conflicto con ticketPickupService
   markTicketAsPaidInAdvance
 } from './ticket/ticketServiceCore';
 
@@ -11,7 +11,8 @@ export {
   getPickupTickets,
   markTicketAsDelivered,
   markTicketAsPending,
-  getUnretrievedTickets
+  getUnretrievedTickets,
+  cancelTicket // Añadido explícitamente desde ticketPickupService
 } from './ticket/ticketPickupService';
 
 export {
