@@ -28,7 +28,7 @@ export interface GenericStringError {
 }
 
 // Categorías de gastos
-export type ExpenseCategory = 'utilities' | 'supplies' | 'rent' | 'payroll' | 'marketing' | 'maintenance' | 'other';
+export type ExpenseCategory = 'utilities' | 'supplies' | 'rent' | 'payroll' | 'marketing' | 'maintenance' | 'other' | 'operations';
 
 // Constantes para almacenamiento local
 export const EXPENSES_STORAGE_KEY = 'expenses';
