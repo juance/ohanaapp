@@ -1,8 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Expense, ExpenseCategory } from '@/lib/types';
-import { EXPENSES_STORAGE_KEY } from './coreUtils';
+import { Expense } from '@/lib/types';
 
 // Helper functions for localStorage interaction
 const getStorageData = <T>(key: string): T | null => {
@@ -23,12 +22,15 @@ const saveStorageData = <T>(key: string, data: T): void => {
   }
 };
 
-export const storeExpense = async (expenseData: Omit<Expense, 'id' | 'createdAt'>): Promise<Expense | null> => {
+// Constante para clave de almacenamiento
+const EXPENSES_STORAGE_KEY = 'expenses';
+
+export const storeExpense = async (expenseData: Omit<Expense, 'id' | 'created_at'>): Promise<Expense | null> => {
   try {
     const newExpense: Expense = {
       id: uuidv4(),
       ...expenseData,
-      createdAt: new Date().toISOString(),
+      created_at: new Date().toISOString(),
       pendingSync: false
     };
     
@@ -68,9 +70,9 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
       id: item.id,
       description: item.description || '',
       amount: item.amount,
-      category: (item.category as ExpenseCategory) || 'other',
+      category: item.category || 'other',
       date: item.date,
-      createdAt: item.created_at,
+      created_at: item.created_at,
       pendingSync: false
     }));
   } catch (error) {

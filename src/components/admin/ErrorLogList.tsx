@@ -2,29 +2,49 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { SystemError, resolveError, deleteError, clearResolvedErrors } from '@/lib/errorService';
 import { toast } from '@/lib/toast';
 import { AlertTriangle, CheckCircle, Trash2, RefreshCw } from "lucide-react";
+import { SystemError, resolveError, deleteError, clearResolvedErrors } from '@/lib/errorService';
 
 interface ErrorLogListProps {
   errors: SystemError[];
 }
 
 export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
-  const handleResolveError = (id: string) => {
-    if (resolveError(id)) {
+  const handleResolveError = async (id: string) => {
+    try {
+      const count = await resolveError(id);
+      if (count > 0) {
+        toast({
+          title: "Error marcado como resuelto",
+          description: "El error ha sido marcado como resuelto correctamente."
+        });
+      }
+    } catch (error) {
+      console.error("Error al marcar como resuelto:", error);
       toast({
-        title: "Error marcado como resuelto",
-        description: "El error ha sido marcado como resuelto correctamente."
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo marcar el error como resuelto."
       });
     }
   };
 
-  const handleDeleteError = (id: string) => {
-    if (deleteError(id)) {
+  const handleDeleteError = async (id: string) => {
+    try {
+      const count = await deleteError(id);
+      if (count > 0) {
+        toast({
+          title: "Error eliminado",
+          description: "El registro de error ha sido eliminado permanentemente."
+        });
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
       toast({
-        title: "Error eliminado",
-        description: "El registro de error ha sido eliminado permanentemente."
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el error."
       });
     }
   };
@@ -90,22 +110,22 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
                 <div className="flex items-start space-x-2">
                   <AlertTriangle className={`h-5 w-5 mt-0.5 ${error.resolved ? 'text-green-500' : 'text-red-500'}`} />
                   <div>
-                    <p className="font-medium">{error.message}</p>
+                    <p className="font-medium">{error.error_message}</p>
                     <p className="text-sm text-muted-foreground">
                       {new Date(error.timestamp).toLocaleString()}
                     </p>
-                    {error.context && (
+                    {error.error_context && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Contexto: {JSON.stringify(error.context)}
+                        Contexto: {JSON.stringify(error.error_context)}
                       </p>
                     )}
-                    {error.stack && (
+                    {error.error_stack && (
                       <details className="mt-2">
                         <summary className="text-sm cursor-pointer hover:text-blue-500">
                           Ver Stack Trace
                         </summary>
                         <pre className="text-xs mt-2 p-2 bg-gray-100 rounded overflow-x-auto">
-                          {error.stack}
+                          {error.error_stack}
                         </pre>
                       </details>
                     )}

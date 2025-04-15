@@ -8,12 +8,12 @@ export const logError = async (error: Error | string | unknown, context: Record<
     const errorStack = error instanceof Error ? error.stack : undefined;
 
     const systemError: SystemError = {
+      id: crypto.randomUUID(),
       error_message: errorMessage,
       error_stack: errorStack,
       timestamp: new Date(),
       error_context: context,
-      resolved: false,
-      id: crypto.randomUUID()
+      resolved: false
     };
 
     const { error: insertError } = await supabase
@@ -24,12 +24,17 @@ export const logError = async (error: Error | string | unknown, context: Record<
         error_context: systemError.error_context,
         resolved: systemError.resolved,
         id: systemError.id,
-        browser_info: getBrowserInfo()
+        browser_info: getBrowserInfo(),
+        component: context.component,
+        user_id: context.userId
       });
 
     if (insertError) throw insertError;
+    
+    return systemError;
   } catch (err) {
     console.error('Error logging error:', err);
+    return null;
   }
 };
 
@@ -40,7 +45,20 @@ export const getErrors = async (): Promise<SystemError[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data as SystemError[];
+  
+  // Transformar los datos para que coincidan con la interfaz SystemError
+  return data.map(item => ({
+    id: item.id,
+    error_message: item.error_message,
+    error_stack: item.error_stack,
+    timestamp: new Date(item.created_at),
+    error_context: item.error_context,
+    resolved: item.resolved,
+    component: item.component,
+    user_id: item.user_id,
+    browser_info: item.browser_info,
+    message: item.error_message // Para compatibilidad
+  }));
 };
 
 export const clearErrors = async (): Promise<void> => {
@@ -52,31 +70,37 @@ export const clearErrors = async (): Promise<void> => {
   if (error) throw error;
 };
 
-export const resolveError = async (id: string): Promise<void> => {
-  const { error } = await supabase
+export const resolveError = async (id: string): Promise<number> => {
+  const { error, count } = await supabase
     .from('error_logs')
     .update({ resolved: true })
-    .eq('id', id);
+    .eq('id', id)
+    .select('count');
 
   if (error) throw error;
+  return count || 0;
 };
 
-export const deleteError = async (id: string): Promise<void> => {
-  const { error } = await supabase
+export const deleteError = async (id: string): Promise<number> => {
+  const { error, count } = await supabase
     .from('error_logs')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .select('count');
 
   if (error) throw error;
+  return count || 0;
 };
 
-export const clearResolvedErrors = async (): Promise<void> => {
-  const { error } = await supabase
+export const clearResolvedErrors = async (): Promise<number> => {
+  const { error, count } = await supabase
     .from('error_logs')
     .delete()
-    .eq('resolved', true);
+    .eq('resolved', true)
+    .select('count');
 
   if (error) throw error;
+  return count || 0;
 };
 
 const getBrowserInfo = () => {
@@ -107,3 +131,6 @@ export const setupGlobalErrorHandling = () => {
 export const initErrorService = () => {
   setupGlobalErrorHandling();
 };
+
+// Exportamos SystemError para que sea accesible
+export { SystemError } from './types/error.types';

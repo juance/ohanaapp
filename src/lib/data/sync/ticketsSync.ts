@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { Ticket } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from '../coreUtils';
 
 /**
@@ -10,7 +10,7 @@ import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from '..
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets: Ticket[] = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
     
     // Check if there are tickets to sync
     const ticketsToSync = localTickets.filter(ticket => ticket.pendingSync);
@@ -31,7 +31,7 @@ export const syncTickets = async (): Promise<number> => {
           const { data: customerData } = await supabase
             .from('customers')
             .select('id')
-            .eq('phone_number', ticket.phoneNumber)
+            .eq('phone', ticket.phoneNumber)
             .maybeSingle();
           
           if (customerData) {
@@ -42,8 +42,8 @@ export const syncTickets = async (): Promise<number> => {
               .from('customers')
               .insert({
                 name: ticket.clientName || 'Unknown',
-                phone_number: ticket.phoneNumber,
-                valet_count: ticket.valetQuantity || 0
+                phone: ticket.phoneNumber,
+                valets_count: ticket.valetQuantity || 0
               })
               .select()
               .single();
@@ -63,14 +63,14 @@ export const syncTickets = async (): Promise<number> => {
             id: ticket.id,
             ticket_number: ticket.ticketNumber,
             basket_ticket_number: ticket.basketTicketNumber,
-            total_price: ticket.totalPrice,
+            total: ticket.totalPrice,
             payment_method: ticket.paymentMethod,
             status: ticket.status,
             valet_quantity: ticket.valetQuantity,
             is_paid: ticket.isPaid,
             customer_id: customerId,
-            created_at: ticket.createdAt,
-            due_date: ticket.createdAt // Replace with actual due date when available
+            date: ticket.createdAt,
+            created_at: ticket.createdAt
           });
         
         if (ticketError) {
@@ -80,12 +80,12 @@ export const syncTickets = async (): Promise<number> => {
         
         // Handle dry cleaning items if any
         if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
-          const dryCleaningItemsToInsert = ticket.dryCleaningItems.map((item: DryCleaningItem) => ({
+          const dryCleaningItemsToInsert = ticket.dryCleaningItems.map((item) => ({
             ticket_id: ticket.id,
-            item_type: item.itemType,
+            item_type: item.name,
             quantity: item.quantity,
             price: item.price,
-            notes: item.notes || ''
+            notes: ''
           }));
           
           const { error: dryCleaningError } = await supabase
@@ -99,10 +99,9 @@ export const syncTickets = async (): Promise<number> => {
         
         // Handle laundry options if any
         if (ticket.laundryOptions && ticket.laundryOptions.length > 0) {
-          const laundryOptionsToInsert = ticket.laundryOptions.map((option: LaundryOption) => ({
+          const laundryOptionsToInsert = ticket.laundryOptions.map((option) => ({
             ticket_id: ticket.id,
-            service_type: option.serviceType,
-            weight: option.weight,
+            option_type: option.name,
             price: option.price
           }));
           
@@ -116,7 +115,10 @@ export const syncTickets = async (): Promise<number> => {
         }
         
         // Mark as synced
-        ticket.pendingSync = false;
+        const index = localTickets.findIndex(t => t.id === ticket.id);
+        if (index !== -1) {
+          localTickets[index].pendingSync = false;
+        }
         syncedCount++;
         
         console.log(`Synced ticket ${ticket.ticketNumber} successfully`);

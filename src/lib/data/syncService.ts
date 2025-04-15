@@ -1,40 +1,38 @@
 
-// This file re-exports all synchronization-related functionality
-import { syncTickets } from './sync/ticketsSync';
-import { syncClients } from './sync/clientsSync';
-import { syncFeedback } from './sync/feedbackSync';
-import { syncExpenses } from './sync/expensesSync';
-import { getSyncStatus, updateSyncStatus } from './sync/syncStatusService';
-import { syncComprehensive } from './sync/comprehensiveSync';
+import { EXPENSES_STORAGE_KEY, FEEDBACK_STORAGE_KEY, TICKETS_STORAGE_KEY } from '@/lib/types';
 
-// Add a function to reset local data
-export const resetLocalData = async (): Promise<boolean> => {
-  try {
-    // Clear all local storage items related to sync
-    localStorage.removeItem('local_tickets');
-    localStorage.removeItem('customer_feedback');
-    localStorage.removeItem('local_clients');
-    localStorage.removeItem('local_expenses');
-    localStorage.removeItem('syncStatus');
-    localStorage.removeItem('inventory_items');
-    
-    // You can add more items as needed
-    
-    console.log('Local data reset completed');
-    return true;
-  } catch (error) {
-    console.error('Error resetting local data:', error);
-    return false;
+/**
+ * Resetea todos los datos locales almacenados
+ * @returns Objeto con las claves de almacenamiento que fueron reseteadas
+ */
+export const resetLocalData = (): { [key: string]: boolean } => {
+  const keysToReset = [
+    EXPENSES_STORAGE_KEY,
+    FEEDBACK_STORAGE_KEY,
+    TICKETS_STORAGE_KEY,
+    'clientData',
+    'metricsData',
+    'syncStatus'
+  ];
+  
+  const result: { [key: string]: boolean } = {};
+  
+  for (const key of keysToReset) {
+    try {
+      localStorage.removeItem(key);
+      result[key] = true;
+    } catch (error) {
+      console.error(`Error resetting ${key}:`, error);
+      result[key] = false;
+    }
   }
+  
+  return result;
 };
 
-export {
-  syncTickets,
-  syncClients,
-  syncFeedback,
-  syncExpenses,
-  getSyncStatus,
-  updateSyncStatus,
-  syncComprehensive,
-  syncComprehensive as syncAllData  // Alias for backward compatibility
-};
+export * from './sync/ticketsSync';
+export * from './sync/expensesSync';
+export * from './sync/feedbackSync';
+export * from './sync/clientsSync';
+export * from './sync/comprehensiveSync';
+export * from './sync/syncStatusService';

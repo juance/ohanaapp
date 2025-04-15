@@ -6,7 +6,7 @@ import { getFromLocalStorage, saveToLocalStorage, EXPENSES_STORAGE_KEY } from '.
 export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
-    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const localExpenses: Expense[] = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Check if there are expenses to sync
     const expensesToSync = localExpenses.filter(expense => expense.pendingSync);
@@ -32,8 +32,12 @@ export const syncExpenses = async (): Promise<number> => {
         
         if (error) throw error;
         
-        expense.pendingSync = false;
-        expense.synced = true;
+        // Actualizar el estado local
+        const index = localExpenses.findIndex(e => e.id === expense.id);
+        if (index !== -1) {
+          localExpenses[index].pendingSync = false;
+          localExpenses[index].synced = true;
+        }
         syncedCount++;
       } catch (expenseSyncError) {
         console.error(`Error syncing expense ${expense.id}:`, expenseSyncError);

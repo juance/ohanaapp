@@ -1,8 +1,10 @@
 
-// Import the feedbackSync function
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerFeedback } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, FEEDBACK_STORAGE_KEY } from '../coreUtils';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+
+// Constante para la clave de almacenamiento
+const FEEDBACK_STORAGE_KEY = 'customerFeedback';
 
 /**
  * Syncs feedback data with the Supabase backend
@@ -11,7 +13,7 @@ import { getFromLocalStorage, saveToLocalStorage, FEEDBACK_STORAGE_KEY } from '.
 export const syncFeedback = async (): Promise<number> => {
   try {
     // Get locally stored feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
     
     // Handle feedback marked for deletion
     const feedbackToDelete = localFeedback.filter(feedback => feedback.pendingDelete);
@@ -58,7 +60,11 @@ export const syncFeedback = async (): Promise<number> => {
         
         if (error) throw error;
         
-        feedback.pendingSync = false;
+        // Actualizar el estado local
+        const index = localFeedback.findIndex(f => f.id === feedback.id);
+        if (index !== -1) {
+          localFeedback[index].pendingSync = false;
+        }
         syncedCount++;
       } catch (syncError) {
         console.error(`Error syncing feedback ${feedback.id}:`, syncError);

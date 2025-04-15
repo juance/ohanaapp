@@ -9,6 +9,7 @@ export interface SystemError {
   component?: string;
   user_id?: string;
   browser_info?: Record<string, any>;
+  message?: string; // Para compatibilidad con la interfaz Error
 }
 
 export interface ErrorServiceInterface {
@@ -24,4 +25,15 @@ export interface GenericStringError {
   message: string;
   status?: number;
   id?: string;
+}
+
+// Categorías de gastos
+export enum ExpenseCategory {
+  UTILITIES = 'utilities',
+  SUPPLIES = 'supplies',
+  RENT = 'rent',
+  PAYROLL = 'payroll',
+  MARKETING = 'marketing',
+  MAINTENANCE = 'maintenance',
+  OTHER = 'other'
 }
