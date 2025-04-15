@@ -1,261 +1,156 @@
-
-import { useState, useEffect } from 'react';
-import Navbar from '@/components/Navbar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+import { Expense, ExpenseCategory } from '@/lib/types';
+import { storeExpense, getStoredExpenses } from '@/lib/data/expenseService';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow
-} from '@/components/ui/table';
-import { toast } from '@/lib/toast';
-import { ArrowLeft, Calendar as CalendarFull, DollarSign, PlusCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { storeExpense, getStoredExpenses } from '@/lib/dataService';
+import { CalendarIcon } from '@radix-ui/react-icons';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { getCurrentUser } from '@/lib/auth';
-import { Loading } from '@/components/ui/loading';
-import { ErrorMessage } from '@/components/ui/error-message';
+import { useToast } from '@/components/ui/use-toast';
 
 const Expenses = () => {
-  const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState('');
-  const [date, setDate] = useState<Date>(new Date());
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [isComponentMounted, setIsComponentMounted] = useState(false);
-  const queryClient = useQueryClient();
-  
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [description, setDescription] = useState<string>('');
+  const [amount, setAmount] = useState<number | null>(0);
+  const [date, setDate] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const { toast } = useToast();
+
   useEffect(() => {
-    setIsComponentMounted(true);
-    const checkAdmin = async () => {
-      try {
-        const user = await getCurrentUser();
-        setIsAdmin(user?.role === 'admin');
-      } catch (error) {
-        console.error("Error checking user role:", error);
-      }
+    const fetchExpenses = async () => {
+      const storedExpenses = await getStoredExpenses();
+      setExpenses(storedExpenses);
     };
-    checkAdmin();
-    return () => setIsComponentMounted(false);
+
+    fetchExpenses();
   }, []);
-  
-  const { data: expenses, isLoading, error } = useQuery({
-    queryKey: ['expenses'],
-    queryFn: () => getStoredExpenses(),
-    retry: 1,
-    staleTime: 30000,
-  });
-  
-  const addExpenseMutation = useMutation({
-    mutationFn: (expenseData: {description: string; amount: number; date: string}) => storeExpense(expenseData),
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Gasto agregado correctamente"
-      });
-      setDescription('');
-      setAmount('');
-      setDate(new Date());
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error al agregar el gasto"
-      });
-      console.error('Error adding expense:', error);
-    }
-  });
-  
-  const handleAddExpense = () => {
-    if (!description) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debe ingresar una descripción"
-      });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!description || !amount || !date) {
+      toast.error('Please fill out all fields');
       return;
     }
     
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Debe ingresar un monto válido"
-      });
-      return;
-    }
+    setIsSubmitting(true);
     
-    addExpenseMutation.mutate({
+    const result = await storeExpense({
       description,
-      amount: Number(amount),
-      date: date.toISOString()
+      amount: parseFloat(amount.toString()),
+      date,
+      category: 'operations' // Adding default category
     });
+    
+    if (result) {
+      toast.success('Expense added successfully');
+      setDescription('');
+      setAmount(0);
+      setDate('');
+      
+      // Refresh expenses list
+      const updatedExpenses = await getStoredExpenses();
+      setExpenses(updatedExpenses);
+    } else {
+      toast.error('Failed to add expense');
+    }
+    
+    setIsSubmitting(false);
   };
 
-  if (!isComponentMounted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loading />
-      </div>
-    );
-  }
-  
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Navbar />
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Expenses</h1>
       
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <header className="mb-8 flex justify-between items-center">
-            <div>
-              <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-                <ArrowLeft className="mr-1 h-4 w-4" />
-                <span>Volver al Inicio</span>
-              </Link>
-              <h1 className="text-2xl font-bold text-blue-600">Control de Gastos</h1>
-              <p className="text-gray-500">Gestión de gastos del negocio</p>
-            </div>
-          </header>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <PlusCircle className="h-5 w-5" />
-                    Registrar Nuevo Gasto
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Descripción</Label>
-                      <Textarea 
-                        id="description" 
-                        placeholder="Descripción del gasto"
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="amount">Monto ($)</Label>
-                      <Input 
-                        id="amount" 
-                        type="number" 
-                        min="0" 
-                        step="0.01"
-                        placeholder="0.00"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="date">Fecha</Label>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="w-full justify-start text-left font-normal"
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {date ? format(date, 'PPP') : <span>Seleccionar fecha</span>}
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={date}
-                            onSelect={(date) => date && setDate(date)}
-                            initialFocus
-                            className="pointer-events-auto"
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                    
-                    <Button 
-                      className="w-full bg-blue-600 hover:bg-blue-700" 
-                      onClick={handleAddExpense}
-                      disabled={addExpenseMutation.isPending}
-                    >
-                      {addExpenseMutation.isPending ? 'Guardando...' : 'Registrar Gasto'}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-            
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <DollarSign className="h-5 w-5" />
-                    Gastos Recientes
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="flex justify-center py-8">
-                      <Loading />
-                    </div>
-                  ) : error ? (
-                    <ErrorMessage message="Error al cargar los gastos" />
-                  ) : !expenses || expenses.length === 0 ? (
-                    <div className="text-center py-4 text-gray-500">
-                      No hay gastos registrados
-                    </div>
-                  ) : (
-                    <div className="overflow-auto max-h-[400px]">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Descripción</TableHead>
-                            <TableHead className="text-right">Monto</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {expenses.map((expense) => (
-                            <TableRow key={expense.id}>
-                              <TableCell className="font-medium whitespace-nowrap">
-                                <div className="flex items-center gap-1">
-                                  <CalendarFull className="h-3.5 w-3.5 text-gray-500" />
-                                  <span>{format(new Date(expense.date), 'dd/MM/yyyy')}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell>{expense.description}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                ${expense.amount.toFixed(2)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
+      <form onSubmit={handleSubmit} className="mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <Label htmlFor="description">Description</Label>
+            <Input
+              type="text"
+              id="description"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter description"
+            />
+          </div>
+          <div>
+            <Label htmlFor="amount">Amount</Label>
+            <Input
+              type="number"
+              id="amount"
+              value={amount === null ? '' : amount.toString()}
+              onChange={(e) => setAmount(e.target.value === '' ? null : parseFloat(e.target.value))}
+              placeholder="Enter amount"
+            />
+          </div>
+          <div>
+            <Label htmlFor="date">Date</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[280px] justify-start text-left font-normal",
+                    !date && "text-muted-foreground"
                   )}
-                </CardContent>
-              </Card>
-            </div>
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(new Date(date), "PPP") : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                <Calendar
+                  mode="single"
+                  selected={date ? new Date(date) : undefined}
+                  onSelect={(date) => setDate(date?.toISOString() || '')}
+                  disabled={(date) =>
+                    date > new Date()
+                  }
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
+        
+        <Button type="submit" disabled={isSubmitting} className="mt-4">
+          {isSubmitting ? 'Submitting...' : 'Add Expense'}
+        </Button>
+      </form>
+      
+      <div>
+        <h2 className="text-xl font-semibold mb-2">Expense List</h2>
+        {expenses.length === 0 ? (
+          <p>No expenses added yet.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {expenses.map((expense) => (
+                  <tr key={expense.id}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{expense.description}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expense.amount.toFixed(2)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{expense.category}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

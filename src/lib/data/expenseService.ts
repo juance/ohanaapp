@@ -5,7 +5,7 @@ import { Expense, ExpenseCategory } from '@/lib/types';
 import { EXPENSES_STORAGE_KEY } from './coreUtils';
 
 // Helper functions for localStorage interaction
-const getFromLocalStorage = <T>(key: string): T | null => {
+const getStorageData = <T>(key: string): T | null => {
   try {
     const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : null;
@@ -15,7 +15,7 @@ const getFromLocalStorage = <T>(key: string): T | null => {
   }
 };
 
-const saveToLocalStorage = <T>(key: string, data: T): void => {
+const saveStorageData = <T>(key: string, data: T): void => {
   try {
     localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
@@ -78,4 +78,3 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
     return [];
   }
 };
-

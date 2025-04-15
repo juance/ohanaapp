@@ -40,7 +40,7 @@ export const syncExpenses = async (): Promise<number> => {
       }
     }
     
-    localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(localExpenses));
+    saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
     return syncedCount;
   } catch (error) {
     console.error('Error syncing expenses:', error);

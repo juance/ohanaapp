@@ -1,3 +1,4 @@
+
 // TODO: Implement proper tests once vitest is added to dependencies
 // The original imports are commented out to avoid type errors
 // import { describe, it, expect, vi } from 'vitest';
