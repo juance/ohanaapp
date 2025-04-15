@@ -2,13 +2,14 @@
 import { useState, useRef } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { getPickupTickets, cancelTicket, markTicketAsDelivered } from '@/lib/ticket/ticketPickupService';
 import { getTicketServices } from '@/lib/ticketService';
 import { Ticket } from '@/lib/types';
 
 export const usePickupOrdersLogic = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
@@ -55,6 +56,12 @@ export const usePickupOrdersLogic = () => {
       await markTicketAsDelivered(ticketId);
       toast.success('Ticket marcado como entregado');
       setSelectedTicket(null);
+
+      // Invalidate both pickup and delivered tickets queries
+      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+      queryClient.invalidateQueries({ queryKey: ['deliveredTickets'] });
+
+      // Refetch pickup tickets
       refetch();
     } catch (error) {
       console.error('Error marking ticket as delivered:', error);
