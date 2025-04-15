@@ -1,7 +1,7 @@
-
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
+import { Customer } from '@/lib/types';
 
 export interface LoyaltyCustomer {
   id: string;
@@ -97,3 +97,4 @@ export function useLoyaltyCustomer() {
     handleRedeemValet
   };
 }
+

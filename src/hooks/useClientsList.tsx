@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { toast } from '@/lib/toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useClientData } from './useClientData';
-import { ClientVisit } from '@/lib/types';
+import { Customer, ClientVisit } from '@/lib/types';
 
 export const useClientsList = () => {
   const { frequentClients, refreshData, loading, error } = useClientData();

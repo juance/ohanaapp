@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { CustomerFeedback } from '@/lib/types';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 
 const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
@@ -13,13 +12,12 @@ const FEEDBACK_STORAGE_KEY = 'customer_feedback';
  */
 export const syncFeedbackData = async (): Promise<number> => {
   let syncedCount = 0;
-
+  
   try {
-    // Get all local feedback
     const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
-
+    const pendingDeleteFeedback = localFeedback.filter(feedback => feedback.pendingDelete);
+    
     // Process items marked for deletion
-    const pendingDeleteFeedback = localFeedback.filter(feedback => feedback && feedback.pendingDelete);
     for (const feedback of pendingDeleteFeedback) {
       if (!feedback) continue;
 
@@ -42,7 +40,7 @@ export const syncFeedbackData = async (): Promise<number> => {
     const updatedFeedback = localFeedback.filter(feedback => feedback && !feedback.pendingDelete);
 
     // Find feedback with pendingSync flag
-    const pendingFeedback = updatedFeedback.filter(feedback => feedback && feedback.pendingSync);
+    const pendingFeedback = updatedFeedback.filter(feedback => feedback.pendingSync);
 
     // Upload each pending feedback
     for (const feedback of pendingFeedback) {

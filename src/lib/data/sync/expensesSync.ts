@@ -1,13 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
-import { v4 as uuidv4 } from 'uuid';
 import { Expense } from '@/lib/types';
+import { getFromLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
 
-/**
- * Synchronize locally stored expenses with Supabase
- * @returns Number of successfully synced expenses
- */
 export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
@@ -21,30 +16,22 @@ export const syncExpenses = async (): Promise<number> => {
       return 0;
     }
     
-    console.log(`Found ${expensesToSync.length} expenses to sync`);
-    
-    // Track successfully synced expenses
     let syncedCount = 0;
     
-    // Process each expense
     for (const expense of expensesToSync) {
       try {
-        // Create expense in Supabase
-        const { data: createdExpense, error: expenseError } = await supabase
+        const { error } = await supabase
           .from('expenses')
           .insert({
-            id: uuidv4(),
+            id: expense.id,
             description: expense.description,
             amount: expense.amount,
-            date: expense.date || new Date().toISOString(),
+            date: expense.date,
             category: expense.category
-          })
-          .select('id')
-          .single();
+          });
         
-        if (expenseError) throw expenseError;
+        if (error) throw error;
         
-        // Mark as synced in local storage
         expense.pendingSync = false;
         expense.synced = true;
         syncedCount++;
@@ -53,10 +40,7 @@ export const syncExpenses = async (): Promise<number> => {
       }
     }
     
-    // Update local storage with synced status
     localStorage.setItem(EXPENSES_STORAGE_KEY, JSON.stringify(localExpenses));
-    
-    console.log(`Successfully synced ${syncedCount} out of ${expensesToSync.length} expenses`);
     return syncedCount;
   } catch (error) {
     console.error('Error syncing expenses:', error);
