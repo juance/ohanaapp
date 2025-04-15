@@ -109,6 +109,28 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
 
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
+    console.log('Fetching pickup tickets...');
+
+    // First, check if there are any tickets with status 'ready' and not canceled
+    const { count, error: countError } = await supabase
+      .from('tickets')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'ready')
+      .eq('is_canceled', false);
+
+    console.log('Count of ready tickets:', count);
+
+    if (countError) {
+      console.error('Error counting tickets:', countError);
+      throw countError;
+    }
+
+    if (count === 0) {
+      console.log('No tickets found with status ready and not canceled');
+      return [];
+    }
+
+    // Now fetch the tickets with their customer information
     const { data, error } = await supabase
       .from('tickets')
       .select('*, customers(name, phone)')
@@ -116,23 +138,44 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching tickets:', error);
+      throw error;
+    }
 
-    return (data || []).map(ticket => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      basketTicketNumber: ticket.basket_ticket_number,
-      clientName: ticket.customers?.name || 'Cliente sin nombre',
-      phoneNumber: ticket.customers?.phone || '',
-      totalPrice: ticket.total,
-      paymentMethod: ticket.payment_method,
-      status: ticket.status,
-      isPaid: ticket.is_paid,
-      valetQuantity: ticket.valet_quantity,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date,
-      ...ticket
-    }));
+    console.log('Fetched tickets:', data?.length || 0);
+
+    if (!data || data.length === 0) {
+      console.log('No tickets returned from query');
+      return [];
+    }
+
+    // Map the tickets to the application format
+    const mappedTickets = data.map(ticket => {
+      try {
+        return {
+          id: ticket.id,
+          ticketNumber: ticket.ticket_number,
+          basketTicketNumber: ticket.basket_ticket_number,
+          clientName: ticket.customers?.name || 'Cliente sin nombre',
+          phoneNumber: ticket.customers?.phone || '',
+          totalPrice: ticket.total,
+          paymentMethod: ticket.payment_method,
+          status: ticket.status,
+          isPaid: ticket.is_paid,
+          valetQuantity: ticket.valet_quantity,
+          createdAt: ticket.created_at,
+          deliveredDate: ticket.delivered_date,
+          ...ticket
+        };
+      } catch (mapError) {
+        console.error('Error mapping ticket:', mapError, ticket);
+        return null;
+      }
+    }).filter(Boolean) as Ticket[];
+
+    console.log('Mapped tickets:', mappedTickets.length);
+    return mappedTickets;
   } catch (error) {
     console.error('Error getting pickup tickets:', error);
     return [];
