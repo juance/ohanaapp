@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Expense } from '@/lib/types';
+import { Expense } from '@/lib/types/expense.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { EXPENSES_STORAGE_KEY } from '@/lib/types/error.types';
 
@@ -8,17 +8,17 @@ export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
-    
+
     // Check if there are expenses to sync
     const expensesToSync = localExpenses.filter(expense => expense.pendingSync);
-    
+
     if (expensesToSync.length === 0) {
       console.log('No expenses to sync');
       return 0;
     }
-    
+
     let syncedCount = 0;
-    
+
     for (const expense of expensesToSync) {
       try {
         const { error } = await supabase
@@ -30,9 +30,9 @@ export const syncExpenses = async (): Promise<number> => {
             date: expense.date,
             category: expense.category
           });
-        
+
         if (error) throw error;
-        
+
         // Actualizar el estado local
         const index = localExpenses.findIndex(e => e.id === expense.id);
         if (index !== -1) {
@@ -44,7 +44,7 @@ export const syncExpenses = async (): Promise<number> => {
         console.error(`Error syncing expense ${expense.id}:`, expenseSyncError);
       }
     }
-    
+
     saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
     return syncedCount;
   } catch (error) {

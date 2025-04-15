@@ -5,7 +5,7 @@ import App from './App.tsx'
 import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import { Toaster } from './components/ui/sonner'
-import { ThemeProvider } from './providers/theme-provider.tsx'
+import { ThemeProvider } from './providers/theme-provider'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { setupGlobalErrorHandling, initErrorService } from './lib/errorService'
 

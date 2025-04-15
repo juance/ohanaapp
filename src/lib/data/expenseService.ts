@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Expense, ExpenseCategory } from '@/lib/types';
+import { Expense } from '@/lib/types/expense.types';
+import { ExpenseCategory } from '@/lib/types/error.types';
 import { v4 as uuidv4 } from 'uuid';
 import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
 import { EXPENSES_STORAGE_KEY } from '@/lib/types/error.types';
@@ -15,9 +16,9 @@ export const getExpenses = async (): Promise<Expense[]> => {
       .from('expenses')
       .select('*')
       .order('date', { ascending: false });
-    
+
     if (error) throw error;
-    
+
     // Si la API responde correctamente, formatear y devolver los datos
     return (data || []).map(item => ({
       id: item.id,
@@ -29,7 +30,7 @@ export const getExpenses = async (): Promise<Expense[]> => {
     }));
   } catch (error) {
     console.error('Error getting expenses from API, falling back to local storage:', error);
-    
+
     // Si hay un error, obtener los datos del almacenamiento local
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     return localExpenses;
@@ -46,7 +47,7 @@ export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense>
       id: uuidv4(),
       pendingSync: true
     };
-    
+
     // Intentar guardar en la API
     const { error } = await supabase
       .from('expenses')
@@ -57,32 +58,32 @@ export const addExpense = async (expense: Omit<Expense, 'id'>): Promise<Expense>
         date: newExpense.date,
         category: newExpense.category
       });
-    
+
     if (error) throw error;
-    
+
     // Si se guarda correctamente en la API, no es necesario marcarlo como pendiente
     newExpense.pendingSync = false;
-    
+
     // Guardar en almacenamiento local (con o sin sincronización pendiente)
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     localExpenses.push(newExpense);
     saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
-    
+
     return newExpense;
   } catch (error) {
     console.error('Error saving expense to API, stored locally:', error);
-    
+
     // Si hay un error, guardar solo localmente con marca de sincronización pendiente
     const newExpense: Expense = {
       ...expense,
       id: uuidv4(),
       pendingSync: true
     };
-    
+
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     localExpenses.push(newExpense);
     saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
-    
+
     return newExpense;
   }
 };
@@ -97,23 +98,23 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
       .from('expenses')
       .delete()
       .eq('id', id);
-    
+
     if (error) throw error;
-    
+
     // Si se elimina correctamente de la API, eliminar del almacenamiento local
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     const updatedExpenses = localExpenses.filter(expense => expense.id !== id);
     saveToLocalStorage(EXPENSES_STORAGE_KEY, updatedExpenses);
-    
+
     return true;
   } catch (error) {
     console.error('Error deleting expense from API:', error);
-    
+
     // Si hay un error en la API, intentar eliminar solo localmente
     const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     const updatedExpenses = localExpenses.filter(expense => expense.id !== id);
     saveToLocalStorage(EXPENSES_STORAGE_KEY, updatedExpenses);
-    
+
     return false;
   }
 };
