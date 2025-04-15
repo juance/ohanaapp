@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect } from 'react';
-// import { toast } from 'react-hot-toast';
 import { Expense } from '@/lib/types/expense.types';
 import { ExpenseCategory } from '@/lib/types/error.types';
 import { storeExpense, getStoredExpenses } from '@/lib/data/expenseService';
@@ -8,10 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from '@radix-ui/react-icons';
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -34,7 +34,11 @@ const Expenses = () => {
     e.preventDefault();
 
     if (!description || !amount || !date) {
-      toast.error('Please fill out all fields');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Please fill out all fields"
+      });
       return;
     }
 
@@ -44,11 +48,14 @@ const Expenses = () => {
       description,
       amount: parseFloat(amount.toString()),
       date,
-      category: 'operations' // Adding default category
+      category: 'operations' // Default category
     });
 
     if (result) {
-      toast.success('Expense added successfully');
+      toast({
+        title: "Success",
+        description: "Expense added successfully"
+      });
       setDescription('');
       setAmount(0);
       setDate('');
@@ -57,7 +64,11 @@ const Expenses = () => {
       const updatedExpenses = await getStoredExpenses();
       setExpenses(updatedExpenses);
     } else {
-      toast.error('Failed to add expense');
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add expense"
+      });
     }
 
     setIsSubmitting(false);

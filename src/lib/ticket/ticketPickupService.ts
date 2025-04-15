@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
 import { Ticket } from '@/lib/types/ticket.types';
@@ -69,7 +68,6 @@ export const markTicketAsPending = async (ticketId: string) => {
 
 export const updateTicketStatus = async (ticketId: string, newStatus: string) => {
   try {
-    // Comprobar que el estado es válido
     const validStatuses = ['pending', 'ready', 'delivered', 'canceled'];
     if (!validStatuses.includes(newStatus)) {
       return {
@@ -77,7 +75,6 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
       };
     }
 
-    // Actualizar el ticket
     const { error } = await supabase
       .from('tickets')
       .update({
@@ -109,7 +106,6 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
   }
 };
 
-// Función para obtener tickets listos para recoger
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
@@ -121,55 +117,33 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     if (error) throw error;
 
-    // Mapear los datos de la BD al formato que espera la aplicación
-    return (data || []).map(ticket => {
-      // Safely handle the customer data, ensuring it's not an error object
-      let customerName = 'Cliente sin nombre';
-      let customerPhone = '';
-
-      if (ticket.customers && typeof ticket.customers === 'object' &&
-          'name' in ticket.customers && 'phone' in ticket.customers) {
-        customerName = ticket.customers?.name || customerName;
-        customerPhone = ticket.customers?.phone || customerPhone;
-      }
-
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerName,
-        phoneNumber: customerPhone,
-        totalPrice: ticket.total,
-        paymentMethod: ticket.payment_method,
-        status: ticket.status,
-        isPaid: ticket.is_paid,
-        valetQuantity: ticket.valet_quantity,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date,
-        // Mantener los campos originales también
-        ...ticket
-      };
-    });
+    return (data || []).map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total,
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      valetQuantity: ticket.valet_quantity,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      ...ticket
+    }));
   } catch (error) {
-    console.error('Error al obtener tickets para recoger:', error);
+    console.error('Error getting pickup tickets:', error);
     return [];
   }
 };
 
-/**
- * Gets tickets that have not been retrieved by customers after a specified number of days
- * @param days Number of days to look back
- * @returns Array of unretrieved tickets
- */
 export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => {
   try {
     const now = new Date();
-
-    // Calculate the date X days ago
     const dateXDaysAgo = new Date(now);
     dateXDaysAgo.setDate(now.getDate() - days);
 
-    // Query for tickets that are ready but haven't been retrieved since X days ago
     const { data, error } = await supabase
       .from('tickets')
       .select('*, customers(name, phone)')
@@ -180,48 +154,28 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
 
     if (error) throw error;
 
-    // Map the data to the application's expected format
-    return (data || []).map(ticket => {
-      // Safely handle the customer data, ensuring it's not an error object
-      let customerName = 'Cliente sin nombre';
-      let customerPhone = '';
-
-      if (ticket.customers && typeof ticket.customers === 'object' &&
-          'name' in ticket.customers && 'phone' in ticket.customers) {
-        customerName = ticket.customers?.name || customerName;
-        customerPhone = ticket.customers?.phone || customerPhone;
-      }
-
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerName,
-        phoneNumber: customerPhone,
-        totalPrice: ticket.total,
-        paymentMethod: ticket.payment_method,
-        status: ticket.status,
-        isPaid: ticket.is_paid,
-        valetQuantity: ticket.valet_quantity,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date,
-        // Mantener los campos originales también
-        ...ticket
-      };
-    });
+    return (data || []).map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total,
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      valetQuantity: ticket.valet_quantity,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      ...ticket
+    }));
   } catch (error) {
-    console.error(`Error al obtener tickets no retirados después de ${days} días:`, error);
+    console.error(`Error getting unretrieved tickets after ${days} days:`, error);
     return [];
   }
 };
 
-/**
- * Cancels a ticket by updating its status to 'canceled' and setting is_canceled to true
- * @param ticketId The ID of the ticket to cancel
- * @param reason Optional reason for cancellation
- * @returns The updated ticket or an error object
- */
-export const cancelTicket = async (ticketId: string, reason?: string): Promise<any> => {
+export const cancelTicket = async (ticketId: string, reason?: string) => {
   try {
     const { data, error } = await supabase
       .from('tickets')
