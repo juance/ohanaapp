@@ -47,7 +47,7 @@ export const getErrors = async (): Promise<SystemError[]> => {
 
     if (error) throw error;
     
-    // Transformar los datos para que coincidan con la interfaz SystemError
+    // Transform data to match SystemError interface
     return data.map(item => ({
       id: item.id,
       error_message: item.error_message,
@@ -58,7 +58,7 @@ export const getErrors = async (): Promise<SystemError[]> => {
       component: item.component,
       user_id: item.user_id,
       browser_info: item.browser_info,
-      message: item.error_message // Para compatibilidad
+      message: item.error_message // For compatibility
     }));
   } catch (error) {
     console.error('Error fetching errors:', error);
