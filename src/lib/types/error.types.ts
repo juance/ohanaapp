@@ -8,3 +8,9 @@ export interface SystemError {
   resolved: boolean;
   component?: string;
 }
+
+export interface GenericStringError {
+  message: string;
+  status?: number;
+  id?: string;
+}

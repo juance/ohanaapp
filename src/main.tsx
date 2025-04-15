@@ -7,7 +7,7 @@ import { ThemeProvider } from 'next-themes';
 import App from './App.tsx';
 import ErrorBoundary from './components/ErrorBoundary.tsx';
 import './index.css';
-import { setupGlobalErrorHandling, initErrorService } from './lib/errorService.ts';
+import { logError } from './lib/errorService.ts';
 import { Toaster } from './components/ui/toaster';
 
 // Create a client with optimized settings for production
@@ -33,8 +33,26 @@ if (!rootElement) {
 // Performance timing
 const startTime = performance.now();
 
-// Inicializar sistema de captura y registro de errores
-initErrorService();
+// Initialize error handling
+const setupErrorHandling = () => {
+  window.addEventListener('error', (event) => {
+    logError(event.error, {
+      message: event.message,
+      source: event.filename,
+      line: event.lineno,
+      column: event.colno
+    });
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    logError(event.reason, {
+      type: 'unhandled-rejection'
+    });
+  });
+};
+
+// Set up error handling
+setupErrorHandling();
 
 // Create and render the root
 try {

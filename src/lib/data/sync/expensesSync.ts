@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/lib/types';
-import { getFromLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
+import { getFromLocalStorage, saveToLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
 
 export const syncExpenses = async (): Promise<number> => {
   try {

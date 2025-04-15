@@ -1,7 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { Expense } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
+import { Expense, ExpenseCategory } from '@/lib/types';
+import { EXPENSES_STORAGE_KEY } from './coreUtils';
 
 // Helper functions for localStorage interaction
 const getFromLocalStorage = <T>(key: string): T | null => {
@@ -67,7 +68,7 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
       id: item.id,
       description: item.description || '',
       amount: item.amount,
-      category: item.category,
+      category: (item.category as ExpenseCategory) || 'other',
       date: item.date,
       createdAt: item.created_at,
       pendingSync: false
@@ -77,3 +78,4 @@ export const getStoredExpenses = async (): Promise<Expense[]> => {
     return [];
   }
 };
+

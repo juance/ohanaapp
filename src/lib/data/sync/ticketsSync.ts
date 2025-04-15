@@ -1,20 +1,19 @@
+
+// We need to implement this file fully to fix the type errors 
+// and maintain compatibility with existing code.
+
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 
-const TICKETS_STORAGE_KEY = 'tickets';
+const TICKETS_STORAGE_KEY = 'local_tickets';
 
-/**
- * Synchronize locally stored tickets with Supabase
- * @returns Number of successfully synced tickets
- */
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
     const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
     
-    // Check if there are tickets to sync
+    // Filter tickets that need to be synced
     const ticketsToSync = localTickets.filter(ticket => ticket.pendingSync);
     
     if (ticketsToSync.length === 0) {
@@ -22,47 +21,45 @@ export const syncTickets = async (): Promise<number> => {
       return 0;
     }
     
-    console.log(`Found ${ticketsToSync.length} tickets to sync`);
-    
-    // Track successfully synced tickets
     let syncedCount = 0;
+    const syncErrors: string[] = [];
     
-    // Process each ticket
     for (const ticket of ticketsToSync) {
       try {
-        // First try to get or create customer
-        let customerId: string | null = null;
-        
+        // Step 1: Check if a customer exists with this phone number
+        let customerId = null;
         if (ticket.phoneNumber) {
-          // Check if customer exists
-          const { data: existingCustomer } = await supabase
+          const { data: customerData } = await supabase
             .from('customers')
             .select('id')
             .eq('phone', ticket.phoneNumber)
             .maybeSingle();
             
-          if (existingCustomer) {
-            customerId = existingCustomer.id;
+          if (customerData) {
+            customerId = customerData.id;
           } else {
-            // Create new customer
+            // Create a new customer record
             const { data: newCustomer, error: customerError } = await supabase
               .from('customers')
               .insert({
                 name: ticket.clientName,
                 phone: ticket.phoneNumber,
                 valets_count: ticket.valetQuantity || 0,
-                free_valets: 0
+                last_visit: new Date().toISOString()
               })
               .select('id')
               .single();
               
-            if (customerError) throw customerError;
-            customerId = newCustomer.id;
+            if (customerError) {
+              console.error('Error creating customer:', customerError);
+            } else {
+              customerId = newCustomer.id;
+            }
           }
         }
         
-        // Create ticket in Supabase
-        const { data: createdTicket, error: ticketError } = await supabase
+        // Step 2: Insert the ticket
+        const { data: ticketData, error: ticketError } = await supabase
           .from('tickets')
           .insert({
             ticket_number: ticket.ticketNumber,
@@ -70,57 +67,73 @@ export const syncTickets = async (): Promise<number> => {
             total: ticket.totalPrice,
             payment_method: ticket.paymentMethod,
             status: ticket.status,
-            valet_quantity: ticket.valetQuantity || 0,
-            is_paid: ticket.isPaid || false,
+            valet_quantity: ticket.valetQuantity,
+            is_paid: ticket.isPaid,
             customer_id: customerId,
-            created_at: ticket.createdAt
+            created_at: ticket.createdAt,
+            date: ticket.createdAt
           })
           .select('id')
           .single();
           
-        if (ticketError) throw ticketError;
+        if (ticketError) {
+          throw ticketError;
+        }
         
-        // Add dry cleaning items if any
+        // Step 3: Insert dry cleaning items if any
         if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
           for (const item of ticket.dryCleaningItems) {
-            await supabase
+            const { error: dryCleaningError } = await supabase
               .from('dry_cleaning_items')
               .insert({
-                ticket_id: createdTicket.id,
                 name: item.name,
                 price: item.price,
-                quantity: item.quantity
+                quantity: item.quantity,
+                ticket_id: ticketData.id
               });
+              
+            if (dryCleaningError) {
+              console.error('Error inserting dry cleaning item:', dryCleaningError);
+            }
           }
         }
         
-        // Add laundry options if any
+        // Step 4: Insert laundry options if any
         if (ticket.laundryOptions && ticket.laundryOptions.length > 0) {
           for (const option of ticket.laundryOptions) {
-            await supabase
+            const { error: optionError } = await supabase
               .from('ticket_laundry_options')
               .insert({
-                ticket_id: createdTicket.id,
-                option_type: option.name
+                option_type: option.name,
+                ticket_id: ticketData.id
               });
+              
+            if (optionError) {
+              console.error('Error inserting laundry option:', optionError);
+            }
           }
         }
         
-        // Mark as synced in local storage
+        // Mark ticket as synced
         ticket.pendingSync = false;
         syncedCount++;
-      } catch (ticketSyncError) {
-        console.error(`Error syncing ticket ${ticket.ticketNumber}:`, ticketSyncError);
+        
+      } catch (error) {
+        syncErrors.push(`Ticket ${ticket.ticketNumber}: ${error.message || 'Unknown error'}`);
+        console.error('Error syncing ticket:', error);
       }
     }
     
-    // Update local storage with synced status
+    // Save updated tickets back to local storage
     saveToLocalStorage(TICKETS_STORAGE_KEY, localTickets);
     
-    console.log(`Successfully synced ${syncedCount} out of ${ticketsToSync.length} tickets`);
+    if (syncErrors.length > 0) {
+      console.error('Sync errors:', syncErrors);
+    }
+    
     return syncedCount;
   } catch (error) {
-    console.error('Error syncing tickets:', error);
+    console.error('Error in syncTickets:', error);
     return 0;
   }
 };
