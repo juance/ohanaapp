@@ -37,3 +37,8 @@ export enum ExpenseCategory {
   MAINTENANCE = 'maintenance',
   OTHER = 'other'
 }
+
+// Constantes para almacenamiento local
+export const EXPENSES_STORAGE_KEY = 'expenses';
+export const FEEDBACK_STORAGE_KEY = 'customerFeedback';
+export const TICKETS_STORAGE_KEY = 'tickets';

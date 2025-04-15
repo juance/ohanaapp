@@ -1,12 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, EXPENSES_STORAGE_KEY } from '../coreUtils';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+import { EXPENSES_STORAGE_KEY } from '@/lib/types/error.types';
 
 export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
-    const localExpenses: Expense[] = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
     
     // Check if there are expenses to sync
     const expensesToSync = localExpenses.filter(expense => expense.pendingSync);

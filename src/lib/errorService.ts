@@ -39,68 +39,87 @@ export const logError = async (error: Error | string | unknown, context: Record<
 };
 
 export const getErrors = async (): Promise<SystemError[]> => {
-  const { data, error } = await supabase
-    .from('error_logs')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('error_logs')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  
-  // Transformar los datos para que coincidan con la interfaz SystemError
-  return data.map(item => ({
-    id: item.id,
-    error_message: item.error_message,
-    error_stack: item.error_stack,
-    timestamp: new Date(item.created_at),
-    error_context: item.error_context,
-    resolved: item.resolved,
-    component: item.component,
-    user_id: item.user_id,
-    browser_info: item.browser_info,
-    message: item.error_message // Para compatibilidad
-  }));
+    if (error) throw error;
+    
+    // Transformar los datos para que coincidan con la interfaz SystemError
+    return data.map(item => ({
+      id: item.id,
+      error_message: item.error_message,
+      error_stack: item.error_stack,
+      timestamp: new Date(item.created_at),
+      error_context: item.error_context,
+      resolved: item.resolved,
+      component: item.component,
+      user_id: item.user_id,
+      browser_info: item.browser_info,
+      message: item.error_message // Para compatibilidad
+    }));
+  } catch (error) {
+    console.error('Error fetching errors:', error);
+    return [];
+  }
 };
 
 export const clearErrors = async (): Promise<void> => {
-  const { error } = await supabase
-    .from('error_logs')
-    .delete()
-    .neq('id', '');
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .neq('id', '');
 
-  if (error) throw error;
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error clearing errors:', error);
+    throw error;
+  }
 };
 
-export const resolveError = async (id: string): Promise<number> => {
-  const { error, count } = await supabase
-    .from('error_logs')
-    .update({ resolved: true })
-    .eq('id', id)
-    .select('count');
+export const resolveError = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .update({ resolved: true })
+      .eq('id', id);
 
-  if (error) throw error;
-  return count || 0;
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error resolving error:', error);
+    throw error;
+  }
 };
 
-export const deleteError = async (id: string): Promise<number> => {
-  const { error, count } = await supabase
-    .from('error_logs')
-    .delete()
-    .eq('id', id)
-    .select('count');
+export const deleteError = async (id: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .eq('id', id);
 
-  if (error) throw error;
-  return count || 0;
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error deleting error:', error);
+    throw error;
+  }
 };
 
-export const clearResolvedErrors = async (): Promise<number> => {
-  const { error, count } = await supabase
-    .from('error_logs')
-    .delete()
-    .eq('resolved', true)
-    .select('count');
+export const clearResolvedErrors = async (): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .eq('resolved', true);
 
-  if (error) throw error;
-  return count || 0;
+    if (error) throw error;
+  } catch (error) {
+    console.error('Error clearing resolved errors:', error);
+    throw error;
+  }
 };
 
 const getBrowserInfo = () => {
@@ -133,4 +152,4 @@ export const initErrorService = () => {
 };
 
 // Exportamos SystemError para que sea accesible
-export { SystemError } from './types/error.types';
+export type { SystemError } from './types/error.types';

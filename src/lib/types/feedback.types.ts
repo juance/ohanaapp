@@ -8,5 +8,3 @@ export interface CustomerFeedback {
   pendingSync?: boolean;
   pendingDelete?: boolean;
 }
-
-export const FEEDBACK_STORAGE_KEY = 'customerFeedback';

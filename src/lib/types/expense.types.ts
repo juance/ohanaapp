@@ -1,18 +1,13 @@
 
+import { ExpenseCategory } from './error.types';
+
 export interface Expense {
   id: string;
   description: string;
   amount: number;
   date: string;
-  category?: string;
-  created_at?: string;
+  category: ExpenseCategory;
   pendingSync?: boolean;
   synced?: boolean;
+  created_at?: string;
 }
-
-export interface ExpenseServiceInterface {
-  storeExpense: (expense: Omit<Expense, 'id'>) => Promise<Expense | null>;
-  getStoredExpenses: () => Promise<Expense[]>;
-}
-
-export const EXPENSES_STORAGE_KEY = 'expenses';

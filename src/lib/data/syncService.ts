@@ -1,5 +1,5 @@
 
-import { EXPENSES_STORAGE_KEY, FEEDBACK_STORAGE_KEY, TICKETS_STORAGE_KEY } from '@/lib/types';
+import { EXPENSES_STORAGE_KEY, FEEDBACK_STORAGE_KEY, TICKETS_STORAGE_KEY } from '@/lib/types/error.types';
 
 /**
  * Resetea todos los datos locales almacenados

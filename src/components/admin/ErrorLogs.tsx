@@ -61,11 +61,11 @@ export const ErrorLogs = () => {
   const handleClearResolvedErrors = async () => {
     setIsClearingResolved(true);
     try {
-      const clearedCount = await clearResolvedErrors();
+      await clearResolvedErrors();
       loadErrors(); // Recargar errores
       toast({
         title: "Registros resueltos limpiados",
-        description: `Se han eliminado ${clearedCount} registros de errores resueltos.`
+        description: "Se han eliminado los registros de errores resueltos."
       });
     } catch (error) {
       console.error("Error clearing resolved error logs:", error);
@@ -226,7 +226,7 @@ export const ErrorLogs = () => {
                   <div className="flex-1">
                     <div className="flex justify-between items-start">
                       <h3 className={`font-medium ${error.resolved ? 'text-green-800' : 'text-red-800'}`}>
-                        {error.message || "Error desconocido"}
+                        {error.message || error.error_message || "Error desconocido"}
                       </h3>
                       <div className="flex space-x-1">
                         {error.component && (
@@ -248,9 +248,9 @@ export const ErrorLogs = () => {
                       {new Date(error.timestamp).toLocaleString()}
                     </p>
 
-                    {error.stack && (
+                    {error.error_stack && (
                       <pre className={`mt-2 text-xs p-2 rounded overflow-x-auto ${error.resolved ? 'bg-green-100' : 'bg-red-100'}`}>
-                        {error.stack}
+                        {error.error_stack}
                       </pre>
                     )}
 
@@ -259,7 +259,9 @@ export const ErrorLogs = () => {
                         <details>
                           <summary className="cursor-pointer hover:text-gray-800">Información del navegador</summary>
                           <div className="p-2 mt-1 bg-gray-50 rounded">
-                            <pre>{error.browser_info}</pre>
+                            {typeof error.browser_info === 'object' && (
+                              <pre>{JSON.stringify(error.browser_info, null, 2)}</pre>
+                            )}
                           </div>
                         </details>
                       </div>

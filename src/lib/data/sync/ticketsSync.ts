@@ -1,7 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
-import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from '../coreUtils';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+import { TICKETS_STORAGE_KEY } from '@/lib/types/error.types';
 
 /**
  * Syncs ticket data with the Supabase backend
@@ -10,7 +11,7 @@ import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from '..
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
-    const localTickets: Ticket[] = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
     
     // Check if there are tickets to sync
     const ticketsToSync = localTickets.filter(ticket => ticket.pendingSync);
@@ -82,9 +83,9 @@ export const syncTickets = async (): Promise<number> => {
         if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
           const dryCleaningItemsToInsert = ticket.dryCleaningItems.map((item) => ({
             ticket_id: ticket.id,
-            item_type: item.name,
-            quantity: item.quantity,
+            name: item.name,
             price: item.price,
+            quantity: item.quantity,
             notes: ''
           }));
           
@@ -101,8 +102,7 @@ export const syncTickets = async (): Promise<number> => {
         if (ticket.laundryOptions && ticket.laundryOptions.length > 0) {
           const laundryOptionsToInsert = ticket.laundryOptions.map((option) => ({
             ticket_id: ticket.id,
-            option_type: option.name,
-            price: option.price
+            option_type: option.name
           }));
           
           const { error: laundryError } = await supabase

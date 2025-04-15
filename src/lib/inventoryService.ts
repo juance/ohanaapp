@@ -17,7 +17,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
       quantity: item.quantity,
       threshold: item.threshold,
       unit: item.unit,
-      lastUpdated: item.updated_at || item.created_at || new Date().toISOString()
+      lastUpdated: item.created_at || new Date().toISOString()
     }));
   } catch (error) {
     console.error('Error fetching inventory:', error);
@@ -66,7 +66,7 @@ export const createInventoryItem = async (item: Omit<InventoryItem, 'id' | 'last
       quantity: data.quantity,
       threshold: data.threshold,
       unit: data.unit,
-      lastUpdated: data.updated_at || data.created_at || new Date().toISOString()
+      lastUpdated: data.created_at || new Date().toISOString()
     };
   } catch (error) {
     console.error('Error creating inventory item:', error);
@@ -89,5 +89,5 @@ export const deleteInventoryItem = async (itemId: string): Promise<boolean> => {
   }
 };
 
-// Add this function to make it compatible with InventoryList component
+// Añadimos esta función para hacerlo compatible con el componente InventoryList
 export const addInventoryItem = createInventoryItem;

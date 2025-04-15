@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from '@/lib/toast';
 import { AlertTriangle, CheckCircle, Trash2, RefreshCw } from "lucide-react";
-import { SystemError, resolveError, deleteError, clearResolvedErrors } from '@/lib/errorService';
+import { resolveError, deleteError, clearResolvedErrors } from '@/lib/errorService';
+import type { SystemError } from '@/lib/errorService';
 
 interface ErrorLogListProps {
   errors: SystemError[];
@@ -13,13 +14,11 @@ interface ErrorLogListProps {
 export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
   const handleResolveError = async (id: string) => {
     try {
-      const count = await resolveError(id);
-      if (count > 0) {
-        toast({
-          title: "Error marcado como resuelto",
-          description: "El error ha sido marcado como resuelto correctamente."
-        });
-      }
+      await resolveError(id);
+      toast({
+        title: "Error marcado como resuelto",
+        description: "El error ha sido marcado como resuelto correctamente."
+      });
     } catch (error) {
       console.error("Error al marcar como resuelto:", error);
       toast({
@@ -32,13 +31,11 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
 
   const handleDeleteError = async (id: string) => {
     try {
-      const count = await deleteError(id);
-      if (count > 0) {
-        toast({
-          title: "Error eliminado",
-          description: "El registro de error ha sido eliminado permanentemente."
-        });
-      }
+      await deleteError(id);
+      toast({
+        title: "Error eliminado",
+        description: "El registro de error ha sido eliminado permanentemente."
+      });
     } catch (error) {
       console.error("Error al eliminar:", error);
       toast({
@@ -51,18 +48,11 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
 
   const handleClearResolved = async () => {
     try {
-      const count = await clearResolvedErrors();
-      if (count > 0) {
-        toast({
-          title: "Errores resueltos eliminados",
-          description: `Se han eliminado ${count} errores resueltos.`
-        });
-      } else {
-        toast({
-          title: "No hay errores resueltos",
-          description: "No hay errores resueltos para eliminar."
-        });
-      }
+      await clearResolvedErrors();
+      toast({
+        title: "Errores resueltos eliminados",
+        description: "Se han eliminado los errores resueltos."
+      });
     } catch (error) {
       console.error("Error clearing resolved errors:", error);
       toast({

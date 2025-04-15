@@ -2,9 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerFeedback } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-
-// Constante para la clave de almacenamiento
-const FEEDBACK_STORAGE_KEY = 'customerFeedback';
+import { FEEDBACK_STORAGE_KEY } from '@/lib/types/error.types';
 
 /**
  * Syncs feedback data with the Supabase backend
@@ -13,7 +11,7 @@ const FEEDBACK_STORAGE_KEY = 'customerFeedback';
 export const syncFeedback = async (): Promise<number> => {
   try {
     // Get locally stored feedback
-    const localFeedback: CustomerFeedback[] = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
     
     // Handle feedback marked for deletion
     const feedbackToDelete = localFeedback.filter(feedback => feedback.pendingDelete);

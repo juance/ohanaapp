@@ -9,6 +9,19 @@ import { useInterval } from '@/hooks/use-interval';
 type ConnectionStatus = 'online' | 'offline';
 type SyncStatusState = 'idle' | 'syncing' | 'error' | 'success';
 
+interface SyncStats {
+  tickets: number;
+  expenses: number;
+  clients: number;
+  feedback: number;
+  inventory: number;
+}
+
+interface SyncStatusResponse {
+  pending: SyncStats;
+  lastSync: string | null;
+}
+
 interface ConnectionContextType {
   connectionStatus: ConnectionStatus;
   syncStatus: SyncStatusState;
@@ -49,20 +62,22 @@ export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> =
   // Check for pending syncs
   const checkPendingSyncs = async () => {
     try {
-      const status = await getSyncStatus();
-      const totalPending =
-        status.pending.tickets +
-        status.pending.expenses +
-        status.pending.clients +
-        status.pending.feedback +
-        status.pending.inventory;
+      const status: SyncStatusResponse = await getSyncStatus();
+      if (status && status.pending) {
+        const totalPending =
+          (status.pending.tickets || 0) +
+          (status.pending.expenses || 0) +
+          (status.pending.clients || 0) +
+          (status.pending.feedback || 0) +
+          (status.pending.inventory || 0);
 
-      setPendingSyncCount(totalPending);
-      setIsPendingSync(totalPending > 0);
+        setPendingSyncCount(totalPending);
+        setIsPendingSync(totalPending > 0);
 
-      // Update last synced time if available
-      if (status.lastSync) {
-        setLastSyncedAt(new Date(status.lastSync));
+        // Update last synced time if available
+        if (status.lastSync) {
+          setLastSyncedAt(new Date(status.lastSync));
+        }
       }
     } catch (error) {
       console.error('Error checking sync status:', error);
