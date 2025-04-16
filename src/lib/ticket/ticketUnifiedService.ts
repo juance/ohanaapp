@@ -1,7 +1,7 @@
 
 /**
  * Unified Ticket Service
- * 
+ *
  * This service provides a unified interface for ticket operations across different
  * status transitions. It abstracts the complexity of the different ticket statuses
  * and provides a simple API for ticket operations.
@@ -37,27 +37,27 @@ export const createUnifiedTicket = async ({
     // First, get the next ticket number
     const { data: ticketNumber, error: ticketNumberError } = await supabase
       .rpc('get_next_ticket_number');
-    
+
     if (ticketNumberError) {
       console.error('Error getting next ticket number:', ticketNumberError);
       throw ticketNumberError;
     }
-    
+
     // Find or create customer
     let customerId: string | null = null;
-    
+
     // Check if customer exists
     const { data: existingCustomer, error: customerQueryError } = await supabase
       .from('customers')
       .select('id')
       .eq('phone', phoneNumber)
       .maybeSingle();
-    
+
     if (customerQueryError) {
       console.error('Error finding customer:', customerQueryError);
       throw customerQueryError;
     }
-    
+
     if (existingCustomer) {
       customerId = existingCustomer.id;
     } else {
@@ -70,19 +70,19 @@ export const createUnifiedTicket = async ({
         })
         .select('id')
         .single();
-      
+
       if (createCustomerError) {
         console.error('Error creating customer:', createCustomerError);
         throw createCustomerError;
       }
-      
+
       customerId = newCustomer.id;
     }
-    
+
     // Now create the ticket
     const now = new Date().toISOString();
     const ticketDate = customDate ? customDate.toISOString() : now;
-    
+
     const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
       .insert({
@@ -99,18 +99,31 @@ export const createUnifiedTicket = async ({
       })
       .select('id')
       .single();
-    
+
     if (ticketError) {
       console.error('Error creating ticket:', ticketError);
       throw ticketError;
     }
-    
+
     // Update customer last visit
     await supabase
       .from('customers')
       .update({ last_visit: now })
       .eq('id', customerId);
-    
+
+    // Actualizar el contador de visitas del cliente si es un valet
+    if (valetQuantity > 0) {
+      try {
+        // Importar la función desde el módulo correcto
+        const { updateValetsCount } = await import('@/lib/data/customer/valetService');
+        await updateValetsCount(customerId, valetQuantity);
+        console.log(`Contador de valets actualizado para cliente ${customerId}: +${valetQuantity}`);
+      } catch (valetError) {
+        console.error('Error al actualizar contador de valets:', valetError);
+        // No interrumpir el flujo si falla esta actualización
+      }
+    }
+
     return {
       success: true,
       ticketId: ticket.id,

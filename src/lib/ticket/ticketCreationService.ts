@@ -101,6 +101,19 @@ export const createTicket = async ({
       throw error;
     }
 
+    // Actualizar el contador de visitas del cliente si es un valet
+    if (valetQuantity > 0) {
+      try {
+        // Importar la función desde el módulo correcto
+        const { updateValetsCount } = await import('@/lib/data/customer/valetService');
+        await updateValetsCount(customer.id, valetQuantity);
+        console.log(`Contador de valets actualizado para cliente ${customer.id}: +${valetQuantity}`);
+      } catch (valetError) {
+        console.error('Error al actualizar contador de valets:', valetError);
+        // No interrumpir el flujo si falla esta actualización
+      }
+    }
+
     console.log('Ticket created successfully:', ticket);
 
     return {

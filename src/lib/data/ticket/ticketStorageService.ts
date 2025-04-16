@@ -147,6 +147,19 @@ export const storeTicket = async (
     try {
       if (customerId) {
         await updateCustomerLastVisit(customerId);
+
+        // Actualizar el contador de visitas del cliente si es un valet
+        if (ticketData.valetQuantity > 0) {
+          try {
+            // Importar la función desde el módulo correcto
+            const { updateValetsCount } = await import('@/lib/data/customer/valetService');
+            await updateValetsCount(customerId, ticketData.valetQuantity);
+            console.log(`Contador de valets actualizado para cliente ${customerId}: +${ticketData.valetQuantity}`);
+          } catch (valetError) {
+            console.error('Error al actualizar contador de valets:', valetError);
+            // No interrumpir el flujo si falla esta actualización
+          }
+        }
       }
     } catch (customerError) {
       console.error('Error updating customer last visit:', customerError);
