@@ -30,13 +30,13 @@ const ServicesSection: React.FC<ServicesSectionProps> = ({
           >
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`service-${service.id}`}
+                id={`service-checkbox-${service.id}`}
                 checked={selectedServices.includes(service.id)}
                 onCheckedChange={() => {}}
                 className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
               />
               <label
-                htmlFor={`service-${service.id}`}
+                htmlFor={`service-checkbox-${service.id}`}
                 className="text-sm font-medium"
               >
                 {service.name}

@@ -16,16 +16,16 @@ const FormSubmitSection: React.FC<FormSubmitSectionProps> = ({
       <div className="flex items-center gap-2">
         <input
           type="checkbox"
-          id="paidInAdvance"
+          id="paid-in-advance-checkbox"
           checked={isPaidInAdvance}
           onChange={() => setIsPaidInAdvance(!isPaidInAdvance)}
           className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
         />
-        <label htmlFor="paidInAdvance" className="text-sm font-medium">
+        <label htmlFor="paid-in-advance-checkbox" className="text-sm font-medium">
           Cliente dejó pago (Pagado por adelantado)
         </label>
       </div>
-      
+
       <Button type="submit" className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700">
         Generar Ticket
       </Button>

@@ -34,13 +34,13 @@ const LaundryOptionsSection: React.FC<LaundryOptionsSectionProps> = ({
           >
             <div className="flex items-center space-x-2">
               <Checkbox
-                id={`option-${option.id}`}
+                id={`laundry-option-${option.id}`}
                 checked={selectedLaundryOptions.includes(option.id)}
                 onCheckedChange={() => {}}
                 className="data-[state=checked]:bg-laundry-500 data-[state=checked]:text-white"
               />
               <label
-                htmlFor={`option-${option.id}`}
+                htmlFor={`laundry-option-${option.id}`}
                 className="text-sm font-medium"
               >
                 {option.label}
