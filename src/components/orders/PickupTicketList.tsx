@@ -20,7 +20,20 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
 }) => {
   console.log("PickupTicketList renderizando con", tickets.length, "tickets");
   console.log("Ticket statuses:", tickets.map(t => t.status).join(", "));
-  
+
+  // Depuración detallada de los tickets
+  if (tickets.length > 0) {
+    console.log("Primer ticket:", {
+      id: tickets[0].id,
+      ticketNumber: tickets[0].ticketNumber,
+      clientName: tickets[0].clientName,
+      phoneNumber: tickets[0].phoneNumber,
+      status: tickets[0].status,
+      totalPrice: tickets[0].totalPrice,
+      isPaid: tickets[0].isPaid
+    });
+  }
+
   if (!tickets || tickets.length === 0) {
     return (
       <div className="text-center p-6 text-gray-500">
@@ -91,7 +104,7 @@ const PickupTicketList: React.FC<PickupTicketListProps> = ({
               <div>Ticket #: {ticket.ticketNumber}</div>
             </div>
             <div className="mt-2 flex justify-between items-center">
-              <span className="font-medium text-blue-700">$ {ticket.totalPrice.toLocaleString()}</span>
+              <span className="font-medium text-blue-700">$ {(ticket.totalPrice || 0).toLocaleString()}</span>
             </div>
           </CardContent>
         </Card>

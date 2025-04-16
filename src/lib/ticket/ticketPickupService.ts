@@ -174,21 +174,30 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
         const customerName = ticket.customers?.name || 'Cliente sin nombre';
         const customerPhone = ticket.customers?.phone || '';
 
+        console.log('Mapping ticket:', {
+          id: ticket.id,
+          ticket_number: ticket.ticket_number,
+          customer_id: ticket.customer_id,
+          customer_info: ticket.customers,
+          customerName,
+          customerPhone
+        });
+
+        // Crear un objeto limpio sin incluir todas las propiedades del ticket original
         return {
           id: ticket.id,
           ticketNumber: ticket.ticket_number,
           basketTicketNumber: ticket.basket_ticket_number,
           clientName: customerName,
           phoneNumber: customerPhone,
-          totalPrice: ticket.total,
+          totalPrice: parseFloat(ticket.total) || 0,
           paymentMethod: ticket.payment_method,
           status: ticket.status,
           isPaid: ticket.is_paid,
           valetQuantity: ticket.valet_quantity,
           createdAt: ticket.created_at,
           deliveredDate: ticket.delivered_date,
-          customerId: customerId,
-          ...ticket
+          customerId: customerId
         };
       } catch (mapError) {
         console.error('Error mapping ticket:', mapError, ticket);
@@ -226,14 +235,14 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
       basketTicketNumber: ticket.basket_ticket_number,
       clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
-      totalPrice: ticket.total,
+      totalPrice: parseFloat(ticket.total) || 0,
       paymentMethod: ticket.payment_method,
       status: ticket.status,
       isPaid: ticket.is_paid,
       valetQuantity: ticket.valet_quantity,
       createdAt: ticket.created_at,
       deliveredDate: ticket.delivered_date,
-      ...ticket
+      customerId: ticket.customer_id
     }));
   } catch (error) {
     console.error(`Error getting unretrieved tickets after ${days} days:`, error);
