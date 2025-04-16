@@ -37,52 +37,52 @@ export const LaundryOptions: React.FC<LaundryOptionsProps> = ({
       <h3 className="text-lg font-medium mb-3">Opciones de Lavado</h3>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="separateByColor" 
-            checked={separateByColor} 
+          <Switch
+            id="laundry-option-separate-by-color"
+            checked={separateByColor}
             onCheckedChange={setSeparateByColor}
           />
-          <Label htmlFor="separateByColor">Separar por Color</Label>
+          <Label htmlFor="laundry-option-separate-by-color">Separar por Color</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="delicateDry" 
-            checked={delicateDry} 
+          <Switch
+            id="laundry-option-delicate-dry"
+            checked={delicateDry}
             onCheckedChange={setDelicateDry}
           />
-          <Label htmlFor="delicateDry">Secado Delicado</Label>
+          <Label htmlFor="laundry-option-delicate-dry">Secado Delicado</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="stainRemoval" 
-            checked={stainRemoval} 
+          <Switch
+            id="laundry-option-stain-removal"
+            checked={stainRemoval}
             onCheckedChange={setStainRemoval}
           />
-          <Label htmlFor="stainRemoval">Quitamanchas</Label>
+          <Label htmlFor="laundry-option-stain-removal">Quitamanchas</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="bleach" 
-            checked={bleach} 
+          <Switch
+            id="laundry-option-bleach"
+            checked={bleach}
             onCheckedChange={setBleach}
           />
-          <Label htmlFor="bleach">Blanquear</Label>
+          <Label htmlFor="laundry-option-bleach">Blanquear</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="noFragrance" 
-            checked={noFragrance} 
+          <Switch
+            id="laundry-option-no-fragrance"
+            checked={noFragrance}
             onCheckedChange={setNoFragrance}
           />
-          <Label htmlFor="noFragrance">Sin Perfume</Label>
+          <Label htmlFor="laundry-option-no-fragrance">Sin Perfume</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <Switch 
-            id="noDry" 
-            checked={noDry} 
+          <Switch
+            id="laundry-option-no-dry"
+            checked={noDry}
             onCheckedChange={setNoDry}
           />
-          <Label htmlFor="noDry">Sin Secar</Label>
+          <Label htmlFor="laundry-option-no-dry">Sin Secar</Label>
         </div>
       </div>
     </div>
