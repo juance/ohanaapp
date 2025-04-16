@@ -49,7 +49,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     freeValets: 0,
     paidTickets: 0
   });
-  
+
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(new Date().setDate(new Date().getDate() - 30)),
     to: new Date()
@@ -58,23 +58,46 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const fetchData = async () => {
     setIsLoading(true);
     try {
+      console.log('Fetching ticket analytics data for date range:', {
+        from: dateRange.from.toISOString(),
+        to: dateRange.to.toISOString()
+      });
+
       // Get tickets within date range from Supabase
       const { data: tickets, error: ticketsError } = await supabase
         .from('tickets')
         .select(`
-          id, 
-          total, 
-          payment_method, 
-          status, 
+          id,
+          total,
+          payment_method,
+          status,
           date,
+          created_at,
           is_canceled,
           is_paid,
           valet_quantity,
-          dry_cleaning_items (id, name, quantity, price)
+          customer_id
         `)
-        .gte('date', dateRange.from.toISOString())
-        .lte('date', dateRange.to.toISOString())
+        .gte('created_at', dateRange.from.toISOString())
+        .lte('created_at', dateRange.to.toISOString())
         .eq('is_canceled', false);
+
+      // Get dry cleaning items for these tickets
+      let dryCleaningItems = [];
+      if (tickets && tickets.length > 0) {
+        const ticketIds = tickets.map(ticket => ticket.id);
+        const { data: itemsData, error: itemsError } = await supabase
+          .from('dry_cleaning_items')
+          .select('id, name, quantity, price, ticket_id')
+          .in('ticket_id', ticketIds);
+
+        if (itemsError) {
+          console.error('Error fetching dry cleaning items:', itemsError);
+        } else {
+          dryCleaningItems = itemsData || [];
+          console.log(`Fetched ${dryCleaningItems.length} dry cleaning items`);
+        }
+      }
 
       if (ticketsError) throw ticketsError;
 
@@ -107,7 +130,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
       // Count of free valets
       const freeValets = tickets.filter(ticket => ticket.valet_quantity > 0 && ticket.total === 0).length;
-      
+
       // Count of paid tickets
       const paidTickets = tickets.filter(ticket => ticket.is_paid).length;
 
@@ -135,25 +158,23 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
       // Item type distribution
       const itemTypeDistribution: Record<string, number> = {};
-      tickets.forEach(ticket => {
-        if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
-          ticket.dry_cleaning_items.forEach((item: any) => {
-            const itemName = item.name;
-            itemTypeDistribution[itemName] = (itemTypeDistribution[itemName] || 0) + (item.quantity || 1);
-          });
-        }
+      dryCleaningItems.forEach((item: any) => {
+        const itemName = item.name;
+        itemTypeDistribution[itemName] = (itemTypeDistribution[itemName] || 0) + (item.quantity || 1);
       });
 
       // Top services analysis
       const servicesMap = new Map<string, number>();
+
+      // Add dry cleaning items to services map
+      dryCleaningItems.forEach((item: any) => {
+        servicesMap.set(item.name, (servicesMap.get(item.name) || 0) + (item.quantity || 1));
+      });
+
+      // Add valet tickets to services map
       tickets.forEach(ticket => {
-        if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
-          ticket.dry_cleaning_items.forEach((item: any) => {
-            servicesMap.set(item.name, (servicesMap.get(item.name) || 0) + (item.quantity || 1));
-          });
-        } else {
-          // Handle valet tickets
-          servicesMap.set('Valet', (servicesMap.get('Valet') || 0) + 1);
+        if (ticket.valet_quantity && ticket.valet_quantity > 0) {
+          servicesMap.set('Valet', (servicesMap.get('Valet') || 0) + ticket.valet_quantity);
         }
       });
 
@@ -190,8 +211,8 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         revenueByMonth,
         itemTypeDistribution,
         paymentMethodDistribution,
-        freeValets, 
-        paidTickets 
+        freeValets,
+        paidTickets
       });
     } catch (err) {
       console.error("Error fetching ticket analytics:", err);
@@ -229,7 +250,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       ];
 
       const csvString = csvContent.map(row => row.join(',')).join('\n');
-      
+
       // Create a download link
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -239,7 +260,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       return Promise.resolve();
     } catch (error) {
       console.error('Error exporting data:', error);

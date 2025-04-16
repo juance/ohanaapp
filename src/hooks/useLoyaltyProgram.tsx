@@ -40,25 +40,40 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
 
     setIsAddingPoints(true);
     try {
-      const success = await addLoyaltyPoints(selectedClient.id, pointsToAdd);
+      // Get current loyalty points
+      const { data: customer, error: getError } = await supabase
+        .from('customers')
+        .select('loyalty_points')
+        .eq('id', selectedClient.id)
+        .single();
 
-      if (success) {
-        toast({
-          title: "Puntos agregados",
-          description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
-        });
+      if (getError) throw getError;
 
-        setSelectedClient({
-          ...selectedClient,
-          loyaltyPoints: (selectedClient.loyaltyPoints || 0) + pointsToAdd
-        });
+      const currentPoints = customer?.loyalty_points || 0;
+      const newPoints = currentPoints + pointsToAdd;
 
-        setPointsToAdd(0);
-        await refreshData();
-      } else {
-        throw new Error("No se pudieron agregar los puntos");
-      }
+      // Update loyalty points
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({ loyalty_points: newPoints })
+        .eq('id', selectedClient.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Puntos agregados",
+        description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
+      });
+
+      setSelectedClient({
+        ...selectedClient,
+        loyaltyPoints: newPoints
+      });
+
+      setPointsToAdd(0);
+      await refreshData();
     } catch (err: any) {
+      console.error('Error adding loyalty points:', err);
       toast({
         variant: "destructive",
         title: "Error",
@@ -80,25 +95,58 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
     }
 
     try {
-      const success = await redeemLoyaltyPoints(selectedClient.id, pointsToRedeem);
+      // Get current loyalty points
+      const { data: customer, error: getError } = await supabase
+        .from('customers')
+        .select('loyalty_points, free_valets')
+        .eq('id', selectedClient.id)
+        .single();
 
-      if (success) {
+      if (getError) throw getError;
+
+      const currentPoints = customer?.loyalty_points || 0;
+      const currentFreeValets = customer?.free_valets || 0;
+
+      // Ensure customer has enough points
+      if (currentPoints < pointsToRedeem) {
         toast({
-          title: "Puntos canjeados",
-          description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
+          variant: "destructive",
+          title: "Error",
+          description: "No hay suficientes puntos para canjear",
         });
-
-        setSelectedClient({
-          ...selectedClient,
-          loyaltyPoints: selectedClient.loyaltyPoints - pointsToRedeem
-        });
-
-        setPointsToRedeem(0);
-        await refreshData();
-      } else {
-        throw new Error("No se pudieron canjear los puntos");
+        return;
       }
+
+      // Calculate new values
+      const newPoints = currentPoints - pointsToRedeem;
+      const newFreeValets = currentFreeValets + Math.floor(pointsToRedeem / 100);
+
+      // Update loyalty points and free valets
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          loyalty_points: newPoints,
+          free_valets: newFreeValets
+        })
+        .eq('id', selectedClient.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Puntos canjeados",
+        description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
+      });
+
+      setSelectedClient({
+        ...selectedClient,
+        loyaltyPoints: newPoints,
+        freeValets: newFreeValets
+      });
+
+      setPointsToRedeem(0);
+      await refreshData();
     } catch (err: any) {
+      console.error('Error redeeming loyalty points:', err);
       toast({
         variant: "destructive",
         title: "Error",
