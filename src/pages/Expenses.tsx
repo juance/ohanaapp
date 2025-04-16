@@ -47,8 +47,8 @@ const Expenses = () => {
     const result = await storeExpense({
       description,
       amount: parseFloat(amount.toString()),
-      date,
-      category: 'operations' // Default category
+      date
+      // Removed category field as it doesn't exist in the database
     });
 
     if (result) {
@@ -147,7 +147,6 @@ const Expenses = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -156,7 +155,6 @@ const Expenses = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{expense.description}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${expense.amount.toFixed(2)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(expense.date).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{expense.category}</td>
                   </tr>
                 ))}
               </tbody>

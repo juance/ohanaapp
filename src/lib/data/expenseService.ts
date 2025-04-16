@@ -14,8 +14,8 @@ export const storeExpense = async (expense: Omit<Expense, 'id'>) => {
     const formattedExpense = {
       description: expense.description.trim(),
       amount: typeof expense.amount === 'string' ? parseFloat(expense.amount) : expense.amount,
-      date: expense.date,
-      category: expense.category || 'operations'
+      date: expense.date
+      // Removed category field as it doesn't exist in the database
     };
 
     // Insert the expense into the database
