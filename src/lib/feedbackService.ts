@@ -25,6 +25,7 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
       customerName: item.customer_name,
       rating: item.rating,
       comment: item.comment,
+      source: item.source || 'admin', // Si no tiene origen, asumimos que es del admin
       createdAt: item.created_at,
       pendingSync: false
     }));
@@ -150,6 +151,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
     customerName: feedback.customerName,
     rating: feedback.rating,
     comment: feedback.comment,
+    source: feedback.source || 'admin', // Por defecto, asumimos que viene del admin
     createdAt: new Date().toISOString(),
     pendingSync: true // Mark for sync
   };
@@ -172,6 +174,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
         customer_name: newFeedback.customerName,
         rating: newFeedback.rating,
         comment: newFeedback.comment,
+        source: newFeedback.source,
         created_at: newFeedback.createdAt
       })
       .then(({ error }) => {

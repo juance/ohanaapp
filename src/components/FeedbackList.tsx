@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { CustomerFeedback } from '@/lib/types';
 import { getAllFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { saveToLocalStorage } from '@/lib/data/coreUtils';
-import { Star, Trash2, RefreshCw } from 'lucide-react';
+import { Star, Trash2, RefreshCw, User, MessageSquare } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from '@/lib/toast';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -43,7 +43,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const confirmed = window.confirm('¿Está seguro de eliminar este comentario?');
       if (confirmed) {
         const success = await deleteFeedback(id);
-        
+
         if (success) {
           setFeedback(feedback.filter(item => item.id !== id));
           toast({
@@ -122,7 +122,15 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
           <CardHeader className={`pb-1 md:pb-2 ${isMobile ? 'px-3 py-2' : ''}`}>
             <div className="flex justify-between items-start">
               <div>
-                <CardTitle className="text-base md:text-lg">{item.customerName}</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-base md:text-lg">{item.customerName}</CardTitle>
+                  {item.source === 'client_portal' && (
+                    <div className="flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                      <MessageSquare className="h-3 w-3 mr-1" />
+                      Portal Cliente
+                    </div>
+                  )}
+                </div>
                 <div className="flex mt-1">{renderStars(item.rating)}</div>
               </div>
               <Button

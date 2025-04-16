@@ -5,6 +5,7 @@ export interface CustomerFeedback {
   rating: number;
   comment: string;
   createdAt: string;
+  source?: 'client_portal' | 'admin';
   pendingSync?: boolean;
   pendingDelete?: boolean;
   synced?: boolean;

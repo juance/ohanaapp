@@ -12,9 +12,9 @@ interface UserFeedbackFormProps {
   onFeedbackAdded?: () => void;
 }
 
-const UserFeedbackForm: React.FC<UserFeedbackFormProps> = ({ 
+const UserFeedbackForm: React.FC<UserFeedbackFormProps> = ({
   customerName,
-  onFeedbackAdded 
+  onFeedbackAdded
 }) => {
   const [rating, setRating] = useState<number>(5);
   const [comment, setComment] = useState<string>('');
@@ -59,7 +59,8 @@ const UserFeedbackForm: React.FC<UserFeedbackFormProps> = ({
       const result = await addFeedback({
         customerName,
         rating,
-        comment
+        comment,
+        source: 'client_portal' // Indicar que el comentario viene del portal de clientes
       });
 
       if (result) {

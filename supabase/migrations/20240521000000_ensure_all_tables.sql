@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS public.customer_feedback (
   customer_name TEXT NOT NULL,
   comment TEXT NOT NULL,
   rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  source TEXT DEFAULT 'admin',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
 );
 
@@ -140,7 +141,7 @@ BEGIN
   SET last_number = last_number + 1
   WHERE id = 1
   RETURNING last_number INTO next_number;
-  
+
   -- Format the number with leading zeros (8 digits)
   RETURN LPAD(next_number::TEXT, 8, '0');
 END;
@@ -154,7 +155,7 @@ BEGIN
   UPDATE public.ticket_sequence
   SET last_number = 0
   WHERE id = 1;
-  
+
   -- Log the reset
   INSERT INTO public.ticket_sequence_resets (reset_by, notes)
   VALUES ('system', 'Sequence reset via function call');
