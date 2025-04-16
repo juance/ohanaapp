@@ -8,10 +8,12 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarIcon } from '@radix-ui/react-icons';
+import { ArrowLeft } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/router';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -20,6 +22,7 @@ const Expenses = () => {
   const [date, setDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -37,7 +40,7 @@ const Expenses = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Please fill out all fields"
+        description: "Por favor complete todos los campos"
       });
       return;
     }
@@ -53,8 +56,8 @@ const Expenses = () => {
 
     if (result) {
       toast({
-        title: "Success",
-        description: "Expense added successfully"
+        title: "Éxito",
+        description: "Gasto agregado correctamente"
       });
       setDescription('');
       setAmount(0);
@@ -67,41 +70,57 @@ const Expenses = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add expense"
+        description: "Error al agregar el gasto"
       });
     }
 
     setIsSubmitting(false);
   };
 
+  const handleGoBack = () => {
+    router.back();
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Expenses</h1>
+      <div className="flex items-center justify-between mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center gap-1"
+          onClick={handleGoBack}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver Atrás
+        </Button>
+        <h1 className="text-2xl font-bold">Gastos</h1>
+        <div className="w-24"></div> {/* Spacer para mantener el título centrado */}
+      </div>
 
       <form onSubmit={handleSubmit} className="mb-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">Descripción</Label>
             <Input
               type="text"
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter description"
+              placeholder="Ingrese una descripción"
             />
           </div>
           <div>
-            <Label htmlFor="amount">Amount</Label>
+            <Label htmlFor="amount">Monto</Label>
             <Input
               type="number"
               id="amount"
               value={amount === null ? '' : amount.toString()}
               onChange={(e) => setAmount(e.target.value === '' ? null : parseFloat(e.target.value))}
-              placeholder="Enter amount"
+              placeholder="Ingrese el monto"
             />
           </div>
           <div>
-            <Label htmlFor="date">Date</Label>
+            <Label htmlFor="date">Fecha</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -112,7 +131,7 @@ const Expenses = () => {
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(new Date(date), "PPP") : <span>Pick a date</span>}
+                  {date ? format(new Date(date), "PPP") : <span>Seleccionar fecha</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="center" side="bottom">
@@ -131,22 +150,22 @@ const Expenses = () => {
         </div>
 
         <Button type="submit" disabled={isSubmitting} className="mt-4">
-          {isSubmitting ? 'Submitting...' : 'Add Expense'}
+          {isSubmitting ? 'Enviando...' : 'Agregar Gasto'}
         </Button>
       </form>
 
       <div>
-        <h2 className="text-xl font-semibold mb-2">Expense List</h2>
+        <h2 className="text-xl font-semibold mb-2">Lista de Gastos</h2>
         {expenses.length === 0 ? (
-          <p>No expenses added yet.</p>
+          <p>No hay gastos agregados aún.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
