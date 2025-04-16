@@ -9,6 +9,7 @@ import PickupActionButtons from '@/components/orders/PickupActionButtons';
 import PickupTicketList from '@/components/orders/PickupTicketList';
 import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
 import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
+import PaymentMethodDialog from '@/components/orders/PaymentMethodDialog';
 import DebugPanel from '@/components/debug/DebugPanel';
 
 const PickupOrders = () => {
@@ -37,6 +38,10 @@ const PickupOrders = () => {
     handlePrintTicket,
     handleShareWhatsApp,
     handleNotifyClient,
+    paymentMethodDialogOpen,
+    setPaymentMethodDialogOpen,
+    handleOpenPaymentMethodDialog,
+    handleUpdatePaymentMethod,
     formatDate
   } = usePickupOrdersLogic();
 
@@ -112,6 +117,7 @@ const PickupOrders = () => {
               handlePrintTicket={handlePrintTicket}
               handleShareWhatsApp={handleShareWhatsApp}
               handleNotifyClient={handleNotifyClient}
+              handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
             />
 
             <SearchBar
@@ -152,6 +158,17 @@ const PickupOrders = () => {
         setCancelReason={setCancelReason}
         handleCancelTicket={handleCancelTicket}
       />
+
+      {/* Payment Method Dialog */}
+      {selectedTicket && (
+        <PaymentMethodDialog
+          open={paymentMethodDialogOpen}
+          onOpenChange={setPaymentMethodDialogOpen}
+          currentPaymentMethod={(tickets.find(t => t.id === selectedTicket)?.paymentMethod || 'cash') as any}
+          onConfirm={handleUpdatePaymentMethod}
+          ticketNumber={tickets.find(t => t.id === selectedTicket)?.ticketNumber || ''}
+        />
+      )}
     </div>
   );
 };

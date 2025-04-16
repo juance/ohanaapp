@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Printer, Share2, X, Bell } from 'lucide-react';
+import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
 
 interface PickupActionButtonsProps {
   tickets: any[];
@@ -11,6 +11,7 @@ interface PickupActionButtonsProps {
   handlePrintTicket: (ticketId: string) => void;
   handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => void;
   handleNotifyClient?: (ticketId: string, phoneNumber?: string) => void;
+  handleOpenPaymentMethodDialog?: () => void;
 }
 
 const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
@@ -20,7 +21,8 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
   handleOpenCancelDialog,
   handlePrintTicket,
   handleShareWhatsApp,
-  handleNotifyClient
+  handleNotifyClient,
+  handleOpenPaymentMethodDialog
 }) => {
   const isButtonDisabled = !selectedTicket;
 
@@ -86,6 +88,19 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
         >
           <Bell className="h-4 w-4" />
           Avisar al Cliente
+        </Button>
+      )}
+
+      {handleOpenPaymentMethodDialog && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-1"
+          disabled={isButtonDisabled}
+          onClick={handleOpenPaymentMethodDialog}
+        >
+          <CreditCard className="h-4 w-4" />
+          Cambiar Método de Pago
         </Button>
       )}
     </div>

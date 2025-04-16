@@ -412,3 +412,45 @@ export const cancelTicket = async (ticketId: string, reason?: string) => {
     throw error;
   }
 };
+
+/**
+ * Update the payment method of a ticket
+ * @param ticketId The ID of the ticket to update
+ * @param paymentMethod The new payment method
+ * @returns The updated ticket data
+ */
+export const updateTicketPaymentMethod = async (ticketId: string, paymentMethod: string) => {
+  try {
+    console.log(`Updating payment method for ticket ${ticketId} to ${paymentMethod}`);
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .update({
+        payment_method: paymentMethod,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating payment method:', error);
+      throw {
+        message: `Error updating payment method: ${error.message}`,
+        id: ticketId
+      } as GenericStringError;
+    }
+
+    console.log('Payment method updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error updating payment method:', error);
+    if (error instanceof Error) {
+      throw {
+        message: error.message,
+        id: ticketId
+      } as GenericStringError;
+    }
+    throw error;
+  }
+};

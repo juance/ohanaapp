@@ -4,9 +4,9 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { getPickupTickets, cancelTicket, markTicketAsDelivered } from '@/lib/ticket/ticketPickupService';
+import { getPickupTickets, cancelTicket, markTicketAsDelivered, updateTicketPaymentMethod } from '@/lib/ticket/ticketPickupService';
 import { getTicketServices } from '@/lib/ticketService';
-import { Ticket } from '@/lib/types';
+import { Ticket, PaymentMethod } from '@/lib/types';
 
 export const usePickupOrdersLogic = () => {
   const queryClient = useQueryClient();
@@ -16,6 +16,7 @@ export const usePickupOrdersLogic = () => {
   const [ticketServices, setTicketServices] = useState<any[]>([]);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [paymentMethodDialogOpen, setPaymentMethodDialogOpen] = useState(false);
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
   // Fetch tickets con configuración mejorada
@@ -278,6 +279,54 @@ Camargo 590, Villa Crespo - Tel: 1136424871`;
     toast.success(`Notificación enviada a ${ticket.clientName || 'Cliente'}`);
   };
 
+  // Handle open payment method dialog
+  const handleOpenPaymentMethodDialog = () => {
+    if (!selectedTicket) {
+      toast.error('Debe seleccionar un ticket primero');
+      return;
+    }
+    setPaymentMethodDialogOpen(true);
+  };
+
+  // Handle update payment method
+  const handleUpdatePaymentMethod = async (paymentMethod: PaymentMethod) => {
+    if (!selectedTicket) {
+      toast.error('Debe seleccionar un ticket primero');
+      return;
+    }
+
+    try {
+      const ticket = tickets.find(t => t.id === selectedTicket);
+      if (!ticket) {
+        toast.error('No se pudo encontrar el ticket seleccionado');
+        return;
+      }
+
+      await updateTicketPaymentMethod(selectedTicket, paymentMethod);
+      toast.success(`Método de pago actualizado a ${getPaymentMethodName(paymentMethod)}`);
+
+      // Invalidate pickup tickets query to refresh the data
+      queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+
+      // Refetch pickup tickets
+      refetch();
+    } catch (error) {
+      console.error('Error updating payment method:', error);
+      toast.error('Error al actualizar el método de pago');
+    }
+  };
+
+  // Helper function to get payment method name
+  const getPaymentMethodName = (method: PaymentMethod): string => {
+    const methodNames: Record<PaymentMethod, string> = {
+      cash: 'Efectivo',
+      debit: 'Tarjeta de Débito',
+      mercadopago: 'Mercado Pago',
+      cuenta_dni: 'Cuenta DNI'
+    };
+    return methodNames[method] || method;
+  };
+
   // Format date
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -302,6 +351,8 @@ Camargo 590, Villa Crespo - Tel: 1136424871`;
     setCancelDialogOpen,
     cancelReason,
     setCancelReason,
+    paymentMethodDialogOpen,
+    setPaymentMethodDialogOpen,
     ticketDetailRef,
     isLoading,
     error,
@@ -313,6 +364,8 @@ Camargo 590, Villa Crespo - Tel: 1136424871`;
     handlePrintTicket,
     handleShareWhatsApp,
     handleNotifyClient,
+    handleOpenPaymentMethodDialog,
+    handleUpdatePaymentMethod,
     formatDate
   };
 };

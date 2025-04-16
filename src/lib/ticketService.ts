@@ -12,7 +12,8 @@ export {
   markTicketAsDelivered,
   markTicketAsPending,
   getUnretrievedTickets,
-  cancelTicket // Añadido explícitamente desde ticketPickupService
+  cancelTicket, // Añadido explícitamente desde ticketPickupService
+  updateTicketPaymentMethod // Añadido para permitir cambiar el método de pago
 } from './ticket/ticketPickupService';
 
 export {
