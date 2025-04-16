@@ -140,10 +140,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Simplificar la consulta para no depender de la relación con los clientes
+    // Usar la relación con los clientes para obtener nombre y teléfono
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select('*, customers(name, phone)')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
@@ -154,24 +154,32 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     }
 
     console.log('Fetched tickets:', data?.length || 0);
+    console.log('First ticket data sample:', data && data.length > 0 ? {
+      id: data[0].id,
+      ticket_number: data[0].ticket_number,
+      customer_id: data[0].customer_id,
+      customer_info: data[0].customers
+    } : 'No tickets');
 
     if (!data || data.length === 0) {
       console.log('No tickets returned from query');
       return [];
     }
 
-    // Map the tickets to the application format sin depender de la relación con los clientes
+    // Map the tickets to the application format usando la relación con los clientes
     const mappedTickets = data.map(ticket => {
       try {
-        // Obtener el customer_id para posiblemente buscar el cliente después si es necesario
+        // Obtener la información del cliente desde la relación
         const customerId = ticket.customer_id;
+        const customerName = ticket.customers?.name || 'Cliente sin nombre';
+        const customerPhone = ticket.customers?.phone || '';
 
         return {
           id: ticket.id,
           ticketNumber: ticket.ticket_number,
           basketTicketNumber: ticket.basket_ticket_number,
-          clientName: 'Cliente ' + ticket.ticket_number, // Usar el número de ticket como identificador temporal
-          phoneNumber: '', // No tenemos el teléfono sin la relación
+          clientName: customerName,
+          phoneNumber: customerPhone,
           totalPrice: ticket.total,
           paymentMethod: ticket.payment_method,
           status: ticket.status,
@@ -179,7 +187,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           valetQuantity: ticket.valet_quantity,
           createdAt: ticket.created_at,
           deliveredDate: ticket.delivered_date,
-          customerId: customerId, // Guardar el ID del cliente para posible uso futuro
+          customerId: customerId,
           ...ticket
         };
       } catch (mapError) {
