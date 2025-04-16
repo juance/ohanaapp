@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ShoppingBag, Check, Clock } from 'lucide-react';
+import { Search, ShoppingBag, Check, Clock, MessageSquare } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import UserFeedbackForm from '@/components/user/UserFeedbackForm';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  getTicketsByPhoneNumber, 
-  getDeliveredTicketsByPhoneNumber, 
-  getPendingTicketsByPhoneNumber 
+import {
+  getTicketsByPhoneNumber,
+  getDeliveredTicketsByPhoneNumber,
+  getPendingTicketsByPhoneNumber
 } from '@/lib/ticket/ticketUserService';
 import { getTicketServices } from '@/lib/ticket/ticketServiceCore';
 import { Ticket } from '@/lib/types';
@@ -24,12 +25,12 @@ const UserTickets = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const phoneParam = searchParams.get('phone') || '';
   const { user } = useAuth();
-  
+
   const [phoneNumber, setPhoneNumber] = useState(phoneParam || (user?.phoneNumber || ''));
   const [searchInput, setSearchInput] = useState(phoneParam || (user?.phoneNumber || ''));
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [ticketServices, setTicketServices] = useState<any[]>([]);
-  
+
   // Initialize phone number from user if available
   useEffect(() => {
     if (user?.phoneNumber && !phoneNumber) {
@@ -38,7 +39,7 @@ const UserTickets = () => {
       setSearchParams({ phone: user.phoneNumber });
     }
   }, [user, phoneNumber, setSearchParams]);
-  
+
   // Load services when a ticket is selected
   useEffect(() => {
     if (selectedTicketId) {
@@ -49,28 +50,28 @@ const UserTickets = () => {
       loadServices();
     }
   }, [selectedTicketId]);
-  
+
   // Fetch delivered tickets
   const deliveredTicketsQuery = useQuery({
     queryKey: ['userDeliveredTickets', phoneNumber],
     queryFn: () => getDeliveredTicketsByPhoneNumber(phoneNumber),
     enabled: !!phoneNumber
   });
-  
+
   // Fetch pending tickets
   const pendingTicketsQuery = useQuery({
     queryKey: ['userPendingTickets', phoneNumber],
     queryFn: () => getPendingTicketsByPhoneNumber(phoneNumber),
     enabled: !!phoneNumber
   });
-  
+
   const handleSearch = () => {
     if (searchInput.trim()) {
       setPhoneNumber(searchInput.trim());
       setSearchParams({ phone: searchInput.trim() });
     }
   };
-  
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
@@ -79,7 +80,7 @@ const UserTickets = () => {
       return dateString;
     }
   };
-  
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'delivered':
@@ -92,9 +93,9 @@ const UserTickets = () => {
         return <Badge variant="outline" className="ml-2">Pendiente</Badge>;
     }
   };
-  
+
   const renderTicket = (ticket: Ticket) => (
-    <Card 
+    <Card
       key={ticket.id}
       className={`mb-4 cursor-pointer hover:border-blue-200 transition-all ${
         selectedTicketId === ticket.id ? 'border-blue-500 ring-1 ring-blue-500' : ''
@@ -115,19 +116,19 @@ const UserTickets = () => {
       </CardContent>
     </Card>
   );
-  
+
   // Conditionally hide search bar for clients
   const showSearchBar = !user || user.role !== 'client';
-  
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row bg-gray-50">
       <Navbar />
-      
+
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
           <h1 className="text-2xl font-bold text-blue-600 mb-2">Mis Tickets</h1>
           <p className="text-gray-600 mb-6">Consulta el estado de tus tickets</p>
-          
+
           {showSearchBar && (
             <div className="mb-6 flex gap-2">
               <Input
@@ -143,7 +144,7 @@ const UserTickets = () => {
               </Button>
             </div>
           )}
-          
+
           {phoneNumber ? (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-2">
@@ -159,8 +160,12 @@ const UserTickets = () => {
                       <span>Entregados</span>
                       {deliveredTicketsQuery.data && <Badge variant="secondary" className="ml-2">{deliveredTicketsQuery.data.length}</Badge>}
                     </TabsTrigger>
+                    <TabsTrigger value="feedback" className="flex-1">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      <span>Comentarios</span>
+                    </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="pending" className="space-y-4">
                     {pendingTicketsQuery.isLoading ? (
                       <div className="text-center py-8">Cargando tickets pendientes...</div>
@@ -173,7 +178,7 @@ const UserTickets = () => {
                       </div>
                     )}
                   </TabsContent>
-                  
+
                   <TabsContent value="delivered" className="space-y-4">
                     {deliveredTicketsQuery.isLoading ? (
                       <div className="text-center py-8">Cargando tickets entregados...</div>
@@ -186,9 +191,21 @@ const UserTickets = () => {
                       </div>
                     )}
                   </TabsContent>
+
+                  <TabsContent value="feedback" className="space-y-4">
+                    <div className="bg-white p-4 rounded-lg shadow-sm">
+                      <h3 className="text-lg font-medium mb-4">Envíanos tus comentarios</h3>
+                      <p className="text-gray-500 mb-4">
+                        Nos encantaría conocer tu opinión sobre nuestro servicio. Tus comentarios nos ayudan a mejorar.
+                      </p>
+                      <UserFeedbackForm
+                        customerName={user?.name || 'Cliente'}
+                      />
+                    </div>
+                  </TabsContent>
                 </Tabs>
               </div>
-              
+
               <div>
                 <Card className="sticky top-6">
                   <CardHeader>
@@ -200,33 +217,33 @@ const UserTickets = () => {
                         {pendingTicketsQuery.data && deliveredTicketsQuery.data && (() => {
                           const allTickets = [...pendingTicketsQuery.data, ...deliveredTicketsQuery.data];
                           const selectedTicket = allTickets.find(t => t.id === selectedTicketId);
-                          
+
                           if (!selectedTicket) return <p>Ticket no encontrado</p>;
-                          
+
                           return (
                             <div className="space-y-4">
                               <div>
                                 <p className="text-sm text-gray-500">Ticket Número:</p>
                                 <p className="font-medium">{selectedTicket.ticketNumber}</p>
                               </div>
-                              
+
                               <div>
                                 <p className="text-sm text-gray-500">Estado:</p>
                                 <div>{getStatusBadge(selectedTicket.status)}</div>
                               </div>
-                              
+
                               <div>
                                 <p className="text-sm text-gray-500">Fecha de Creación:</p>
                                 <p className="font-medium">{formatDate(selectedTicket.createdAt)}</p>
                               </div>
-                              
+
                               {selectedTicket.deliveredDate && (
                                 <div>
                                   <p className="text-sm text-gray-500">Fecha de Entrega:</p>
                                   <p className="font-medium">{formatDate(selectedTicket.deliveredDate)}</p>
                                 </div>
                               )}
-                              
+
                               <div>
                                 <p className="text-sm text-gray-500 mb-2">Servicios:</p>
                                 {ticketServices.length > 0 ? (
@@ -242,7 +259,7 @@ const UserTickets = () => {
                                   <p className="text-sm">Cargando servicios...</p>
                                 )}
                               </div>
-                              
+
                               <div className="pt-4 border-t">
                                 <div className="flex justify-between font-medium">
                                   <span>Total:</span>
