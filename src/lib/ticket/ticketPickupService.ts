@@ -140,10 +140,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Usar la relación con los clientes para obtener nombre y teléfono
+    // Obtener los tickets sin usar la relación con los clientes
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
+      .select('*')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
@@ -166,19 +166,40 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Map the tickets to the application format usando la relación con los clientes
+    // Obtener los IDs de los clientes de los tickets
+    const customerIds = data.map(ticket => ticket.customer_id).filter(Boolean);
+
+    // Obtener los datos de los clientes
+    let customers = [];
+    if (customerIds.length > 0) {
+      const { data: customersData, error: customersError } = await supabase
+        .from('customers')
+        .select('id, name, phone')
+        .in('id', customerIds);
+
+      if (customersError) {
+        console.error('Error fetching customers:', customersError);
+      } else {
+        customers = customersData || [];
+      }
+    }
+
+    console.log('Fetched customers:', customers.length);
+
+    // Map the tickets to the application format
     const mappedTickets = data.map(ticket => {
       try {
-        // Obtener la información del cliente desde la relación
+        // Buscar el cliente correspondiente al ticket
         const customerId = ticket.customer_id;
-        const customerName = ticket.customers?.name || 'Cliente sin nombre';
-        const customerPhone = ticket.customers?.phone || '';
+        const customer = customers.find(c => c.id === customerId);
+        const customerName = customer?.name || 'Cliente sin nombre';
+        const customerPhone = customer?.phone || '';
 
         console.log('Mapping ticket:', {
           id: ticket.id,
           ticket_number: ticket.ticket_number,
           customer_id: ticket.customer_id,
-          customer_info: ticket.customers,
+          customer_info: customer,
           customerName,
           customerPhone
         });
@@ -221,7 +242,7 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
 
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
+      .select('*')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .lt('created_at', dateXDaysAgo.toISOString())
@@ -229,21 +250,47 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
 
     if (error) throw error;
 
-    return (data || []).map(ticket => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      basketTicketNumber: ticket.basket_ticket_number,
-      clientName: ticket.customers?.name || 'Cliente sin nombre',
-      phoneNumber: ticket.customers?.phone || '',
-      totalPrice: parseFloat(ticket.total) || 0,
-      paymentMethod: ticket.payment_method,
-      status: ticket.status,
-      isPaid: ticket.is_paid,
-      valetQuantity: ticket.valet_quantity,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date,
-      customerId: ticket.customer_id
-    }));
+    // Obtener los IDs de los clientes de los tickets
+    const customerIds = data.map(ticket => ticket.customer_id).filter(Boolean);
+
+    // Obtener los datos de los clientes
+    let customers = [];
+    if (customerIds.length > 0) {
+      const { data: customersData, error: customersError } = await supabase
+        .from('customers')
+        .select('id, name, phone')
+        .in('id', customerIds);
+
+      if (customersError) {
+        console.error('Error fetching customers for unretrieved tickets:', customersError);
+      } else {
+        customers = customersData || [];
+      }
+    }
+
+    return (data || []).map(ticket => {
+      // Buscar el cliente correspondiente al ticket
+      const customerId = ticket.customer_id;
+      const customer = customers.find(c => c.id === customerId);
+      const customerName = customer?.name || 'Cliente sin nombre';
+      const customerPhone = customer?.phone || '';
+
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerName,
+        phoneNumber: customerPhone,
+        totalPrice: parseFloat(ticket.total) || 0,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        customerId: ticket.customer_id
+      };
+    });
   } catch (error) {
     console.error(`Error getting unretrieved tickets after ${days} days:`, error);
     return [];
