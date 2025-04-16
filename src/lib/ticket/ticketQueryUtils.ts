@@ -80,7 +80,8 @@ export const buildTicketSelectQuery = (hasDeliveredDateColumn: boolean): string 
       id,
       name,
       phone
-    )
+    ),
+    dry_cleaning_items (*)
   `;
 
   // Add delivered_date if it exists
@@ -141,7 +142,9 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
     deliveredAt: ticket.delivered_at,
     isPaid: ticket.is_paid || false,
     is_canceled: ticket.is_canceled || false, // Use the original property name
-    valetQuantity: ticket.valet_quantity || 0
+    valetQuantity: ticket.valet_quantity || 0,
+    // Incluir los servicios de tintorería si están disponibles
+    dryCleaningItems: ticket.dry_cleaning_items || []
   };
 
   return mappedTicket;

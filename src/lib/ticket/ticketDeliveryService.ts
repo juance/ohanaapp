@@ -33,7 +33,8 @@ export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Pro
         created_at,
         updated_at,
         basket_ticket_number,
-        customers (id, name, phone)
+        customers (id, name, phone),
+        dry_cleaning_items (*)
       `;
 
       // Añadir delivered_date si existe

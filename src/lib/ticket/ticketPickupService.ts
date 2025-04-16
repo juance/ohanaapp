@@ -142,7 +142,9 @@ const mapTicketsWithRelatedCustomers = (tickets: any[]): Ticket[] => {
         valetQuantity: ticket.valet_quantity,
         createdAt: ticket.created_at,
         deliveredDate: ticket.delivered_date,
-        customerId: customerId
+        customerId: customerId,
+        // Incluir los servicios de tintorería si están disponibles
+        dryCleaningItems: ticket.dry_cleaning_items || []
       };
     } catch (error) {
       console.error('Error mapping ticket with related customer:', error);
@@ -159,7 +161,9 @@ const mapTicketsWithRelatedCustomers = (tickets: any[]): Ticket[] => {
         valetQuantity: ticket.valet_quantity,
         createdAt: ticket.created_at,
         deliveredDate: ticket.delivered_date,
-        customerId: ticket.customer_id
+        customerId: ticket.customer_id,
+        // Incluir los servicios de tintorería si están disponibles
+        dryCleaningItems: ticket.dry_cleaning_items || []
       };
     }
   });
@@ -311,7 +315,11 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     try {
       const { data: relatedData, error: relatedError } = await supabase
         .from('tickets')
-        .select('*, customers(id, name, phone)')
+        .select(`
+          *,
+          customers(id, name, phone),
+          dry_cleaning_items (*)
+        `)
         .eq('status', 'ready')
         .eq('is_canceled', false)
         .lt('created_at', dateXDaysAgo.toISOString())
@@ -330,7 +338,10 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     // Método alternativo: obtener los tickets sin usar la relación
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        dry_cleaning_items (*)
+      `)
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .lt('created_at', dateXDaysAgo.toISOString())
@@ -376,7 +387,9 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
         valetQuantity: ticket.valet_quantity,
         createdAt: ticket.created_at,
         deliveredDate: ticket.delivered_date,
-        customerId: ticket.customer_id
+        customerId: ticket.customer_id,
+        // Incluir los servicios de tintorería si están disponibles
+        dryCleaningItems: ticket.dry_cleaning_items || []
       };
     });
   } catch (error) {
