@@ -1,7 +1,11 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Ticket } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+import { createDefaultServicesForTicket } from '@/lib/services/ticketMigrationService';
+import { toast } from '@/lib/toast';
 
 interface TicketDetailPanelProps {
   selectedTicket: string | null;
@@ -34,8 +38,13 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     );
   }
 
+  // Estado para controlar la carga de servicios
+  const [isFixingServices, setIsFixingServices] = useState(false);
+  const [fixAttempted, setFixAttempted] = useState(false);
+
   // Verificar si el ticket tiene servicios directamente
   const hasTicketServices = ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0;
+  const hasLoadedServices = ticketServices && ticketServices.length > 0;
 
   // Usar los servicios del ticket si están disponibles, de lo contrario usar los servicios cargados
   const displayServices = hasTicketServices
@@ -46,7 +55,34 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
         price: item.price || 0,
         ticketId: ticket.id
       }))
-    : ticketServices;
+    : hasLoadedServices ? ticketServices : [];
+
+  // Función para arreglar los servicios del ticket
+  const handleFixServices = async () => {
+    if (!ticket || isFixingServices) return;
+
+    setIsFixingServices(true);
+    setFixAttempted(true);
+
+    try {
+      const success = await createDefaultServicesForTicket(ticket.id, ticket.valetQuantity);
+
+      if (success) {
+        toast.success('Servicios creados correctamente');
+        // Recargar los servicios
+        if (typeof window !== 'undefined') {
+          window.location.reload();
+        }
+      } else {
+        toast.error('No se pudieron crear los servicios');
+      }
+    } catch (error) {
+      console.error('Error al arreglar servicios:', error);
+      toast.error('Error al crear servicios');
+    } finally {
+      setIsFixingServices(false);
+    }
+  };
 
   return (
     <div>
@@ -111,7 +147,24 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
         ) : (
           <div className="text-center py-4 border rounded-md bg-gray-50">
             <p className="text-gray-500 mb-2">No hay servicios registrados para este ticket</p>
-            <p className="text-sm text-gray-400">Los servicios se cargarán automáticamente cuando estén disponibles</p>
+            <p className="text-sm text-gray-400 mb-4">Haga clic en el botón para crear servicios automáticamente</p>
+
+            <Button
+              onClick={handleFixServices}
+              disabled={isFixingServices || fixAttempted}
+              className="mx-auto flex items-center gap-2"
+              variant="outline"
+              size="sm"
+            >
+              {isFixingServices ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Creando servicios...
+                </>
+              ) : (
+                <>Crear servicios automáticamente</>
+              )}
+            </Button>
           </div>
         )}
       </div>

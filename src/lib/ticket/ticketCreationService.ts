@@ -112,6 +112,29 @@ export const createTicket = async ({
         console.error('Error al actualizar contador de visitas:', valetError);
         // No interrumpir el flujo si falla esta actualización
       }
+
+      // Crear un servicio por defecto para el valet
+      try {
+        console.log(`Creando servicio por defecto para ticket ${ticket.id} con ${valetQuantity} valets`);
+        const { error: defaultServiceError } = await supabase
+          .from('dry_cleaning_items')
+          .insert({
+            ticket_id: ticket.id,
+            name: valetQuantity > 1 ? 'Valets' : 'Valet',
+            quantity: valetQuantity,
+            price: totalPrice / valetQuantity
+          });
+
+        if (defaultServiceError) {
+          console.error('Error creating default service:', defaultServiceError);
+          // No interrumpir el flujo si falla la creación del servicio por defecto
+        } else {
+          console.log('Servicio por defecto creado correctamente');
+        }
+      } catch (serviceError) {
+        console.error('Error al crear servicio por defecto:', serviceError);
+        // No interrumpir el flujo si falla la creación del servicio por defecto
+      }
     }
 
     console.log('Ticket created successfully:', ticket);
