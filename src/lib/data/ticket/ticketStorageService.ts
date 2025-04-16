@@ -28,10 +28,10 @@ export const storeTicket = async (
   laundryOptions: LaundryOption[]
 ) => {
   try {
-    // Asegurar que hay una sesión activa en Supabase
-    const sessionActive = await ensureSupabaseSession();
-    if (!sessionActive) {
-      console.error('No se pudo establecer una sesión con Supabase');
+    // Verificar la conexión con Supabase
+    const connectionActive = await ensureSupabaseSession();
+    if (!connectionActive) {
+      console.error('No se pudo establecer conexión con Supabase');
       toast.error('Error de conexión con el servidor');
       // Continuar con el código, se usará el fallback a localStorage si falla
     }

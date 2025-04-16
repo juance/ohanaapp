@@ -2,86 +2,58 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 
 /**
- * Iniciar sesión anónima en Supabase
- * Esto es necesario para poder acceder a la base de datos
+ * Verificar la conexión con Supabase
+ * Esta función simplemente verifica si podemos conectarnos a Supabase
+ * sin necesidad de autenticación
  */
-export const signInAnonymously = async (): Promise<boolean> => {
+export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    // Verificar si ya hay una sesión activa
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      console.log('Ya hay una sesión activa en Supabase');
-      return true;
-    }
-    
-    // Iniciar sesión anónima
-    console.log('Iniciando sesión anónima en Supabase...');
-    const { error } = await supabase.auth.signInAnonymously();
-    
+    console.log('Verificando conexión con Supabase...');
+
+    // Intentar una consulta simple para verificar la conexión
+    const { count, error } = await supabase
+      .from('tickets')
+      .select('*', { count: 'exact', head: true })
+      .limit(1);
+
     if (error) {
-      console.error('Error al iniciar sesión anónima:', error);
+      console.error('Error al verificar la conexión con Supabase:', error);
       return false;
     }
-    
-    console.log('Sesión anónima iniciada correctamente');
+
+    console.log('Conexión con Supabase establecida correctamente');
     return true;
   } catch (error) {
-    console.error('Error en signInAnonymously:', error);
+    console.error('Error al verificar la conexión con Supabase:', error);
     return false;
   }
 };
 
 /**
- * Verificar y renovar la sesión de Supabase si es necesario
+ * Verificar la conexión con Supabase
+ * Esta función es un alias de checkSupabaseConnection para mantener
+ * compatibilidad con el código existente
  */
 export const ensureSupabaseSession = async (): Promise<boolean> => {
-  try {
-    // Verificar si hay una sesión activa
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session) {
-      // Verificar si la sesión está por expirar (menos de 5 minutos)
-      const expiresAt = session.expires_at;
-      const now = Math.floor(Date.now() / 1000);
-      const fiveMinutes = 5 * 60;
-      
-      if (expiresAt && expiresAt - now < fiveMinutes) {
-        console.log('La sesión está por expirar, renovando...');
-        const { error } = await supabase.auth.refreshSession();
-        
-        if (error) {
-          console.error('Error al renovar la sesión:', error);
-          return signInAnonymously();
-        }
-        
-        console.log('Sesión renovada correctamente');
-      }
-      
-      return true;
-    }
-    
-    // No hay sesión, iniciar una nueva
-    return signInAnonymously();
-  } catch (error) {
-    console.error('Error en ensureSupabaseSession:', error);
-    return signInAnonymously();
-  }
+  return await checkSupabaseConnection();
 };
 
 /**
- * Inicializar la autenticación de Supabase
+ * Inicializar la conexión con Supabase
  * Debe llamarse al inicio de la aplicación
  */
 export const initSupabaseAuth = async (): Promise<void> => {
   try {
-    const success = await signInAnonymously();
-    
+    const success = await checkSupabaseConnection();
+
     if (!success) {
-      toast.error('Error al inicializar la autenticación de Supabase');
+      toast.error('Error al conectar con la base de datos');
+      console.error('No se pudo establecer conexión con Supabase');
+    } else {
+      console.log('Conexión con Supabase inicializada correctamente');
     }
   } catch (error) {
     console.error('Error en initSupabaseAuth:', error);
-    toast.error('Error al inicializar la autenticación de Supabase');
+    toast.error('Error al conectar con la base de datos');
   }
 };
