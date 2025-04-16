@@ -1,6 +1,6 @@
 
 # Project-level configuration
-project_id = "ebbarmqwvxkxqbzmkiby"
+project_id = "pqedcaxtvonpjrdzwnxq"
 
 [[functions]]
 name = "reset_monthly_loyalty"
