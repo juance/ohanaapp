@@ -174,7 +174,7 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
         customer_name: newFeedback.customerName,
         rating: newFeedback.rating,
         comment: newFeedback.comment,
-        source: newFeedback.source,
+        ...(newFeedback.source ? { source: newFeedback.source } : {}), // Solo incluir source si existe
         created_at: newFeedback.createdAt
       })
       .then(({ error }) => {

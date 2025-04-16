@@ -48,20 +48,55 @@ const Feedback = () => {
     // Verificar si hay nuevos comentarios del portal de clientes
     const checkForNewClientFeedback = async () => {
       try {
-        const { data, error } = await supabase
-          .from('customer_feedback')
-          .select('*')
-          .eq('source', 'client_portal')
-          .gt('created_at', lastCheckTime);
+        let newComments = [];
+        let hasSourceColumn = true;
 
-        if (error) throw error;
+        // Primero intentamos con el filtro de source
+        try {
+          const { data, error } = await supabase
+            .from('customer_feedback')
+            .select('*')
+            .eq('source', 'client_portal')
+            .gt('created_at', lastCheckTime);
 
-        if (data && data.length > 0) {
-          setNewClientFeedbackCount(data.length);
+          if (error) {
+            // Si el error es porque la columna no existe
+            if (error.code === '42703' && error.message.includes('column customer_feedback.source does not exist')) {
+              hasSourceColumn = false;
+              console.log('La columna source no existe todavía. Obteniendo todos los comentarios recientes.');
+            } else {
+              throw error;
+            }
+          } else if (data) {
+            newComments = data;
+          }
+        } catch (err) {
+          if (err.code === '42703' && err.message.includes('column customer_feedback.source does not exist')) {
+            hasSourceColumn = false;
+            console.log('La columna source no existe todavía. Obteniendo todos los comentarios recientes.');
+          } else {
+            throw err;
+          }
+        }
+
+        // Si no hay columna source, obtenemos todos los comentarios recientes
+        if (!hasSourceColumn) {
+          const { data, error } = await supabase
+            .from('customer_feedback')
+            .select('*')
+            .gt('created_at', lastCheckTime);
+
+          if (error) throw error;
+          if (data) newComments = data;
+        }
+
+        // Procesar los comentarios encontrados
+        if (newComments.length > 0) {
+          setNewClientFeedbackCount(newComments.length);
 
           // Notificar al usuario sobre los nuevos comentarios
           toast({
-            title: `${data.length} ${data.length === 1 ? 'nuevo comentario' : 'nuevos comentarios'} del Portal de Clientes`,
+            title: `${newComments.length} ${newComments.length === 1 ? 'nuevo comentario' : 'nuevos comentarios'}`,
             description: 'Se han recibido nuevos comentarios de clientes',
           });
 
