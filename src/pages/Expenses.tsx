@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/router';
+import { useNavigate } from 'react-router-dom';
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -22,7 +22,7 @@ const Expenses = () => {
   const [date, setDate] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { toast } = useToast();
-  const router = useRouter();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchExpenses = async () => {
@@ -78,7 +78,7 @@ const Expenses = () => {
   };
 
   const handleGoBack = () => {
-    router.back();
+    navigate(-1);
   };
 
   return (
