@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { updateCustomerLastVisit } from '@/lib/data/customer/customerStorageService';
 import { LaundryOption, Customer } from '@/lib/types';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
+import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
+import { toast } from '@/lib/toast';
 
 export const storeTicket = async (
   ticketData: {
@@ -26,6 +28,13 @@ export const storeTicket = async (
   laundryOptions: LaundryOption[]
 ) => {
   try {
+    // Asegurar que hay una sesión activa en Supabase
+    const sessionActive = await ensureSupabaseSession();
+    if (!sessionActive) {
+      console.error('No se pudo establecer una sesión con Supabase');
+      toast.error('Error de conexión con el servidor');
+      // Continuar con el código, se usará el fallback a localStorage si falla
+    }
     // First, get the next ticket number
     const { data: ticketNumberData, error: ticketNumberError } = await supabase
       .rpc('get_next_ticket_number');

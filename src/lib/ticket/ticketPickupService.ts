@@ -2,6 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { GenericStringError } from '@/lib/types/error.types';
 import { Ticket } from '@/lib/types/ticket.types';
+import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
+import { toast } from '@/lib/toast';
 
 export const markTicketAsDelivered = async (ticketId: string) => {
   try {
@@ -110,6 +112,14 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     console.log('Fetching pickup tickets...');
+
+    // Asegurar que hay una sesión activa en Supabase
+    const sessionActive = await ensureSupabaseSession();
+    if (!sessionActive) {
+      console.error('No se pudo establecer una sesión con Supabase');
+      toast.error('Error de conexión con el servidor');
+      return [];
+    }
 
     // First, check if there are any tickets with status 'ready' and not canceled
     const { count, error: countError } = await supabase

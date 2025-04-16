@@ -1,10 +1,11 @@
 
 import { Routes, Route } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Loading } from '@/components/ui/loading';
 import NotFound from '@/pages/NotFound';
 import { AuthProvider } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { initSupabaseAuth } from '@/lib/auth/supabaseAuth';
 
 // Implement code splitting with lazy loading for each page
 const Index = lazy(() => import('@/pages/Index'));
@@ -34,6 +35,11 @@ const LoadingFallback = () => (
 );
 
 function App() {
+  // Inicializar la autenticación de Supabase al cargar la aplicación
+  useEffect(() => {
+    initSupabaseAuth();
+  }, []);
+
   return (
     <AuthProvider>
       <Suspense fallback={<LoadingFallback />}>
