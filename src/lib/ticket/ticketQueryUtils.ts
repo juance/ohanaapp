@@ -17,7 +17,22 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
  */
 export const checkTicketsCustomersRelationExists = async (): Promise<boolean> => {
   try {
-    // Intentar hacer una consulta usando la relación
+    // Intentar hacer una consulta directa para verificar la existencia de la relación
+    const { data: relationData, error: relationError } = await supabase.rpc('check_relation_exists', {
+      table_name: 'tickets',
+      foreign_table: 'customers'
+    });
+
+    if (!relationError && relationData) {
+      console.log('Verificación de relación mediante RPC:', relationData);
+      if (relationData === true) {
+        console.log('Relación entre tickets y customers verificada mediante RPC');
+        return true;
+      }
+    }
+
+    // Si el método RPC no funciona, intentar con una consulta directa
+    console.log('Intentando verificar relación mediante consulta directa...');
     const { data, error } = await supabase
       .from('tickets')
       .select('id, customers(id)')
@@ -25,10 +40,17 @@ export const checkTicketsCustomersRelationExists = async (): Promise<boolean> =>
 
     // Si no hay error, la relación existe
     if (!error && data) {
-      console.log('Relación entre tickets y customers verificada');
+      console.log('Relación entre tickets y customers verificada mediante consulta directa');
       return true;
     }
 
+    // Si hay un error, verificar si es por la relación
+    if (error && error.message && error.message.includes('relationship')) {
+      console.log('No existe relación entre tickets y customers:', error.message);
+      return false;
+    }
+
+    // Si hay otro tipo de error, asumir que la relación no existe para ser conservadores
     console.log('No se pudo verificar la relación entre tickets y customers:', error);
     return false;
   } catch (error) {

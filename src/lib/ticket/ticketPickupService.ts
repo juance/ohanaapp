@@ -196,28 +196,8 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Intentar usar la relación con los clientes si existe, de lo contrario hacer consultas separadas
-    try {
-      // Intentar usar la relación con los clientes (si existe la clave foránea)
-      const { data: relatedData, error: relatedError } = await supabase
-        .from('tickets')
-        .select('*, customers(id, name, phone)')
-        .eq('status', 'ready')
-        .eq('is_canceled', false)
-        .order('created_at', { ascending: false });
-
-      if (!relatedError && relatedData) {
-        console.log('Usando relación con clientes, tickets obtenidos:', relatedData.length);
-        return mapTicketsWithRelatedCustomers(relatedData);
-      }
-
-      // Si hay un error con la relación, usar el método alternativo
-      console.log('No se pudo usar la relación con clientes, usando método alternativo');
-    } catch (relatedError) {
-      console.log('Error al intentar usar la relación con clientes:', relatedError);
-    }
-
-    // Método alternativo: obtener los tickets sin usar la relación
+    // Obtener los tickets directamente sin intentar usar la relación primero
+    // Esto garantiza que siempre obtendremos los tickets, incluso si hay problemas con la relación
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
@@ -234,8 +214,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     console.log('First ticket data sample:', data && data.length > 0 ? {
       id: data[0].id,
       ticket_number: data[0].ticket_number,
-      customer_id: data[0].customer_id,
-      customer_info: data[0].customers
+      customer_id: data[0].customer_id
     } : 'No tickets');
 
     if (!data || data.length === 0) {
