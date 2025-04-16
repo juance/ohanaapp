@@ -201,7 +201,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     console.log('Obteniendo tickets con status "ready" y no cancelados...');
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        dry_cleaning_items (*)
+      `)
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
@@ -280,7 +283,9 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           valetQuantity: ticket.valet_quantity,
           createdAt: ticket.created_at,
           deliveredDate: ticket.delivered_date,
-          customerId: customerId
+          customerId: customerId,
+          // Incluir los servicios de tintorería si están disponibles
+          dryCleaningItems: ticket.dry_cleaning_items || []
         };
       } catch (mapError) {
         console.error('Error mapping ticket:', mapError, ticket);

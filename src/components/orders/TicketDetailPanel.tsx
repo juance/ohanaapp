@@ -34,6 +34,20 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     );
   }
 
+  // Verificar si el ticket tiene servicios directamente
+  const hasTicketServices = ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0;
+
+  // Usar los servicios del ticket si están disponibles, de lo contrario usar los servicios cargados
+  const displayServices = hasTicketServices
+    ? ticket.dryCleaningItems.map((item: any) => ({
+        id: item.id || `temp-${Math.random()}`,
+        name: item.name,
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        ticketId: ticket.id
+      }))
+    : ticketServices;
+
   return (
     <div>
       <div className="mb-6">
@@ -78,9 +92,9 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
 
       <div>
         <h3 className="text-xl font-semibold mb-4">Servicios</h3>
-        {ticketServices.length > 0 ? (
+        {displayServices.length > 0 ? (
           <div className="space-y-2">
-            {ticketServices.map(service => (
+            {displayServices.map(service => (
               <div key={service.id} className="flex justify-between items-center border-b pb-2">
                 <div>
                   <span className="font-medium">{service.name}</span>

@@ -53,8 +53,26 @@ export const usePickupOrdersLogic = () => {
   // Load ticket services
   const loadTicketServices = async (ticketId: string) => {
     try {
-      const services = await getTicketServices(ticketId);
-      setTicketServices(services);
+      // Primero buscar si el ticket ya tiene servicios cargados
+      const ticket = tickets.find(t => t.id === ticketId);
+
+      if (ticket && ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
+        console.log(`Usando servicios ya cargados en el ticket: ${ticket.dryCleaningItems.length} servicios`);
+        // Mapear los servicios al formato esperado
+        const mappedServices = ticket.dryCleaningItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          ticketId: ticketId
+        }));
+        setTicketServices(mappedServices);
+      } else {
+        // Si no hay servicios en el ticket, cargarlos desde la base de datos
+        console.log('Cargando servicios desde la base de datos...');
+        const services = await getTicketServices(ticketId);
+        setTicketServices(services);
+      }
     } catch (error) {
       console.error('Error loading ticket services:', error);
       setTicketServices([]);
