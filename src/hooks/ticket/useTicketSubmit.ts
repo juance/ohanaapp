@@ -7,6 +7,7 @@ import { updateDashboardMetrics } from '@/lib/services/metricsService';
 import { createTicketForPreview } from '@/lib/services/ticketPreviewService';
 import { validateTicketInput } from '@/lib/services/ticketValidationService';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCustomerFreeValet } from '@/lib/services/loyaltyService';
 
 // Types for the form state
 interface TicketFormState {
