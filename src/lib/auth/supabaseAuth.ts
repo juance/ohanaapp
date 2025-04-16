@@ -11,9 +11,10 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
     console.log('Verificando conexión con Supabase...');
 
     // Intentar una consulta simple para verificar la conexión
-    const { count, error } = await supabase
-      .from('tickets')
-      .select('*', { count: 'exact', head: true })
+    // Usamos una consulta que no requiere autenticación
+    const { data, error } = await supabase
+      .from('ticket_sequence')
+      .select('last_number')
       .limit(1);
 
     if (error) {
@@ -21,7 +22,7 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
       return false;
     }
 
-    console.log('Conexión con Supabase establecida correctamente');
+    console.log('Conexión con Supabase establecida correctamente, datos:', data);
     return true;
   } catch (error) {
     console.error('Error al verificar la conexión con Supabase:', error);
