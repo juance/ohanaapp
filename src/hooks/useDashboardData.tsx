@@ -67,17 +67,30 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const refreshMetricsData = async () => {
     setIsMetricsLoading(true);
     try {
+      console.log('Fetching dashboard metrics data...');
+
       // Fetch tickets data from Supabase
       const { data: tickets, error: ticketsError } = await supabase
         .from('tickets')
         .select('*');
 
-      if (ticketsError) throw ticketsError;
+      if (ticketsError) {
+        console.error('Error fetching tickets:', ticketsError);
+        throw ticketsError;
+      }
+
+      console.log(`Fetched ${tickets?.length || 0} tickets for dashboard`);
 
       // Calculate metrics
       const totalTickets = tickets?.length || 0;
       const paidTickets = tickets?.filter(ticket => ticket.is_paid).length || 0;
       const totalRevenue = tickets?.reduce((sum, ticket) => sum + (parseFloat(ticket.total) || 0), 0) || 0;
+
+      console.log('Dashboard metrics calculated:', {
+        totalTickets,
+        paidTickets,
+        totalRevenue
+      });
 
       // Group sales by week
       const salesByWeek = {
@@ -93,10 +106,14 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       // Process tickets to calculate metrics
       tickets?.forEach(ticket => {
         // Calculate sales by week
-        const date = new Date(ticket.created_at);
+        const date = new Date(ticket.created_at || ticket.date);
         const day = date.getDate();
         const week = Math.ceil(day / 7);
-        salesByWeek[`Week ${week}`] = (salesByWeek[`Week ${week}`] || 0) + (parseFloat(ticket.total) || 0);
+        const ticketTotal = parseFloat(ticket.total) || 0;
+
+        console.log(`Processing ticket ${ticket.id} - date: ${date.toISOString()}, week: ${week}, total: ${ticketTotal}`);
+
+        salesByWeek[`Week ${week}`] = (salesByWeek[`Week ${week}`] || 0) + ticketTotal;
 
         // Count dry cleaning items
         if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
@@ -105,6 +122,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
           });
         }
       });
+
+      console.log('Sales by week:', salesByWeek);
 
       // Create metrics object
       const calculatedMetrics = {
@@ -119,6 +138,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         }
       };
 
+      console.log('Setting dashboard metrics data:', calculatedMetrics);
       setMetricsData(calculatedMetrics);
     } catch (err) {
       console.error("Error fetching metrics data:", err);

@@ -21,14 +21,22 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
   // Select metrics for current view
   const currentMetrics = metrics ? metrics[viewType] || {} : {};
   const currentExpenses = expenses ? expenses[viewType] || 0 : 0;
-  
+
+  console.log('MetricsCards - metrics:', metrics);
+  console.log('MetricsCards - viewType:', viewType);
+  console.log('MetricsCards - currentMetrics:', currentMetrics);
+
   // Calculate metrics safely
-  const revenue = Number(metrics?.totalRevenue || 0);
+  const revenue = Number(currentMetrics?.totalRevenue || 0);
   const profit = revenue - Number(currentExpenses || 0);
-  const totalTickets = Number(metrics?.totalTickets || 0);
+  const totalTickets = Number(currentMetrics?.totalTickets || 0);
   const paidTickets = Number(currentMetrics?.paidTickets || 0);
   const freeValets = Number(currentMetrics?.freeValets || 0);
-  
+
+  console.log('MetricsCards - currentMetrics:', currentMetrics);
+  console.log('MetricsCards - revenue:', revenue);
+  console.log('MetricsCards - totalTickets:', totalTickets);
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
       <Card>
@@ -43,7 +51,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           </p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Gastos</CardTitle>
@@ -56,7 +64,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           </p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Ganancia</CardTitle>
@@ -71,7 +79,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           </p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Tickets</CardTitle>
@@ -84,7 +92,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           </p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Tickets Pagados</CardTitle>
@@ -97,7 +105,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
           </p>
         </CardContent>
       </Card>
-      
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Valets Gratis</CardTitle>

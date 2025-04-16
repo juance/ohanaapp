@@ -19,6 +19,8 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   const { data, isLoading, error, refreshData } = useDashboardData();
 
+  console.log('Dashboard component - data:', data);
+
   const handleRefresh = async () => {
     try {
       toast.info("Actualizando panel de control...");
