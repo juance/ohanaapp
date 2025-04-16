@@ -76,7 +76,22 @@ const PickupOrders = () => {
 
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
-          <OrderHeader title="Pedidos a Retirar" />
+          <div className="flex justify-between items-center mb-4">
+            <OrderHeader title="Pedidos a Retirar" />
+            <Button
+              onClick={() => {
+                console.log('Forzando recarga de tickets...');
+                refetch();
+              }}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              Recargar
+            </Button>
+          </div>
 
           <DebugPanel
             tickets={tickets}

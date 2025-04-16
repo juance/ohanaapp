@@ -69,6 +69,18 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ tickets, isLoading, error, refe
                       {tickets.length}
                     </span>
                   </div>
+                  <div>
+                    <span className="font-medium">Estado de tickets:</span>{' '}
+                    <span>
+                      {tickets.map(t => t.status).join(', ') || 'No hay tickets'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-medium">IDs de tickets:</span>{' '}
+                    <span className="text-xs">
+                      {tickets.map(t => t.id.substring(0, 8)).join(', ') || 'No hay tickets'}
+                    </span>
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"

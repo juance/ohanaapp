@@ -130,10 +130,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Now fetch the tickets with their customer information
+    // Simplificar la consulta para no depender de la relación con los clientes
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
+      .select('*')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
@@ -150,15 +150,18 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Map the tickets to the application format
+    // Map the tickets to the application format sin depender de la relación con los clientes
     const mappedTickets = data.map(ticket => {
       try {
+        // Obtener el customer_id para posiblemente buscar el cliente después si es necesario
+        const customerId = ticket.customer_id;
+
         return {
           id: ticket.id,
           ticketNumber: ticket.ticket_number,
           basketTicketNumber: ticket.basket_ticket_number,
-          clientName: ticket.customers?.name || 'Cliente sin nombre',
-          phoneNumber: ticket.customers?.phone || '',
+          clientName: 'Cliente ' + ticket.ticket_number, // Usar el número de ticket como identificador temporal
+          phoneNumber: '', // No tenemos el teléfono sin la relación
           totalPrice: ticket.total,
           paymentMethod: ticket.payment_method,
           status: ticket.status,
@@ -166,6 +169,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
           valetQuantity: ticket.valet_quantity,
           createdAt: ticket.created_at,
           deliveredDate: ticket.delivered_date,
+          customerId: customerId, // Guardar el ID del cliente para posible uso futuro
           ...ticket
         };
       } catch (mapError) {
