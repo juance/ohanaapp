@@ -109,6 +109,62 @@ export const updateTicketStatus = async (ticketId: string, newStatus: string) =>
   }
 };
 
+/**
+ * Mapea los tickets con los clientes relacionados (cuando se usa la relación)
+ */
+const mapTicketsWithRelatedCustomers = (tickets: any[]): Ticket[] => {
+  console.log('Mapeando tickets con clientes relacionados');
+  return tickets.map(ticket => {
+    try {
+      // Obtener la información del cliente desde la relación
+      const customerId = ticket.customer_id;
+      const customerName = ticket.customers?.name || 'Cliente sin nombre';
+      const customerPhone = ticket.customers?.phone || '';
+
+      console.log('Mapeando ticket con cliente relacionado:', {
+        id: ticket.id,
+        ticket_number: ticket.ticket_number,
+        customer_id: customerId,
+        customerName,
+        customerPhone
+      });
+
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerName,
+        phoneNumber: customerPhone,
+        totalPrice: parseFloat(ticket.total) || 0,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        customerId: customerId
+      };
+    } catch (error) {
+      console.error('Error mapping ticket with related customer:', error);
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: 'Error al obtener cliente',
+        phoneNumber: '',
+        totalPrice: parseFloat(ticket.total) || 0,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        customerId: ticket.customer_id
+      };
+    }
+  });
+};
+
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     console.log('Fetching pickup tickets...');
@@ -140,7 +196,28 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    // Obtener los tickets sin usar la relación con los clientes
+    // Intentar usar la relación con los clientes si existe, de lo contrario hacer consultas separadas
+    try {
+      // Intentar usar la relación con los clientes (si existe la clave foránea)
+      const { data: relatedData, error: relatedError } = await supabase
+        .from('tickets')
+        .select('*, customers(id, name, phone)')
+        .eq('status', 'ready')
+        .eq('is_canceled', false)
+        .order('created_at', { ascending: false });
+
+      if (!relatedError && relatedData) {
+        console.log('Usando relación con clientes, tickets obtenidos:', relatedData.length);
+        return mapTicketsWithRelatedCustomers(relatedData);
+      }
+
+      // Si hay un error con la relación, usar el método alternativo
+      console.log('No se pudo usar la relación con clientes, usando método alternativo');
+    } catch (relatedError) {
+      console.log('Error al intentar usar la relación con clientes:', relatedError);
+    }
+
+    // Método alternativo: obtener los tickets sin usar la relación
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
@@ -240,6 +317,27 @@ export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => 
     const dateXDaysAgo = new Date(now);
     dateXDaysAgo.setDate(now.getDate() - days);
 
+    // Intentar usar la relación con los clientes si existe
+    try {
+      const { data: relatedData, error: relatedError } = await supabase
+        .from('tickets')
+        .select('*, customers(id, name, phone)')
+        .eq('status', 'ready')
+        .eq('is_canceled', false)
+        .lt('created_at', dateXDaysAgo.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (!relatedError && relatedData) {
+        console.log(`Usando relación con clientes para tickets no recogidos después de ${days} días:`, relatedData.length);
+        return mapTicketsWithRelatedCustomers(relatedData);
+      }
+
+      console.log(`No se pudo usar la relación con clientes para tickets no recogidos después de ${days} días, usando método alternativo`);
+    } catch (relatedError) {
+      console.log(`Error al intentar usar la relación con clientes para tickets no recogidos después de ${days} días:`, relatedError);
+    }
+
+    // Método alternativo: obtener los tickets sin usar la relación
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
