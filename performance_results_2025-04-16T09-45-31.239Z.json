@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Tickets listos para recoger (con relación)",
+    "duration": 243.83470000000003,
+    "success": true,
+    "count": 1
+  },
+  {
+    "name": "Tickets listos para recoger (sin relación)",
+    "duration": 88.93219999999997,
+    "success": true,
+    "count": 1
+  },
+  {
+    "name": "Tickets pendientes (con relación)",
+    "duration": 74.79849999999999,
+    "success": true,
+    "count": 0
+  },
+  {
+    "name": "Tickets pendientes (sin relación)",
+    "duration": 75.00620000000004,
+    "success": true,
+    "count": 0
+  },
+  {
+    "name": "Tickets entregados (con relación)",
+    "duration": 74.74080000000004,
+    "success": true,
+    "count": 3
+  },
+  {
+    "name": "Tickets entregados (sin relación)",
+    "duration": 79.33529999999996,
+    "success": true,
+    "count": 3
+  },
+  {
+    "name": "Tickets por cliente (con relación)",
+    "duration": 171.6903000000001,
+    "success": true,
+    "count": 1
+  },
+  {
+    "name": "Tickets por cliente (sin relación)",
+    "duration": 168.45920000000012,
+    "success": true,
+    "count": 1
+  }
+]
