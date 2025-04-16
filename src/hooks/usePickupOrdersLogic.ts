@@ -1,5 +1,5 @@
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -326,6 +326,31 @@ Camargo 590, Villa Crespo - Tel: 1136424871`;
     };
     return methodNames[method] || method;
   };
+
+  // Set selected ticket and load services
+  useEffect(() => {
+    if (selectedTicket) {
+      console.log('Loading services for ticket:', selectedTicket);
+      loadTicketServices(selectedTicket);
+
+      // Scroll to ticket detail if on mobile
+      if (window.innerWidth < 768 && ticketDetailRef.current) {
+        setTimeout(() => {
+          ticketDetailRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }
+    } else {
+      setTicketServices([]);
+    }
+  }, [selectedTicket]);
+
+  // Reload services when tickets are refreshed
+  useEffect(() => {
+    if (selectedTicket && tickets.length > 0) {
+      console.log('Reloading services after tickets refresh');
+      loadTicketServices(selectedTicket);
+    }
+  }, [tickets]);
 
   // Format date
   const formatDate = (dateString: string) => {

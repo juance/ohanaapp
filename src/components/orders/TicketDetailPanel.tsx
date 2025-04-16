@@ -95,7 +95,10 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
             </div>
           </div>
         ) : (
-          <p className="text-gray-500">No hay servicios registrados para este ticket</p>
+          <div className="text-center py-4 border rounded-md bg-gray-50">
+            <p className="text-gray-500 mb-2">No hay servicios registrados para este ticket</p>
+            <p className="text-sm text-gray-400">Los servicios se cargarán automáticamente cuando estén disponibles</p>
+          </div>
         )}
       </div>
     </div>
