@@ -1,5 +1,6 @@
 
 import { Ticket } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Check if delivered_date column exists in the tickets table
@@ -9,6 +10,31 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   // This is a safe assumption since we've verified it exists in the database
   console.log('Assuming delivered_date column exists');
   return true;
+};
+
+/**
+ * Verifica si existe la relación entre tickets y customers
+ */
+export const checkTicketsCustomersRelationExists = async (): Promise<boolean> => {
+  try {
+    // Intentar hacer una consulta usando la relación
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('id, customers(id)')
+      .limit(1);
+
+    // Si no hay error, la relación existe
+    if (!error && data) {
+      console.log('Relación entre tickets y customers verificada');
+      return true;
+    }
+
+    console.log('No se pudo verificar la relación entre tickets y customers:', error);
+    return false;
+  } catch (error) {
+    console.error('Error al verificar la relación entre tickets y customers:', error);
+    return false;
+  }
 };
 
 /**
@@ -54,7 +80,7 @@ export const mapTicketData = (ticket: any, hasDeliveredDateColumn: boolean): Tic
   }
 
   console.log('Mapping ticket:', ticket.id, ticket.ticket_number, ticket.status);
-  
+
   const customerData = ticket.customers || {};
   console.log('Customer data:', customerData);
 
