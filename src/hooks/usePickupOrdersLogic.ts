@@ -107,7 +107,88 @@ export const usePickupOrdersLogic = () => {
   // Handle print ticket
   const handlePrintTicket = (ticketId: string) => {
     console.log('Imprimir ticket:', ticketId);
-    // Implementación de impresión
+
+    // Buscar el ticket seleccionado
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) {
+      toast.error('No se pudo encontrar el ticket para imprimir');
+      return;
+    }
+
+    // Crear contenido HTML para imprimir
+    const printContent = `
+      <html>
+        <head>
+          <title>Ticket #${ticket.ticketNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+            .ticket { max-width: 300px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 20px; }
+            .info { margin-bottom: 15px; }
+            .info div { margin-bottom: 5px; }
+            .total { font-weight: bold; margin-top: 10px; text-align: right; }
+            .footer { text-align: center; margin-top: 20px; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="ticket">
+            <div class="header">
+              <h2>Lavandería Ohana</h2>
+              <p>Ticket #${ticket.ticketNumber}</p>
+            </div>
+            <div class="info">
+              <div><strong>Cliente:</strong> ${ticket.clientName || 'Cliente sin nombre'}</div>
+              <div><strong>Teléfono:</strong> ${ticket.phoneNumber || 'Sin teléfono'}</div>
+              <div><strong>Fecha:</strong> ${formatDate(ticket.createdAt)}</div>
+              <div><strong>Estado:</strong> ${ticket.status === 'ready' ? 'Listo para retirar' : ticket.status}</div>
+              <div><strong>Pagado:</strong> ${ticket.isPaid ? 'Sí' : 'No'}</div>
+            </div>
+            <div class="total">
+              <div>Total: $${(ticket.totalPrice || 0).toLocaleString()}</div>
+            </div>
+            <div class="footer">
+              <p>Gracias por confiar en Lavandería Ohana</p>
+              <p>Camargo 590, Villa Crespo - Tel: 1136424871</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Abrir ventana de impresión
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error('Por favor, habilite las ventanas emergentes para imprimir');
+      return;
+    }
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+
+    // Imprimir después de que la ventana esté cargada
+    printWindow.onload = function() {
+      try {
+        printWindow.print();
+        printWindow.onafterprint = function() {
+          printWindow.close();
+        };
+      } catch (error) {
+        console.error('Error al imprimir:', error);
+        toast.error('Error al imprimir el ticket');
+        printWindow.close();
+      }
+    };
+
+    // Si onload no se dispara (por ejemplo, en algunos navegadores)
+    setTimeout(() => {
+      try {
+        printWindow.print();
+        setTimeout(() => printWindow.close(), 500);
+      } catch (error) {
+        console.error('Error al imprimir (timeout):', error);
+      }
+    }, 500);
   };
 
   // Handle share WhatsApp
@@ -118,7 +199,83 @@ export const usePickupOrdersLogic = () => {
     }
 
     console.log('Compartir por WhatsApp:', ticketId, phoneNumber);
-    // Implementación de compartir por WhatsApp
+
+    // Buscar el ticket seleccionado
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) {
+      toast.error('No se pudo encontrar el ticket para compartir');
+      return;
+    }
+
+    // Formatear el número de teléfono (eliminar caracteres no numéricos)
+    const formattedPhone = phoneNumber.replace(/\D/g, '');
+
+    // Crear mensaje para WhatsApp
+    const message = `Hola ${ticket.clientName || 'Cliente'}, tu pedido en Lavandería Ohana está listo para retirar.
+
+Detalles del pedido:
+- Ticket #: ${ticket.ticketNumber}
+- Fecha: ${formatDate(ticket.createdAt)}
+- Total: $${(ticket.totalPrice || 0).toLocaleString()}
+
+Puedes pasar a retirarlo en nuestro horario de atención: Lunes a Sábado de 9:00 a 19:00 hs.
+
+Gracias por confiar en Lavandería Ohana.
+Camargo 590, Villa Crespo - Tel: 1136424871`;
+
+    // Codificar el mensaje para URL
+    const encodedMessage = encodeURIComponent(message);
+
+    // Crear URL de WhatsApp
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+
+    // Abrir WhatsApp en una nueva pestaña
+    window.open(whatsappUrl, '_blank');
+
+    toast.success('Mensaje de WhatsApp preparado');
+  };
+
+  // Handle notify client
+  const handleNotifyClient = (ticketId: string, phoneNumber?: string) => {
+    if (!phoneNumber) {
+      toast.error('El cliente no tiene número de teléfono registrado');
+      return;
+    }
+
+    console.log('Avisar al cliente:', ticketId, phoneNumber);
+
+    // Buscar el ticket seleccionado
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket) {
+      toast.error('No se pudo encontrar el ticket para notificar');
+      return;
+    }
+
+    // Formatear el número de teléfono (eliminar caracteres no numéricos)
+    const formattedPhone = phoneNumber.replace(/\D/g, '');
+
+    // Crear mensaje para WhatsApp
+    const message = `Hola ${ticket.clientName || 'Cliente'}, te recordamos que tu pedido en Lavandería Ohana está listo para retirar desde el ${formatDate(ticket.createdAt)}.
+
+Detalles del pedido:
+- Ticket #: ${ticket.ticketNumber}
+- Total: $${(ticket.totalPrice || 0).toLocaleString()}
+
+Puedes pasar a retirarlo en nuestro horario de atención: Lunes a Sábado de 9:00 a 19:00 hs.
+
+Gracias por confiar en Lavandería Ohana.
+Camargo 590, Villa Crespo - Tel: 1136424871`;
+
+    // Codificar el mensaje para URL
+    const encodedMessage = encodeURIComponent(message);
+
+    // Crear URL de WhatsApp
+    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+
+    // Abrir WhatsApp en una nueva pestaña
+    window.open(whatsappUrl, '_blank');
+
+    toast.success(`Notificación enviada a ${ticket.clientName || 'Cliente'}`);
   };
 
   // Format date
@@ -155,6 +312,7 @@ export const usePickupOrdersLogic = () => {
     handleCancelTicket,
     handlePrintTicket,
     handleShareWhatsApp,
+    handleNotifyClient,
     formatDate
   };
 };

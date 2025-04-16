@@ -198,12 +198,18 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
 
     // Obtener los tickets directamente sin intentar usar la relación primero
     // Esto garantiza que siempre obtendremos los tickets, incluso si hay problemas con la relación
+    console.log('Obteniendo tickets con status "ready" y no cancelados...');
     const { data, error } = await supabase
       .from('tickets')
       .select('*')
       .eq('status', 'ready')
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
+
+    // Imprimir todos los tickets para depuración
+    if (data && data.length > 0) {
+      console.log('Tickets obtenidos:', data.map(t => ({ id: t.id, ticket_number: t.ticket_number, status: t.status })));
+    }
 
     if (error) {
       console.error('Error fetching tickets:', error);

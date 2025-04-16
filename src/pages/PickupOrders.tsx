@@ -36,6 +36,7 @@ const PickupOrders = () => {
     handleCancelTicket,
     handlePrintTicket,
     handleShareWhatsApp,
+    handleNotifyClient,
     formatDate
   } = usePickupOrdersLogic();
 
@@ -110,6 +111,7 @@ const PickupOrders = () => {
               handleOpenCancelDialog={handleOpenCancelDialog}
               handlePrintTicket={handlePrintTicket}
               handleShareWhatsApp={handleShareWhatsApp}
+              handleNotifyClient={handleNotifyClient}
             />
 
             <SearchBar
