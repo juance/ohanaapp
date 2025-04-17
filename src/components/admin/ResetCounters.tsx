@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -45,7 +46,7 @@ export const ResetCounters = () => {
     setIsResetting(true);
     try {
       // Create a payload based on selected sections
-      let payload = {};
+      let payload: { counter?: string; counters?: Record<string, boolean> } = {};
 
       if (Object.values(selectedSections).every(Boolean)) {
         // If all sections are selected, use the 'all' counter
@@ -53,7 +54,7 @@ export const ResetCounters = () => {
       } else {
         // Otherwise, reset individual sections
         // Create an object where each key is a counter name and value is true
-        const countersToReset = {};
+        const countersToReset: Record<string, boolean> = {};
 
         if (selectedSections.dashboard) countersToReset.tickets = true;
         if (selectedSections.clients) countersToReset.clients = true;

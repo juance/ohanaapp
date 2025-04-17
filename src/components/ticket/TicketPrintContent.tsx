@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { Ticket, LaundryOption } from '@/lib/types';
@@ -9,11 +8,8 @@ interface TicketPrintContentProps {
   selectedOptions: LaundryOption[];
 }
 
-/**
- * Content component for the ticket print preview
- */
 const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selectedOptions }) => {
-  // Ensure services property exists
+  // Create a default empty array for services if it doesn't exist
   const services = ticket.services || [];
   
   return (

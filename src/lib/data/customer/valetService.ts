@@ -1,5 +1,58 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { isAfter, subDays } from 'date-fns';
+
+// Check if a customer is eligible for loyalty program
+export const checkCustomerLoyalty = async (phoneNumber: string): Promise<{
+  isEligible: boolean;
+  valetsCount: number;
+  freeValets: number;
+  lastResetDate?: Date;
+}> => {
+  try {
+    // Get customer information
+    const { data: customer, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', phoneNumber)
+      .single();
+
+    if (error) {
+      console.error('Error checking customer loyalty:', error);
+      return {
+        isEligible: false,
+        valetsCount: 0,
+        freeValets: 0
+      };
+    }
+
+    // Check if customer exists
+    if (!customer) {
+      return {
+        isEligible: false,
+        valetsCount: 0,
+        freeValets: 0
+      };
+    }
+
+    // Check if customer has last_reset_date field
+    const lastResetDate = customer.last_reset_date ? new Date(customer.last_reset_date) : undefined;
+
+    // Return customer loyalty status
+    return {
+      isEligible: true,
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      lastResetDate
+    };
+  } catch (error) {
+    console.error('Error in checkCustomerLoyalty:', error);
+    return {
+      isEligible: false,
+      valetsCount: 0,
+      freeValets: 0
+    };
+  }
+};
 
 export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
   try {
