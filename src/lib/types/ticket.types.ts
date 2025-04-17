@@ -10,8 +10,8 @@ export interface Ticket {
   status: string;
   isPaid: boolean;
   valetQuantity?: number;
-  dryCleaningItems?: any[];
-  laundryOptions?: any[];
+  dryCleaningItems?: DryCleaningItem[];
+  laundryOptions?: LaundryOption[];
   createdAt: string;
   pendingSync?: boolean;
   deliveredDate?: string;

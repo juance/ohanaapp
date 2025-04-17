@@ -1,7 +1,9 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
+import { Ticket } from '@/lib/types';
 
 export const useDashboardData = () => {
   const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
@@ -52,7 +54,7 @@ export const useDashboardData = () => {
 
   // Calculate revenue in the given date range
   const calculateRevenue = (startDate: Date, endDate: Date) => {
-    return deliveredTicketsData.reduce((total, ticket) => {
+    return (deliveredTicketsData as any[]).reduce((total, ticket) => {
       const ticketDate = new Date(ticket.created_at);
       if (ticketDate >= startDate && ticketDate <= endDate && ticket.is_paid) {
         return total + Number(ticket.total);
@@ -63,7 +65,7 @@ export const useDashboardData = () => {
 
   // Calculate tickets with dry cleaning
   const calculateDryCleaningTickets = () => {
-    return deliveredTicketsData.filter(ticket => {
+    return (deliveredTicketsData as any[]).filter(ticket => {
       return (ticket as any).dry_cleaning_items && (ticket as any).dry_cleaning_items.length > 0;
     }).length;
   };
@@ -73,25 +75,31 @@ export const useDashboardData = () => {
     isLoading: isLoadingDelivered,
     error: errorDelivered,
     refetch: refetchDelivered,
-  } = useQuery('deliveredTickets', fetchDeliveredTickets);
+  } = useQuery({
+    queryKey: ['deliveredTickets'],
+    queryFn: fetchDeliveredTickets
+  });
 
   const {
     data: pendingTicketsData = [],
     isLoading: isLoadingPending,
     error: errorPending,
     refetch: refetchPending,
-  } = useQuery('pendingTickets', fetchPendingTickets);
+  } = useQuery({
+    queryKey: ['pendingTickets'],
+    queryFn: fetchPendingTickets
+  });
 
   const totalRevenue = useMemo(() => {
     return calculateRevenue(start, end);
   }, [start, end, deliveredTicketsData]);
 
   const totalDeliveredTickets = useMemo(() => {
-    return deliveredTicketsData.length;
+    return (deliveredTicketsData as any[]).length;
   }, [deliveredTicketsData]);
 
   const totalPendingTickets = useMemo(() => {
-    return pendingTicketsData.length;
+    return (pendingTicketsData as any[]).length;
   }, [pendingTicketsData]);
 
   const dryCleaningTickets = useMemo(() => {

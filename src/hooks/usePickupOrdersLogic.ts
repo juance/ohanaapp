@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getPickupTickets, markTicketAsDelivered, markTicketAsPaid, updateTicketPaymentMethod } from '@/lib/ticket/ticketPickupService';
+import { getPickupTickets, markTicketAsDelivered, updateTicketPaymentMethod } from '@/lib/ticket/ticketPickupService';
 import { toast } from '@/lib/toast';
 import { Ticket, PaymentMethod } from '@/lib/types';
 import { format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 
 export const usePickupOrdersLogic = () => {
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
@@ -56,7 +57,14 @@ export const usePickupOrdersLogic = () => {
   // Function to handle marking a ticket as paid
   const handleMarkAsPaid = async (ticketId: string) => {
     try {
-      const success = await markTicketAsPaid(ticketId);
+      // Implement this locally since it's not exported from ticketPickupService
+      const { error } = await supabase
+        .from('tickets')
+        .update({ is_paid: true })
+        .eq('id', ticketId);
+        
+      const success = !error;
+      
       if (success) {
         toast.success('Ticket marcado como pagado');
         refetch(); // Refresh the ticket list

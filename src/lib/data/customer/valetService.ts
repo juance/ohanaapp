@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { isAfter, subDays } from 'date-fns';
 
@@ -34,15 +35,12 @@ export const checkCustomerLoyalty = async (phoneNumber: string): Promise<{
       };
     }
 
-    // Check if customer has last_reset_date field
-    const lastResetDate = customer.last_reset_date ? new Date(customer.last_reset_date) : undefined;
-
     // Return customer loyalty status
     return {
       isEligible: true,
       valetsCount: customer.valets_count || 0,
       freeValets: customer.free_valets || 0,
-      lastResetDate
+      lastResetDate: customer.last_reset_date ? new Date(customer.last_reset_date) : undefined
     };
   } catch (error) {
     console.error('Error in checkCustomerLoyalty:', error);
@@ -56,10 +54,10 @@ export const checkCustomerLoyalty = async (phoneNumber: string): Promise<{
 
 export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
   try {
-    // Primero obtenemos los datos actuales del cliente
+    // First get the current customer data
     const { data: customer, error: getError } = await supabase
       .from('customers')
-      .select('valets_count, free_valets, last_reset_date')
+      .select('valets_count, free_valets')
       .eq('id', customerId)
       .single();
 
@@ -68,34 +66,23 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
     const currentValets = customer?.valets_count || 0;
     let currentFreeValets = customer?.free_valets || 0;
 
-    // Verificar si necesitamos reiniciar el contador (primer día del mes)
+    // Check if we need to reset counter (first day of month)
     const now = new Date();
-    const lastResetDate = customer?.last_reset_date ? new Date(customer.last_reset_date) : null;
-    const isNewMonth = lastResetDate === null ||
-                      (now.getMonth() !== lastResetDate.getMonth() ||
-                       now.getFullYear() !== lastResetDate.getFullYear());
+    
+    // Get current month's count directly
+    let newTotalValets = currentValets + valetQuantity;
 
-    // Si es un nuevo mes, reiniciamos el contador de valets
-    let newTotalValets = currentValets;
-    if (isNewMonth) {
-      console.log(`Reiniciando contador de valets para cliente ${customerId} (nuevo mes)`);
-      newTotalValets = valetQuantity; // Empezamos de nuevo con los valets actuales
-    } else {
-      newTotalValets = currentValets + valetQuantity;
-    }
-
-    // Por cada 9 valets completados, se otorga 1 valet gratis
-    // Los valets gratis no se reinician mensualmente, solo el contador
+    // For every 9 valets completed, grant 1 free valet
+    // Free valets are not reset monthly, only the counter
     const newFreeValetsEarned = Math.floor(newTotalValets / 9) - Math.floor(currentValets / 9);
     const newFreeValets = currentFreeValets + newFreeValetsEarned;
 
-    // Actualizamos en la base de datos
+    // Update in database
     const { error: updateError } = await supabase
       .from('customers')
       .update({
         valets_count: newTotalValets,
-        free_valets: newFreeValets,
-        last_reset_date: isNewMonth ? now.toISOString() : customer?.last_reset_date
+        free_valets: newFreeValets
       })
       .eq('id', customerId);
 
@@ -110,7 +97,7 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
 
 export const useFreeValet = async (customerId: string): Promise<boolean> => {
   try {
-    // Primero verificamos si el cliente tiene valets gratis disponibles
+    // First verify if customer has free valets available
     const { data: customer, error: getError } = await supabase
       .from('customers')
       .select('free_valets')
@@ -121,12 +108,12 @@ export const useFreeValet = async (customerId: string): Promise<boolean> => {
 
     const freeValets = customer?.free_valets || 0;
 
-    // Si no tiene valets gratis disponibles, retornamos error
+    // If no free valets available, return error
     if (freeValets <= 0) {
       return false;
     }
 
-    // Actualizamos reduciendo en 1 los valets gratis
+    // Update reducing free valets by 1
     const { error: updateError } = await supabase
       .from('customers')
       .update({ free_valets: freeValets - 1 })

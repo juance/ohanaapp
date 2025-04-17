@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/lib/types';
 
@@ -13,7 +14,7 @@ export const addExpense = async (
       .insert({
         description,
         amount,
-        date: date || new Date().toISOString()
+        date: date ? date.toISOString() : new Date().toISOString()
       });
 
     if (error) throw error;
