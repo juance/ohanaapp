@@ -16,3 +16,8 @@ path = "/reset_all_data"
 name = "reset_counters"
 verify_jwt = false
 path = "/reset_counters"
+
+[[functions]]
+name = "reset_all_data_complete"
+verify_jwt = false
+path = "/reset_all_data_complete"

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
 import { RefreshCw, RotateCcw } from "lucide-react";
 import { toast } from "@/lib/toast";
@@ -21,17 +21,15 @@ export const QuickResetButton = () => {
   const handleReset = async () => {
     setIsResetting(true);
     try {
-      // Llamar a la función resetAllCounters
-      const { data, error } = await supabase.functions.invoke("reset_counters", {
-        body: { counter: "all" }
-      });
+      // Llamar a la función reset_all_data_complete para una limpieza completa
+      const { data, error } = await supabase.functions.invoke("reset_all_data_complete");
 
       if (error) throw error;
 
       toast.success("Todos los parámetros reiniciados", {
         description: "Todos los parámetros han sido reiniciados exitosamente."
       });
-      
+
       // Recargar la página después de un breve retraso para mostrar los datos actualizados
       setTimeout(() => {
         window.location.reload();

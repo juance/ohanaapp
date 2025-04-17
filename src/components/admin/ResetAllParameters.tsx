@@ -13,19 +13,17 @@ export const ResetAllParameters = () => {
   const handleReset = async () => {
     setIsResetting(true);
     try {
-      // Llamar a la función resetAllCounters
-      const { data, error } = await supabase.functions.invoke("reset_counters", {
-        body: { counter: "all" }
-      });
+      // Llamar a la función reset_all_data_complete para una limpieza completa
+      const { data, error } = await supabase.functions.invoke("reset_all_data_complete");
 
       if (error) throw error;
 
       toast.success("Todos los parámetros reiniciados", {
         description: "Todos los parámetros han sido reiniciados exitosamente."
       });
-      
+
       setShowConfirmation(false);
-      
+
       // Recargar la página después de un breve retraso para mostrar los datos actualizados
       setTimeout(() => {
         window.location.reload();
@@ -71,8 +69,8 @@ export const ResetAllParameters = () => {
           </Alert>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Esta función reiniciará todos los parámetros de la aplicación, incluyendo contadores, 
-            tickets, datos de clientes, programa de fidelidad y más. Use esta función solo si necesita 
+            Esta función reiniciará todos los parámetros de la aplicación, incluyendo contadores,
+            tickets, datos de clientes, programa de fidelidad y más. Use esta función solo si necesita
             reiniciar completamente la aplicación.
           </p>
         )}
