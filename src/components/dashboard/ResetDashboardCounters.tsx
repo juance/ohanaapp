@@ -28,12 +28,21 @@ export const ResetDashboardCounters = () => {
     setIsResetting(true);
     try {
       // Create payload based on selected counters
-      const payload = { 
-        counters: selectedCounters
+      const countersToReset = [];
+
+      // Only include counters that are selected (true)
+      Object.keys(selectedCounters).forEach(key => {
+        if (selectedCounters[key as keyof typeof selectedCounters]) {
+          countersToReset.push(key);
+        }
+      });
+
+      const payload = {
+        counters: countersToReset
       };
-      
+
       console.log("Sending reset counters payload:", payload);
-      
+
       // Call the Supabase function to reset counters
       const { data, error } = await supabase.functions.invoke("reset_counters", {
         body: payload
@@ -97,7 +106,7 @@ export const ResetDashboardCounters = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <CounterCheckboxes 
+        <CounterCheckboxes
           selectedCounters={selectedCounters}
           toggleCounter={toggleCounter}
           allSelected={allSelected}
@@ -106,7 +115,7 @@ export const ResetDashboardCounters = () => {
         <InfoWarning />
       </CardContent>
       <CardFooter>
-        <ResetConfirmDialog 
+        <ResetConfirmDialog
           isResetting={isResetting}
           handleResetCounters={handleResetCounters}
           someSelected={someSelected}
