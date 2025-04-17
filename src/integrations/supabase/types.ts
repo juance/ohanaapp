@@ -17,6 +17,7 @@ export type Database = {
           customer_name: string
           id: string
           rating: number
+          source: string | null
         }
         Insert: {
           comment: string
@@ -25,6 +26,7 @@ export type Database = {
           customer_name: string
           id?: string
           rating: number
+          source?: string | null
         }
         Update: {
           comment?: string
@@ -33,6 +35,7 @@ export type Database = {
           customer_name?: string
           id?: string
           rating?: number
+          source?: string | null
         }
         Relationships: [
           {
@@ -432,7 +435,15 @@ export type Database = {
           updated_at?: string | null
           valet_quantity?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_tickets_customers"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -472,6 +483,10 @@ export type Database = {
       assign_basket_ticket_number: {
         Args: { ticket_id: string }
         Returns: undefined
+      }
+      check_relation_exists: {
+        Args: { table_name: string; foreign_table: string }
+        Returns: boolean
       }
       create_user: {
         Args: {

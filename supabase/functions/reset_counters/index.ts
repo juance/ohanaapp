@@ -82,6 +82,12 @@ async function resetAllCounters(supabaseClient) {
       .delete()
       .not('id', 'is', null);
 
+    // Delete customer feedback
+    await supabaseClient
+      .from('customer_feedback')
+      .delete()
+      .not('id', 'is', null);
+
     // Delete all tickets
     await supabaseClient
       .from('tickets')
@@ -102,6 +108,12 @@ async function resetAllCounters(supabaseClient) {
     // Delete expenses
     await supabaseClient
       .from('expenses')
+      .delete()
+      .not('id', 'is', null);
+    
+    // Delete dashboard stats
+    await supabaseClient
+      .from('dashboard_stats')
       .delete()
       .not('id', 'is', null);
 
@@ -208,6 +220,12 @@ async function resetDashboardCounters(supabaseClient, counters) {
             })
             .not('id', 'is', null);
 
+          // Delete dashboard stats
+          await supabaseClient
+            .from('dashboard_stats')
+            .delete()
+            .not('id', 'is', null);
+
           results.revenue = true;
           console.log('Revenue data reset successfully');
         }
@@ -295,7 +313,7 @@ async function resetSpecificCounter(supabaseClient, counter, options) {
 
         return {
           success: true,
-          message: "Numeración de tickets reiniciada a 0"
+          message: "Tickets y numeración reiniciados a 0"
         };
 
       case "clients":
@@ -315,23 +333,33 @@ async function resetSpecificCounter(supabaseClient, counter, options) {
           message: "Contadores de clientes reiniciados"
         };
 
-      case "revenue":
-        // Reset revenue data
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      case "pending":
+        // Delete only pending tickets
+        await supabaseClient
+          .from('tickets')
+          .delete()
+          .eq('status', 'processing');
 
         await supabaseClient
           .from('tickets')
-          .update({
-            total: 0,
-            is_paid: false
-          })
-          .gte('created_at', thirtyDaysAgo.toISOString())
-          .is('is_canceled', false);
+          .delete()
+          .eq('status', 'pending');
 
         return {
           success: true,
-          message: "Datos de ingresos reiniciados"
+          message: "Pedidos pendientes eliminados"
+        };
+
+      case "delivered":
+        // Delete delivered tickets
+        await supabaseClient
+          .from('tickets')
+          .delete()
+          .eq('status', 'delivered');
+
+        return {
+          success: true,
+          message: "Historial de pedidos entregados eliminado"
         };
 
       case "loyalty":
@@ -346,11 +374,44 @@ async function resetSpecificCounter(supabaseClient, counter, options) {
 
         return {
           success: true,
-          message: "Puntos de fidelidad y valets gratuitos reiniciados"
+          message: "Programa de fidelidad reiniciado"
+        };
+
+      case "analysis":
+        // Delete customer feedback data
+        await supabaseClient
+          .from('customer_feedback')
+          .delete()
+          .not('id', 'is', null);
+
+        return {
+          success: true,
+          message: "Datos de análisis de tickets eliminados"
+        };
+
+      case "revenue":
+      case "metrics":
+        // Delete dashboard stats
+        await supabaseClient
+          .from('dashboard_stats')
+          .delete()
+          .not('id', 'is', null);
+
+        // Reset revenue in tickets if they exist
+        await supabaseClient
+          .from('tickets')
+          .update({
+            total: 0
+          })
+          .not('id', 'is', null);
+
+        return {
+          success: true,
+          message: "Métricas y estadísticas reiniciadas"
         };
 
       default:
-        throw new Error("Contador no válido");
+        throw new Error("Tipo de contador no válido: " + counter);
     }
   } catch (error) {
     console.error(`Error resetting counter "${counter}":`, error);
