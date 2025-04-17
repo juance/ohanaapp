@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,11 @@ const PendingOrders = () => {
       loadTicketServices(selectedTicket);
     }
   }, [selectedTicket]);
+
+  // Find the selected ticket data
+  const selectedTicketData = selectedTicket 
+    ? tickets.find(ticket => ticket.id === selectedTicket) 
+    : undefined;
 
   if (isLoading) {
     return (
@@ -101,10 +107,7 @@ const PendingOrders = () => {
 
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 <TicketDetailPanel 
-                  selectedTicket={selectedTicket}
-                  tickets={tickets}
-                  ticketServices={ticketServices}
-                  formatDate={formatDate}
+                  ticket={selectedTicketData}
                 />
               </div>
             </div>
