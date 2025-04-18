@@ -1,13 +1,19 @@
 
 import { supabase } from '@/integrations/supabase/client';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Expense } from '@/lib/types/expense.types';
 import { SyncableExpense } from '@/lib/data/sync/expensesSync';
 =======
+=======
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from '@/lib/toast';
 import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
 import { EXPENSES_STORAGE_KEY } from '@/lib/constants/storageKeys';
+<<<<<<< HEAD
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
+=======
 >>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
 
 // Define SyncableExpense type

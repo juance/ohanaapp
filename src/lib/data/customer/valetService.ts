@@ -1,23 +1,159 @@
 
 import { supabase } from '@/integrations/supabase/client';
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 =======
+=======
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
 import { Customer } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { CLIENTS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 import { toast } from '@/lib/toast';
+<<<<<<< HEAD
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
+=======
 >>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
 
 // Get customer valet count
 export const getCustomerValetCount = async (customerId: string): Promise<{ valetsCount: number; freeValets: number; hasResetDate: boolean }> => {
   try {
     const { data, error } = await supabase
+<<<<<<< HEAD
+=======
       .from('customers')
       .select('valets_count, free_valets')
       .eq('id', customerId)
       .single();
     
+    if (error) throw error;
+    
+    // Check if the customer has a last reset date
+    // Handle case where last_reset_date might not exist in the database
+    let hasResetDate = false;
+    try {
+      const { data: resetData } = await supabase
+        .from('customers')
+        .select('last_reset_date')
+        .eq('id', customerId)
+        .single();
+      
+      hasResetDate = resetData && typeof resetData.last_reset_date !== 'undefined' && resetData.last_reset_date !== null;
+    } catch (resetError) {
+      console.error('Error checking for last_reset_date:', resetError);
+      // Continue without reset date information
+    }
+    
+    return {
+      valetsCount: data.valets_count || 0,
+      freeValets: data.free_valets || 0,
+      hasResetDate
+    };
+  } catch (error) {
+    console.error('Error in getCustomerValetCount:', error);
+    return { valetsCount: 0, freeValets: 0, hasResetDate: false };
+  }
+};
+
+// Update customer valets count
+export const updateValetsCount = async (customerId: string, incrementBy: number = 1): Promise<boolean> => {
+  try {
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('valets_count, free_valets')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentValets = customer?.valets_count || 0;
+    const newValetsCount = currentValets + incrementBy;
+    
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ valets_count: newValetsCount })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return true;
+  } catch (error) {
+    console.error('Error in updateValetsCount:', error);
+    return false;
+  }
+};
+
+// Use a free valet
+export const useFreeValet = async (customerId: string): Promise<boolean> => {
+  try {
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('free_valets, valets_redeemed')
+      .eq('id', customerId)
+      .single();
+    
+    if (getError) throw getError;
+    
+    const currentFreeValets = customer?.free_valets || 0;
+    
+    if (currentFreeValets <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "El cliente no tiene valets gratis disponibles"
+      });
+      return false;
+    }
+    
+    const currentValetsRedeemed = customer?.valets_redeemed || 0;
+    const newFreeValets = currentFreeValets - 1;
+    const newValetsRedeemed = currentValetsRedeemed + 1;
+    
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        free_valets: newFreeValets,
+        valets_redeemed: newValetsRedeemed
+      })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    toast({
+      title: "Valet gratis utilizado",
+      description: `Quedan ${newFreeValets} valets gratis`
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error in useFreeValet:', error);
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: "Error al utilizar el valet gratis"
+    });
+    return false;
+  }
+};
+
+// Get locally stored customers
+interface LocalClient extends Customer {
+  pendingSync?: boolean;
+  last_reset_date?: string;
+}
+
+// Check and update customer free valets
+export const checkAndUpdateFreeValets = async (customerId: string): Promise<{ updated: boolean; newFreeValets: number }> => {
+  try {
+    // Get customer data
+    const { data: customer, error: getError } = await supabase
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
+      .from('customers')
+      .select('valets_count, free_valets')
+      .eq('id', customerId)
+      .single();
+    
+<<<<<<< HEAD
     if (error) throw error;
     
     // Check if the customer has a last reset date
@@ -162,6 +298,10 @@ export const checkAndUpdateFreeValets = async (customerId: string): Promise<{ up
       newTotalValets = valetQuantity; // Empezamos de nuevo con los valets actuales
 =======
     
+=======
+    if (getError) throw getError;
+    
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
     // Extract values
     const valetsCount = customer?.valets_count || 0;
     const currentFreeValets = customer?.free_valets || 0;
@@ -170,6 +310,7 @@ export const checkAndUpdateFreeValets = async (customerId: string): Promise<{ up
     let lastResetDate: Date;
     if (customer && customer.last_reset_date) {
       lastResetDate = new Date(customer.last_reset_date as string);
+<<<<<<< HEAD
 >>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
     } else {
       lastResetDate = new Date(0); // Jan 1, 1970
@@ -194,6 +335,11 @@ export const checkAndUpdateFreeValets = async (customerId: string): Promise<{ up
 
     return true;
 =======
+=======
+    } else {
+      lastResetDate = new Date(0); // Jan 1, 1970
+    }
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
     
     const now = new Date();
     const monthDiff = (now.getFullYear() - lastResetDate.getFullYear()) * 12 + 
@@ -233,6 +379,9 @@ export const checkAndUpdateFreeValets = async (customerId: string): Promise<{ up
       updated: false,
       newFreeValets: currentFreeValets
     };
+<<<<<<< HEAD
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
+=======
 >>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
   } catch (error) {
     console.error('Error in checkAndUpdateFreeValets:', error);

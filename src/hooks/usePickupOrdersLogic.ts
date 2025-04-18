@@ -29,6 +29,7 @@ export const usePickupOrdersLogic = () => {
     retry: 3, // Reintentar 3 veces si hay error
     retryDelay: 1000, // Esperar 1 segundo entre reintentos
 <<<<<<< HEAD
+<<<<<<< HEAD
     gcTime: 0, // No cachear los resultados (antes era cacheTime)
     onSettled: (data, err) => {
       if (err) {
@@ -38,6 +39,8 @@ export const usePickupOrdersLogic = () => {
         console.log('Tickets cargados correctamente:', data.length);
       }
 =======
+=======
+>>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
     gcTime: 0, // Modern equivalent to cacheTime which is deprecated
     onError: (err) => {
       console.error('Error en la consulta de tickets:', err);
