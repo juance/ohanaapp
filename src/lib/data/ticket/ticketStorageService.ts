@@ -2,10 +2,41 @@
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { updateCustomerLastVisit } from '@/lib/data/customer/customerStorageService';
-import { LaundryOption, Customer } from '@/lib/types';
+import { LaundryOption, Customer, PaymentMethod } from '@/lib/types';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
 import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
 import { toast } from '@/lib/toast';
+import { createTicket as createTicketFromCreationService } from '@/lib/ticket/ticketCreationService';
+
+/**
+ * Create a new ticket
+ * This is an alias for the createTicket function in ticketCreationService.ts
+ * to maintain compatibility with existing code
+ */
+export const createTicket = async ({
+  customerName,
+  phoneNumber,
+  totalPrice,
+  paymentMethod,
+  valetQuantity = 0,
+  customDate = null
+}: {
+  customerName: string;
+  phoneNumber: string;
+  totalPrice: number;
+  paymentMethod: PaymentMethod;
+  valetQuantity?: number;
+  customDate?: Date | null;
+}) => {
+  return createTicketFromCreationService({
+    customerName,
+    phoneNumber,
+    totalPrice,
+    paymentMethod,
+    valetQuantity,
+    customDate
+  });
+};
 
 export const storeTicket = async (
   ticketData: {
