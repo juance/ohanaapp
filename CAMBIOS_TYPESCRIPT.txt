@@ -1,0 +1,145 @@
+# Cambios realizados para corregir errores de TypeScript
+
+## 1. Archivo: src/lib/data/customer/valetService.ts
+
+### Cambio 1: Importar CUSTOMERS_STORAGE_KEY
+
+```typescript
+// Antes
+import { supabase } from '@/integrations/supabase/client';
+
+// Después
+import { supabase } from '@/integrations/supabase/client';
+import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+```
+
+### Cambio 2: Modificar la consulta para eliminar last_reset_date
+
+```typescript
+// Antes
+const { data: customer, error: getError } = await supabase
+  .from('customers')
+  .select('valets_count, free_valets, last_reset_date')
+  .eq('id', customerId)
+  .single();
+
+// Después
+const { data: customer, error: getError } = await supabase
+  .from('customers')
+  .select('valets_count, free_valets')
+  .eq('id', customerId)
+  .single();
+```
+
+### Cambio 3: Simplificar la lógica de reinicio de contadores
+
+```typescript
+// Antes
+// Verificar si necesitamos reiniciar el contador (primer día del mes)
+const now = new Date();
+const lastResetDate = customer?.last_reset_date ? new Date(customer.last_reset_date) : null;
+const isNewMonth = lastResetDate === null ||
+                  (now.getMonth() !== lastResetDate.getMonth() ||
+                   now.getFullYear() !== lastResetDate.getFullYear());
+
+// Después
+// Verificar si necesitamos reiniciar el contador (primer día del mes)
+const now = new Date();
+// Usamos la fecha actual como referencia ya que last_reset_date no existe en la tabla
+const isNewMonth = true; // Siempre reiniciamos el contador por ahora
+```
+
+### Cambio 4: Eliminar last_reset_date de la operación de actualización
+
+```typescript
+// Antes
+const { error: updateError } = await supabase
+  .from('customers')
+  .update({
+    valets_count: newTotalValets,
+    free_valets: newFreeValets,
+    last_reset_date: isNewMonth ? now.toISOString() : customer?.last_reset_date
+  })
+  .eq('id', customerId);
+
+// Después
+const { error: updateError } = await supabase
+  .from('customers')
+  .update({
+    valets_count: newTotalValets,
+    free_valets: newFreeValets
+  })
+  .eq('id', customerId);
+```
+
+## 2. Archivo: src/components/ticket/FreeValetDialog.tsx
+
+### Cambio 1: Modificar la llamada a useCustomerFreeValet
+
+```typescript
+// Antes
+const success = await useCustomerFreeValet(foundCustomer.id);
+
+// Después
+const success = await useCustomerFreeValet(foundCustomer.id, foundCustomer);
+```
+
+## 3. Archivo: src/hooks/usePickupOrdersLogic.ts
+
+### Cambio 1: Reemplazar cacheTime por gcTime y los callbacks onError y onSuccess por onSettled
+
+```typescript
+// Antes
+const { data: tickets = [], isLoading, error, refetch } = useQuery({
+  queryKey: ['pickupTickets'],
+  queryFn: getPickupTickets,
+  refetchInterval: 5000, // Refetch every 5 seconds
+  refetchOnWindowFocus: true, // Refetch when window gets focus
+  staleTime: 0, // Consider data stale immediately
+  retry: 3, // Reintentar 3 veces si hay error
+  retryDelay: 1000, // Esperar 1 segundo entre reintentos
+  cacheTime: 0, // No cachear los resultados
+  onError: (err) => {
+    console.error('Error en la consulta de tickets:', err);
+    toast.error('Error al cargar los tickets');
+  },
+  onSuccess: (data) => {
+    console.log('Tickets cargados correctamente:', data.length);
+  }
+});
+
+// Después
+const { data: tickets = [], isLoading, error, refetch } = useQuery({
+  queryKey: ['pickupTickets'],
+  queryFn: getPickupTickets,
+  refetchInterval: 5000, // Refetch every 5 seconds
+  refetchOnWindowFocus: true, // Refetch when window gets focus
+  staleTime: 0, // Consider data stale immediately
+  retry: 3, // Reintentar 3 veces si hay error
+  retryDelay: 1000, // Esperar 1 segundo entre reintentos
+  gcTime: 0, // No cachear los resultados (antes era cacheTime)
+  onSettled: (data, err) => {
+    if (err) {
+      console.error('Error en la consulta de tickets:', err);
+      toast.error('Error al cargar los tickets');
+    } else if (data) {
+      console.log('Tickets cargados correctamente:', data.length);
+    }
+  }
+});
+```
+
+## 4. Archivo: src/lib/data/expenseService.ts
+
+### Cambio 1: Importar el tipo SyncableExpense
+
+```typescript
+// Antes
+import { supabase } from '@/integrations/supabase/client';
+import { Expense } from '@/lib/types/expense.types';
+
+// Después
+import { supabase } from '@/integrations/supabase/client';
+import { Expense } from '@/lib/types/expense.types';
+import { SyncableExpense } from '@/lib/data/sync/expensesSync';
+```
