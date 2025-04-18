@@ -1,127 +1,192 @@
 
-import { useQuery } from '@tanstack/react-query';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, subDays, startOfDay, endOfDay } from 'date-fns';
-import { Ticket } from '@/lib/types';
+import { useExpensesData } from './useExpensesData';
+import { useClientData } from './useClientData';
+import { useChartData } from './useChartData';
+import { ClientVisit } from '@/lib/types';
+import { toast } from '@/hooks/use-toast';
 
-export const useDashboardData = () => {
-  const [startDate, setStartDate] = useState<Date>(subDays(new Date(), 7));
-  const [endDate, setEndDate] = useState<Date>(new Date());
-
-  const formatDateForDisplay = (date: Date): string => {
-    return format(date, 'dd/MM/yyyy');
+interface UseDashboardDataReturn {
+  isLoading: boolean;
+  error: Error | null;
+  data: {
+    metrics: any;
+    expenses: any;
+    clients: ClientVisit[];
+    chartData: {
+      barData: any[];
+      lineData: any[];
+      pieData: any[];
+    };
   };
+  refreshData: () => Promise<void>;
+}
 
-  const formatDateForAPI = (date: Date): string => {
-    return format(date, 'yyyy-MM-dd');
-  };
-
-  const start = useMemo(() => startOfDay(startDate), [startDate]);
-  const end = useMemo(() => endOfDay(endDate), [endDate]);
-
-  // Fetch delivered tickets
-  const fetchDeliveredTickets = async () => {
-    const { data, error } = await supabase
-      .from('tickets')
-      .select('*')
-      .eq('status', 'delivered')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching delivered tickets:', error);
-      throw error;
+export const useDashboardData = (): UseDashboardDataReturn => {
+  const [error, setError] = useState<Error | null>(null);
+  const [metricsData, setMetricsData] = useState<any>({
+    daily: null,
+    weekly: null,
+    monthly: {
+      totalTickets: 0,
+      paidTickets: 0, // Reset to zero
+      totalRevenue: 0,
+      salesByWeek: {
+        'Week 1': 0,
+        'Week 2': 0,
+        'Week 3': 0,
+        'Week 4': 0
+      },
+      dryCleaningItems: {}
     }
+  });
+  const [isMetricsLoading, setIsMetricsLoading] = useState(true);
 
-    return data || [];
-  };
+  // Use our separated hooks
+  const expensesData = useExpensesData();
+  const clientData = useClientData();
 
-  // Fetch pending tickets
-  const fetchPendingTickets = async () => {
-    const { data, error } = await supabase
-      .from('tickets')
-      .select('*')
-      .in('status', ['pending', 'processing', 'ready'])
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching pending tickets:', error);
-      throw error;
+  // Calculate chart data based on metrics data and the current period
+  const period = 'monthly'; // Default to monthly
+  const chartData = useChartData(
+    period,
+    {
+      daily: metricsData.daily || null,
+      weekly: metricsData.weekly || null,
+      monthly: metricsData.monthly || null
+    },
+    {
+      daily: Number(expensesData.expenses?.daily || 0),
+      weekly: Number(expensesData.expenses?.weekly || 0),
+      monthly: Number(expensesData.expenses?.monthly || 0)
     }
+  );
 
-    return data || [];
-  };
+  // Fetch real metrics data from Supabase
+  const refreshMetricsData = async () => {
+    setIsMetricsLoading(true);
+    try {
+      console.log('Fetching dashboard metrics data...');
 
-  // Calculate revenue in the given date range
-  const calculateRevenue = (startDate: Date, endDate: Date) => {
-    return (deliveredTicketsData as any[]).reduce((total, ticket) => {
-      const ticketDate = new Date(ticket.created_at);
-      if (ticketDate >= startDate && ticketDate <= endDate && ticket.is_paid) {
-        return total + Number(ticket.total);
+      // Fetch tickets data from Supabase
+      const { data: tickets, error: ticketsError } = await supabase
+        .from('tickets')
+        .select('*');
+
+      if (ticketsError) {
+        console.error('Error fetching tickets:', ticketsError);
+        throw ticketsError;
       }
-      return total;
-    }, 0);
+
+      console.log(`Fetched ${tickets?.length || 0} tickets for dashboard`);
+
+      // Calculate metrics
+      const totalTickets = tickets?.length || 0;
+      const paidTickets = tickets?.filter(ticket => ticket.is_paid).length || 0;
+      const totalRevenue = tickets?.reduce((sum, ticket) => sum + (parseFloat(ticket.total) || 0), 0) || 0;
+
+      console.log('Dashboard metrics calculated:', {
+        totalTickets,
+        paidTickets,
+        totalRevenue
+      });
+
+      // Group sales by week
+      const salesByWeek = {
+        'Week 1': 0,
+        'Week 2': 0,
+        'Week 3': 0,
+        'Week 4': 0
+      };
+
+      // Group dry cleaning items
+      const dryCleaningItems: Record<string, number> = {};
+
+      // Process tickets to calculate metrics
+      tickets?.forEach(ticket => {
+        // Calculate sales by week
+        const date = new Date(ticket.created_at || ticket.date);
+        const day = date.getDate();
+        const week = Math.ceil(day / 7);
+        const ticketTotal = parseFloat(ticket.total) || 0;
+
+        console.log(`Processing ticket ${ticket.id} - date: ${date.toISOString()}, week: ${week}, total: ${ticketTotal}`);
+
+        salesByWeek[`Week ${week}`] = (salesByWeek[`Week ${week}`] || 0) + ticketTotal;
+
+        // Count dry cleaning items
+        if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
+          ticket.dry_cleaning_items.forEach((item: any) => {
+            dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
+          });
+        }
+      });
+
+      console.log('Sales by week:', salesByWeek);
+
+      // Create metrics object
+      const calculatedMetrics = {
+        daily: null,
+        weekly: null,
+        monthly: {
+          totalTickets,
+          paidTickets,
+          totalRevenue,
+          salesByWeek,
+          dryCleaningItems
+        }
+      };
+
+      console.log('Setting dashboard metrics data:', calculatedMetrics);
+      setMetricsData(calculatedMetrics);
+    } catch (err) {
+      console.error("Error fetching metrics data:", err);
+      setError(err instanceof Error ? err : new Error('Error fetching metrics data'));
+    } finally {
+      setIsMetricsLoading(false);
+    }
   };
 
-  // Calculate tickets with dry cleaning
-  const calculateDryCleaningTickets = () => {
-    return (deliveredTicketsData as any[]).filter(ticket => {
-      return (ticket as any).dry_cleaning_items && (ticket as any).dry_cleaning_items.length > 0;
-    }).length;
+  // Determine overall loading state
+  const isLoading = isMetricsLoading || expensesData.loading || clientData.loading;
+
+  // Function to refresh all data
+  const refreshData = async () => {
+    try {
+      toast.info("Actualizando datos del panel...");
+
+      await Promise.all([
+        refreshMetricsData(),
+        expensesData.refreshData(),
+        clientData.refreshData()
+      ]);
+
+      toast.success("Datos del panel actualizados correctamente");
+    } catch (err) {
+      console.error("Error refreshing dashboard data:", err);
+      setError(err instanceof Error ? err : new Error('Unknown error refreshing data'));
+      toast.error("Error al actualizar los datos del panel");
+    }
   };
 
-  const {
-    data: deliveredTicketsData = [],
-    isLoading: isLoadingDelivered,
-    error: errorDelivered,
-    refetch: refetchDelivered,
-  } = useQuery({
-    queryKey: ['deliveredTickets'],
-    queryFn: fetchDeliveredTickets
-  });
+  // Initial load of data
+  useEffect(() => {
+    refreshData();
+  }, []);
 
-  const {
-    data: pendingTicketsData = [],
-    isLoading: isLoadingPending,
-    error: errorPending,
-    refetch: refetchPending,
-  } = useQuery({
-    queryKey: ['pendingTickets'],
-    queryFn: fetchPendingTickets
-  });
-
-  const totalRevenue = useMemo(() => {
-    return calculateRevenue(start, end);
-  }, [start, end, deliveredTicketsData]);
-
-  const totalDeliveredTickets = useMemo(() => {
-    return (deliveredTicketsData as any[]).length;
-  }, [deliveredTicketsData]);
-
-  const totalPendingTickets = useMemo(() => {
-    return (pendingTicketsData as any[]).length;
-  }, [pendingTicketsData]);
-
-  const dryCleaningTickets = useMemo(() => {
-    return calculateDryCleaningTickets();
-  }, [deliveredTicketsData]);
+  // Combine data for component consumption
+  const combinedData = {
+    metrics: metricsData || {},
+    expenses: expensesData.expenses || { daily: 0, weekly: 0, monthly: 0 },
+    clients: clientData.frequentClients || [],
+    chartData: chartData || { barData: [], lineData: [], pieData: [] }
+  };
 
   return {
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    formatDateForDisplay,
-    formatDateForAPI,
-    totalRevenue,
-    totalDeliveredTickets,
-    totalPendingTickets,
-    dryCleaningTickets,
-    isLoadingDelivered,
-    errorDelivered,
-    refetchDelivered,
-    isLoadingPending,
-    errorPending,
-    refetchPending,
+    isLoading,
+    error: error || expensesData.error || clientData.error,
+    data: combinedData,
+    refreshData
   };
 };

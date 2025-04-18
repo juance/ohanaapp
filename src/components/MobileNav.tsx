@@ -6,8 +6,6 @@ import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import AnimatedLogo from '@/components/AnimatedLogo';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { QuickResetButton } from '@/components/admin/QuickResetButton';
 
 const MobileNav: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -110,17 +108,6 @@ const MobileNav: React.FC = () => {
               </nav>
 
               <div className="p-4 border-t">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="text-sm font-medium">Tema</div>
-                  <ModeToggle />
-                </div>
-
-                {user && user.role === 'admin' && (
-                  <div className="mb-4">
-                    <QuickResetButton />
-                  </div>
-                )}
-
                 {user ? (
                   <Button
                     variant="outline"
