@@ -97,10 +97,10 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
             <p className="text-sm text-gray-500">Fecha</p>
             <p className="font-medium">{formatDate(ticket.createdAt)}</p>
           </div>
-          {(ticket.deliveredAt || ticket.deliveredDate) && (
+          {(ticket.deliveredDate) && (
             <div>
               <p className="text-sm text-gray-500">Fecha de Entrega</p>
-              <p className="font-medium">{formatDate(ticket.deliveredAt || ticket.deliveredDate || '')}</p>
+              <p className="font-medium">{formatDate(ticket.deliveredDate || '')}</p>
             </div>
           )}
           <div>

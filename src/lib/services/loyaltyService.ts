@@ -1,153 +1,160 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 
-/**
- * Incrementa el contador de visitas de un cliente y actualiza los valets gratis si corresponde
- * @param customerId ID del cliente
- * @param valetQuantity Cantidad de valets a incrementar
- * @returns true si se actualizó correctamente, false en caso contrario
- */
-export const incrementCustomerVisits = async (customerId: string, valetQuantity: number = 1): Promise<boolean> => {
+// Add loyalty points to a customer
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
   try {
-    console.log(`Incrementando visitas para cliente ${customerId} en ${valetQuantity}`);
-
-    // 1. Obtener los datos actuales del cliente
+    // First, get current loyalty points
     const { data: customer, error: getError } = await supabase
       .from('customers')
-      .select('valets_count, free_valets, name')
+      .select('loyalty_points')
       .eq('id', customerId)
       .single();
 
-    if (getError) {
-      console.error('Error al obtener datos del cliente:', getError);
+    if (getError) throw getError;
+
+    const currentPoints = customer?.loyalty_points || 0;
+    const newPoints = currentPoints + points;
+
+    // Update loyalty points
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: newPoints })
+      .eq('id', customerId);
+
+    if (updateError) throw updateError;
+
+    return newPoints;
+  } catch (error) {
+    console.error('Error in addLoyaltyPoints:', error);
+    throw error;
+  }
+};
+
+// Redeem loyalty points for a reward
+export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<boolean> => {
+  try {
+    // First, get current loyalty points
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
+
+    if (getError) throw getError;
+
+    const currentPoints = customer?.loyalty_points || 0;
+
+    // Ensure customer has enough points
+    if (currentPoints < pointsToRedeem) {
       return false;
     }
 
-    // 2. Calcular nuevos valores
+    const newPoints = currentPoints - pointsToRedeem;
+
+    // Update loyalty points
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: newPoints })
+      .eq('id', customerId);
+
+    if (updateError) throw updateError;
+
+    return true;
+  } catch (error) {
+    console.error('Error in redeemLoyaltyPoints:', error);
+    return false;
+  }
+};
+
+// Increment customer visit counter and potentially add loyalty points
+export const incrementCustomerVisits = async (customerId: string, increment: number = 1): Promise<boolean> => {
+  try {
+    // Get current customer data
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('valets_count, loyalty_points')
+      .eq('id', customerId)
+      .single();
+
+    if (getError) throw getError;
+
     const currentValets = customer?.valets_count || 0;
-    const currentFreeValets = customer?.free_valets || 0;
-    const newValetsCount = currentValets + valetQuantity;
+    const currentPoints = customer?.loyalty_points || 0;
+    const newValetsCount = currentValets + increment;
+    
+    // Add loyalty points - 10 points per valet
+    const pointsToAdd = increment * 10;
+    const newPoints = currentPoints + pointsToAdd;
 
-    // 3. Verificar si el cliente ha alcanzado 9 visitas para un valet gratis
-    const previousMilestone = Math.floor(currentValets / 9);
-    const newMilestone = Math.floor(newValetsCount / 9);
-    const newFreeValets = currentFreeValets + (newMilestone - previousMilestone);
-
-    console.log(`Cliente ${customer?.name || customerId}:
-      - Visitas actuales: ${currentValets}
-      - Nuevas visitas: ${newValetsCount}
-      - Valets gratis actuales: ${currentFreeValets}
-      - Nuevos valets gratis: ${newFreeValets}
-    `);
-
-    // 4. Actualizar en la base de datos
+    // Update customer
     const { error: updateError } = await supabase
       .from('customers')
       .update({
         valets_count: newValetsCount,
-        free_valets: newFreeValets
+        loyalty_points: newPoints,
+        last_visit: new Date().toISOString()
       })
       .eq('id', customerId);
 
-    if (updateError) {
-      console.error('Error al actualizar contador de visitas:', updateError);
-      return false;
-    }
-
-    // 5. Mostrar notificación si ganó un valet gratis
-    if (newFreeValets > currentFreeValets) {
-      toast({
-        title: "¡Valet gratis ganado!",
-        description: `${customer?.name || 'Cliente'} ha ganado un valet gratis por su fidelidad`,
-        variant: "success"
-      });
-    }
+    if (updateError) throw updateError;
 
     return true;
   } catch (error) {
-    console.error('Error en incrementCustomerVisits:', error);
+    console.error('Error incrementing customer visits:', error);
     return false;
   }
 };
 
-/**
- * Usa un valet gratis de un cliente
- * @param customerId ID del cliente
- * @returns true si se usó correctamente, false en caso contrario
- */
-export const useCustomerFreeValet = async (customerId: string): Promise<boolean> => {
-  try {
-    // 1. Obtener los datos actuales del cliente
-    const { data: customer, error: getError } = await supabase
-      .from('customers')
-      .select('free_valets, name')
-      .eq('id', customerId)
-      .single();
-
-    if (getError) {
-      console.error('Error al obtener datos del cliente:', getError);
+// Hook for using customer's free valet capability
+export const useCustomerFreeValet = (customerId: string, onSuccess: () => void) => {
+  const useFreeValet = async () => {
+    if (!customerId) {
+      toast.error('No customer selected');
       return false;
     }
 
-    // 2. Verificar si tiene valets gratis disponibles
-    const currentFreeValets = customer?.free_valets || 0;
-    if (currentFreeValets <= 0) {
-      toast({
-        title: "Sin valets gratis",
-        description: `${customer?.name || 'Cliente'} no tiene valets gratis disponibles`,
-        variant: "destructive"
-      });
+    try {
+      // First, check if customer has free valets
+      const { data: customer, error: getError } = await supabase
+        .from('customers')
+        .select('free_valets, valets_redeemed')
+        .eq('id', customerId)
+        .single();
+
+      if (getError) throw getError;
+
+      const freeValets = customer?.free_valets || 0;
+      
+      if (freeValets <= 0) {
+        toast.error('Customer has no free valets available');
+        return false;
+      }
+
+      // Use a free valet
+      const newFreeValets = freeValets - 1;
+      const newValetsRedeemed = (customer?.valets_redeemed || 0) + 1;
+
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          free_valets: newFreeValets,
+          valets_redeemed: newValetsRedeemed
+        })
+        .eq('id', customerId);
+
+      if (updateError) throw updateError;
+
+      toast.success(`Free valet used! ${newFreeValets} remaining`);
+      onSuccess();
+      return true;
+    } catch (error) {
+      console.error('Error using free valet:', error);
+      toast.error('Failed to use free valet');
       return false;
     }
+  };
 
-    // 3. Actualizar en la base de datos
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({
-        free_valets: currentFreeValets - 1,
-        valets_redeemed: customer.valets_redeemed ? customer.valets_redeemed + 1 : 1
-      })
-      .eq('id', customerId);
-
-    if (updateError) {
-      console.error('Error al usar valet gratis:', updateError);
-      return false;
-    }
-
-    toast({
-      title: "Valet gratis usado",
-      description: `${customer?.name || 'Cliente'} ha usado un valet gratis`,
-      variant: "success"
-    });
-
-    return true;
-  } catch (error) {
-    console.error('Error en useCustomerFreeValet:', error);
-    return false;
-  }
-};
-
-/**
- * Reinicia el contador de visitas de todos los clientes (para uso mensual)
- * @returns true si se reinició correctamente, false en caso contrario
- */
-export const resetAllCustomerVisits = async (): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('customers')
-      .update({
-        valets_count: 0
-      })
-      .not('id', 'is', null);
-
-    if (error) {
-      console.error('Error al reiniciar contadores de visitas:', error);
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error('Error en resetAllCustomerVisits:', error);
-    return false;
-  }
+  return { useFreeValet };
 };
