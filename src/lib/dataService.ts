@@ -1,20 +1,22 @@
 
 // Central data service that combines functionality from other data services
-import { createCustomer, getClientDetails } from './data/customer/customerService';
-import { createTicket, getPickupTickets, getRecentTickets } from './ticketService';
+import { storeCustomer, getCustomerByPhone } from './data/customer/customerService';
+import { createTicket, getPickupTickets, getRecentTickets, storeTicket } from './data/ticket/ticketStorageService';
 import { storeExpense, getStoredExpenses } from './data/expenseService';
-import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './data/analysisService';
+import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './lib/data/analysisService';
+import { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
 
 // Re-export all service functions for easy access
 export {
   // Customer services
-  createCustomer,
-  getClientDetails,
+  storeCustomer,
+  getCustomerByPhone,
   
   // Ticket services
   createTicket,
   getPickupTickets,
   getRecentTickets,
+  storeTicket,
   
   // Expense services
   storeExpense,
@@ -24,5 +26,9 @@ export {
   analyzeTickets,
   analyzeCustomers,
   analyzeRevenue,
-  getClientVisitFrequency
+  getClientVisitFrequency,
+  
+  // Loyalty services
+  addLoyaltyPoints,
+  redeemLoyaltyPoints
 };

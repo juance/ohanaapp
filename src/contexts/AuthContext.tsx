@@ -146,7 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: existingUser, error: checkError } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
 
-      if (!checkError && existingUser && existingUser.length > 0) {
+      if (!checkError && existingUser && Array.isArray(existingUser) && existingUser.length > 0) {
         throw new Error('El número de teléfono ya está registrado');
       }
 
@@ -154,9 +154,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
-      // Create new user using RPC function
+      // Create new user using RPC function (use the correct function name)
       const { data, error } = await supabase
-        .rpc('create_user_with_validation', {
+        .rpc('create_user', {
           user_name: name,
           user_phone: phoneNumber,
           user_password: hashedPassword,
@@ -171,12 +171,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error('Error al crear la cuenta');
       }
 
-      if (!data || data.length === 0) {
+      if (!data || (Array.isArray(data) && data.length === 0)) {
         throw new Error('Error al crear la cuenta');
       }
 
       // Get the first user from the result
-      const userData = data[0];
+      const userData = Array.isArray(data) ? data[0] : data;
 
       // Create user object
       const newUser: User = {

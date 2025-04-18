@@ -28,7 +28,7 @@ export const usePickupOrdersLogic = () => {
     staleTime: 0, // Consider data stale immediately
     retry: 3, // Reintentar 3 veces si hay error
     retryDelay: 1000, // Esperar 1 segundo entre reintentos
-    cacheTime: 0, // No cachear los resultados
+    gcTime: 0, // Modern equivalent to cacheTime which is deprecated
     onError: (err) => {
       console.error('Error en la consulta de tickets:', err);
       toast.error('Error al cargar los tickets');

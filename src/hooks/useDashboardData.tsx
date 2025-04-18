@@ -84,7 +84,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       // Calculate metrics
       const totalTickets = tickets?.length || 0;
       const paidTickets = tickets?.filter(ticket => ticket.is_paid).length || 0;
-      const totalRevenue = tickets?.reduce((sum, ticket) => sum + (parseFloat(ticket.total) || 0), 0) || 0;
+      const totalRevenue = tickets?.reduce((sum, ticket) => sum + (parseFloat(ticket.total.toString()) || 0), 0) || 0;
 
       console.log('Dashboard metrics calculated:', {
         totalTickets,
@@ -109,15 +109,16 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         const date = new Date(ticket.created_at || ticket.date);
         const day = date.getDate();
         const week = Math.ceil(day / 7);
-        const ticketTotal = parseFloat(ticket.total) || 0;
+        const ticketTotal = parseFloat(ticket.total.toString()) || 0;
 
         console.log(`Processing ticket ${ticket.id} - date: ${date.toISOString()}, week: ${week}, total: ${ticketTotal}`);
 
         salesByWeek[`Week ${week}`] = (salesByWeek[`Week ${week}`] || 0) + ticketTotal;
 
-        // Count dry cleaning items
-        if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
-          ticket.dry_cleaning_items.forEach((item: any) => {
+        // Count dry cleaning items - check that they exist before accessing
+        const dryCleaningItemsData = (ticket as any).dry_cleaning_items;
+        if (dryCleaningItemsData && Array.isArray(dryCleaningItemsData)) {
+          dryCleaningItemsData.forEach((item: any) => {
             dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
           });
         }

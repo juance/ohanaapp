@@ -1,208 +1,160 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { getFromLocalStorage, saveToLocalStorage } from '@/lib/data/coreUtils';
-import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
-/**
- * Incrementa los puntos de fidelidad de un cliente
- * @param customerId ID del cliente
- * @param points Puntos a agregar
- */
-export const incrementLoyaltyPoints = async (customerId: string, points: number = 100): Promise<boolean> => {
+// Add loyalty points to a customer
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
   try {
-    if (!customerId) {
-      console.error('No customer ID provided');
-      return false;
-    }
-
-    // Update local storage first
-    const localClients = getFromLocalStorage<Customer[]>(CUSTOMERS_STORAGE_KEY) || [];
-    const clientIndex = localClients.findIndex(c => c.id === customerId);
-    
-    if (clientIndex >= 0) {
-      // Update the client's points
-      const currentPoints = localClients[clientIndex].loyalty_points || 0;
-      localClients[clientIndex].loyalty_points = currentPoints + points;
-      
-      // Save back to local storage
-      saveToLocalStorage(CUSTOMERS_STORAGE_KEY, localClients);
-    }
-
-    // Also update in Supabase
-    const { error } = await supabase
+    // First, get current loyalty points
+    const { data: customer, error: getError } = await supabase
       .from('customers')
-      .update({ 
-        loyalty_points: supabase.rpc('increment_loyalty_points', { 
-          client_id: customerId, 
-          points_to_add: points 
-        })
-      })
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
+
+    if (getError) throw getError;
+
+    const currentPoints = customer?.loyalty_points || 0;
+    const newPoints = currentPoints + points;
+
+    // Update loyalty points
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: newPoints })
       .eq('id', customerId);
 
-    if (error) {
-      console.error('Error incrementing loyalty points:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron actualizar los puntos de fidelidad.",
-        variant: "destructive"
-      });
-      return false;
-    }
+    if (updateError) throw updateError;
 
-    toast({
-      title: "Puntos Agregados",
-      description: `Se han agregado ${points} puntos de fidelidad.`,
-      variant: "default"
-    });
-    
-    return true;
+    return newPoints;
   } catch (error) {
-    console.error('Error in incrementLoyaltyPoints:', error);
-    return false;
+    console.error('Error in addLoyaltyPoints:', error);
+    throw error;
   }
 };
 
-/**
- * Utiliza un valet gratis para un cliente
- * @param customerId ID del cliente
- * @returns Promise<boolean> true si se utilizó correctamente
- */
-export const useCustomerFreeValet = async (customerId: string): Promise<boolean> => {
+// Redeem loyalty points for a reward
+export const redeemLoyaltyPoints = async (customerId: string, pointsToRedeem: number): Promise<boolean> => {
   try {
-    if (!customerId) {
-      console.error('No customer ID provided');
-      return false;
-    }
-
-    // Update local storage first
-    const localClients = getFromLocalStorage<Customer[]>(CUSTOMERS_STORAGE_KEY) || [];
-    const clientIndex = localClients.findIndex(c => c.id === customerId);
-    
-    if (clientIndex >= 0) {
-      if (localClients[clientIndex].free_valets > 0) {
-        // Update the client's free valets
-        localClients[clientIndex].free_valets -= 1;
-        // Increment redeemed valets if the property exists
-        if (typeof localClients[clientIndex].valets_redeemed === 'number') {
-          localClients[clientIndex].valets_redeemed += 1;
-        } else {
-          localClients[clientIndex].valets_redeemed = 1;
-        }
-        
-        // Save back to local storage
-        saveToLocalStorage(CUSTOMERS_STORAGE_KEY, localClients);
-      } else {
-        toast({
-          title: "Error",
-          description: "El cliente no tiene valets gratis disponibles.",
-          variant: "destructive"
-        });
-        return false;
-      }
-    }
-
-    // Also update in Supabase
-    const { data, error } = await supabase
+    // First, get current loyalty points
+    const { data: customer, error: getError } = await supabase
       .from('customers')
-      .update({ 
-        free_valets: supabase.rpc('decrement_free_valets', { 
-          client_id: customerId
-        }),
-        valets_redeemed: supabase.rpc('increment_valets_redeemed', { 
-          client_id: customerId
-        })
-      })
+      .select('loyalty_points')
       .eq('id', customerId)
-      .select('free_valets');
+      .single();
 
-    if (error) {
-      console.error('Error using free valet:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo utilizar el valet gratis.",
-        variant: "destructive"
-      });
+    if (getError) throw getError;
+
+    const currentPoints = customer?.loyalty_points || 0;
+
+    // Ensure customer has enough points
+    if (currentPoints < pointsToRedeem) {
       return false;
     }
 
-    if (data && data[0] && data[0].free_valets < 0) {
-      toast({
-        title: "Error",
-        description: "El cliente no tiene valets gratis disponibles.",
-        variant: "destructive"
-      });
-      return false;
-    }
+    const newPoints = currentPoints - pointsToRedeem;
 
-    toast({
-      title: "Valet Utilizado",
-      description: "Se ha utilizado un valet gratis.",
-      variant: "default"
-    });
-    
+    // Update loyalty points
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({ loyalty_points: newPoints })
+      .eq('id', customerId);
+
+    if (updateError) throw updateError;
+
     return true;
   } catch (error) {
-    console.error('Error in useCustomerFreeValet:', error);
+    console.error('Error in redeemLoyaltyPoints:', error);
     return false;
   }
 };
 
-/**
- * Incrementa el contador de visitas de un cliente
- * @param customerId ID del cliente
- */
-export const incrementCustomerVisits = async (customerId: string): Promise<boolean> => {
+// Increment customer visit counter and potentially add loyalty points
+export const incrementCustomerVisits = async (customerId: string, increment: number = 1): Promise<boolean> => {
   try {
-    if (!customerId) {
-      console.error('No customer ID provided');
-      return false;
-    }
-
-    // Update local storage first
-    const localClients = getFromLocalStorage<Customer[]>(CUSTOMERS_STORAGE_KEY) || [];
-    const clientIndex = localClients.findIndex(c => c.id === customerId);
-    
-    if (clientIndex >= 0) {
-      // Update the client's visits count
-      const currentVisits = localClients[clientIndex].valets_count || 0;
-      localClients[clientIndex].valets_count = currentVisits + 1;
-      localClients[clientIndex].last_visit = new Date().toISOString();
-      
-      // Check if the client should receive a free valet
-      if ((currentVisits + 1) % 10 === 0) {
-        localClients[clientIndex].free_valets = (localClients[clientIndex].free_valets || 0) + 1;
-        toast({
-          title: "¡Felicidades!",
-          description: "El cliente ha ganado un valet gratis por su fidelidad.",
-          variant: "default"
-        });
-      }
-      
-      // Save back to local storage
-      saveToLocalStorage(CUSTOMERS_STORAGE_KEY, localClients);
-    }
-
-    // Also update in Supabase
-    const { error } = await supabase
+    // Get current customer data
+    const { data: customer, error: getError } = await supabase
       .from('customers')
-      .update({ 
-        valets_count: supabase.rpc('increment_valets_count', { 
-          client_id: customerId
-        }),
+      .select('valets_count, loyalty_points')
+      .eq('id', customerId)
+      .single();
+
+    if (getError) throw getError;
+
+    const currentValets = customer?.valets_count || 0;
+    const currentPoints = customer?.loyalty_points || 0;
+    const newValetsCount = currentValets + increment;
+    
+    // Add loyalty points - 10 points per valet
+    const pointsToAdd = increment * 10;
+    const newPoints = currentPoints + pointsToAdd;
+
+    // Update customer
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        valets_count: newValetsCount,
+        loyalty_points: newPoints,
         last_visit: new Date().toISOString()
       })
       .eq('id', customerId);
 
-    if (error) {
-      console.error('Error incrementing customer visits:', error);
-      return false;
-    }
-    
+    if (updateError) throw updateError;
+
     return true;
   } catch (error) {
-    console.error('Error in incrementCustomerVisits:', error);
+    console.error('Error incrementing customer visits:', error);
     return false;
   }
+};
+
+// Hook for using customer's free valet capability
+export const useCustomerFreeValet = (customerId: string, onSuccess: () => void) => {
+  const useFreeValet = async () => {
+    if (!customerId) {
+      toast.error('No customer selected');
+      return false;
+    }
+
+    try {
+      // First, check if customer has free valets
+      const { data: customer, error: getError } = await supabase
+        .from('customers')
+        .select('free_valets, valets_redeemed')
+        .eq('id', customerId)
+        .single();
+
+      if (getError) throw getError;
+
+      const freeValets = customer?.free_valets || 0;
+      
+      if (freeValets <= 0) {
+        toast.error('Customer has no free valets available');
+        return false;
+      }
+
+      // Use a free valet
+      const newFreeValets = freeValets - 1;
+      const newValetsRedeemed = (customer?.valets_redeemed || 0) + 1;
+
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          free_valets: newFreeValets,
+          valets_redeemed: newValetsRedeemed
+        })
+        .eq('id', customerId);
+
+      if (updateError) throw updateError;
+
+      toast.success(`Free valet used! ${newFreeValets} remaining`);
+      onSuccess();
+      return true;
+    } catch (error) {
+      console.error('Error using free valet:', error);
+      toast.error('Failed to use free valet');
+      return false;
+    }
+  };
+
+  return { useFreeValet };
 };
