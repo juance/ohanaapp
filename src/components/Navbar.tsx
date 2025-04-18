@@ -6,8 +6,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
 import AnimatedLogo from '@/components/AnimatedLogo';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { QuickResetButton } from '@/components/admin/QuickResetButton';
 
 const Navbar: React.FC = () => {
   const location = useLocation();
@@ -86,17 +84,6 @@ const Navbar: React.FC = () => {
         </nav>
 
         <div className="p-4 border-t">
-          <div className="flex items-center justify-between mb-4">
-            <div className="text-sm font-medium">Tema</div>
-            <ModeToggle />
-          </div>
-
-          {user && user.role === 'admin' && (
-            <div className="mb-4">
-              <QuickResetButton />
-            </div>
-          )}
-
           {user ? (
             <Button
               variant="outline"

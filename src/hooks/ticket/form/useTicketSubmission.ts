@@ -38,7 +38,7 @@ export const useTicketSubmission = (
 
     try {
       // Prepare dry cleaning items
-      const dryCleaningItems: { name: string, quantity: number, price: number }[] = selectedDryCleaningItems.map(item => {
+      const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
         const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
         return {
           name: itemDetails?.name || '',

@@ -51,11 +51,6 @@ const PickupOrders = () => {
     }
   }, [selectedTicket]);
 
-  // Find the selected ticket data
-  const selectedTicketData = selectedTicket 
-    ? tickets.find(ticket => ticket.id === selectedTicket) 
-    : undefined;
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col md:flex-row">
@@ -145,9 +140,10 @@ const PickupOrders = () => {
 
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 <TicketDetailPanel
-                  ticket={selectedTicketData}
-                  onUpdatePaymentMethod={handleUpdatePaymentMethod}
-                  onMarkAsDelivered={handleMarkAsDelivered}
+                  selectedTicket={selectedTicket}
+                  tickets={tickets}
+                  ticketServices={ticketServices}
+                  formatDate={formatDate}
                 />
               </div>
             </div>
@@ -158,19 +154,19 @@ const PickupOrders = () => {
       <CancelTicketDialog
         open={cancelDialogOpen}
         onOpenChange={setCancelDialogOpen}
-        cancelReason={cancelReason || ''}
+        cancelReason={cancelReason}
         setCancelReason={setCancelReason}
         handleCancelTicket={handleCancelTicket}
       />
 
       {/* Payment Method Dialog */}
-      {selectedTicketData && (
+      {selectedTicket && (
         <PaymentMethodDialog
           open={paymentMethodDialogOpen}
           onOpenChange={setPaymentMethodDialogOpen}
-          currentPaymentMethod={(selectedTicketData.paymentMethod || 'cash') as any}
+          currentPaymentMethod={(tickets.find(t => t.id === selectedTicket)?.paymentMethod || 'cash') as any}
           onConfirm={handleUpdatePaymentMethod}
-          ticketNumber={selectedTicketData.ticketNumber || ''}
+          ticketNumber={tickets.find(t => t.id === selectedTicket)?.ticketNumber || ''}
         />
       )}
     </div>

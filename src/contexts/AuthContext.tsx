@@ -76,6 +76,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
+      // Hardcoded admin user for emergency access
+      if (phoneNumber === '1123989718' && password === 'Juance001') {
+        const adminUser: User = {
+          id: 'admin-001',
+          name: 'Admin General',
+          phoneNumber: '1123989718',
+          role: 'admin',
+        };
+
+        // Store user in sessionStorage with 8-hour expiry
+        const expiryTime = Date.now() + (8 * 60 * 60 * 1000); // 8 hours from now
+        sessionStorage.setItem('user', JSON.stringify(adminUser));
+        sessionStorage.setItem('user_expiry', expiryTime.toString());
+        setUser(adminUser);
+
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${adminUser.name}`,
+          variant: "default",
+        });
+
+        return;
+      }
+
       // For this implementation, we'll use a simplified approach
       // Get user by phone number using the RPC function
       const { data, error } = await supabase

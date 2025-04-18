@@ -1,16 +1,15 @@
 
 import { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
+import { Card } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { getDeliveredTickets, getTicketServices, updateTicketPaymentMethod } from '@/lib/ticketService';
+import { getDeliveredTickets, getTicketServices } from '@/lib/ticketService';
 import { useQuery } from '@tanstack/react-query';
 import OrderHeader from '@/components/orders/OrderHeader';
 import SearchBar from '@/components/orders/SearchBar';
 import DeliveredTicketList from '@/components/orders/DeliveredTicketList';
 import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
-import { Ticket } from '@/lib/types';
-import { toast } from 'sonner';
 
 const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,21 +38,10 @@ const DeliveredOrders = () => {
     setTicketServices(services);
   };
 
-  const handleUpdatePaymentMethod = async (ticketId: string, paymentMethod: string) => {
-    try {
-      await updateTicketPaymentMethod(ticketId, paymentMethod);
-      toast.success('Método de pago actualizado correctamente');
-      refetch(); // Refresh the tickets list
-    } catch (error) {
-      console.error('Error updating payment method:', error);
-      toast.error('Error al actualizar el método de pago');
-    }
-  };
-
   const filteredTickets = searchQuery.trim()
     ? tickets.filter(ticket =>
-        (ticket.clientName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (ticket.phoneNumber || '').includes(searchQuery)
+        ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ticket.phoneNumber.includes(searchQuery)
       )
     : tickets;
 
@@ -64,11 +52,6 @@ const DeliveredOrders = () => {
       return dateString;
     }
   };
-
-  // Find the selected ticket from the tickets array
-  const selectedTicketData = selectedTicket 
-    ? tickets.find(ticket => ticket.id === selectedTicket) 
-    : undefined;
 
   if (isLoading) {
     return (
@@ -120,8 +103,10 @@ const DeliveredOrders = () => {
 
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50">
                 <TicketDetailPanel
-                  ticket={selectedTicketData}
-                  onUpdatePaymentMethod={handleUpdatePaymentMethod}
+                  selectedTicket={selectedTicket}
+                  tickets={tickets}
+                  ticketServices={ticketServices}
+                  formatDate={formatDate}
                 />
               </div>
             </div>

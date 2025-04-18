@@ -4,8 +4,16 @@ export interface Expense {
   description: string;
   amount: number;
   date: string;
-  category?: string;
-  createdAt?: string;
+  created_at?: string;
   pendingSync?: boolean;
   synced?: boolean;
+  // Removed category field as it doesn't exist in the database
 }
+
+export type ExpenseCategory =
+  | 'operations'
+  | 'supplies'
+  | 'maintenance'
+  | 'utilities'
+  | 'marketing'
+  | 'other';

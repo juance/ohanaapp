@@ -1,87 +1,64 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Expense } from '@/lib/types';
+import { Expense } from '@/lib/types/expense.types';
 
-// Add expense function
-export const addExpense = async (
-  description: string, 
-  amount: number, 
-  date?: Date
-): Promise<boolean> => {
+export const storeExpense = async (expense: Omit<Expense, 'id'>) => {
   try {
-    const { error } = await supabase
-      .from('expenses')
-      .insert({
-        description,
-        amount,
-        date: date ? date.toISOString() : new Date().toISOString()
-      });
+    // Validar datos del gasto
+    if (!expense.description || !expense.amount || !expense.date) {
+      console.error('Datos de gasto inválidos:', expense);
+      return null;
+    }
 
-    if (error) throw error;
-    return true;
+    // Formatear los datos del gasto
+    const formattedExpense = {
+      description: expense.description.trim(),
+      amount: typeof expense.amount === 'string' ? parseFloat(expense.amount) : expense.amount,
+      date: expense.date
+      // Removed category field as it doesn't exist in the database
+    };
+
+    // Insertar el gasto en la base de datos
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert(formattedExpense)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error al guardar gasto en Supabase:', error);
+      throw error;
+    }
+
+    console.log('Gasto guardado correctamente:', data);
+    return data;
   } catch (error) {
-    console.error('Error adding expense:', error);
-    return false;
+    console.error('Error al guardar gasto:', error);
+    return null;
   }
 };
 
-// Get expenses function
-export const getExpenses = async (): Promise<Expense[]> => {
+export const getStoredExpenses = async (): Promise<Expense[]> => {
   try {
+    console.log('Obteniendo gastos desde Supabase...');
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
       .order('date', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error al obtener gastos desde Supabase:', error);
+      throw error;
+    }
+
+    console.log(`Se obtuvieron ${data?.length || 0} gastos correctamente`);
     return data || [];
   } catch (error) {
-    console.error('Error getting expenses:', error);
+    console.error('Error al obtener gastos:', error);
     return [];
   }
 };
 
-// Update expense function
-export const updateExpense = async (
-  id: string,
-  description: string,
-  amount: number,
-  date: string,
-  pendingSync?: boolean,
-  synced?: boolean
-): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('expenses')
-      .update({
-        description,
-        amount,
-        date,
-        pendingSync,
-        synced
-      })
-      .eq('id', id);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error updating expense:', error);
-    return false;
-  }
-};
-
-// Delete expense function
-export const deleteExpense = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('expenses')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-    return true;
-  } catch (error) {
-    console.error('Error deleting expense:', error);
-    return false;
-  }
-};
+// Alias functions for backward compatibility
+export const addExpense = storeExpense;
+export const getExpenses = getStoredExpenses;

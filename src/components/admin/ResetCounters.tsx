@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -46,33 +45,30 @@ export const ResetCounters = () => {
     setIsResetting(true);
     try {
       // Create a payload based on selected sections
-      let payload: { counter?: string; counters?: Record<string, boolean> } = {};
-
+      let payload = {};
+      
       if (Object.values(selectedSections).every(Boolean)) {
         // If all sections are selected, use the 'all' counter
         payload = { counter: "all" };
       } else {
         // Otherwise, reset individual sections
-        // Create an object where each key is a counter name and value is true
-        const countersToReset: Record<string, boolean> = {};
-
-        if (selectedSections.dashboard) countersToReset.tickets = true;
-        if (selectedSections.clients) countersToReset.clients = true;
-        if (selectedSections.loyalty) countersToReset.loyalty = true;
-        if (selectedSections.metrics) countersToReset.revenue = true;
-        if (selectedSections.ticketAnalysis) countersToReset.tickets = true;
-
-        if (Object.keys(countersToReset).length === 0) {
+        const countersToReset = [];
+        
+        if (selectedSections.dashboard) countersToReset.push("tickets");
+        if (selectedSections.clients) countersToReset.push("clients");
+        if (selectedSections.loyalty) countersToReset.push("loyalty");
+        
+        if (countersToReset.length === 0) {
           throw new Error("No hay secciones seleccionadas para reiniciar");
         }
-
-        payload = {
+        
+        payload = { 
           counters: countersToReset
         };
       }
-
+      
       console.log("Sending reset payload:", payload);
-
+      
       // Call the Supabase function to reset counters
       const { data, error } = await supabase.functions.invoke("reset_counters", {
         body: payload

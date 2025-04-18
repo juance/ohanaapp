@@ -1,0 +1,216 @@
+[33m4a2fabf[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Commit simulando cambios desde GitHub
+[33m26a9f82[m Mejorar la funcionalidad de reinicio de parámetros para eliminar todos los datos de todas las tablas
+[33m491b6e0[m Añadir funcionalidad para reiniciar todos los parámetros de la aplicación
+[33m021ed44[m Mejoras: 1) Añadir botón de cambio de tema claro/oscuro, 2) Corregir funcionalidad de Reiniciar Contadores en Dashboard y Admin
+[33m1c4a3cd[m Corregir atributos for en labels de opciones de lavandería para mejorar accesibilidad
+[33mbadbda4[m Corregir atributos for en labels para mejorar accesibilidad y autollenado de formularios
+[33m0a060a7[m Corregir carga de servicios de tintorería en tickets: incluir servicios en todas las consultas de tickets
+[33m8650f0f[m Solucionar problema de carga de servicios en tickets: implementar creación automática de servicios y herramienta de corrección
+[33m3a9a85b[m Corregir carga de servicios en tickets: incluir servicios en la consulta de pedidos a retirar
+[33m22a81c6[m Corregir carga de servicios en tickets: implementar carga automática y mejorar manejo de errores
+[33m4652dcf[m Implementar nuevo servicio de fidelidad para corregir conteo de visitas y programa de fidelidad
+[33m2f064e4[m Corregir programa de fidelidad: incrementar contador de visitas y reiniciar mensualmente
+[33mf1e41b7[m Corregir manejo de comentarios cuando la columna source no existe en la base de datos
+[33md641c3a[m Implementar notificaciones de comentarios del Portal de Clientes en la página de Comentarios
+[33m24e23bd[m Agregar funcionalidad de comentarios en el Portal para Clientes
+[33m8ab7aaf[m Corregir error de importación en Expenses.tsx: cambiar next/router por react-router-dom
+[33m404d8e8[m Agregar funcionalidad para cambiar método de pago en la sección de Pedidos a Retirar
+[33mf99870e[m Corregir problemas en el dashboard para mostrar correctamente ingresos y tickets
+[33m4d3cc42[m Agregar botón Volver Atrás en la sección de Gastos
+[33mc8a1817[m Corregir error en la sección de gastos: eliminar campo category que no existe en la base de datos
+[33md31908b[m Implementar funcionalidad de botones de imprimir, compartir por WhatsApp y avisar al cliente en la sección de pedidos a retirar
+[33mabd125b[m Corregir problemas en múltiples secciones de la aplicación: Dashboard, Programa de Fidelidad, Gastos, Clientes y Análisis de Tickets
+[33mac5a1de[m cambios en package
+[33md76deb4[m Corregir problema con la obtención de tickets
+[33mc1e63de[m Optimizar consultas usando relación de clave foránea y añadir índices para mejorar rendimiento
+[33mfed2052[m Optimizar consultas de tickets y añadir soporte para relación de clave foránea
+[33me568dd5[m Corregir consulta de tickets para obtener datos de clientes por separado
+[33mee71559[m Corregir problemas con la visualización de tickets en Pedidos a Retirar
+[33m8932c1c[m Mejorar getPickupTickets para usar la relación con los clientes
+[33m2239f0f[m Corregir configuración de Supabase para usar el proyecto ebbarmqwvxkxqbzmkiby
+[33m6147828[m Configurar acceso público a Supabase sin autenticación
+[33m483fd3f[m Cambiar a proyecto Lavadero de Supabase
+[33md060a94[m Corregir ID de proyecto de Supabase en config.toml para evitar conflictos entre proyectos
+[33mdd6ab81[m Mejorar el servicio de creación de tickets para verificar la conexión con Supabase y establecer is_canceled explícitamente
+[33m743b986[m Modificar la autenticación para usar la API pública de Supabase sin autenticación anónima
+[33mcccd75c[m Solucionar problema de autenticación con Supabase para que los tickets aparezcan correctamente
+[33m36de88b[m Solucionar problema de tickets que no se muestran: simplificar consulta, mejorar mapeo y configuración de React Query
+[33mb782432[m Mejorar la función getPickupTickets para ser más robusta y añadir más logs de depuración
+[33m059c0f7[m Mejorar flujo de tickets entre secciones 'Pedidos a retirar' y 'Entregados'
+[33mc64643f[m Corregir problema con tickets que no aparecen en la sección de pedidos a retirar
+[33m9292a5e[m Hacer que los tickets recién generados aparezcan automáticamente en la sección de pedidos a retirar
+[33m7dd6545[m Run database migrations
+[33m3d73c44[m Fix: Type errors in sync and service files
+[33mfc199fa[m Run database migrations
+[33mc2dd7a4[m Corregir conflicto de exportación de cancelTicket entre archivos
+[33mc14cf1e[m Corregir errores de TypeScript: añadir función cancelTicket, arreglar problemas de tipos y eliminar dependencia de react-hot-toast
+[33m4b145f5[m Fix: Circular dependency in ticket service
+[33m945b23a[m Fix: Missing export in ticket pickup service
+[33m2536b78[m Add missing use-toast.ts file
+[33m2fee71f[m Add @radix-ui/react-icons dependency
+[33m6205bc0[m Fix TypeScript errors and add missing theme-provider.tsx
+[33m82c3db6[m Fix: Type errors in data sync and service files
+[33m714de4f[m Fix: Type errors in expense and sync services
+[33m6eedb3a[m Fix: Type errors in data sync and service files
+[33md1d4a73[m Fix: Type errors in data sync and expense service
+[33m84eaace[m Fix: Type errors in expense and sync services
+[33mde4ca84[m Fix: Type errors in sync and hook files
+[33m0d3bc8e[m Fix: Resolve type errors in components and hooks
+[33me06a252[m Refactor: Improve error handling and logging
+[33md245f8d[m Refactor: Improve error handling and code optimization
+[33mc17f9ac[m Update project template
+[33mfa6be1a[m Fix: Resolve Vite configuration error
+[33m4f5f96d[m Fix: Resolve TypeScript compilation errors
+[33m4baf406[m Refactor: Update type imports to new structure
+[33mffe0739[m Refactor: Split types into domain-specific files
+[33mf9b6550[m Fix type errors and sync issues
+[33m18862e0[m Merge branch 'main' of https://github.com/juance/ohanaapp
+[33m6441238[m Add Jest configuration and customer retrieval service test
+[33m027a149[m Fix: Resolve TypeScript compilation errors
+[33m8bea689[m Fix type errors and data inconsistencies
+[33mb463483[m Fix: Resolve type errors in codebase
+[33m4bf439f[m Fix: Show pending tickets on pickup page
+[33me9af079[m Fix: Resolve TypeScript syntax errors
+[33m272fce4[m Fix database structure and errors
+[33m765538e[m Fix: Resolve TypeScript syntax errors in tests
+[33m08afe4c[m Fix: Ticket workflow and data synchronization
+[33mdd885f6[m Mejorar depuración y corregir problemas en el flujo de tickets
+[33m058b9d0[m Eliminar sección de Pedidos en Proceso y simplificar flujo de trabajo de tickets
+[33m97b4468[m Corregir error en la creación de tablas: reemplazar supabase.query por supabase.rpc
+[33m785a356[m Agregar función cancelTicket a ticketPickupService.ts
+[33m090b363[m Agregar función createCustomer faltante en customerService.ts
+[33m5ba8be9[m Corregir errores de importación y exportación duplicada
+[33mbdd22d9[m Integrar cambios de GitHub y resolver conflictos
+[33meacfe66[m Fix: Pickup orders not displaying generated tickets
+[33mddf3511[m Corregir errores de sintaxis en los archivos de prueba
+[33m2828e20[m Resolver conflictos de fusión
+[33md96509d[m Corregir problemas con los tickets en la sección Pedidos Listos para Retirar
+[33mc423eb9[m Fix: Pickup orders not showing
+[33m25816df[m Agregar documentación e instrucciones para la creación manual de tablas en la base de datos
+[33m13ab5b4[m Agregar scripts para crear tablas faltantes en la base de datos
+[33m76aa954[m Implementar herramientas de diagnóstico y documentación de la base de datos
+[33m82f2db7[m Implementar solución alternativa para la generación de números de ticket
+[33m1048beb[m Añadir logs detallados para depuración de tickets
+[33m108263d[m Corregir nombres de tablas en ticketUnifiedService.ts para que coincidan con la estructura de la base de datos
+[33m94dc922[m Modificar el estado inicial de los tickets a 'ready' para que aparezcan automáticamente en Pedidos Listos para Retirar
+[33m1c1251d[m Corregir error ReferenceError: Clock is not defined
+[33mb833918[m Separar tickets en proceso y listos para retirar en páginas diferentes
+[33md95650e[m Implementar nuevo flujo de estados de tickets, centralizar lógica de creación y añadir pruebas automatizadas
+[33mfc51ddf[m Corregir estado inicial de tickets en storeTicket para que coincida con createTicket
+[33m27f6d49[m Unificar estados de tickets, mejorar documentación e implementar pruebas automatizadas
+[33m67f3df3[m Corregir problema de tickets que no aparecen en la sección de tickets pendientes
+[33md450659[m Corregir errores en la creación de tickets y manejo de columnas de fecha de entrega
+[33m1af2caf[m Corregir numeración de tickets para que comience en 1 y aumente secuencialmente
+[33m631d0f0[m Agregar logo de Lavandería Ohana y actualizar favicon
+[33m7c71564[m Corregir error al crear versiones en el control de versiones
+[33m6d871bb[m Mejorar control de versiones y registro de errores en la sección de administración
+[33md717cb2[m Mejorar seguridad y rendimiento del sistema
+[33mae12839[m Corregir error al agregar usuarios
+[33m45628a2[m Agregar página de administración de usuarios
+[33ma79d4c1[m Cambiar puerto de desarrollo de 8080 a 3000
+[33m2584e65[m Actualizar dependencias para resolver vulnerabilidades y corregir exportación syncClientData
+[33mc6c5fd3[m Corregir error de exportación syncAllData y actualizar tipos de SyncStatus
+[33m6d9c21c[m package-lock.json
+[33m77bb119[m Implementar correctamente la función deleteFeedback con soporte para eliminación diferida
+[33mf607502[m Resolver conflictos de fusión y corregir errores de TypeScript
+[33mc94b337[m Corregir errores de TypeScript en feedbackService y syncService
+[33mb3a3722[m Fix: Resolve TypeScript import errors
+[33m67d73fd[m Add initial admin user
+[33m07bbf2e[m Fix: Resolve TypeScript errors
+[33m6c63fe4[m feat: Add password reset functionality
+[33m3ceb09a[m Fix: Type errors in sync and feedback services
+[33mdf504a8[m Fix: Resolve TypeScript compilation errors
+[33mcb6922b[m Refactor feedback service and add file management
+[33m987d205[m Fix: Type errors and incorrect imports
+[33m06e1b94[m Corregir múltiples errores de TypeScript en la aplicación
+[33m288fca5[m Agregar dependencias uuid y bcryptjs para mejorar la seguridad y corregir errores
+[33m28dc79e[m Corregir errores de TypeScript en feedbackService.ts
+[33m09c0c17[m Implementar sistema de hashing de contraseñas con bcrypt
+[33m7afa816[m feat: Implement authentication and user roles
+[33md3e6c0e[m feat: Create user dashboard
+[33m856e813[m Corregir errores de TypeScript en getFromLocalStorage
+[33mad077e4[m Fix: Type errors in sync and test files
+[33m3bd2517[m Refactor: Apply remaining suggestions
+[33m3819da8[m Refactor: Apply proposed changes
+[33ma21c9d0[m Refactor: Improve code structure and readability
+[33mf4ce4a4[m Corregir errores de TypeScript en archivos de sincronización y servicios
+[33mc382200[m Refactor: Split customer service into modules
+[33m7ba760e[m Refactor: Improve ticket, customer, and feedback services
+[33mfb0fa23[m Fix type errors and improve type safety
+[33ma4183b9[m Fix: Type errors related to missing properties and types
+[33m6bd59f5[m Fix: Ticket number and basket ticket number
+[33m3aeac8c[m Fix: Resolve 'useState' error in Toaster component
+[33m3622756[m Fix: Type errors in sync and feedback services
+[33mf6e460f[m Refactor: Improve code quality and fix errors
+[33m31144d6[m Fix: Type errors in sync and feedback services
+[33m8beee8e[m Fix: Export ToastProps from use-toast.ts
+[33m97ce0e9[m Delete src/components/ui/use-toast.ts
+[33mbed7fed[m Update use-toast.ts
+[33m224b210[m Fix: Resolve 'useState' error in Toaster component
+[33mb1ae6f9[m Fix: Resolve TypeScript errors related to type mismatches
+[33m813278a[m Fix: Type errors in sync and feedback services
+[33ma968838[m Fix: Type errors in sync and feedback services
+[33m3c2ee1b[m Fix: Type errors in sync and feedback services
+[33md912180[m Fix: Type errors in sync and feedback services
+[33mde3ec32[m Refactor: Split sync service into smaller files
+[33mfd5ca62[m Fix: Resolve type errors in sync and feedback services
+[33m49c8f6c[m Fix type errors and import issues
+[33m4d8940d[m Sync all data with Supabase and local storage
+[33m815d7d7[m Fix: Reset paid tickets counter in dashboard
+[33m4012c5a[m Fix: UseQueryOptions in ticket services
+[33mdd089a1[m Refactor: Split useTicketFormSubmit into smaller hooks
+[33m6159f3d[m Refactor: Split useTicketFormLogic into smaller files
+[33m240d499[m Refactor: useTicketFormState
+[33m1f0caa7[m Fix: Resolve 'useState' error in useToast hook
+[33m7cdebe4[m Fix: Implement ticket delivery service
+[33m1ca76f3[m Fix: Error fetching delivered tickets
+[33mdacbfb8[m Fix: Handle possible null ticket data
+[33m2989fe4[m Fix: Handle possible null values in ticket data
+[33m844a5cd[m Fix: Incorrect toast function calls
+[33m54043e8[m Fix: Resolve 'useState' error in useToast hook
+[33mc9354fb[m Refactor ticket delivery and pickup services
+[33mf7ebc01[m Fix: Resolve error in useToast hook
+[33m43aecce[m Fix: Resolve error in useToast hook
+[33mfc660e9[m Fix: Ensure delivered_date column and sync tables
+[33mb836b3a[m Fix: Handle possible null values in ticket data
+[33mfa1aa46[m Fix: Handle possible null ticket data
+[33m5715fd7[m Fix: Resolve useContext error in App component
+[33m3ac8b7a[m Fix: Handle potential null values in ticket data
+[33mc252ae8[m Fix: Handle possible null values in ticket data
+[33m4827e01[m Fix: Handle possible null ticket values
+[33m6754c8f[m Refactor: Improve project structure and organization
+[33mfc3bfd7[m Refactor ticket service and fix TS errors
+[33m3a0e047[m Refactor: Reduce file sizes
+[33m94d9267[m Fix: Resolve TypeScript errors in ticketService.ts
+[33mc5c668d[m Fix: Ticket service type errors and sync
+[33m568a2c8[m Fix: Type errors in ticket service
+[33m887d848[m Fix: Type errors in getDeliveredTickets function
+[33mc92941e[m Fix: Type errors in getDeliveredTickets
+[33m1e6b3c7[m Fix: Ticket service type errors
+[33mdebc2aa[m Fix: Ticket generation and sync issues
+[33m47635d8[m Fix: Resolve module export errors
+[33mc3ae947[m Fix: Reset dashboard counters
+[33mec2e766[m Fix: Resolve TypeScript compilation errors
+[33mab27729[m Fix: Implement admin page counter resets
+[33m26823a4[m Fix: Resolve useContext and useState errors
+[33m8b88e16[m Fix: Resolve CounterCheckboxes type error
+[33ma5a55e8[m Code edited in Lovable Code Editor
+[33m7c18321[m Fix: Resolve TypeScript errors
+[33mbc70a8f[m Remove metrics section and related code
+[33m0eb1b9f[m Refactor: Reduce file size
+[33m7b8bff1[m Fix: Pass setUseFreeValet to ServiceTabsContainer
+[33me96b816[m Refactor: Split TicketFormContainer into smaller components
+[33m1164fbd[m Fix: UseToast hook error
+[33me2bf2db[m Fix: Resolve 'useState' error in useToast hook
+[33m1eab35e[m Fix: Resolve 'useState' error in Toaster
+[33mcd97cdd[m Fix: Resolve dynamic import error
+[33m0da2069[m Fix: Resolve various application issues
+[33m644e5e0[m Fix: ChartTabs type error
+[33m94563f9[m Fix: React Router context error
+[33m2857d3b[m Fix: Resolve useContext error in App.tsx
+[33m6e96eba[m Fix: Resolve type errors and import issues
+[33m66d645f[m Fix: Resolve type errors in metrics and inventory services
+[33m8edc047[m Fix: Resolve error in useToast hook
+[33m9113dc2[m Update project template
+[33m8fea449[m Fix: SystemChange type in systemVersionService
+[33m92bdfac[m Fix: Resolve TypeScript errors
