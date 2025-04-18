@@ -63,7 +63,7 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
   }
 };
 
-export const useCustomerFreeValet = async (customerId: string, customer: LocalClient): Promise<boolean> => {
+export const useFreeValet = async (customerId: string, customer: LocalClient): Promise<boolean> => {
   try {
     if (!customerId) {
       console.error('No customer ID provided');
@@ -108,7 +108,7 @@ export const useCustomerFreeValet = async (customerId: string, customer: LocalCl
   }
 };
 
-export const getClientValetCount = async (customerId: string): Promise<{ count: number, freeValets: number } | null> => {
+export const getCustomerValetCount = async (customerId: string): Promise<{ count: number, freeValets: number } | null> => {
   try {
     // Obtener información del cliente
     const { data, error } = await supabase
