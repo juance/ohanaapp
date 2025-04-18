@@ -11,7 +11,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from '@/lib/toast';
-import { useCustomerFreeValet } from '@/lib/services/loyaltyService';
+import { useFreeValet } from '@/lib/data/customer/valetService';
 import { Customer } from '@/lib/types';
 
 interface FreeValetDialogProps {
@@ -49,20 +49,20 @@ export const FreeValetDialog: React.FC<FreeValetDialogProps> = ({
           <AlertDialogAction onClick={async () => {
             if (foundCustomer) {
               // Llamar al servicio para usar un valet gratis
-              const { useFreeValet } = useCustomerFreeValet(foundCustomer.id, () => {
+              const success = await useFreeValet(foundCustomer.id, foundCustomer);
+
+              if (success) {
                 setUseFreeValet(true);
-                onOpenChange(false);
                 // Al usar valet gratis, forzamos cantidad 1
                 setValetQuantity(1);
                 toast.success('Valet gratis aplicado al ticket');
-              });
-              const success = await useFreeValet();
-
-              if (!success) {
+              } else {
                 // Si falla, no aplicamos el valet gratis
                 setUseFreeValet(false);
-                onOpenChange(false);
               }
+
+              // Cerrar el diálogo en cualquier caso
+              onOpenChange(false);
             } else {
               toast.error('No se pudo aplicar el valet gratis');
               onOpenChange(false);
