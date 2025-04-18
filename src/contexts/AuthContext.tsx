@@ -137,6 +137,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
+      // Validar longitud mínima de contraseña (8 caracteres)
+      if (password.length < 8) {
+        throw new Error('La contraseña debe tener al menos 8 caracteres');
+      }
+
       // Check if user already exists using RPC function
       const { data: existingUser, error: checkError } = await supabase
         .rpc('get_user_by_phone', { phone: phoneNumber });
@@ -151,14 +156,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create new user using RPC function
       const { data, error } = await supabase
-        .rpc('create_user', {
+        .rpc('create_user_with_validation', {
           user_name: name,
           user_phone: phoneNumber,
           user_password: hashedPassword,
           user_role: role
         });
 
-      if (error || !data || data.length === 0) {
+      if (error) {
+        // Manejar errores específicos de validación de contraseña
+        if (error.message && error.message.includes('contraseña')) {
+          throw new Error(error.message);
+        }
+        throw new Error('Error al crear la cuenta');
+      }
+
+      if (!data || data.length === 0) {
         throw new Error('Error al crear la cuenta');
       }
 
