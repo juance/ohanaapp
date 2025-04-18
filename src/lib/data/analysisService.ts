@@ -1,5 +1,5 @@
-// Placeholder for analysis service
-// This file was created to fix an import error
+
+// Analysis service implementation
 
 /**
  * Placeholder for ticket analysis functionality
@@ -36,5 +36,19 @@ export const analyzeRevenue = async () => {
     revenueByDay: [],
     revenueByMonth: [],
     revenueByService: []
+  };
+};
+
+/**
+ * Get client visit frequency data
+ */
+export const getClientVisitFrequency = async () => {
+  console.warn('getClientVisitFrequency: This function is not yet implemented');
+  return {
+    daily: 0,
+    weekly: 0,
+    monthly: 0,
+    quarterly: 0,
+    yearly: 0
   };
 };

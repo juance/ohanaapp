@@ -1,26 +1,23 @@
 
-import { SyncStatus } from '@/lib/types';
+import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
+import { SYNC_STATUS_KEY } from '@/lib/constants/storageKeys';
 
-// Get the current sync status
-export const getSyncStatus = async (): Promise<SyncStatus> => {
-  try {
-    const currentStatus = localStorage.getItem('syncStatus');
+// Define SyncStatus type
+export interface SyncStatus {
+  ticketsSync: number;
+  expensesSync: number;
+  clientsSync: number;
+  feedbackSync: number;
+  lastSync: Date | string | null;
+  pending: boolean;
+}
 
-    if (currentStatus) {
-      return JSON.parse(currentStatus);
-    } else {
-      // Return default values if no status is saved
-      return {
-        ticketsSync: 0,
-        expensesSync: 0,
-        clientsSync: 0,
-        feedbackSync: 0,
-        lastSync: null,
-        pending: false
-      };
-    }
-  } catch (error) {
-    console.error('Error retrieving sync status:', error);
+// Get current sync status
+export const getSyncStatus = (): SyncStatus => {
+  const status = getFromLocalStorage<SyncStatus>(SYNC_STATUS_KEY);
+  
+  if (!status) {
+    // Initialize with default values if not found
     const defaultStatus: SyncStatus = {
       ticketsSync: 0,
       expensesSync: 0,
@@ -29,52 +26,47 @@ export const getSyncStatus = async (): Promise<SyncStatus> => {
       lastSync: null,
       pending: false
     };
+    
+    saveToLocalStorage(SYNC_STATUS_KEY, defaultStatus);
     return defaultStatus;
   }
+  
+  return status;
 };
 
-// Update the sync status
-export const updateSyncStatus = async (status: Partial<SyncStatus>): Promise<boolean> => {
-  try {
-    // Get current status
-    const currentStatus = await getSyncStatus();
-
-    // Update with new values
-    const updatedStatus: SyncStatus = {
-      ...currentStatus,
-      ...status,
-      lastSync: status.lastSync || new Date().toISOString()
-    };
-
-    // Save updated status
-    localStorage.setItem('syncStatus', JSON.stringify(updatedStatus));
-
-    return true;
-  } catch (error) {
-    console.error('Error updating sync status:', error);
-    return false;
-  }
+// Update sync status
+export const updateSyncStatus = (status: Partial<SyncStatus>): void => {
+  const currentStatus = getSyncStatus();
+  const updatedStatus = { ...currentStatus, ...status };
+  saveToLocalStorage(SYNC_STATUS_KEY, updatedStatus);
 };
 
-// Set the pending status
-export const setPendingSyncStatus = async (pending: boolean): Promise<boolean> => {
-  try {
-    // Get current status
-    const currentStatus = await getSyncStatus();
+// Set sync as pending
+export const setSyncPending = (pending: boolean = true): void => {
+  updateSyncStatus({ pending });
+};
 
-    // Update with new pending value
-    const updatedStatus: SyncStatus = {
-      ...currentStatus,
-      pending,
-      lastSync: new Date().toISOString()
-    };
+// Increment sync count
+export const incrementSyncCount = (type: keyof Pick<SyncStatus, 'ticketsSync' | 'expensesSync' | 'clientsSync' | 'feedbackSync'>, count: number): void => {
+  const currentStatus = getSyncStatus();
+  const updatedStatus = { 
+    ...currentStatus,
+    [type]: currentStatus[type] + count,
+    lastSync: new Date().toISOString()
+  };
+  saveToLocalStorage(SYNC_STATUS_KEY, updatedStatus);
+};
 
-    // Save updated status
-    localStorage.setItem('syncStatus', JSON.stringify(updatedStatus));
-
-    return true;
-  } catch (error) {
-    console.error('Error setting pending sync status:', error);
-    return false;
-  }
+// Reset sync status
+export const resetSyncStatus = (): void => {
+  const defaultStatus: SyncStatus = {
+    ticketsSync: 0,
+    expensesSync: 0,
+    clientsSync: 0,
+    feedbackSync: 0,
+    lastSync: null,
+    pending: false
+  };
+  
+  saveToLocalStorage(SYNC_STATUS_KEY, defaultStatus);
 };

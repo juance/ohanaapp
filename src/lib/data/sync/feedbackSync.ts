@@ -1,14 +1,14 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { CustomerFeedback } from '@/lib/types/feedback.types';
+import { CustomerFeedback } from '@/lib/types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
 import { FEEDBACK_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
 // Define SyncableCustomerFeedback type
 export interface SyncableCustomerFeedback extends CustomerFeedback {
   pendingSync?: boolean;
-  pendingDelete?: boolean;
   synced?: boolean;
+  pendingDelete?: boolean;
 }
 
 export const syncFeedback = async (): Promise<number> => {
@@ -16,9 +16,18 @@ export const syncFeedback = async (): Promise<number> => {
     // Get locally stored feedback
     const localFeedback = getFromLocalStorage<SyncableCustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
-    // Handle feedback marked for deletion
-    const feedbackToDelete = localFeedback.filter(feedback => feedback.pendingDelete);
+    // Check if there are feedback to sync
+    const feedbackToSync = localFeedback.filter(fb => fb.pendingSync && !fb.pendingDelete);
+    const feedbackToDelete = localFeedback.filter(fb => fb.pendingDelete);
 
+    if (feedbackToSync.length === 0 && feedbackToDelete.length === 0) {
+      console.log('No feedback to sync');
+      return 0;
+    }
+
+    let syncedCount = 0;
+
+    // Process feedback to delete first
     for (const feedback of feedbackToDelete) {
       try {
         const { error } = await supabase
@@ -26,52 +35,51 @@ export const syncFeedback = async (): Promise<number> => {
           .delete()
           .eq('id', feedback.id);
 
-        if (error) {
-          console.error(`Error deleting feedback ${feedback.id}:`, error);
-          continue;
-        }
+        if (error) throw error;
 
+        // Update local state (remove entirely)
         const index = localFeedback.findIndex(f => f.id === feedback.id);
         if (index !== -1) {
           localFeedback.splice(index, 1);
         }
-      } catch (deleteError) {
-        console.error(`Error processing delete for feedback ${feedback.id}:`, deleteError);
+        syncedCount++;
+      } catch (feedbackDeleteError) {
+        console.error(`Error deleting feedback ${feedback.id}:`, feedbackDeleteError);
       }
     }
 
-    // Handle feedback that needs to be synced
-    const feedbackToSync = localFeedback.filter(feedback => feedback.pendingSync);
-
-    let syncedCount = 0;
-
+    // Now process feedback to sync
     for (const feedback of feedbackToSync) {
       try {
+        const feedbackData = {
+          id: feedback.id,
+          customer_name: feedback.customerName,
+          rating: feedback.rating,
+          comment: feedback.comment,
+          created_at: feedback.createdAt,
+          source: feedback.source || 'app'
+        };
+
         const { error } = await supabase
           .from('customer_feedback')
-          .insert({
-            id: feedback.id,
-            customer_name: feedback.customerName,
-            rating: feedback.rating,
-            comment: feedback.comment,
-            created_at: feedback.createdAt
-          });
+          .insert(feedbackData);
 
         if (error) throw error;
 
+        // Update local state
         const index = localFeedback.findIndex(f => f.id === feedback.id);
         if (index !== -1) {
           localFeedback[index].pendingSync = false;
+          localFeedback[index].synced = true;
         }
         syncedCount++;
-      } catch (syncError) {
-        console.error(`Error syncing feedback ${feedback.id}:`, syncError);
+      } catch (feedbackSyncError) {
+        console.error(`Error syncing feedback ${feedback.id}:`, feedbackSyncError);
       }
     }
 
     saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
-
-    return syncedCount + feedbackToDelete.length;
+    return syncedCount;
   } catch (error) {
     console.error('Error syncing feedback:', error);
     return 0;
