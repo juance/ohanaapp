@@ -2,12 +2,20 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types/ticket.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { TICKETS_STORAGE_KEY } from '@/lib/types/error.types';
+import { TICKETS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+
+// Define SyncableTicket type
+export interface SyncableTicket extends Ticket {
+  pendingSync?: boolean;
+  synced?: boolean;
+  ticket_number?: string;
+  basket_ticket_number?: string;
+}
 
 export const syncTickets = async (): Promise<number> => {
   try {
     // Get locally stored tickets
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<SyncableTicket[]>(TICKETS_STORAGE_KEY) || [];
 
     // Check if there are tickets to sync
     const ticketsToSync = localTickets.filter(ticket => ticket.pendingSync);

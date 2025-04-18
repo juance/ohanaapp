@@ -2,12 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/lib/types/expense.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { EXPENSES_STORAGE_KEY } from '@/lib/types/error.types';
+import { EXPENSES_STORAGE_KEY } from '@/lib/constants/storageKeys';
+
+// Define SyncableExpense type
+export interface SyncableExpense extends Expense {
+  pendingSync?: boolean;
+  synced?: boolean;
+}
 
 export const syncExpenses = async (): Promise<number> => {
   try {
     // Get locally stored expenses
-    const localExpenses = getFromLocalStorage<Expense[]>(EXPENSES_STORAGE_KEY) || [];
+    const localExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
 
     // Check if there are expenses to sync
     const expensesToSync = localExpenses.filter(expense => expense.pendingSync);

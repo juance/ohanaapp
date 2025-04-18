@@ -2,12 +2,19 @@
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerFeedback } from '@/lib/types/feedback.types';
 import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { FEEDBACK_STORAGE_KEY } from '@/lib/types/error.types';
+import { FEEDBACK_STORAGE_KEY } from '@/lib/constants/storageKeys';
+
+// Define SyncableCustomerFeedback type
+export interface SyncableCustomerFeedback extends CustomerFeedback {
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
+  synced?: boolean;
+}
 
 export const syncFeedback = async (): Promise<number> => {
   try {
     // Get locally stored feedback
-    const localFeedback = getFromLocalStorage<CustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    const localFeedback = getFromLocalStorage<SyncableCustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
 
     // Handle feedback marked for deletion
     const feedbackToDelete = localFeedback.filter(feedback => feedback.pendingDelete);

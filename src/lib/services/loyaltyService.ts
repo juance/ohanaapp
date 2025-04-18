@@ -10,36 +10,36 @@ import { toast } from '@/lib/toast';
 export const incrementCustomerVisits = async (customerId: string, valetQuantity: number = 1): Promise<boolean> => {
   try {
     console.log(`Incrementando visitas para cliente ${customerId} en ${valetQuantity}`);
-    
+
     // 1. Obtener los datos actuales del cliente
     const { data: customer, error: getError } = await supabase
       .from('customers')
       .select('valets_count, free_valets, name')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) {
       console.error('Error al obtener datos del cliente:', getError);
       return false;
     }
-    
+
     // 2. Calcular nuevos valores
     const currentValets = customer?.valets_count || 0;
     const currentFreeValets = customer?.free_valets || 0;
     const newValetsCount = currentValets + valetQuantity;
-    
+
     // 3. Verificar si el cliente ha alcanzado 9 visitas para un valet gratis
     const previousMilestone = Math.floor(currentValets / 9);
     const newMilestone = Math.floor(newValetsCount / 9);
     const newFreeValets = currentFreeValets + (newMilestone - previousMilestone);
-    
+
     console.log(`Cliente ${customer?.name || customerId}:
       - Visitas actuales: ${currentValets}
       - Nuevas visitas: ${newValetsCount}
       - Valets gratis actuales: ${currentFreeValets}
       - Nuevos valets gratis: ${newFreeValets}
     `);
-    
+
     // 4. Actualizar en la base de datos
     const { error: updateError } = await supabase
       .from('customers')
@@ -48,12 +48,12 @@ export const incrementCustomerVisits = async (customerId: string, valetQuantity:
         free_valets: newFreeValets
       })
       .eq('id', customerId);
-    
+
     if (updateError) {
       console.error('Error al actualizar contador de visitas:', updateError);
       return false;
     }
-    
+
     // 5. Mostrar notificación si ganó un valet gratis
     if (newFreeValets > currentFreeValets) {
       toast({
@@ -62,7 +62,7 @@ export const incrementCustomerVisits = async (customerId: string, valetQuantity:
         variant: "success"
       });
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error en incrementCustomerVisits:', error);
@@ -83,12 +83,12 @@ export const useCustomerFreeValet = async (customerId: string): Promise<boolean>
       .select('free_valets, name')
       .eq('id', customerId)
       .single();
-    
+
     if (getError) {
       console.error('Error al obtener datos del cliente:', getError);
       return false;
     }
-    
+
     // 2. Verificar si tiene valets gratis disponibles
     const currentFreeValets = customer?.free_valets || 0;
     if (currentFreeValets <= 0) {
@@ -99,27 +99,27 @@ export const useCustomerFreeValet = async (customerId: string): Promise<boolean>
       });
       return false;
     }
-    
+
     // 3. Actualizar en la base de datos
     const { error: updateError } = await supabase
       .from('customers')
       .update({
         free_valets: currentFreeValets - 1,
-        valets_redeemed: supabase.rpc('increment', { x: 1 })
+        valets_redeemed: customer.valets_redeemed ? customer.valets_redeemed + 1 : 1
       })
       .eq('id', customerId);
-    
+
     if (updateError) {
       console.error('Error al usar valet gratis:', updateError);
       return false;
     }
-    
+
     toast({
       title: "Valet gratis usado",
       description: `${customer?.name || 'Cliente'} ha usado un valet gratis`,
       variant: "success"
     });
-    
+
     return true;
   } catch (error) {
     console.error('Error en useCustomerFreeValet:', error);
@@ -139,12 +139,12 @@ export const resetAllCustomerVisits = async (): Promise<boolean> => {
         valets_count: 0
       })
       .not('id', 'is', null);
-    
+
     if (error) {
       console.error('Error al reiniciar contadores de visitas:', error);
       return false;
     }
-    
+
     return true;
   } catch (error) {
     console.error('Error en resetAllCustomerVisits:', error);
