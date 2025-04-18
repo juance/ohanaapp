@@ -2,17 +2,88 @@
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
 import { updateCustomerLastVisit } from '@/lib/data/customer/customerStorageService';
-import { LaundryOption, Customer, PaymentMethod } from '@/lib/types';
+import { LaundryOption, Customer, PaymentMethod, Ticket } from '@/lib/types';
 import { TICKET_STATUS } from '@/lib/constants/appConstants';
 import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
 import { toast } from '@/lib/toast';
 import { createTicket as createTicketFromCreationService } from '@/lib/ticket/ticketCreationService';
+import { getPickupTickets as getPickupTicketsFromPickupService } from '@/lib/ticket/ticketPickupService';
 
 /**
  * Create a new ticket
  * This is an alias for the createTicket function in ticketCreationService.ts
  * to maintain compatibility with existing code
  */
+/**
+ * Get tickets that are ready for pickup
+ * This is an alias for the getPickupTickets function in ticketPickupService.ts
+ * to maintain compatibility with existing code
+ */
+export const getPickupTickets = async (): Promise<Ticket[]> => {
+  return getPickupTicketsFromPickupService();
+};
+
+/**
+ * Get recent tickets
+ * This is a placeholder function to maintain compatibility with existing code
+ */
+export const getRecentTickets = async (): Promise<Ticket[]> => {
+  try {
+    // Verificar la conexión con Supabase
+    const connectionActive = await ensureSupabaseSession();
+    if (!connectionActive) {
+      console.error('No se pudo establecer conexión con Supabase');
+      toast.error('Error de conexión con el servidor');
+      return [];
+    }
+
+    // Get tickets from the last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        dry_cleaning_items (*)
+      `)
+      .gte('created_at', sevenDaysAgo.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error getting recent tickets:', error);
+      return [];
+    }
+
+    // Map the tickets to the application model
+    return data.map(ticket => {
+      // Get customer information if available
+      let customerName = 'Cliente';
+      let customerPhone = '';
+
+      return {
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        basketTicketNumber: ticket.basket_ticket_number,
+        clientName: customerName,
+        phoneNumber: customerPhone,
+        totalPrice: parseFloat(ticket.total) || 0,
+        paymentMethod: ticket.payment_method,
+        status: ticket.status,
+        isPaid: ticket.is_paid,
+        valetQuantity: ticket.valet_quantity,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date,
+        customerId: ticket.customer_id,
+        dryCleaningItems: ticket.dry_cleaning_items || []
+      };
+    });
+  } catch (error) {
+    console.error('Error getting recent tickets:', error);
+    return [];
+  }
+};
+
 export const createTicket = async ({
   customerName,
   phoneNumber,
