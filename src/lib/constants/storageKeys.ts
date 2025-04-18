@@ -1,3 +1,4 @@
+
 // Storage keys for localStorage
 export const TICKETS_STORAGE_KEY = 'laundry_tickets';
 export const EXPENSES_STORAGE_KEY = 'laundry_expenses';

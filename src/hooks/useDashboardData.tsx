@@ -115,12 +115,18 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
         salesByWeek[`Week ${week}`] = (salesByWeek[`Week ${week}`] || 0) + ticketTotal;
 
-        // Count dry cleaning items - check that they exist before accessing
-        const dryCleaningItemsData = (ticket as any).dry_cleaning_items;
-        if (dryCleaningItemsData && Array.isArray(dryCleaningItemsData)) {
-          dryCleaningItemsData.forEach((item: any) => {
-            dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
-          });
+        // Try to get dry cleaning items
+        try {
+          // Fetch dry cleaning items for this ticket
+          const dryCleaningItemsData = Array.isArray(ticket.dry_cleaning_items) ? ticket.dry_cleaning_items : [];
+          
+          if (dryCleaningItemsData.length > 0) {
+            dryCleaningItemsData.forEach((item: any) => {
+              dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
+            });
+          }
+        } catch (err) {
+          console.warn('Could not process dry cleaning items:', err);
         }
       });
 

@@ -3,7 +3,7 @@
 import { storeCustomer, getCustomerByPhone } from './data/customer/customerService';
 import { createTicket, getPickupTickets, getRecentTickets, storeTicket } from './data/ticket/ticketStorageService';
 import { storeExpense, getStoredExpenses } from './data/expenseService';
-import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './lib/data/analysisService';
+import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './data/analysisService';
 import { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
 
 // Re-export all service functions for easy access

@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -19,18 +18,16 @@ export const usePickupOrdersLogic = () => {
   const [paymentMethodDialogOpen, setPaymentMethodDialogOpen] = useState(false);
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
-  // Fetch tickets con configuración mejorada
+  // Fetch tickets with improved configuration
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
     queryKey: ['pickupTickets'],
     queryFn: getPickupTickets,
     refetchInterval: 5000, // Refetch every 5 seconds
     refetchOnWindowFocus: true, // Refetch when window gets focus
     staleTime: 0, // Consider data stale immediately
-    retry: 3, // Reintentar 3 veces si hay error
-    retryDelay: 1000, // Esperar 1 segundo entre reintentos
-<<<<<<< HEAD
-<<<<<<< HEAD
-    gcTime: 0, // No cachear los resultados (antes era cacheTime)
+    retry: 3, // Retry 3 times if there's an error
+    retryDelay: 1000, // Wait 1 second between retries
+    gcTime: 0, // Modern equivalent to cacheTime which is deprecated
     onSettled: (data, err) => {
       if (err) {
         console.error('Error en la consulta de tickets:', err);
@@ -38,17 +35,6 @@ export const usePickupOrdersLogic = () => {
       } else if (data) {
         console.log('Tickets cargados correctamente:', data.length);
       }
-=======
-=======
->>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
-    gcTime: 0, // Modern equivalent to cacheTime which is deprecated
-    onError: (err) => {
-      console.error('Error en la consulta de tickets:', err);
-      toast.error('Error al cargar los tickets');
-    },
-    onSuccess: (data) => {
-      console.log('Tickets cargados correctamente:', data.length);
->>>>>>> 9e487415867c0af8c7ebd3d45989bab053aea456
     }
   });
 
