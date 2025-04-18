@@ -118,8 +118,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         // Try to get dry cleaning items
         try {
           // Fetch dry cleaning items for this ticket
-          const dryCleaningItemsData = Array.isArray(ticket.dry_cleaning_items) ? ticket.dry_cleaning_items : [];
-          
+          const dryCleaningItemsData = Array.isArray((ticket as any).dry_cleaning_items) ? (ticket as any).dry_cleaning_items : [];
+
           if (dryCleaningItemsData.length > 0) {
             dryCleaningItemsData.forEach((item: any) => {
               dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);

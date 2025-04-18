@@ -28,13 +28,12 @@ export const usePickupOrdersLogic = () => {
     retry: 3, // Retry 3 times if there's an error
     retryDelay: 1000, // Wait 1 second between retries
     gcTime: 0, // Modern equivalent to cacheTime which is deprecated
-    onSettled: (data, err) => {
-      if (err) {
-        console.error('Error en la consulta de tickets:', err);
-        toast.error('Error al cargar los tickets');
-      } else if (data) {
-        console.log('Tickets cargados correctamente:', data.length);
-      }
+    onSuccess: (data) => {
+      console.log('Tickets cargados correctamente:', data.length);
+    },
+    onError: (err) => {
+      console.error('Error en la consulta de tickets:', err);
+      toast.error('Error al cargar los tickets');
     }
   });
 

@@ -49,15 +49,16 @@ export const FreeValetDialog: React.FC<FreeValetDialogProps> = ({
           <AlertDialogAction onClick={async () => {
             if (foundCustomer) {
               // Llamar al servicio para usar un valet gratis
-              const success = await useCustomerFreeValet(foundCustomer.id, foundCustomer);
-
-              if (success) {
+              const { useFreeValet } = useCustomerFreeValet(foundCustomer.id, () => {
                 setUseFreeValet(true);
                 onOpenChange(false);
                 // Al usar valet gratis, forzamos cantidad 1
                 setValetQuantity(1);
                 toast.success('Valet gratis aplicado al ticket');
-              } else {
+              });
+              const success = await useFreeValet();
+
+              if (!success) {
                 // Si falla, no aplicamos el valet gratis
                 setUseFreeValet(false);
                 onOpenChange(false);
