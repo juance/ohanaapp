@@ -18,17 +18,10 @@ export const login = (phoneNumber: string, password: string): Promise<User> => {
   return new Promise((resolve, reject) => {
     // Simulate API call
     setTimeout(() => {
-      // Admin user with specific phone number
-      if (phoneNumber === '1123989718' && password === 'Juance001') {
-        resolve({
-          id: 'admin-001',
-          name: 'Admin General',
-          role: 'admin',
-          phoneNumber: '1123989718',
-        });
-      } 
+      // Nota: Las credenciales de emergencia se han eliminado por seguridad
+      // Ahora todas las autenticaciones pasan por la base de datos
       // Demo users for testing
-      else if (phoneNumber === 'admin@example.com' && password === 'password') {
+      if (phoneNumber === 'admin@example.com' && password === 'password') {
         resolve({
           id: '1',
           name: 'Admin User',
@@ -87,10 +80,10 @@ export const getCurrentUser = (): Promise<User | null> => {
 
 export const hasPermission = (user: User | null, requiredRoles: Role[]): boolean => {
   if (!user) return false;
-  
+
   // Admin has access to everything
   if (user.role === 'admin') return true;
-  
+
   // Check if user's role is in the required roles
   return requiredRoles.includes(user.role);
 };
@@ -103,21 +96,21 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       // Check if the phone number exists in our system (mock check)
-      const userExists = phoneNumber.startsWith('+') || phoneNumber.startsWith('1') || 
+      const userExists = phoneNumber.startsWith('+') || phoneNumber.startsWith('1') ||
                         phoneNumber === '1234567890' || phoneNumber === '0987654321';
-      
+
       if (!userExists) {
         reject(new Error('No existe una cuenta asociada a este número de teléfono'));
         return;
       }
-      
+
       // Generate a temporary password
       const tempPassword = generateTempPassword();
-      
+
       // Store the temporary password (would be in a database in a real app)
       // It expires in 30 minutes
       const expiry = Date.now() + (30 * 60 * 1000);
-      
+
       // Create fake user data
       const userData: User = {
         id: phoneNumber,
@@ -126,23 +119,23 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
         role: 'staff', // Using a valid Role type
         requiresPasswordChange: true
       };
-      
+
       tempPasswordStore[phoneNumber] = {
         password: tempPassword,
         expiry,
         user: userData,
         isTemp: true
       };
-      
+
       // In a real app, this would send a WhatsApp message
       console.log(`[WhatsApp] To: ${phoneNumber}, Message: Tu contraseña temporal es: ${tempPassword}`);
-      
+
       // Show success toast (just for demo)
       toast({
         title: "Solicitud enviada",
         description: `Se ha enviado un WhatsApp al número ${phoneNumber}`,
       });
-      
+
       resolve();
     }, 1500);
   });
@@ -151,23 +144,23 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
 // Check if a password is a temporary one
 const checkTemporaryPassword = (phoneNumber: string, password: string): boolean => {
   const tempData = tempPasswordStore[phoneNumber];
-  
+
   if (!tempData) return false;
-  
+
   // Check if the password has expired
   if (tempData.expiry < Date.now()) {
     delete tempPasswordStore[phoneNumber];
     return false;
   }
-  
+
   return tempData.password === password;
 };
 
 // Get user data for a temporary password
 const getTempPasswordUserData = (phoneNumber: string): User | null => {
   const tempData = tempPasswordStore[phoneNumber];
-  
+
   if (!tempData) return null;
-  
+
   return tempData.user;
 };
