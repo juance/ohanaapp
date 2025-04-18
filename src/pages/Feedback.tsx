@@ -1,24 +1,30 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Loading } from '@/components/ui/loading';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowRight, Bell, ArrowLeft } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { logError } from '@/lib/errorService';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomerFeedback } from '@/lib/types';
 
 const Feedback = () => {
+  const navigate = useNavigate();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
   const [newClientFeedbackCount, setNewClientFeedbackCount] = useState(0);
   const [lastCheckTime, setLastCheckTime] = useState<string>(localStorage.getItem('lastFeedbackCheckTime') || new Date().toISOString());
+
+  const handleGoToHome = () => {
+    navigate('/');
+  };
 
   useEffect(() => {
     setIsComponentMounted(true);
@@ -147,6 +153,15 @@ const Feedback = () => {
       <div className="flex-1 md:ml-64">
         <div className="container mx-auto p-4 md:p-6">
           <div className="mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1 mb-4"
+              onClick={handleGoToHome}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al Inicio
+            </Button>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Comentarios</h1>
               {newClientFeedbackCount > 0 && (
