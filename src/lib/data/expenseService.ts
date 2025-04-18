@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Expense } from '@/lib/types/expense.types';
+import { SyncableExpense } from '@/lib/data/sync/expensesSync';
 
 export const storeExpense = async (expense: Omit<Expense, 'id'>) => {
   try {

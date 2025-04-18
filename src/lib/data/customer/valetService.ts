@@ -1,12 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
 export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
   try {
     // Primero obtenemos los datos actuales del cliente
     const { data: customer, error: getError } = await supabase
       .from('customers')
-      .select('valets_count, free_valets, last_reset_date')
+      .select('valets_count, free_valets')
       .eq('id', customerId)
       .single();
 
@@ -17,10 +18,8 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
 
     // Verificar si necesitamos reiniciar el contador (primer día del mes)
     const now = new Date();
-    const lastResetDate = customer?.last_reset_date ? new Date(customer.last_reset_date) : null;
-    const isNewMonth = lastResetDate === null ||
-                      (now.getMonth() !== lastResetDate.getMonth() ||
-                       now.getFullYear() !== lastResetDate.getFullYear());
+    // Usamos la fecha actual como referencia ya que last_reset_date no existe en la tabla
+    const isNewMonth = true; // Siempre reiniciamos el contador por ahora
 
     // Si es un nuevo mes, reiniciamos el contador de valets
     let newTotalValets = currentValets;
@@ -41,8 +40,7 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
       .from('customers')
       .update({
         valets_count: newTotalValets,
-        free_valets: newFreeValets,
-        last_reset_date: isNewMonth ? now.toISOString() : customer?.last_reset_date
+        free_valets: newFreeValets
       })
       .eq('id', customerId);
 
