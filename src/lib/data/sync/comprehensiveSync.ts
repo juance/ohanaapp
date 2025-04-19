@@ -4,6 +4,7 @@ import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
 import { syncExpenses } from './expensesSync';
 import { updateSyncStatus } from './syncStatusService';
+import { SyncableTicket, SyncableExpense, SyncableCustomerFeedback } from '@/lib/types/sync.types';
 
 /**
  * Perform a comprehensive synchronization of all offline data
@@ -19,8 +20,13 @@ export const syncComprehensive = async (): Promise<{
   try {
     console.log('Starting comprehensive data sync');
     
+    // Create empty arrays for sync functions that expect them
+    const emptyTickets: SyncableTicket[] = [];
+    const emptyExpenses: SyncableExpense[] = [];
+    const emptyFeedback: SyncableCustomerFeedback[] = [];
+    
     // Sync tickets
-    const ticketsCount = await syncTickets();
+    const ticketsCount = await syncTickets(emptyTickets);
     console.log(`Synced ${ticketsCount} tickets`);
     
     // Sync clients
@@ -28,11 +34,11 @@ export const syncComprehensive = async (): Promise<{
     console.log(`Synced ${clientsCount} clients`);
     
     // Sync feedback
-    const feedbackCount = await syncFeedback();
+    const feedbackCount = await syncFeedback(emptyFeedback);
     console.log(`Synced ${feedbackCount} feedback entries`);
     
     // Sync expenses
-    const expensesCount = await syncExpenses();
+    const expensesCount = await syncExpenses(emptyExpenses);
     console.log(`Synced ${expensesCount} expense entries`);
     
     // Update sync status

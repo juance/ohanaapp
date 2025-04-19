@@ -1,190 +1,195 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { DryCleaningItem, Ticket } from '@/lib/types';
-import { GenericStringError } from '@/lib/types/error.types';
+import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { toast } from '@/lib/toast';
 
-/**
- * Get services associated with a ticket
- */
-export const getTicketServices = async (ticketId: string): Promise<DryCleaningItem[]> => {
+// Get ticket services (dry cleaning items and laundry options)
+export const getTicketServices = async (ticketId: string): Promise<any[]> => {
+  if (!ticketId) return [];
+  
   try {
-    console.log('Getting services for ticket:', ticketId);
-
-    // Verificar si el ticket existe primero
-    const { data: ticketData, error: ticketError } = await supabase
-      .from('tickets')
-      .select('id')
-      .eq('id', ticketId)
-      .single();
-
-    if (ticketError) {
-      console.error('Error retrieving ticket:', ticketError);
-      throw new Error(`Ticket ${ticketId} no encontrado`);
-    }
-
-    // Obtener los servicios del ticket
-    const { data, error } = await supabase
+    // Get dry cleaning items
+    const { data: dryCleaningItems, error: dryCleaningError } = await supabase
       .from('dry_cleaning_items')
       .select('*')
       .eq('ticket_id', ticketId);
-
-    if (error) {
-      console.error('Error retrieving ticket services:', error);
-      throw error;
+      
+    if (dryCleaningError) {
+      console.error('Error getting dry cleaning items:', dryCleaningError);
+      return [];
     }
-
-    console.log(`Found ${data?.length || 0} services for ticket ${ticketId}`);
-
-    if (!data || data.length === 0) {
-      console.warn(`No services found for ticket ${ticketId}`);
-
-      // Verificar si hay servicios en el campo dry_cleaning_items del ticket
-      const { data: ticketWithItems, error: itemsError } = await supabase
-        .from('tickets')
-        .select('dry_cleaning_items')
-        .eq('id', ticketId)
-        .single();
-
-      if (itemsError) {
-        console.error('Error retrieving ticket items:', itemsError);
-      } else if (ticketWithItems?.dry_cleaning_items && Array.isArray(ticketWithItems.dry_cleaning_items)) {
-        console.log(`Found ${ticketWithItems.dry_cleaning_items.length} services in ticket JSON field`);
-
-        // Migrar los servicios del campo JSON a la tabla dry_cleaning_items
-        try {
-          const itemsToInsert = ticketWithItems.dry_cleaning_items.map((item: any) => ({
-            ticket_id: ticketId,
-            name: item.name,
-            quantity: item.quantity || 1,
-            price: item.price || 0
-          }));
-
-          const { data: insertedItems, error: insertError } = await supabase
-            .from('dry_cleaning_items')
-            .insert(itemsToInsert)
-            .select();
-
-          if (insertError) {
-            console.error('Error inserting ticket services:', insertError);
-          } else {
-            console.log(`Successfully migrated ${insertedItems.length} services to dry_cleaning_items table`);
-
-            // Devolver los servicios recién insertados
-            return insertedItems.map(item => ({
-              id: item.id,
-              name: item.name,
-              quantity: item.quantity,
-              price: item.price,
-              ticketId: item.ticket_id
-            }));
-          }
-        } catch (migrationError) {
-          console.error('Error migrating ticket services:', migrationError);
-        }
-
-        // Si la migración falla, devolver los servicios del campo JSON
-        return ticketWithItems.dry_cleaning_items.map((item: any, index: number) => ({
-          id: `temp-${index}`,
-          name: item.name,
-          quantity: item.quantity || 1,
-          price: item.price || 0,
-          ticketId: ticketId
-        }));
-      }
-    }
-
-    // Map the data to match the DryCleaningItem type
-    return (data || []).map(item => ({
+    
+    return dryCleaningItems.map(item => ({
       id: item.id,
       name: item.name,
-      quantity: item.quantity,
-      price: item.price,
+      quantity: item.quantity || 1,
+      price: item.price || 0,
       ticketId: item.ticket_id
     }));
   } catch (error) {
-    console.error('Error retrieving ticket services:', error);
+    console.error('Error in getTicketServices:', error);
     return [];
   }
 };
 
-/**
- * Get ticket options (this function can be expanded as needed)
- */
-export const getTicketOptions = async () => {
-  // Implementation
-  return [];
-};
-
-/**
- * Mark a ticket as paid in advance
- */
-export const markTicketAsPaidInAdvance = async (ticketId: string) => {
+// Get ticket options (laundry options)
+export const getTicketOptions = async (ticketId: string): Promise<LaundryOption[]> => {
+  if (!ticketId) return [];
+  
   try {
     const { data, error } = await supabase
-      .from('tickets')
-      .update({
-        is_paid: true
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
-
+      .from('ticket_laundry_options')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
     if (error) {
-      throw {
-        message: `Error updating ticket payment status: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
+      console.error('Error getting ticket options:', error);
+      return [];
     }
-
-    return data;
+    
+    // Map the database fields to the LaundryOption interface
+    return data.map(option => ({
+      id: option.id,
+      name: option.option_type, // Use option_type as name
+      price: 0, // Laundry options don't have a price in our system
+      ticketId: option.ticket_id,
+      optionType: option.option_type,
+      createdAt: option.created_at
+    }));
   } catch (error) {
-    console.error('Error marking ticket as paid in advance:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
+    console.error('Error in getTicketOptions:', error);
+    return [];
   }
 };
 
-/**
- * Cancel a ticket
- */
-export const cancelTicket = async (ticketId: string, reason: string) => {
+// Get full ticket with customer, items, and options
+export const getFullTicket = async (ticketId: string): Promise<Ticket | null> => {
   try {
-    const { data, error } = await supabase
+    // Get ticket with customer
+    const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
-      .update({
-        is_canceled: true,
-        cancel_reason: reason,
-        status: 'canceled'
-      })
+      .select(`
+        *,
+        customers (
+          id, name, phone, loyalty_points, free_valets
+        )
+      `)
       .eq('id', ticketId)
-      .select()
       .single();
-
-    if (error) {
-      throw {
-        message: `Error al cancelar el ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
+      
+    if (ticketError) {
+      console.error('Error getting ticket:', ticketError);
+      return null;
     }
-
-    return {
-      success: true,
-      message: 'Ticket cancelado correctamente',
-      data
+    
+    // Get dry cleaning items
+    const { data: dryCleaningItems, error: dryCleaningError } = await supabase
+      .from('dry_cleaning_items')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (dryCleaningError) {
+      console.error('Error getting dry cleaning items:', dryCleaningError);
+    }
+    
+    // Get laundry options
+    const { data: laundryOptions, error: laundryError } = await supabase
+      .from('ticket_laundry_options')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (laundryError) {
+      console.error('Error getting laundry options:', laundryError);
+    }
+    
+    // Format the ticket object
+    const formattedTicket: Ticket = {
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      basketTicketNumber: ticket.basket_ticket_number,
+      customerId: ticket.customer_id, // Use customerId instead of customer
+      clientName: ticket.customers?.name || 'Unknown',
+      phoneNumber: ticket.customers?.phone || 'N/A',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'pending',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      dryCleaningItems: dryCleaningItems?.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity || 1,
+        price: item.price || 0,
+        ticketId: item.ticket_id
+      })) || [],
+      laundryOptions: laundryOptions?.map(option => ({
+        id: option.id,
+        name: option.option_type, // Use option_type as name
+        price: 0, // Laundry options don't have a price
+        ticketId: option.ticket_id,
+        optionType: option.option_type, 
+        createdAt: option.created_at
+      })) || []
     };
+    
+    return formattedTicket;
   } catch (error) {
-    console.error('Error al cancelar el ticket:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
+    console.error('Error in getFullTicket:', error);
+    return null;
+  }
+};
+
+// Cancel a ticket
+export const cancelTicket = async (ticketId: string, reason: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ 
+        status: 'canceled',
+        cancel_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+      
+    if (error) {
+      console.error('Error canceling ticket:', error);
+      toast.error('Error al cancelar el ticket');
+      return false;
     }
-    throw error;
+    
+    toast.success('Ticket cancelado exitosamente');
+    return true;
+  } catch (error) {
+    console.error('Error in cancelTicket:', error);
+    toast.error('Error al cancelar el ticket');
+    return false;
+  }
+};
+
+// Mark ticket as paid in advance
+export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ 
+        is_paid: true,
+        updated_at: new Date().toISOString() 
+      })
+      .eq('id', ticketId);
+      
+    if (error) {
+      console.error('Error marking ticket as paid in advance:', error);
+      toast.error('Error al marcar el ticket como pagado por adelantado');
+      return false;
+    }
+    
+    toast.success('Ticket marcado como pagado por adelantado');
+    return true;
+  } catch (error) {
+    console.error('Error in markTicketAsPaidInAdvance:', error);
+    toast.error('Error al marcar el ticket como pagado por adelantado');
+    return false;
   }
 };

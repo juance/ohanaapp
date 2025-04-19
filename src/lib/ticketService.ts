@@ -13,7 +13,8 @@ export {
   markTicketAsPending,
   getUnretrievedTickets,
   cancelTicket, // Añadido explícitamente desde ticketPickupService
-  updateTicketPaymentMethod // Añadido para permitir cambiar el método de pago
+  updateTicketPaymentMethod, // Añadido para permitir cambiar el método de pago
+  getRecentTickets
 } from './ticket/ticketPickupService';
 
 export {
@@ -25,9 +26,25 @@ export {
 } from './ticket/ticketPendingService';
 
 export {
-  createTicket,
-  calculateTicketTotal
+  createTicket
 } from './ticket/ticketCreationService';
+
+// Calculate total - add this function
+export const calculateTicketTotal = (ticket: any): number => {
+  let total = 0;
+  
+  // Add dry cleaning items
+  if (ticket.dryCleaningItems && Array.isArray(ticket.dryCleaningItems)) {
+    total += ticket.dryCleaningItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  }
+  
+  // Add valet service if applicable
+  if (ticket.valetQuantity && ticket.valetPrice) {
+    total += ticket.valetQuantity * ticket.valetPrice;
+  }
+  
+  return total;
+};
 
 // Re-export query utilities for other modules to use
 export {

@@ -1,12 +1,13 @@
 
+// Define the possible sources for customer feedback
+export type FeedbackSource = 'admin' | 'client_portal' | string;
+
 export interface CustomerFeedback {
   id: string;
   customerName: string;
   rating: number;
   comment: string;
+  source: FeedbackSource;
   createdAt: string;
-  source?: 'client_portal' | 'admin';
   pendingSync?: boolean;
-  pendingDelete?: boolean;
-  synced?: boolean;
 }

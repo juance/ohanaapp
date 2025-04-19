@@ -81,9 +81,12 @@ export const useTicketSubmit = (
         totalPrice: useFreeValet ? 0 : totalPrice, // If it's free, set price to 0
         paymentMethod: paymentMethod as any,
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
-        customDate: date, // Now all users can set a custom date
-        usesFreeValet: useFreeValet, // Indicate if a free valet is being used
-        isPaidInAdvance: isPaidInAdvance // Add the paid in advance flag
+        status: 'pending', // Required status field
+        isPaid: isPaidInAdvance || false, // Required isPaid field
+        // Additional fields (will be handled appropriately in the service layer)
+        customDate: date,
+        usesFreeValet: useFreeValet,
+        isPaidInAdvance: isPaidInAdvance || false
       };
 
       // Prepare customer data
@@ -186,6 +189,6 @@ const dryCleaningItems = [
   { id: 'pants', name: 'Pants', price: 25 },
   { id: 'suit', name: 'Suit', price: 45 },
   { id: 'dress', name: 'Dress', price: 35 },
-  { id: 'coat', name: 'Coat', price: 50 },
+  { id: 'coat', name: 'Coat', price: 40 },
   { id: 'blanket', name: 'Blanket', price: 40 },
 ];

@@ -1,54 +1,52 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { EXPENSES_STORAGE_KEY } from '@/lib/constants/storageKeys';
-import { SyncableExpense } from '../expenseService';
+import { SyncableExpense } from '@/lib/types/sync.types';
 
-export const syncExpenses = async (): Promise<number> => {
+// Function to sync expenses with the server
+export const syncExpenses = async (expenses: SyncableExpense[]): Promise<number> => {
   try {
-    // Get locally stored expenses
-    const localExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
+    let syncedCount = 0;
     
-    // Check if there are expenses to sync
-    const expensesToSync = localExpenses.filter(expense => expense.pendingSync);
-    
-    if (expensesToSync.length === 0) {
-      console.log('No expenses to sync');
+    if (!expenses || !Array.isArray(expenses) || expenses.length === 0) {
       return 0;
     }
     
-    let syncedCount = 0;
+    // Filter expenses that need to be synced
+    const expensesToSync = expenses.filter(expense => expense.pendingSync && !expense.synced);
     
-    for (const expense of expensesToSync) {
-      try {
-        const { error } = await supabase
-          .from('expenses')
-          .insert({
-            id: expense.id,
-            description: expense.description,
-            amount: expense.amount,
-            date: expense.date,
-            category: expense.category || null
-          });
-        
-        if (error) throw error;
-        
-        // Update local state
-        const index = localExpenses.findIndex(e => e.id === expense.id);
-        if (index !== -1) {
-          localExpenses[index].pendingSync = false;
-          localExpenses[index].synced = true;
-        }
-        syncedCount++;
-      } catch (expenseSyncError) {
-        console.error(`Error syncing expense ${expense.id}:`, expenseSyncError);
-      }
+    if (expensesToSync.length === 0) {
+      return 0;
     }
     
-    saveToLocalStorage(EXPENSES_STORAGE_KEY, localExpenses);
+    // Process each expense for syncing
+    for (const expense of expensesToSync) {
+      // Create expense in Supabase
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert({
+          id: expense.id,
+          description: expense.description,
+          amount: expense.amount,
+          date: expense.date,
+          // Note: category field is not present in the database schema
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error syncing expense:', error);
+        continue;
+      }
+      
+      // Mark as synced
+      expense.pendingSync = false;
+      expense.synced = true;
+      
+      syncedCount++;
+    }
+    
     return syncedCount;
   } catch (error) {
-    console.error('Error syncing expenses:', error);
+    console.error('Error in syncExpenses:', error);
     return 0;
   }
 };

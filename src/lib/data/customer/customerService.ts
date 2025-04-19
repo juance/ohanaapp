@@ -1,52 +1,114 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ClientVisit } from '@/lib/types';
-import { formatPhoneNumber } from './phoneUtils';
-import { logError } from '@/lib/errorService';
-import { updateCustomerLastVisit } from './customerStorageService';
-import { getCustomerValetCount, updateValetsCount, useFreeValet } from './valetService';
-import { addLoyaltyPoints, redeemLoyaltyPoints } from './loyaltyService';
+import { Customer } from '@/lib/types';
+import { storeCustomer, getCustomerByPhone, updateCustomerLastVisit } from './customerStorageService';
+import { getCustomerValetCount, useFreeValet } from './valetService';
 
-// Get frequent clients for dashboard
-export const getFrequentClients = async (limit: number = 5): Promise<ClientVisit[]> => {
+/**
+ * Add loyalty points to a customer
+ * @param customerId Customer ID to add points to
+ * @param points Number of points to add
+ */
+export const addLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
   try {
+    if (!customerId) {
+      throw new Error('Customer ID is required');
+    }
+    
+    if (points <= 0) {
+      throw new Error('Points must be greater than 0');
+    }
+    
+    // Get current loyalty points
     const { data, error } = await supabase
       .from('customers')
-      .select('*')
-      .order('valets_count', { ascending: false })
-      .limit(limit);
+      .select('loyalty_points')
+      .eq('id', customerId)
+      .single();
     
     if (error) throw error;
     
-    return (data || []).map(customer => ({
-      id: customer.id,
-      clientId: customer.id,
-      phoneNumber: customer.phone,
-      clientName: customer.name || 'Cliente',
-      visitCount: customer.valets_count || 0,
-      lastVisit: customer.last_visit,
-      valetsCount: customer.valets_count || 0,
-      freeValets: customer.free_valets || 0,
-      loyaltyPoints: customer.loyalty_points || 0
-    }));
+    const currentPoints = data?.loyalty_points || 0;
+    const newPoints = currentPoints + points;
+    
+    // Update the customer record
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        loyalty_points: newPoints
+      })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return newPoints;
   } catch (error) {
-    console.error('Error in getFrequentClients:', error);
-    logError(error, { context: 'getFrequentClients' });
-    return [];
+    console.error('Error adding loyalty points:', error);
+    throw error;
   }
 };
 
-// Re-export necessary functions from sub-modules
-export { 
-  updateCustomerLastVisit, 
-  getCustomerValetCount,
-  updateValetsCount,
-  useFreeValet,
-  addLoyaltyPoints,
-  redeemLoyaltyPoints
-};
+/**
+ * Re-export functions from customerStorageService
+ */
+export { storeCustomer, getCustomerByPhone, updateCustomerLastVisit };
 
-// Explicitly export convenience aliases for common functions
-export { updateLoyaltyPoints } from './loyaltyService';
-export { getCustomerByPhone } from './customerRetrievalService';
-export { storeCustomer } from './customerStorageService';
+/**
+ * Redeem loyalty points for free valets
+ * @param customerId Customer ID to redeem points for
+ * @param pointsToRedeem Number of points to redeem
+ * @param valetsToAdd Number of valets to add (usually 1)
+ */
+export const redeemLoyaltyPoints = async (
+  customerId: string,
+  pointsToRedeem: number,
+  valetsToAdd: number = 1
+): Promise<{ remainingPoints: number, freeValets: number }> => {
+  try {
+    if (!customerId) {
+      throw new Error('Customer ID is required');
+    }
+    
+    if (pointsToRedeem <= 0) {
+      throw new Error('Points to redeem must be greater than 0');
+    }
+    
+    // Get current loyalty points and free valets
+    const { data, error } = await supabase
+      .from('customers')
+      .select('loyalty_points, free_valets')
+      .eq('id', customerId)
+      .single();
+    
+    if (error) throw error;
+    
+    const currentPoints = data?.loyalty_points || 0;
+    
+    // Check if customer has enough points
+    if (currentPoints < pointsToRedeem) {
+      throw new Error('Not enough loyalty points');
+    }
+    
+    const newPoints = currentPoints - pointsToRedeem;
+    const newFreeValets = (data?.free_valets || 0) + valetsToAdd;
+    
+    // Update the customer record
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        loyalty_points: newPoints,
+        free_valets: newFreeValets
+      })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return {
+      remainingPoints: newPoints,
+      freeValets: newFreeValets
+    };
+  } catch (error) {
+    console.error('Error redeeming loyalty points:', error);
+    throw error;
+  }
+};

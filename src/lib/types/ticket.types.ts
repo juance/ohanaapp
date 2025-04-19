@@ -16,10 +16,12 @@ export interface Ticket {
   pendingSync?: boolean;
   deliveredDate?: string;
   services?: Array<{name: string; quantity?: number}>;
+  updatedAt?: string;
 
   // Additional fields for database compatibility
   basket_ticket_number?: string;
   ticket_number?: string;
+  customerId?: string; // Add customerId field to fix error in ticketServiceCore.ts
 }
 
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
@@ -36,6 +38,9 @@ export interface LaundryOption {
   id: string;
   name: string;
   price: number;
+  ticketId?: string;    // Add optional field to handle database mappings
+  optionType?: string;  // Add optional field to handle database mappings
+  createdAt?: string;   // Add optional field to handle database mappings
 }
 
 export interface LaundryService {
