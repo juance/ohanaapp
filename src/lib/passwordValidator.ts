@@ -110,10 +110,7 @@ const options = {
       }
     }
   },
-  dictionary: {
-    ...commonDictionary,
-    ...enDictionary,
-  }
+  dictionary: Object.assign({}, commonDictionary, enDictionary)
 };
 
 zxcvbnOptions.setOptions(options);
