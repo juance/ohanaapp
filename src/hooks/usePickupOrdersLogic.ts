@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
@@ -22,10 +23,19 @@ export const usePickupOrdersLogic = () => {
 
       if (error) throw error;
 
+      // Map database records to Ticket model
       return data.map(ticket => ({
-        ...ticket,
-        customerName: ticket.customers?.name || 'Cliente',
-        phoneNumber: ticket.customers?.phone || ''
+        id: ticket.id,
+        ticketNumber: ticket.ticket_number,
+        clientName: ticket.customers?.name || 'Cliente',
+        phoneNumber: ticket.customers?.phone || '',
+        totalPrice: ticket.total || 0,
+        paymentMethod: ticket.payment_method || 'cash',
+        status: ticket.status || 'pending',
+        isPaid: ticket.is_paid || false,
+        valetQuantity: ticket.valet_quantity || 0,
+        createdAt: ticket.created_at,
+        deliveredDate: ticket.delivered_date
       }));
     },
     meta: {

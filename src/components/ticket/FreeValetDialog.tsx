@@ -44,9 +44,9 @@ export function FreeValetDialog({ isOpen, onClose, customer, onSuccess }: FreeVa
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-gray-500">
-            El cliente actualmente tiene <span className="font-medium">{customer.free_valets || 0}</span> vales gratis disponibles.
+            El cliente actualmente tiene <span className="font-medium">{customer.freeValets || 0}</span> vales gratis disponibles.
           </p>
-          {(customer.free_valets || 0) <= 0 && (
+          {(customer.freeValets || 0) <= 0 && (
             <p className="text-sm text-red-500 mt-2">
               Este cliente no tiene vales gratis disponibles.
             </p>
@@ -61,7 +61,7 @@ export function FreeValetDialog({ isOpen, onClose, customer, onSuccess }: FreeVa
           </Button>
           <Button
             onClick={handleRedeemFreeValet}
-            disabled={isSubmitting || (customer.free_valets || 0) <= 0}
+            disabled={isSubmitting || (customer.freeValets || 0) <= 0}
           >
             {isSubmitting ? 'Procesando...' : 'Confirmar'}
           </Button>

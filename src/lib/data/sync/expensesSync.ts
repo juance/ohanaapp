@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { SyncableExpense } from '@/lib/types';
+import { SyncableExpense } from '@/lib/types/sync.types';
 
 // Function to sync expenses with the server
 export const syncExpenses = async (expenses: SyncableExpense[]): Promise<number> => {

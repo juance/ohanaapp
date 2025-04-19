@@ -1,11 +1,25 @@
 
 export interface SyncStatus {
-  ticketsSync: number;
-  expensesSync: number;
-  clientsSync: number;
-  feedbackSync: number;
-  lastSync?: string;
-  pending?: boolean | SyncStats;
+  ticketsSync: {
+    lastSync: string | null;
+    pendingCount: number;
+    error: string | null;
+  };
+  expensesSync: {
+    lastSync: string | null;
+    pendingCount: number;
+    error: string | null;
+  };
+  clientsSync: {
+    lastSync: string | null;
+    pendingCount: number;
+    error: string | null;
+  };
+  feedbackSync: {
+    lastSync: string | null;
+    pendingCount: number;
+    error: string | null;
+  };
 }
 
 export interface SyncStats {
@@ -21,36 +35,37 @@ export interface SyncStatusResponse {
   lastSync: string | null;
 }
 
-export interface LocalClient {
-  clientId: string;
-  clientName: string;
+export interface SyncableTicket {
+  id: string;
+  ticketNumber: string;
+  customerName: string;
   phoneNumber: string;
-  loyaltyPoints: number;
-  freeValets: number;
-  valetsCount: number;
-  lastVisit?: string;
+  totalPrice: number;
+  paymentMethod: string;
+  status: string;
+  isPaid: boolean;
+  createdAt: string;
   pendingSync: boolean;
+  synced?: boolean;
 }
 
-export interface LocalMetrics {
-  daily: {
-    salesByHour: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    dryCleaningItems: Record<string, number>;
-    totalSales: number;
-    valetCount: number;
-  };
-  weekly: {
-    salesByDay: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    totalSales: number;
-    valetCount: number;
-  };
-  monthly: {
-    salesByDay: Record<string, number>;
-    paymentMethods: { cash: number; debit: number; mercadopago: number; cuentaDni: number };
-    totalSales: number;
-    valetCount: number;
-  };
+export interface SyncableExpense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
   pendingSync?: boolean;
+  synced?: boolean;
+}
+
+export interface SyncableCustomerFeedback {
+  id: string;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  source?: 'client_portal' | 'admin';
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
+  synced?: boolean;
 }

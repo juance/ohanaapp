@@ -15,6 +15,23 @@ export interface LocalClient {
   synced?: boolean;
 }
 
+// Function to map database customer to model customer
+const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
+  return {
+    id: dbCustomer.id,
+    name: dbCustomer.name || '',
+    phone: dbCustomer.phone || '',
+    phoneNumber: dbCustomer.phone || '', // For compatibility
+    loyaltyPoints: dbCustomer.loyalty_points || 0,
+    valetsCount: dbCustomer.valets_count || 0,
+    freeValets: dbCustomer.free_valets || 0,
+    createdAt: dbCustomer.created_at || new Date().toISOString(),
+    updatedAt: dbCustomer.updated_at,
+    lastVisit: dbCustomer.last_visit,
+    valetsRedeemed: dbCustomer.valets_redeemed || 0
+  };
+};
+
 /**
  * Store a customer in the local database and sync with Supabase
  * @param customerData Customer data to store
@@ -37,7 +54,7 @@ export const storeCustomer = async (customerData: Partial<Customer>): Promise<Cu
     
     // If customer exists, return it
     if (existingCustomers && existingCustomers.length > 0) {
-      return existingCustomers[0] as Customer;
+      return mapDatabaseCustomerToModel(existingCustomers[0]);
     }
     
     // Customer doesn't exist, create a new one
@@ -62,7 +79,7 @@ export const storeCustomer = async (customerData: Partial<Customer>): Promise<Cu
       throw new Error('Error creating customer');
     }
     
-    return newCustomer[0] as Customer;
+    return mapDatabaseCustomerToModel(newCustomer[0]);
   } catch (error) {
     console.error('Error storing customer:', error);
     throw error;
@@ -89,7 +106,7 @@ export const getCustomerByPhone = async (phone: string): Promise<Customer | null
     
     // Return the customer if found
     if (data && data.length > 0) {
-      return data[0] as Customer;
+      return mapDatabaseCustomerToModel(data[0]);
     }
     
     // Customer not found

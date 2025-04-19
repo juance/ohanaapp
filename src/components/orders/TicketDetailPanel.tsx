@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Ticket } from '@/lib/types';
@@ -40,12 +41,14 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
   const renderDeliveryInfo = () => {
     if (!selectedTicket) return null;
 
+    const selectedTicketObj = ticket;
+    
     return (
       <div className="mt-4 grid gap-2">
-        {selectedTicket.status === 'delivered' && selectedTicket.deliveredDate && (
+        {selectedTicketObj.status === 'delivered' && selectedTicketObj.deliveredDate && (
           <div className="flex justify-between items-center py-1 border-t border-dashed border-gray-200">
             <span className="text-sm text-gray-500">Entregado:</span>
-            <span className="text-sm">{formatDate(selectedTicket.deliveredDate)}</span>
+            <span className="text-sm">{formatDate(selectedTicketObj.deliveredDate)}</span>
           </div>
         )}
       </div>

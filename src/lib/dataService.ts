@@ -1,6 +1,6 @@
 
 // Central data service that combines functionality from other data services
-import { storeCustomer, getCustomerByPhone } from './data/customer/customerService';
+import { storeCustomer, getCustomerByPhone } from './data/customer/customerStorageService';
 import { createTicket, getPickupTickets, getRecentTickets, storeTicket } from './data/ticket/ticketStorageService';
 import { storeExpense, getStoredExpenses } from './data/expenseService';
 import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './data/analysisService';

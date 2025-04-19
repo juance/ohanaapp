@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/data/customer/customerService';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useLoyaltyProgram = () => {
   const [loading, setLoading] = useState(false);
@@ -22,7 +22,19 @@ export const useLoyaltyProgram = () => {
         throw new Error('Points must be greater than 0');
       }
 
-      const newPoints = await addLoyaltyPoints(customer.id, points);
+      // Update customer loyalty points directly in Supabase
+      const { data, error: updateError } = await supabase
+        .from('customers')
+        .update({
+          loyalty_points: (customer.loyaltyPoints || 0) + points
+        })
+        .eq('id', customer.id)
+        .select('loyalty_points')
+        .single();
+
+      if (updateError) throw updateError;
+      
+      const newPoints = data?.loyalty_points || customer.loyaltyPoints + points;
       
       toast.success(`Se han agregado ${points} puntos de fidelidad`);
       return newPoints;
@@ -55,11 +67,27 @@ export const useLoyaltyProgram = () => {
         throw new Error('Points must be greater than 0');
       }
 
-      if ((customer.loyalty_points || 0) < pointsToRedeem) {
+      if ((customer.loyaltyPoints || 0) < pointsToRedeem) {
         throw new Error('Customer does not have enough points');
       }
 
-      const result = await redeemLoyaltyPoints(customer.id, pointsToRedeem, valetsToAdd);
+      // Update customer loyalty points and free valets directly in Supabase
+      const { data, error: updateError } = await supabase
+        .from('customers')
+        .update({
+          loyalty_points: (customer.loyaltyPoints || 0) - pointsToRedeem,
+          free_valets: (customer.freeValets || 0) + valetsToAdd
+        })
+        .eq('id', customer.id)
+        .select('loyalty_points, free_valets')
+        .single();
+
+      if (updateError) throw updateError;
+      
+      const result = {
+        remainingPoints: data?.loyalty_points || customer.loyaltyPoints - pointsToRedeem,
+        freeValets: data?.free_valets || customer.freeValets + valetsToAdd
+      };
       
       toast.success(`Se han canjeado ${pointsToRedeem} puntos por ${valetsToAdd} valet gratis`);
       return result;

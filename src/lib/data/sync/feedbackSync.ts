@@ -1,8 +1,8 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { SyncableCustomerFeedback } from '@/lib/types';
+import { SyncableCustomerFeedback } from '@/lib/types/sync.types';
 
-// Function to sync feedback with the server
+// Function to sync customer feedback with the server
 export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[]): Promise<number> => {
   try {
     let syncedCount = 0;
@@ -11,86 +11,49 @@ export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[]): P
       return 0;
     }
     
-    // Process items to delete
-    const itemsToDelete = feedbackItems.filter(item => item.pendingDelete);
+    // Filter feedback items that need to be synced (both created and deleted)
+    const feedbackToSync = feedbackItems.filter(item => 
+      (item.pendingSync && !item.pendingDelete) || item.pendingDelete
+    );
     
-    for (const item of itemsToDelete) {
-      // Delete from Supabase
-      const { error } = await supabase
-        .from('customer_feedback')
-        .delete()
-        .eq('id', item.id);
-      
-      if (error) {
-        console.error('Error deleting feedback:', error);
-        continue;
+    if (feedbackToSync.length === 0) {
+      return 0;
+    }
+    
+    // Process each feedback item
+    for (const feedback of feedbackToSync) {
+      // Handle deleted feedback
+      if (feedback.pendingDelete) {
+        const { error } = await supabase
+          .from('customer_feedback')
+          .delete()
+          .eq('id', feedback.id);
+          
+        if (error) {
+          console.error('Error deleting feedback:', error);
+          continue;
+        }
+      } 
+      // Handle new feedback that needs to be created
+      else if (feedback.pendingSync) {
+        const { error } = await supabase
+          .from('customer_feedback')
+          .insert({
+            id: feedback.id,
+            customer_name: feedback.customerName,
+            rating: feedback.rating,
+            comment: feedback.comment,
+            created_at: feedback.createdAt,
+            source: feedback.source || 'admin'
+          });
+          
+        if (error) {
+          console.error('Error creating feedback:', error);
+          continue;
+        }
       }
       
       syncedCount++;
-    }
-    
-    // Process items to sync
-    const itemsToSync = feedbackItems.filter(item => item.pendingSync && !item.pendingDelete);
-    
-    for (const item of itemsToSync) {
-      // Check if item exists
-      const { data: existingData, error: checkError } = await supabase
-        .from('customer_feedback')
-        .select('id')
-        .eq('id', item.id);
-      
-      if (checkError) {
-        console.error('Error checking feedback existence:', checkError);
-        continue;
-      }
-      
-      let success = false;
-      
-      if (existingData && existingData.length > 0) {
-        // Update existing item
-        const { error: updateError } = await supabase
-          .from('customer_feedback')
-          .update({
-            id: item.id,
-            customer_name: item.customerName,
-            rating: item.rating,
-            comment: item.comment,
-            created_at: item.createdAt,
-            source: 'admin' // Default source
-          })
-          .eq('id', item.id);
-        
-        success = !updateError;
-        
-        if (updateError) {
-          console.error('Error updating feedback:', updateError);
-        }
-      } else {
-        // Insert new item
-        const { error: insertError } = await supabase
-          .from('customer_feedback')
-          .insert({
-            id: item.id,
-            customer_name: item.customerName,
-            rating: item.rating,
-            comment: item.comment,
-            created_at: item.createdAt,
-            source: 'admin' // Default source
-          });
-        
-        success = !insertError;
-        
-        if (insertError) {
-          console.error('Error inserting feedback:', insertError);
-        }
-      }
-      
-      if (success) {
-        // Mark as synced
-        item.pendingSync = false;
-        item.synced = true;
-        syncedCount++;
-      }
     }
     
     return syncedCount;

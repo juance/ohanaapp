@@ -1,31 +1,41 @@
 
+import { ClientVisit, Ticket } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
 
 /**
- * Analyze tickets and return statistics
+ * Analyze ticket data for insights
+ * @returns Analysis of tickets
  */
-export const analyzeTickets = async (startDate?: string, endDate?: string) => {
+export const analyzeTickets = async (): Promise<any> => {
   try {
-    let query = supabase.from('tickets').select('*');
-    
-    if (startDate) {
-      query = query.gte('created_at', startDate);
-    }
-    
-    if (endDate) {
-      query = query.lte('created_at', endDate);
-    }
-    
-    const { data, error } = await query;
-    
+    // Get all tickets from Supabase
+    const { data: tickets, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .order('created_at', { ascending: false });
+
     if (error) throw error;
-    
+
+    // Calculate basic stats
+    const totalTickets = tickets.length;
+    const deliveredTickets = tickets.filter(t => t.status === 'delivered').length;
+    const pendingTickets = totalTickets - deliveredTickets;
+    const revenue = tickets.reduce((sum, ticket) => sum + (ticket.total || 0), 0);
+
+    // Calculate tickets by day of week
+    const dayOfWeekCounts = Array(7).fill(0);
+    tickets.forEach(ticket => {
+      const date = new Date(ticket.created_at);
+      const dayOfWeek = date.getDay();
+      dayOfWeekCounts[dayOfWeek]++;
+    });
+
     return {
-      total: data.length,
-      delivered: data.filter(ticket => ticket.status === 'delivered').length,
-      pending: data.filter(ticket => ticket.status !== 'delivered').length,
-      revenue: data.reduce((sum, ticket) => sum + (ticket.total || 0), 0),
+      totalTickets,
+      deliveredTickets,
+      pendingTickets,
+      revenue,
+      ticketsByDayOfWeek: dayOfWeekCounts
     };
   } catch (error) {
     console.error('Error analyzing tickets:', error);
@@ -34,19 +44,28 @@ export const analyzeTickets = async (startDate?: string, endDate?: string) => {
 };
 
 /**
- * Analyze customers and return statistics
+ * Analyze customer data for insights
+ * @returns Analysis of customers
  */
-export const analyzeCustomers = async () => {
+export const analyzeCustomers = async (): Promise<any> => {
   try {
-    const { data, error } = await supabase.from('customers').select('*');
-    
+    // Get all customers from Supabase
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('last_visit', { ascending: false });
+
     if (error) throw error;
-    
+
+    // Calculate basic stats
+    const totalCustomers = customers.length;
+    const activeCustomers = customers.filter(c => c.last_visit && new Date(c.last_visit) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
+    const loyalCustomers = customers.filter(c => (c.valets_count || 0) > 5).length;
+
     return {
-      total: data.length,
-      withLoyaltyPoints: data.filter(customer => (customer.loyalty_points || 0) > 0).length,
-      averagePoints: data.length ? 
-        data.reduce((sum, customer) => sum + (customer.loyalty_points || 0), 0) / data.length : 0,
+      totalCustomers,
+      activeCustomers,
+      loyalCustomers
     };
   } catch (error) {
     console.error('Error analyzing customers:', error);
@@ -55,44 +74,56 @@ export const analyzeCustomers = async () => {
 };
 
 /**
- * Analyze revenue over time
+ * Analyze revenue data for insights
+ * @returns Analysis of revenue
  */
-export const analyzeRevenue = async (period: 'day' | 'week' | 'month' = 'day') => {
+export const analyzeRevenue = async (): Promise<any> => {
   try {
-    const { data, error } = await supabase.from('tickets')
+    // Get all tickets from Supabase for the last 30 days
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const { data: tickets, error } = await supabase
+      .from('tickets')
       .select('*')
+      .gte('created_at', thirtyDaysAgo.toISOString())
       .order('created_at', { ascending: false });
-    
+
     if (error) throw error;
-    
-    // Group by period
-    const periodData = {};
-    
-    data.forEach(ticket => {
-      const date = new Date(ticket.created_at);
-      let periodKey;
-      
-      if (period === 'day') {
-        periodKey = date.toISOString().split('T')[0];
-      } else if (period === 'week') {
-        const weekStart = new Date(date);
-        weekStart.setDate(date.getDate() - date.getDay());
-        periodKey = weekStart.toISOString().split('T')[0];
-      } else if (period === 'month') {
-        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+
+    // Calculate revenue by day
+    const revenueByDay: Record<string, number> = {};
+    tickets.forEach(ticket => {
+      const date = new Date(ticket.created_at).toISOString().split('T')[0];
+      if (!revenueByDay[date]) {
+        revenueByDay[date] = 0;
       }
-      
-      if (!periodData[periodKey]) {
-        periodData[periodKey] = 0;
-      }
-      
-      periodData[periodKey] += ticket.total || 0;
+      revenueByDay[date] += ticket.total || 0;
     });
-    
-    return Object.entries(periodData).map(([period, amount]) => ({
-      period,
-      amount: amount as number
-    }));
+
+    // Calculate payment methods distribution
+    const paymentMethods = {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuenta_dni: 0,
+      other: 0
+    };
+
+    tickets.forEach(ticket => {
+      if (ticket.payment_method === 'cash') paymentMethods.cash++;
+      else if (ticket.payment_method === 'debit') paymentMethods.debit++;
+      else if (ticket.payment_method === 'mercadopago') paymentMethods.mercadopago++;
+      else if (ticket.payment_method === 'cuenta_dni') paymentMethods.cuenta_dni++;
+      else paymentMethods.other++;
+    });
+
+    return {
+      revenueByDay,
+      paymentMethods,
+      totalRevenue: tickets.reduce((sum, ticket) => sum + (ticket.total || 0), 0),
+      ticketsCount: tickets.length
+    };
   } catch (error) {
     console.error('Error analyzing revenue:', error);
     throw error;
@@ -100,38 +131,32 @@ export const analyzeRevenue = async (period: 'day' | 'week' | 'month' = 'day') =
 };
 
 /**
- * Get client visit frequency
+ * Get client visit frequency data
+ * @returns ClientVisit array
  */
-export const getClientVisitFrequency = async () => {
+export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
   try {
-    const { data, error } = await supabase.from('tickets')
-      .select('*, customers!inner(id, name, phone)')
-      .order('created_at', { ascending: false });
-    
+    // Get customer data with visit stats from Supabase
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('valets_count', { ascending: false });
+
     if (error) throw error;
-    
-    // Group by customer
-    const customerVisits = {};
-    
-    data.forEach(ticket => {
-      const customerId = ticket.customer_id;
-      
-      if (!customerId) return;
-      
-      if (!customerVisits[customerId]) {
-        customerVisits[customerId] = {
-          customer: ticket.customers,
-          visits: [],
-        };
-      }
-      
-      customerVisits[customerId].visits.push(ticket.created_at);
-    });
-    
-    return Object.values(customerVisits).map((data: any) => ({
-      customer: data.customer,
-      visitCount: data.visits.length,
-      lastVisit: data.visits[0],
+
+    // Map to ClientVisit format
+    return customers.map(customer => ({
+      id: customer.id,
+      clientId: customer.id,
+      clientName: customer.name || 'Cliente sin nombre',
+      phoneNumber: customer.phone || '',
+      visitCount: customer.valets_count || 0,
+      lastVisit: customer.last_visit || customer.created_at,
+      loyaltyPoints: customer.loyalty_points || 0,
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      visitFrequency: customer.valets_count >= 10 ? 'Frecuente' : 
+                     customer.valets_count >= 5 ? 'Regular' : 'Ocasional'
     }));
   } catch (error) {
     console.error('Error getting client visit frequency:', error);

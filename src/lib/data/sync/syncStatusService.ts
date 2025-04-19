@@ -39,3 +39,21 @@ export const getSyncStatus = (): SyncStatus => {
     };
   }
 };
+
+// Update sync status
+export const updateSyncStatus = async (syncData: {
+  ticketsSync?: number;
+  clientsSync?: number;
+  feedbackSync?: number;
+  expensesSync?: number;
+  lastSync?: string;
+}): Promise<boolean> => {
+  try {
+    // In a real application, this would update a database or localStorage
+    console.log('Updating sync status with:', syncData);
+    return true;
+  } catch (error) {
+    console.error('Error updating sync status:', error);
+    return false;
+  }
+};

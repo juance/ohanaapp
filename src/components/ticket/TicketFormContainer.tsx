@@ -140,11 +140,13 @@ export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
 
       {/* Dialog de confirmación para usar valet gratis */}
       <FreeValetDialog 
-        open={showFreeValetDialog}
-        onOpenChange={setShowFreeValetDialog}
-        foundCustomer={foundCustomer}
-        setUseFreeValet={setUseFreeValet}
-        setValetQuantity={setValetQuantity}
+        isOpen={showFreeValetDialog}
+        onClose={() => setShowFreeValetDialog(false)}
+        customer={foundCustomer}
+        onSuccess={() => {
+          setUseFreeValet(true);
+          setValetQuantity(1);
+        }}
       />
     </Card>
   );
