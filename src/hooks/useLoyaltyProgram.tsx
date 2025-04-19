@@ -1,169 +1,83 @@
+
 import { useState } from 'react';
-import { ClientVisit } from '@/lib/types';
+import { Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/dataService';
-import { supabase } from '@/integrations/supabase/client';
+import { addLoyaltyPoints, redeemLoyaltyPoints } from '@/lib/data/customer/customerService';
 
-export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
-  const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
-  const [pointsToAdd, setPointsToAdd] = useState(0);
-  const [pointsToRedeem, setPointsToRedeem] = useState(0);
-  const [isAddingPoints, setIsAddingPoints] = useState(false);
+export const useLoyaltyProgram = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  const handleSelectClient = async (client: ClientVisit) => {
-    setSelectedClient(client);
-    setPointsToAdd(0);
-    setPointsToRedeem(0);
-
+  // Add loyalty points to a customer
+  const addPoints = async (customer: Customer, points: number): Promise<number> => {
     try {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('loyalty_points, free_valets, valets_count')
-        .eq('id', client.id)
-        .single();
+      setLoading(true);
+      setError(null);
 
-      if (error) throw error;
-
-      setSelectedClient({
-        ...client,
-        loyaltyPoints: data.loyalty_points,
-        freeValets: data.free_valets,
-        valetsCount: data.valets_count
-      });
-    } catch (err) {
-      console.error("Error loading client details:", err);
-    }
-  };
-
-  const handleAddPoints = async () => {
-    if (!selectedClient || pointsToAdd <= 0) return;
-
-    setIsAddingPoints(true);
-    try {
-      // Get current loyalty points
-      const { data: customer, error: getError } = await supabase
-        .from('customers')
-        .select('loyalty_points')
-        .eq('id', selectedClient.id)
-        .single();
-
-      if (getError) throw getError;
-
-      const currentPoints = customer?.loyalty_points || 0;
-      const newPoints = currentPoints + pointsToAdd;
-
-      // Update loyalty points
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({ loyalty_points: newPoints })
-        .eq('id', selectedClient.id);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Puntos agregados",
-        description: `${pointsToAdd} puntos añadidos a ${selectedClient.clientName}`,
-      });
-
-      setSelectedClient({
-        ...selectedClient,
-        loyaltyPoints: newPoints
-      });
-
-      setPointsToAdd(0);
-      await refreshData();
-    } catch (err: any) {
-      console.error('Error adding loyalty points:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.message || "Error al agregar puntos",
-      });
-    } finally {
-      setIsAddingPoints(false);
-    }
-  };
-
-  const handleRedeemPoints = async () => {
-    if (!selectedClient || !selectedClient.loyaltyPoints || pointsToRedeem <= 0 || pointsToRedeem > selectedClient.loyaltyPoints) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "La cantidad de puntos a canjear no es válida",
-      });
-      return;
-    }
-
-    try {
-      // Get current loyalty points
-      const { data: customer, error: getError } = await supabase
-        .from('customers')
-        .select('loyalty_points, free_valets')
-        .eq('id', selectedClient.id)
-        .single();
-
-      if (getError) throw getError;
-
-      const currentPoints = customer?.loyalty_points || 0;
-      const currentFreeValets = customer?.free_valets || 0;
-
-      // Ensure customer has enough points
-      if (currentPoints < pointsToRedeem) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "No hay suficientes puntos para canjear",
-        });
-        return;
+      if (!customer || !customer.id) {
+        throw new Error('Customer information is incomplete');
       }
 
-      // Calculate new values
-      const newPoints = currentPoints - pointsToRedeem;
-      const newFreeValets = currentFreeValets + Math.floor(pointsToRedeem / 100);
+      if (points <= 0) {
+        throw new Error('Points must be greater than 0');
+      }
 
-      // Update loyalty points and free valets
-      const { error: updateError } = await supabase
-        .from('customers')
-        .update({
-          loyalty_points: newPoints,
-          free_valets: newFreeValets
-        })
-        .eq('id', selectedClient.id);
+      const newPoints = await addLoyaltyPoints(customer.id, points);
+      
+      toast.success(`Se han agregado ${points} puntos de fidelidad`);
+      return newPoints;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al agregar puntos';
+      console.error('Error adding loyalty points:', err);
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      toast.error(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      if (updateError) throw updateError;
+  // Redeem loyalty points for free valets
+  const redeemPoints = async (
+    customer: Customer,
+    pointsToRedeem: number,
+    valetsToAdd: number = 1
+  ): Promise<{ remainingPoints: number, freeValets: number }> => {
+    try {
+      setLoading(true);
+      setError(null);
 
-      toast({
-        title: "Puntos canjeados",
-        description: `${pointsToRedeem} puntos canjeados de ${selectedClient.clientName}`,
-      });
+      if (!customer || !customer.id) {
+        throw new Error('Customer information is incomplete');
+      }
 
-      setSelectedClient({
-        ...selectedClient,
-        loyaltyPoints: newPoints,
-        freeValets: newFreeValets
-      });
+      if (pointsToRedeem <= 0) {
+        throw new Error('Points must be greater than 0');
+      }
 
-      setPointsToRedeem(0);
-      await refreshData();
-    } catch (err: any) {
+      if ((customer.loyalty_points || 0) < pointsToRedeem) {
+        throw new Error('Customer does not have enough points');
+      }
+
+      const result = await redeemLoyaltyPoints(customer.id, pointsToRedeem, valetsToAdd);
+      
+      toast.success(`Se han canjeado ${pointsToRedeem} puntos por ${valetsToAdd} valet gratis`);
+      return result;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al canjear puntos';
       console.error('Error redeeming loyalty points:', err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: err.message || "Error al canjear puntos",
-      });
+      setError(err instanceof Error ? err : new Error(errorMessage));
+      toast.error(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   return {
-    selectedClient,
-    pointsToAdd,
-    setPointsToAdd,
-    pointsToRedeem,
-    setPointsToRedeem,
-    isAddingPoints,
-    handleSelectClient,
-    handleAddPoints,
-    handleRedeemPoints
+    addPoints,
+    redeemPoints,
+    loading,
+    error
   };
 };

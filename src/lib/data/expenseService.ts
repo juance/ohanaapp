@@ -1,140 +1,106 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from '@/lib/toast';
-import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
-import { EXPENSES_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { Expense } from '@/lib/types/expense.types';
+import { SyncableExpense } from '@/lib/types';
 
-// Define SyncableExpense type
-export interface SyncableExpense {
-  id: string;
-  description: string;
-  amount: number;
-  date: Date | string;
-  createdAt?: string;
-  pendingSync?: boolean;
-  synced?: boolean;
-  category?: string;
-}
-
-export const storeExpense = async (
-  expenseData: Omit<SyncableExpense, 'id' | 'pendingSync' | 'synced'>
-): Promise<boolean> => {
+// Get stored expenses
+export const getStoredExpenses = async (): Promise<Expense[]> => {
   try {
-    // Try to store in Supabase first
+    // Check if connected to Supabase
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .order('date', { ascending: false });
+    
+    if (error) {
+      throw error;
+    }
+    
+    return data.map(item => ({
+      id: item.id,
+      description: item.description,
+      amount: item.amount,
+      date: item.date,
+      created_at: item.created_at
+    }));
+  } catch (error) {
+    console.error('Error getting expenses:', error);
+    return [];
+  }
+};
+
+// Store a new expense
+export const storeExpense = async (expenseData: Omit<Expense, 'id'>): Promise<boolean> => {
+  try {
+    const newExpense: SyncableExpense = {
+      id: uuidv4(),
+      description: expenseData.description,
+      amount: expenseData.amount,
+      date: expenseData.date || new Date().toISOString(),
+      pendingSync: true,
+      synced: false
+    };
+    
+    // Store directly in Supabase
     const { error } = await supabase
       .from('expenses')
       .insert({
-        description: expenseData.description,
-        amount: expenseData.amount,
-        date: typeof expenseData.date === 'string' ? expenseData.date : expenseData.date.toISOString()
+        id: newExpense.id,
+        description: newExpense.description,
+        amount: newExpense.amount,
+        date: newExpense.date
       });
-
-    if (error) {
-      console.error('Error storing expense in Supabase:', error);
-      
-      // Fallback to local storage
-      const expense: SyncableExpense = {
-        id: uuidv4(),
-        description: expenseData.description,
-        amount: expenseData.amount,
-        date: typeof expenseData.date === 'string' ? expenseData.date : expenseData.date.toISOString(),
-        createdAt: new Date().toISOString(),
-        pendingSync: true,
-        synced: false
-      };
-      
-      // Get existing expenses
-      const existingExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
-      
-      // Add new expense
-      existingExpenses.push(expense);
-      
-      // Save back to local storage
-      saveToLocalStorage(EXPENSES_STORAGE_KEY, existingExpenses);
-      
-      toast({
-        title: "Gasto guardado localmente",
-        description: "Se sincronizará cuando haya conexión"
-      });
-      
-      return true;
-    }
     
-    toast({
-      title: "Gasto registrado",
-      description: `${expenseData.description}: $${expenseData.amount}`
-    });
+    if (error) {
+      throw error;
+    }
     
     return true;
   } catch (error) {
     console.error('Error storing expense:', error);
-    
     return false;
   }
 };
 
-export const getStoredExpenses = async (startDate?: Date, endDate?: Date): Promise<SyncableExpense[]> => {
+// Delete an expense
+export const deleteExpense = async (expenseId: string): Promise<boolean> => {
   try {
-    let query = supabase
+    const { error } = await supabase
       .from('expenses')
-      .select('*');
+      .delete()
+      .eq('id', expenseId);
     
-    if (startDate) {
-      query = query.gte('date', startDate.toISOString());
+    if (error) {
+      throw error;
     }
     
-    if (endDate) {
-      query = query.lte('date', endDate.toISOString());
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    
-    // Map to our expected format
-    const expenses: SyncableExpense[] = data.map(expense => ({
-      id: expense.id,
-      description: expense.description,
-      amount: expense.amount,
-      date: expense.date,
-      createdAt: expense.created_at,
-      category: expense.category
-    }));
-    
-    // Filter by date if necessary
-    let filteredExpenses = expenses;
-    
-    if (startDate || endDate) {
-      filteredExpenses = expenses.filter(expense => {
-        const expenseDate = new Date(expense.date);
-        
-        if (startDate && expenseDate < startDate) return false;
-        if (endDate && expenseDate > endDate) return false;
-        
-        return true;
-      });
-    }
-    
-    return filteredExpenses;
+    return true;
   } catch (error) {
-    console.error('Error retrieving expenses from Supabase:', error);
+    console.error('Error deleting expense:', error);
+    return false;
+  }
+};
+
+// Update an expense
+export const updateExpense = async (expenseId: string, expenseData: Partial<Expense>): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('expenses')
+      .update({
+        description: expenseData.description,
+        amount: expenseData.amount,
+        date: expenseData.date
+      })
+      .eq('id', expenseId);
     
-    // Fallback to localStorage
-    const localExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
-    
-    // Filter by date if provided
-    if (startDate || endDate) {
-      return localExpenses.filter(expense => {
-        const expenseDate = new Date(expense.date);
-        
-        if (startDate && expenseDate < startDate) return false;
-        if (endDate && expenseDate > endDate) return false;
-        
-        return true;
-      });
+    if (error) {
+      throw error;
     }
     
-    return localExpenses;
+    return true;
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    return false;
   }
 };

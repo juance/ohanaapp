@@ -1,47 +1,41 @@
 
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { SYNC_STATUS_KEY } from '@/lib/constants/storageKeys';
-import { SyncStatus } from '@/lib/types/sync.types';
+import { SyncStatus } from '@/lib/types';
 
-// Get the current sync status
+// Get sync status
 export const getSyncStatus = (): SyncStatus => {
-  const status = getFromLocalStorage<SyncStatus>(SYNC_STATUS_KEY);
-  
-  if (!status) {
+  try {
+    // Initialize status with default values
+    const status: SyncStatus = {
+      ticketsSync: {
+        lastSync: null,
+        pendingCount: 0,
+        error: null
+      },
+      expensesSync: {
+        lastSync: null,
+        pendingCount: 0,
+        error: null
+      },
+      clientsSync: {
+        lastSync: null,
+        pendingCount: 0,
+        error: null
+      },
+      feedbackSync: {
+        lastSync: null,
+        pendingCount: 0,
+        error: null
+      }
+    };
+    
+    return status;
+  } catch (error) {
+    console.error('Error getting sync status:', error);
     return {
-      ticketsSync: 0,
-      expensesSync: 0,
-      clientsSync: 0,
-      feedbackSync: 0,
-      lastSync: null,
-      pending: false
+      ticketsSync: { lastSync: null, pendingCount: 0, error: String(error) },
+      expensesSync: { lastSync: null, pendingCount: 0, error: String(error) },
+      clientsSync: { lastSync: null, pendingCount: 0, error: String(error) },
+      feedbackSync: { lastSync: null, pendingCount: 0, error: String(error) }
     };
   }
-  
-  return status;
-};
-
-// Update the sync status
-export const updateSyncStatus = (status: SyncStatus): void => {
-  // Add last sync timestamp
-  const updatedStatus: SyncStatus = {
-    ...status,
-    lastSync: new Date().toISOString()
-  };
-  
-  saveToLocalStorage(SYNC_STATUS_KEY, updatedStatus);
-};
-
-// Reset the sync status
-export const resetSyncStatus = (): void => {
-  const emptyStatus: SyncStatus = {
-    ticketsSync: 0,
-    expensesSync: 0,
-    clientsSync: 0,
-    feedbackSync: 0,
-    lastSync: null,
-    pending: false
-  };
-  
-  saveToLocalStorage(SYNC_STATUS_KEY, emptyStatus);
 };

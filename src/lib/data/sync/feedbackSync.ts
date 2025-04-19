@@ -1,88 +1,101 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { FEEDBACK_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { SyncableCustomerFeedback } from '@/lib/types';
 
-// Define SyncableCustomerFeedback type
-export interface SyncableCustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  pendingSync?: boolean;
-  synced?: boolean;
-  pendingDelete?: boolean;
-}
-
-export const syncFeedback = async (): Promise<number> => {
+// Function to sync feedback with the server
+export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[]): Promise<number> => {
   try {
-    // Get locally stored feedback
-    const localFeedback = getFromLocalStorage<SyncableCustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    let syncedCount = 0;
     
-    // Check if there are feedback items to sync
-    const feedbackToSync = localFeedback.filter(fb => fb.pendingSync && !fb.pendingDelete);
-    const feedbackToDelete = localFeedback.filter(fb => fb.pendingDelete);
-    
-    if (feedbackToSync.length === 0 && feedbackToDelete.length === 0) {
-      console.log('No feedback to sync');
+    if (!feedbackItems || !Array.isArray(feedbackItems) || feedbackItems.length === 0) {
       return 0;
     }
     
-    let syncedCount = 0;
+    // Process items to delete
+    const itemsToDelete = feedbackItems.filter(item => item.pendingDelete);
     
-    // Process deletions first
-    for (const feedback of feedbackToDelete) {
-      try {
-        const { error } = await supabase
-          .from('customer_feedback')
-          .delete()
-          .eq('id', feedback.id);
-        
-        if (error) throw error;
-        
-        // Remove from local storage
-        const index = localFeedback.findIndex(fb => fb.id === feedback.id);
-        if (index !== -1) {
-          localFeedback.splice(index, 1);
-        }
-        syncedCount++;
-      } catch (deletionError) {
-        console.error(`Error deleting feedback ${feedback.id}:`, deletionError);
+    for (const item of itemsToDelete) {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('customer_feedback')
+        .delete()
+        .eq('id', item.id);
+      
+      if (error) {
+        console.error('Error deleting feedback:', error);
+        continue;
       }
+      
+      syncedCount++;
     }
     
-    // Then process additions/updates
-    for (const feedback of feedbackToSync) {
-      try {
-        const { error } = await supabase
+    // Process items to sync
+    const itemsToSync = feedbackItems.filter(item => item.pendingSync && !item.pendingDelete);
+    
+    for (const item of itemsToSync) {
+      // Check if item exists
+      const { data: existingData, error: checkError } = await supabase
+        .from('customer_feedback')
+        .select('id')
+        .eq('id', item.id);
+      
+      if (checkError) {
+        console.error('Error checking feedback existence:', checkError);
+        continue;
+      }
+      
+      let success = false;
+      
+      if (existingData && existingData.length > 0) {
+        // Update existing item
+        const { error: updateError } = await supabase
+          .from('customer_feedback')
+          .update({
+            id: item.id,
+            customer_name: item.customerName,
+            rating: item.rating,
+            comment: item.comment,
+            created_at: item.createdAt,
+            source: 'admin' // Default source
+          })
+          .eq('id', item.id);
+        
+        success = !updateError;
+        
+        if (updateError) {
+          console.error('Error updating feedback:', updateError);
+        }
+      } else {
+        // Insert new item
+        const { error: insertError } = await supabase
           .from('customer_feedback')
           .insert({
-            id: feedback.id,
-            customer_name: feedback.customerName,
-            rating: feedback.rating,
-            comment: feedback.comment,
-            created_at: feedback.createdAt
+            id: item.id,
+            customer_name: item.customerName,
+            rating: item.rating,
+            comment: item.comment,
+            created_at: item.createdAt,
+            source: 'admin' // Default source
           });
         
-        if (error) throw error;
+        success = !insertError;
         
-        // Update local state
-        const index = localFeedback.findIndex(fb => fb.id === feedback.id);
-        if (index !== -1) {
-          localFeedback[index].pendingSync = false;
-          localFeedback[index].synced = true;
+        if (insertError) {
+          console.error('Error inserting feedback:', insertError);
         }
+      }
+      
+      if (success) {
+        // Mark as synced
+        item.pendingSync = false;
+        item.synced = true;
         syncedCount++;
-      } catch (feedbackSyncError) {
-        console.error(`Error syncing feedback ${feedback.id}:`, feedbackSyncError);
       }
     }
     
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
     return syncedCount;
   } catch (error) {
-    console.error('Error syncing feedback:', error);
+    console.error('Error in syncFeedback:', error);
     return 0;
   }
 };
