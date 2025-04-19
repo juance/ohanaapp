@@ -1,7 +1,7 @@
 
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import { dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
-import { dictionary as enDictionary } from '@zxcvbn-ts/language-en';
+import { dictionary as enDictionary, translations as englishTranslations } from '@zxcvbn-ts/language-en';
 
 // Define enum for password strength levels
 export enum PasswordStrength {
@@ -11,6 +11,8 @@ export enum PasswordStrength {
 }
 
 const options = {
+  translations: englishTranslations,
+  /* Comentado para usar las traducciones predefinidas
   translations: {
     warnings: {
       straightRow: 'Straight rows of keys are easy to guess',
@@ -61,6 +63,7 @@ const options = {
       years: '{base} years',
       centuries: 'Centuries'
     },
+  */
   },
   graphs: {
     qwerty: {
@@ -131,17 +134,17 @@ export const getPasswordStrengthColor = (strength: PasswordStrength): string => 
 
 export const validatePassword = (password: string): PasswordValidationResult => {
   const result = zxcvbn(password || '');
-  
+
   // Convert to our custom format
-  const strength = result.score >= 3 
-    ? PasswordStrength.STRONG 
+  const strength = result.score >= 3
+    ? PasswordStrength.STRONG
     : (result.score >= 2 ? PasswordStrength.MEDIUM : PasswordStrength.WEAK);
-  
+
   // Extract warnings as errors
-  const errors = result.feedback.warning 
-    ? [result.feedback.warning] 
-    : result.feedback.suggestions.length > 0 
-      ? [result.feedback.suggestions[0]] 
+  const errors = result.feedback.warning
+    ? [result.feedback.warning]
+    : result.feedback.suggestions.length > 0
+      ? [result.feedback.suggestions[0]]
       : ['Password is too weak'];
 
   return {

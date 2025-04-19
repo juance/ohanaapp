@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SystemError } from './types/error.types';
+import { v4 as uuidv4 } from 'uuid';
 
 export const logError = async (error: Error | string | unknown, context: Record<string, any> = {}) => {
   try {
@@ -8,7 +9,7 @@ export const logError = async (error: Error | string | unknown, context: Record<
     const errorStack = error instanceof Error ? error.stack : undefined;
 
     const systemError: SystemError = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       error_message: errorMessage,
       error_stack: errorStack,
       timestamp: new Date(),
@@ -30,7 +31,7 @@ export const logError = async (error: Error | string | unknown, context: Record<
       });
 
     if (insertError) throw insertError;
-    
+
     return systemError;
   } catch (err) {
     console.error('Error logging error:', err);
@@ -46,7 +47,7 @@ export const getErrors = async (): Promise<SystemError[]> => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    
+
     // Transform data to match SystemError interface
     return data.map(item => ({
       id: item.id,
