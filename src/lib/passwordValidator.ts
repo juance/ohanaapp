@@ -10,8 +10,13 @@ export enum PasswordStrength {
   STRONG = 4
 }
 
+// Importar las traducciones predefinidas en lugar de definirlas manualmente
+import { translations as englishTranslations } from '@zxcvbn-ts/language-en';
+
 const options = {
   translations: englishTranslations,
+<<<<<<< HEAD
+=======
   /* Comentado para usar las traducciones predefinidas
   translations: {
     warnings: {
@@ -65,6 +70,7 @@ const options = {
     },
   */
   },
+>>>>>>> 24048d5fd8de11d2cf211a71c60efaf91f2c21c2
   graphs: {
     qwerty: {
       adjacencyGraph: {
