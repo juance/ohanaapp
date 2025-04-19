@@ -14,8 +14,8 @@ import DebugPanel from '@/components/debug/DebugPanel';
 
 const PickupOrders = () => {
   const {
-    tickets,
-    filteredTickets,
+    pickupTickets: tickets,
+    filteredTickets = tickets || [],
     selectedTicket,
     setSelectedTicket,
     searchQuery,
