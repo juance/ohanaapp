@@ -60,8 +60,8 @@ export const useTicketSubmission = (
           totalPrice: calculateTotal(),
           paymentMethod,
           valetQuantity: 1, // Default to 1, could be made configurable
-          status: 'pending', // Add required status field
-          isPaid: false // Add required isPaid field
+          status: 'pending', // Required status field
+          isPaid: false // Required isPaid field
         },
         {
           name: clientName,

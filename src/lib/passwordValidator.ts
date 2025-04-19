@@ -1,11 +1,17 @@
-import { zxcvbn, ZxcvbnOptions } from '@zxcvbn-ts/core';
+
+import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import { dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
 import { dictionary as enDictionary } from '@zxcvbn-ts/language-en';
-// Remove Spanish language import that's causing issues
+
+// Define enum for password strength levels
+export enum PasswordStrength {
+  WEAK = 0,
+  MEDIUM = 2,
+  STRONG = 4
+}
 
 const options = {
   translations: {
-    // Simplified translations without Spanish
     warnings: {
       straightRow: 'Straight rows of keys are easy to guess',
       keyPattern: 'Short keyboard patterns are easy to guess',
@@ -98,13 +104,50 @@ const options = {
   dictionary: {
     ...commonDictionary,
     ...enDictionary,
-    // Remove Spanish dictionary
   }
 };
 
-ZxcvbnOptions.setOptions(options);
+zxcvbnOptions.setOptions(options);
 
-export const validatePassword = (password: string) => {
+export interface PasswordValidationResult {
+  score: number;
+  strength: PasswordStrength;
+  isValid: boolean;
+  errors: string[];
+}
+
+// Get color based on password strength
+export const getPasswordStrengthColor = (strength: PasswordStrength): string => {
+  switch (strength) {
+    case PasswordStrength.STRONG:
+      return '#10b981'; // Green
+    case PasswordStrength.MEDIUM:
+      return '#f59e0b'; // Amber
+    case PasswordStrength.WEAK:
+    default:
+      return '#ef4444'; // Red
+  }
+};
+
+export const validatePassword = (password: string): PasswordValidationResult => {
   const result = zxcvbn(password || '');
-  return result;
+  
+  // Convert to our custom format
+  const strength = result.score >= 3 
+    ? PasswordStrength.STRONG 
+    : (result.score >= 2 ? PasswordStrength.MEDIUM : PasswordStrength.WEAK);
+  
+  // Extract warnings as errors
+  const errors = result.feedback.warning 
+    ? [result.feedback.warning] 
+    : result.feedback.suggestions.length > 0 
+      ? [result.feedback.suggestions[0]] 
+      : ['Password is too weak'];
+
+  return {
+    score: result.score,
+    strength,
+    isValid: result.score >= 2, // Consider valid if medium strength or better
+    errors
+  };
 };

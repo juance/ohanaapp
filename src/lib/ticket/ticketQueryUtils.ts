@@ -26,6 +26,30 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
 };
 
 /**
+ * Checks if the customers relation exists for tickets table.
+ * @returns {Promise<boolean>} A promise that resolves to true if the relation exists, false otherwise.
+ */
+export const checkTicketsCustomersRelationExists = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('check_relation_exists', {
+      parent_table: 'customers',
+      child_table: 'tickets',
+      column_name: 'customer_id'
+    });
+
+    if (error) {
+      console.error('Error checking relation exists:', error);
+      return false;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Unexpected error checking relation exists:', error);
+    return false;
+  }
+};
+
+/**
  * Builds a query to select tickets based on a status filter.
  * @param {string} statusFilter The status to filter tickets by.
  * @returns {PostgrestFilterBuilder} A Supabase query builder.
@@ -66,9 +90,10 @@ export const buildTicketSelectQuery = (statusFilter?: string) => {
 /**
  * Maps raw ticket data from the database to the Ticket type.
  * @param {any} ticket The raw ticket data from the database.
+ * @param {boolean} hasDeliveredDate Whether the delivered_date column exists.
  * @returns {Ticket} A mapped Ticket object.
  */
-export const mapTicketData = (ticket: any): Ticket => {
+export const mapTicketData = (ticket: any, hasDeliveredDate?: boolean): Ticket => {
   return {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
@@ -93,7 +118,7 @@ export const mapTicketData = (ticket: any): Ticket => {
     })) || [],
     createdAt: ticket.created_at,
     deliveredDate: ticket.delivered_date,
-    // Add a proper updatedAt field instead of directly adding it to the return
+    // Add updatedAt as an optional field to Ticket type
     updatedAt: ticket.updated_at || ticket.created_at
   };
 };

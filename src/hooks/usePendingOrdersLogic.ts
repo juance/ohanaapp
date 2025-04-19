@@ -9,11 +9,16 @@ import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+interface TicketService {
+  name: string;
+  quantity?: number;
+}
+
 export const usePendingOrdersLogic = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [ticketServices, setTicketServices] = useState<TicketService[]>([]);
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
@@ -26,8 +31,7 @@ export const usePendingOrdersLogic = () => {
 
   const loadTicketServices = async (ticketId: string) => {
     const services = await getTicketServices(ticketId);
-    // Fixed: Using SetStateAction properly for array updates
-    setTicketServices(services);
+    setTicketServices(services || []);
   };
 
   const handleMarkAsReady = async (ticketId: string) => {

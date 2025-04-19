@@ -22,7 +22,7 @@ export interface LocalClient {
   lastVisit?: string;
   pendingSync?: boolean;
   synced?: boolean;
-  // Add these fields that are used in clientsSync.ts
+  // Fields that are used in clientsSync.ts
   phoneNumber?: string;
   clientName?: string;
   valetsCount?: number;

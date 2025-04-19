@@ -5,8 +5,8 @@ import { storeTicket } from './data/ticket/ticketStorageService';
 import { storeExpense, getStoredExpenses } from './data/expenseService';
 import { analyzeTickets, analyzeCustomers, analyzeRevenue, getClientVisitFrequency } from './data/analysisService';
 import { addLoyaltyPoints, redeemLoyaltyPoints } from './data/customer/loyaltyService';
-import { getPickupTickets, getRecentTickets } from './ticket/ticketPickupService';
 import { createTicket } from './ticket/ticketCreationService';
+import { getPickupTickets, getRecentTickets } from './ticket/ticketPickupService';
 
 // Re-export all service functions for easy access
 export {

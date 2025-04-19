@@ -36,12 +36,10 @@ export const addLoyaltyPoints = async (customerId: string, points: number): Prom
  * Redeem loyalty points for free valets
  * @param customerId Customer ID
  * @param points Points to redeem
- * @param valets Number of valets to add
  */
 export const redeemLoyaltyPoints = async (
   customerId: string, 
-  points: number, 
-  valets: number = 1
+  points: number
 ): Promise<{ remainingPoints: number, freeValets: number }> => {
   try {
     // Call redeemLoyaltyPointsDB with 2 arguments as expected
