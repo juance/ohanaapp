@@ -38,6 +38,23 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     );
   }
 
+  const renderDeliveryInfo = () => {
+    if (!selectedTicket) return null;
+
+    const selectedTicketObj = ticket;
+    
+    return (
+      <div className="mt-4 grid gap-2">
+        {selectedTicketObj.status === 'delivered' && selectedTicketObj.deliveredDate && (
+          <div className="flex justify-between items-center py-1 border-t border-dashed border-gray-200">
+            <span className="text-sm text-gray-500">Entregado:</span>
+            <span className="text-sm">{formatDate(selectedTicketObj.deliveredDate)}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Estado para controlar la carga de servicios
   const [isFixingServices, setIsFixingServices] = useState(false);
   const [fixAttempted, setFixAttempted] = useState(false);
@@ -97,12 +114,7 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
             <p className="text-sm text-gray-500">Fecha</p>
             <p className="font-medium">{formatDate(ticket.createdAt)}</p>
           </div>
-          {(ticket.deliveredDate) && (
-            <div>
-              <p className="text-sm text-gray-500">Fecha de Entrega</p>
-              <p className="font-medium">{formatDate(ticket.deliveredDate || '')}</p>
-            </div>
-          )}
+          {renderDeliveryInfo()}
           <div>
             <p className="text-sm text-gray-500">Estado de Pago</p>
             <Badge variant={ticket.isPaid ? "success" : "outline"}>

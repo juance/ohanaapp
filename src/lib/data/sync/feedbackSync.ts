@@ -1,60 +1,41 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { getFromLocalStorage, saveToLocalStorage } from '../coreUtils';
-import { FEEDBACK_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { SyncableCustomerFeedback } from '@/lib/types/sync.types';
 
-// Define SyncableCustomerFeedback type
-export interface SyncableCustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  pendingSync?: boolean;
-  synced?: boolean;
-  pendingDelete?: boolean;
-}
-
-export const syncFeedback = async (): Promise<number> => {
+// Function to sync customer feedback with the server
+export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[]): Promise<number> => {
   try {
-    // Get locally stored feedback
-    const localFeedback = getFromLocalStorage<SyncableCustomerFeedback[]>(FEEDBACK_STORAGE_KEY) || [];
+    let syncedCount = 0;
     
-    // Check if there are feedback items to sync
-    const feedbackToSync = localFeedback.filter(fb => fb.pendingSync && !fb.pendingDelete);
-    const feedbackToDelete = localFeedback.filter(fb => fb.pendingDelete);
-    
-    if (feedbackToSync.length === 0 && feedbackToDelete.length === 0) {
-      console.log('No feedback to sync');
+    if (!feedbackItems || !Array.isArray(feedbackItems) || feedbackItems.length === 0) {
       return 0;
     }
     
-    let syncedCount = 0;
+    // Filter feedback items that need to be synced (both created and deleted)
+    const feedbackToSync = feedbackItems.filter(item => 
+      (item.pendingSync && !item.pendingDelete) || item.pendingDelete
+    );
     
-    // Process deletions first
-    for (const feedback of feedbackToDelete) {
-      try {
+    if (feedbackToSync.length === 0) {
+      return 0;
+    }
+    
+    // Process each feedback item
+    for (const feedback of feedbackToSync) {
+      // Handle deleted feedback
+      if (feedback.pendingDelete) {
         const { error } = await supabase
           .from('customer_feedback')
           .delete()
           .eq('id', feedback.id);
-        
-        if (error) throw error;
-        
-        // Remove from local storage
-        const index = localFeedback.findIndex(fb => fb.id === feedback.id);
-        if (index !== -1) {
-          localFeedback.splice(index, 1);
+          
+        if (error) {
+          console.error('Error deleting feedback:', error);
+          continue;
         }
-        syncedCount++;
-      } catch (deletionError) {
-        console.error(`Error deleting feedback ${feedback.id}:`, deletionError);
-      }
-    }
-    
-    // Then process additions/updates
-    for (const feedback of feedbackToSync) {
-      try {
+      } 
+      // Handle new feedback that needs to be created
+      else if (feedback.pendingSync) {
         const { error } = await supabase
           .from('customer_feedback')
           .insert({
@@ -62,27 +43,22 @@ export const syncFeedback = async (): Promise<number> => {
             customer_name: feedback.customerName,
             rating: feedback.rating,
             comment: feedback.comment,
-            created_at: feedback.createdAt
+            created_at: feedback.createdAt,
+            source: feedback.source || 'admin'
           });
-        
-        if (error) throw error;
-        
-        // Update local state
-        const index = localFeedback.findIndex(fb => fb.id === feedback.id);
-        if (index !== -1) {
-          localFeedback[index].pendingSync = false;
-          localFeedback[index].synced = true;
+          
+        if (error) {
+          console.error('Error creating feedback:', error);
+          continue;
         }
-        syncedCount++;
-      } catch (feedbackSyncError) {
-        console.error(`Error syncing feedback ${feedback.id}:`, feedbackSyncError);
       }
+      
+      syncedCount++;
     }
     
-    saveToLocalStorage(FEEDBACK_STORAGE_KEY, localFeedback);
     return syncedCount;
   } catch (error) {
-    console.error('Error syncing feedback:', error);
+    console.error('Error in syncFeedback:', error);
     return 0;
   }
 };

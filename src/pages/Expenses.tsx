@@ -77,8 +77,8 @@ const Expenses = () => {
     setIsSubmitting(false);
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
+  const handleGoToHome = () => {
+    navigate('/');
   };
 
   return (
@@ -88,10 +88,10 @@ const Expenses = () => {
           variant="outline"
           size="sm"
           className="flex items-center gap-1"
-          onClick={handleGoBack}
+          onClick={handleGoToHome}
         >
           <ArrowLeft className="h-4 w-4" />
-          Volver Atrás
+          Volver al Inicio
         </Button>
         <h1 className="text-2xl font-bold">Gastos</h1>
         <div className="w-24"></div> {/* Spacer para mantener el título centrado */}

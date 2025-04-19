@@ -1,211 +1,104 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { updateCustomerLastVisit } from '@/lib/data/customer/customerStorageService';
-import { LaundryOption, Customer } from '@/lib/types';
-import { TICKET_STATUS } from '@/lib/constants/appConstants';
-import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
-import { toast } from '@/lib/toast';
+import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { getNextTicketNumber } from './ticketNumberService';
+import { storeCustomer, getCustomerByPhone } from '../customer/customerStorageService';
 
+/**
+ * Store a ticket in the database
+ * @param ticketData Ticket data to store
+ * @param customerData Customer data to store
+ * @param dryCleaningItems Dry cleaning items to store
+ * @param laundryOptions Laundry options to store
+ */
 export const storeTicket = async (
-  ticketData: {
-    totalPrice: number;
-    paymentMethod: string;
-    valetQuantity: number;
+  ticketData: Omit<Ticket, 'id' | 'ticketNumber' | 'createdAt' | 'customer' | 'dryCleaningItems' | 'laundryOptions'> & {
     customDate?: Date;
-    usesFreeValet?: boolean;
     isPaidInAdvance?: boolean;
   },
-  customerData: {
-    name: string;
-    phoneNumber: string;
-  },
-  dryCleaningItems: Array<{
-    name: string;
-    quantity: number;
-    price: number;
-  }>,
+  customerData: { name: string, phoneNumber: string },
+  dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
   laundryOptions: LaundryOption[]
-) => {
+): Promise<boolean> => {
   try {
-    // Verificar la conexión con Supabase
-    const connectionActive = await ensureSupabaseSession();
-    if (!connectionActive) {
-      console.error('No se pudo establecer conexión con Supabase');
-      toast.error('Error de conexión con el servidor');
-      // Continuar con el código, se usará el fallback a localStorage si falla
-    }
-    // First, get the next ticket number
-    const { data: ticketNumberData, error: ticketNumberError } = await supabase
-      .rpc('get_next_ticket_number');
-
-    if (ticketNumberError) {
-      console.error('Error getting next ticket number:', ticketNumberError);
-      throw ticketNumberError;
+    // 1. Get or create customer
+    let customer = await getCustomerByPhone(customerData.phoneNumber);
+    if (!customer) {
+      customer = await storeCustomer(customerData);
     }
 
-    const ticketNumber = ticketNumberData;
-    console.log('Generated ticket number:', ticketNumber);
-
-    // Find or create customer
-    let customerId: string | null = null;
-
-    // Check if customer exists
-    const { data: existingCustomers, error: customerQueryError } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('phone', customerData.phoneNumber)
-      .maybeSingle();
-
-    if (customerQueryError) {
-      console.error('Error finding customer:', customerQueryError);
+    if (!customer?.id) {
+      throw new Error('Customer ID is missing');
     }
 
-    if (existingCustomers) {
-      customerId = existingCustomers.id;
-      console.log('Using existing customer:', customerId);
-    } else {
-      // Create new customer
-      const { data: newCustomer, error: createCustomerError } = await supabase
-        .from('customers')
-        .insert({
-          name: customerData.name,
-          phone: customerData.phoneNumber
-        })
-        .select('id')
-        .single();
+    // 2. Get next ticket number
+    const ticketNumber = await getNextTicketNumber();
 
-      if (createCustomerError) {
-        console.error('Error creating customer:', createCustomerError);
-        throw createCustomerError;
-      }
-
-      customerId = newCustomer.id;
-      console.log('Created new customer:', customerId);
-    }
-
-    // Now create the ticket - IMPORTANT: Set status to READY so it appears in Pickup page
-    console.log('Creating new ticket with status:', TICKET_STATUS.READY);
-    const { data: ticket, error: ticketError } = await supabase
+    // 3. Create ticket
+    const { data: newTicket, error: ticketError } = await supabase
       .from('tickets')
-      .insert({
-        ticket_number: ticketNumber,
-        customer_id: customerId,
-        total: ticketData.totalPrice,
-        payment_method: ticketData.paymentMethod,
-        valet_quantity: ticketData.valetQuantity,
-        status: TICKET_STATUS.READY, // Set to ready by default to show up in pickup page
-        date: ticketData.customDate ? ticketData.customDate.toISOString() : new Date().toISOString(),
-        is_paid: ticketData.isPaidInAdvance || false,
-        is_canceled: false // Explicitly set is_canceled to false
-      })
-      .select('id')
+      .insert([
+        {
+          ticket_number: ticketNumber,
+          total: ticketData.totalPrice,
+          payment_method: ticketData.paymentMethod,
+          valet_quantity: ticketData.valetQuantity,
+          customer_id: customer.id,
+          date: ticketData.customDate?.toISOString() || new Date().toISOString(),
+          is_paid: ticketData.isPaidInAdvance || ticketData.isPaid || false,
+          status: ticketData.status || 'pending'
+        }
+      ])
+      .select()
       .single();
 
     if (ticketError) {
-      console.error('Error creating ticket:', ticketError);
       throw ticketError;
     }
 
-    console.log('Created ticket:', ticket.id, 'with status:', TICKET_STATUS.READY);
+    if (!newTicket) {
+      throw new Error('Error creating ticket');
+    }
 
-    // Store dry cleaning items if any
-    if (dryCleaningItems.length > 0) {
-      const dryCleaningToInsert = dryCleaningItems.map(item => ({
-        ticket_id: ticket.id,
+    const ticketId = newTicket.id;
+
+    // 4. Create dry cleaning items
+    if (dryCleaningItems && dryCleaningItems.length > 0) {
+      const dryCleaningItemsToInsert = dryCleaningItems.map(item => ({
         name: item.name,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        ticket_id: ticketId
       }));
 
       const { error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
-        .insert(dryCleaningToInsert);
+        .insert(dryCleaningItemsToInsert);
 
       if (dryCleaningError) {
-        console.error('Error storing dry cleaning items:', dryCleaningError);
+        throw dryCleaningError;
       }
     }
 
-    // Store laundry options if any
-    if (laundryOptions.length > 0) {
-      const optionsToInsert = laundryOptions.map(option => ({
-        ticket_id: ticket.id,
-        option_type: option.name
+    // 5. Create laundry options
+    if (laundryOptions && laundryOptions.length > 0) {
+      const laundryOptionsToInsert = laundryOptions.map(option => ({
+        option_type: option.name,
+        ticket_id: ticketId
       }));
 
-      const { error: optionsError } = await supabase
+      const { error: laundryError } = await supabase
         .from('ticket_laundry_options')
-        .insert(optionsToInsert);
+        .insert(laundryOptionsToInsert);
 
-      if (optionsError) {
-        console.error('Error storing ticket laundry options:', optionsError);
+      if (laundryError) {
+        throw laundryError;
       }
-    }
-
-    // Try to update the customer's last visit
-    try {
-      if (customerId) {
-        await updateCustomerLastVisit(customerId);
-
-        // Actualizar el contador de visitas del cliente si es un valet
-        if (ticketData.valetQuantity > 0) {
-          try {
-            // Importar la función desde el nuevo servicio de fidelidad
-            const { incrementCustomerVisits } = await import('@/lib/services/loyaltyService');
-            const updated = await incrementCustomerVisits(customerId, ticketData.valetQuantity);
-            console.log(`Contador de visitas actualizado para cliente ${customerId}: +${ticketData.valetQuantity}, resultado: ${updated ? 'exitoso' : 'fallido'}`);
-          } catch (valetError) {
-            console.error('Error al actualizar contador de visitas:', valetError);
-            // No interrumpir el flujo si falla esta actualización
-          }
-        }
-      }
-    } catch (customerError) {
-      console.error('Error updating customer last visit:', customerError);
     }
 
     return true;
   } catch (error) {
-    console.error('Error storing ticket in Supabase:', error);
-
-    // Fallback to local storage
-    try {
-      const now = new Date().toISOString();
-      const ticketId = uuidv4();
-      const ticketNumber = String(Math.floor(Math.random() * 10000000)).padStart(8, '0');
-
-      const ticketToStore = {
-        id: ticketId,
-        ticketNumber: ticketNumber,
-        clientName: customerData.name,
-        phoneNumber: customerData.phoneNumber,
-        totalPrice: ticketData.totalPrice,
-        paymentMethod: ticketData.paymentMethod,
-        valetQuantity: ticketData.valetQuantity,
-        createdAt: now,
-        status: TICKET_STATUS.READY, // Set to ready by default to show up in pickup page
-        isPaid: ticketData.isPaidInAdvance || false,
-        pendingSync: true,
-        is_canceled: false, // Explicitly set is_canceled to false
-        dryCleaningItems,
-        laundryOptions
-      };
-
-      // Get existing tickets or initialize empty array
-      const existingTicketsJson = localStorage.getItem('tickets');
-      const existingTickets = existingTicketsJson ? JSON.parse(existingTicketsJson) : [];
-
-      // Add new ticket
-      existingTickets.push(ticketToStore);
-
-      // Save back to localStorage
-      localStorage.setItem('tickets', JSON.stringify(existingTickets));
-
-      return true;
-    } catch (localError) {
-      console.error('Error storing ticket locally:', localError);
-      return false;
-    }
+    console.error('Error storing ticket:', error);
+    return false;
   }
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>(PasswordStrength.WEAK);
 
   useEffect(() => {
     if (user) {
@@ -38,18 +40,22 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
       });
       setConfirmPassword('');
     } else {
-      setFormData({
-        name: '',
-        email: '',
-        phoneNumber: '',
-        role: 'client',
-        password: '',
-      });
-      setConfirmPassword('');
+      resetForm();
     }
   }, [user, open]);
 
-  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength>(PasswordStrength.WEAK);
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      email: '',
+      phoneNumber: '',
+      role: 'client',
+      password: '',
+    });
+    setConfirmPassword('');
+    setErrors({});
+    setPasswordStrength(PasswordStrength.WEAK);
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -168,6 +174,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
+          {/* Form fields - name, phone, email */}
           <div className="space-y-2">
             <Label htmlFor="name">Nombre</Label>
             <Input
@@ -208,6 +215,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
           </div>
 
+          {/* User role selection */}
           <div className="space-y-2">
             <Label htmlFor="role">Rol</Label>
             <Select
@@ -225,6 +233,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ open, onClose, user }) =
             </Select>
           </div>
 
+          {/* Password fields */}
           <div className="space-y-2">
             <Label htmlFor="password">
               {user ? 'Contraseña (dejar en blanco para no cambiar)' : 'Contraseña'}

@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, ShoppingBag, Check, Clock, MessageSquare } from 'lucide-react';
+import { Search, ShoppingBag, Check, Clock, MessageSquare, ArrowLeft } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import UserFeedbackForm from '@/components/user/UserFeedbackForm';
 import { useQuery } from '@tanstack/react-query';
@@ -22,9 +22,14 @@ import { Ticket } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 
 const UserTickets = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const phoneParam = searchParams.get('phone') || '';
   const { user } = useAuth();
+
+  const handleGoToHome = () => {
+    navigate('/');
+  };
 
   const [phoneNumber, setPhoneNumber] = useState(phoneParam || (user?.phoneNumber || ''));
   const [searchInput, setSearchInput] = useState(phoneParam || (user?.phoneNumber || ''));
@@ -126,6 +131,15 @@ const UserTickets = () => {
 
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1 mb-4"
+            onClick={handleGoToHome}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al Inicio
+          </Button>
           <h1 className="text-2xl font-bold text-blue-600 mb-2">Mis Tickets</h1>
           <p className="text-gray-600 mb-6">Consulta el estado de tus tickets</p>
 

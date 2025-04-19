@@ -1,8 +1,8 @@
 
-// Re-export all customer-related functionality from this barrel file
-export * from './customerService';
-export * from './valetService';
-export * from './loyaltyService';
-export * from './customerRetrievalService';
+// Re-export customer-related functionality
 export * from './customerStorageService';
+// Explicitly re-export to resolve ambiguity
+export { getCustomerByPhone as getCustomerByPhoneRetrieval } from './customerRetrievalService';
+export * from './loyaltyService';
+export * from './valetService';
 export * from './phoneUtils';

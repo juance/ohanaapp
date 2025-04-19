@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Database } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, RefreshCw, Database, ArrowLeft } from 'lucide-react';
 import { runDatabaseDiagnostics } from '@/scripts/dbDiagnostic';
 import { createTablesDirectly } from '@/scripts/runMigration';
 import { supabase } from '@/integrations/supabase/client';
 
 const Diagnostics = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [diagnosticResults, setDiagnosticResults] = useState<any>(null);
   const [supabaseStatus, setSupabaseStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [networkInfo, setNetworkInfo] = useState<{ ip: string; hostname: string } | null>(null);
+
+  const handleGoToHome = () => {
+    navigate('/');
+  };
 
   // Check Supabase connection
   const checkSupabaseConnection = async () => {
@@ -174,7 +180,19 @@ const Diagnostics = () => {
       <Navbar />
       <div className="flex-1 md:ml-64 p-6">
         <div className="container mx-auto pt-6">
-          <h1 className="text-2xl font-bold mb-6">Diagnóstico del Sistema</h1>
+          <div className="flex items-center justify-between mb-6">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1"
+              onClick={handleGoToHome}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al Inicio
+            </Button>
+            <h1 className="text-2xl font-bold">Diagnóstico del Sistema</h1>
+            <div className="w-24"></div> {/* Spacer para mantener el título centrado */}
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <Card>

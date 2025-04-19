@@ -1,114 +1,153 @@
-/**
- * Password validation service
- * Provides functions to validate password strength and security
- */
 
-/**
- * Password strength levels
- */
+import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
+import { dictionary as commonDictionary } from '@zxcvbn-ts/language-common';
+import { dictionary as enDictionary } from '@zxcvbn-ts/language-en';
+
+// Define enum for password strength levels
 export enum PasswordStrength {
-  WEAK = 'weak',
-  MEDIUM = 'medium',
-  STRONG = 'strong'
+  WEAK = 0,
+  MEDIUM = 2,
+  STRONG = 4
 }
 
-/**
- * Password validation result
- */
+const options = {
+  translations: {
+    warnings: {
+      straightRow: 'Straight rows of keys are easy to guess',
+      keyPattern: 'Short keyboard patterns are easy to guess',
+      simpleRepeat: 'Repeated characters like "aaa" are easy to guess',
+      extendedRepeat: 'Repeated character patterns like "abcabc" are easy to guess',
+      sequences: 'Common character sequences like "abc" are easy to guess',
+      recentYears: 'Recent years are easy to guess',
+      dates: 'Dates are easy to guess',
+      topTen: 'This is a top-10 common password',
+      topHundred: 'This is a top-100 common password',
+      common: 'This is a commonly used password',
+      similarToCommon: 'This is similar to a commonly used password',
+      wordByItself: 'Single words are easy to guess',
+      namesByThemselves: 'Single names or surnames are easy to guess',
+      commonNames: 'Common names and surnames are easy to guess',
+      userInputs: 'There should not be any personal or page related data',
+      pwned: 'This password has been exposed in data breaches'
+    },
+    suggestions: {
+      l33t: "Avoid predictable letter substitutions like '@' for 'a'",
+      reverseWords: "Avoid reversed spellings of common words",
+      allUppercase: "Use some lowercase letters as well",
+      capitalization: "Use more than just the first letter as uppercase",
+      dates: "Avoid dates and years that are associated with you",
+      recentYears: "Avoid recent years",
+      associatedYears: "Avoid years that are associated with you",
+      sequences: "Avoid common character sequences",
+      repeated: "Avoid repeated words and characters",
+      longerKeyboardPattern: "Use longer keyboard patterns and change typing direction",
+      anotherWord: "Add more words that are less common",
+      useWords: "Use multiple words, but avoid common phrases",
+      noNeed: "You can create strong passwords without using symbols, numbers, or uppercase letters",
+      pwned: "If you use this password elsewhere, you should change it"
+    },
+    timeEstimation: {
+      instantly: 'Less than a second',
+      seconds: '{base} seconds',
+      minute: 'About a minute',
+      minutes: '{base} minutes',
+      hour: 'About an hour',
+      hours: '{base} hours',
+      day: 'About a day',
+      days: '{base} days',
+      month: 'About a month',
+      months: '{base} months',
+      year: 'About a year',
+      years: '{base} years',
+      centuries: 'Centuries'
+    },
+  },
+  graphs: {
+    qwerty: {
+      adjacencyGraph: {
+        'q': 'wa2wsxzaq',
+        'w': 'e3edcswq1qaz',
+        'e': 'r4rfvde3wq2wsd',
+        'r': 't5tgbfr4e3dwf',
+        't': 'y6yhnvgt5re4fg',
+        'y': 'u7ujmnhy6tr5gh',
+        'u': 'i8ik,mjuy7yt6hj',
+        'i': 'o9ol<.ki8yu7jk',
+        'o': 'p0op/>li9i8kl',
+        'p': '-[pl?;o0ui',
+        'a': 'qwsxza',
+        's': 'wedcvfraswqaz',
+        'd': 'erfbgtcdsewsx',
+        'f': 'rtgyhnbvfdecr',
+        'g': 'tyhujmngfvtrf',
+        'h': 'yujik,nhgtgyb',
+        'j': 'uikol.mhyujnv',
+        'k': 'iolp/>mjkiuhb',
+        'l': 'op[?+<lkijo',
+        'z': 'asxzaq',
+        'x': 'sdczaswec',
+        'c': 'dfxzsderfv',
+        'v': 'fgbvcrtby',
+        'b': 'ghnvtyujn',
+        'n': 'hjmbgtuikm',
+        'm': 'jknbmhyilo',
+        ',': 'klm,juiop',
+        '.': 'l,kiop',
+        '/': 'pl<.op',
+        '-': 'p0[pl',
+        '[': 'p-[ol',
+        ']': 'p[];\'',
+        '\'': 'p[];\''
+      }
+    }
+  },
+  dictionary: {
+    ...commonDictionary,
+    ...enDictionary,
+  }
+};
+
+zxcvbnOptions.setOptions(options);
+
 export interface PasswordValidationResult {
-  isValid: boolean;
+  score: number;
   strength: PasswordStrength;
+  isValid: boolean;
   errors: string[];
 }
 
-/**
- * Validates a password against security requirements
- * @param password The password to validate
- * @returns Validation result with strength assessment and any errors
- */
-export function validatePassword(password: string): PasswordValidationResult {
-  const errors: string[] = [];
-  
-  // Check minimum length
-  if (password.length < 8) {
-    errors.push('La contraseña debe tener al menos 8 caracteres');
-  }
-  
-  // Check for at least one uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push('La contraseña debe contener al menos una letra mayúscula');
-  }
-  
-  // Check for at least one lowercase letter
-  if (!/[a-z]/.test(password)) {
-    errors.push('La contraseña debe contener al menos una letra minúscula');
-  }
-  
-  // Check for at least one number
-  if (!/\d/.test(password)) {
-    errors.push('La contraseña debe contener al menos un número');
-  }
-  
-  // Check for at least one special character
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('La contraseña debe contener al menos un carácter especial');
-  }
-  
-  // Determine password strength
-  let strength = PasswordStrength.WEAK;
-  
-  if (errors.length === 0) {
-    // All basic requirements met
-    if (password.length >= 12 && 
-        /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password) && 
-        /\d/.test(password) && 
-        /[A-Z]/.test(password) && 
-        /[a-z]/.test(password)) {
-      strength = PasswordStrength.STRONG;
-    } else {
-      strength = PasswordStrength.MEDIUM;
-    }
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    strength,
-    errors
-  };
-}
-
-/**
- * Checks if a password is commonly used or easily guessable
- * @param password The password to check
- * @returns True if the password is common, false otherwise
- */
-export function isCommonPassword(password: string): boolean {
-  const commonPasswords = [
-    'password', 'password123', '123456', '12345678', 'qwerty', 
-    'admin', 'welcome', 'admin123', 'letmein', 'monkey', 'abc123',
-    'football', 'iloveyou', '1234567', '123123', '12345', '1234',
-    'baseball', 'dragon', 'sunshine', 'princess', 'superman', 'qwerty123',
-    'trustno1', 'welcome123', 'login', 'admin1', 'password1', 'master',
-    'hello123', 'freedom', 'whatever', 'qazwsx', 'whatever1', 'welcome1'
-  ];
-  
-  return commonPasswords.includes(password.toLowerCase());
-}
-
-/**
- * Gets a color for password strength visualization
- * @param strength The password strength
- * @returns A color code for the given strength
- */
-export function getPasswordStrengthColor(strength: PasswordStrength): string {
+// Get color based on password strength
+export const getPasswordStrengthColor = (strength: PasswordStrength): string => {
   switch (strength) {
     case PasswordStrength.STRONG:
       return '#10b981'; // Green
     case PasswordStrength.MEDIUM:
       return '#f59e0b'; // Amber
     case PasswordStrength.WEAK:
-      return '#ef4444'; // Red
     default:
       return '#ef4444'; // Red
   }
-}
+};
+
+export const validatePassword = (password: string): PasswordValidationResult => {
+  const result = zxcvbn(password || '');
+  
+  // Convert to our custom format
+  const strength = result.score >= 3 
+    ? PasswordStrength.STRONG 
+    : (result.score >= 2 ? PasswordStrength.MEDIUM : PasswordStrength.WEAK);
+  
+  // Extract warnings as errors
+  const errors = result.feedback.warning 
+    ? [result.feedback.warning] 
+    : result.feedback.suggestions.length > 0 
+      ? [result.feedback.suggestions[0]] 
+      : ['Password is too weak'];
+
+  return {
+    score: result.score,
+    strength,
+    isValid: result.score >= 2, // Consider valid if medium strength or better
+    errors
+  };
+};

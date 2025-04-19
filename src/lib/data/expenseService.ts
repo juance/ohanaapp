@@ -1,140 +1,97 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from '@/lib/toast';
-import { getFromLocalStorage, saveToLocalStorage } from './coreUtils';
-import { EXPENSES_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { SyncableExpense } from '@/lib/types/sync.types';
 
-// Define SyncableExpense type
-export interface SyncableExpense {
-  id: string;
-  description: string;
-  amount: number;
-  date: Date | string;
-  createdAt?: string;
-  pendingSync?: boolean;
-  synced?: boolean;
-  category?: string;
-}
+const STORAGE_KEY = 'expenses';
 
-export const storeExpense = async (
-  expenseData: Omit<SyncableExpense, 'id' | 'pendingSync' | 'synced'>
-): Promise<boolean> => {
+// Get all stored expenses
+export const getStoredExpenses = (): SyncableExpense[] => {
   try {
-    // Try to store in Supabase first
-    const { error } = await supabase
-      .from('expenses')
-      .insert({
-        description: expenseData.description,
-        amount: expenseData.amount,
-        date: typeof expenseData.date === 'string' ? expenseData.date : expenseData.date.toISOString()
-      });
-
-    if (error) {
-      console.error('Error storing expense in Supabase:', error);
-      
-      // Fallback to local storage
-      const expense: SyncableExpense = {
-        id: uuidv4(),
-        description: expenseData.description,
-        amount: expenseData.amount,
-        date: typeof expenseData.date === 'string' ? expenseData.date : expenseData.date.toISOString(),
-        createdAt: new Date().toISOString(),
-        pendingSync: true,
-        synced: false
-      };
-      
-      // Get existing expenses
-      const existingExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
-      
-      // Add new expense
-      existingExpenses.push(expense);
-      
-      // Save back to local storage
-      saveToLocalStorage(EXPENSES_STORAGE_KEY, existingExpenses);
-      
-      toast({
-        title: "Gasto guardado localmente",
-        description: "Se sincronizará cuando haya conexión"
-      });
-      
-      return true;
-    }
+    const storedData = localStorage.getItem(STORAGE_KEY);
+    if (!storedData) return [];
     
-    toast({
-      title: "Gasto registrado",
-      description: `${expenseData.description}: $${expenseData.amount}`
-    });
-    
-    return true;
+    const expenses = JSON.parse(storedData);
+    return Array.isArray(expenses) ? expenses : [];
   } catch (error) {
-    console.error('Error storing expense:', error);
-    
-    return false;
+    console.error('Error getting stored expenses:', error);
+    return [];
   }
 };
 
-export const getStoredExpenses = async (startDate?: Date, endDate?: Date): Promise<SyncableExpense[]> => {
+// Store a new expense
+export const storeExpense = async (expense: Omit<SyncableExpense, 'id'>): Promise<SyncableExpense | null> => {
   try {
-    let query = supabase
-      .from('expenses')
-      .select('*');
-    
-    if (startDate) {
-      query = query.gte('date', startDate.toISOString());
-    }
-    
-    if (endDate) {
-      query = query.lte('date', endDate.toISOString());
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    
-    // Map to our expected format
-    const expenses: SyncableExpense[] = data.map(expense => ({
-      id: expense.id,
+    const newExpense: SyncableExpense = {
+      id: crypto.randomUUID(),
       description: expense.description,
       amount: expense.amount,
       date: expense.date,
-      createdAt: expense.created_at,
-      category: expense.category
-    }));
+      pendingSync: true
+    };
     
-    // Filter by date if necessary
-    let filteredExpenses = expenses;
+    // Get current expenses
+    const expenses = getStoredExpenses();
     
-    if (startDate || endDate) {
-      filteredExpenses = expenses.filter(expense => {
-        const expenseDate = new Date(expense.date);
+    // Add new expense
+    expenses.push(newExpense);
+    
+    // Save to local storage
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
+    
+    // Try to sync immediately if online
+    try {
+      const { error } = await supabase
+        .from('expenses')
+        .insert([
+          {
+            id: newExpense.id,
+            description: newExpense.description,
+            amount: newExpense.amount,
+            date: newExpense.date
+          }
+        ]);
+      
+      if (!error) {
+        // Mark as synced in local storage
+        const updatedExpenses = expenses.map(e => 
+          e.id === newExpense.id ? { ...e, pendingSync: false, synced: true } : e
+        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedExpenses));
         
-        if (startDate && expenseDate < startDate) return false;
-        if (endDate && expenseDate > endDate) return false;
-        
-        return true;
-      });
+        newExpense.pendingSync = false;
+        newExpense.synced = true;
+      }
+    } catch (syncError) {
+      console.error('Error syncing expense:', syncError);
+      // Will be synced later, keep pendingSync as true
     }
     
-    return filteredExpenses;
+    return newExpense;
   } catch (error) {
-    console.error('Error retrieving expenses from Supabase:', error);
+    console.error('Error storing expense:', error);
+    return null;
+  }
+};
+
+// Get expenses from Supabase
+export const getExpensesFromDb = async (): Promise<SyncableExpense[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('expenses')
+      .select('*')
+      .order('date', { ascending: false });
     
-    // Fallback to localStorage
-    const localExpenses = getFromLocalStorage<SyncableExpense[]>(EXPENSES_STORAGE_KEY) || [];
+    if (error) throw error;
     
-    // Filter by date if provided
-    if (startDate || endDate) {
-      return localExpenses.filter(expense => {
-        const expenseDate = new Date(expense.date);
-        
-        if (startDate && expenseDate < startDate) return false;
-        if (endDate && expenseDate > endDate) return false;
-        
-        return true;
-      });
-    }
-    
-    return localExpenses;
+    return data.map(dbExpense => ({
+      id: dbExpense.id,
+      description: dbExpense.description,
+      amount: dbExpense.amount,
+      date: dbExpense.date,
+      pendingSync: false,
+      synced: true
+    }));
+  } catch (error) {
+    console.error('Error getting expenses from DB:', error);
+    return [];
   }
 };

@@ -85,7 +85,8 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
       const result = await addFeedback({
         customerName,
         rating,
-        comment
+        comment,
+        source: 'admin' // Indicar que el comentario viene del panel de administración
       });
 
       if (result) {

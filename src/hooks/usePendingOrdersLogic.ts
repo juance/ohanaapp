@@ -1,5 +1,6 @@
+
 import { useState, useRef } from 'react';
-import { Ticket } from '@/lib/types';
+import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTicketServices } from '@/lib/ticketService';
 import { getProcessingTickets } from '@/lib/ticket/ticketPendingService';
@@ -8,11 +9,16 @@ import { toast } from '@/lib/toast';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+interface TicketService {
+  name: string;
+  quantity?: number;
+}
+
 export const usePendingOrdersLogic = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [ticketServices, setTicketServices] = useState<TicketService[]>([]);
   const queryClient = useQueryClient();
   const ticketDetailRef = useRef<HTMLDivElement>(null);
 
@@ -25,7 +31,7 @@ export const usePendingOrdersLogic = () => {
 
   const loadTicketServices = async (ticketId: string) => {
     const services = await getTicketServices(ticketId);
-    setTicketServices(services);
+    setTicketServices(services || []);
   };
 
   const handleMarkAsReady = async (ticketId: string) => {
@@ -47,9 +53,9 @@ export const usePendingOrdersLogic = () => {
     const searchLower = searchQuery.toLowerCase();
     
     if (searchFilter === 'name') {
-      return ticket.clientName.toLowerCase().includes(searchLower);
+      return ticket.clientName?.toLowerCase().includes(searchLower) || false;
     } else {
-      return ticket.phoneNumber.includes(searchQuery);
+      return ticket.phoneNumber?.includes(searchQuery) || false;
     }
   });
 
