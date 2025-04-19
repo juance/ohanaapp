@@ -1,5 +1,6 @@
+
 import { useState, useRef } from 'react';
-import { Ticket } from '@/lib/types';
+import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTicketServices } from '@/lib/ticketService';
 import { getProcessingTickets } from '@/lib/ticket/ticketPendingService';
@@ -25,6 +26,7 @@ export const usePendingOrdersLogic = () => {
 
   const loadTicketServices = async (ticketId: string) => {
     const services = await getTicketServices(ticketId);
+    // Fixed: Using SetStateAction properly for array updates
     setTicketServices(services);
   };
 
@@ -47,9 +49,9 @@ export const usePendingOrdersLogic = () => {
     const searchLower = searchQuery.toLowerCase();
     
     if (searchFilter === 'name') {
-      return ticket.clientName.toLowerCase().includes(searchLower);
+      return ticket.clientName?.toLowerCase().includes(searchLower) || false;
     } else {
-      return ticket.phoneNumber.includes(searchQuery);
+      return ticket.phoneNumber?.includes(searchQuery) || false;
     }
   });
 

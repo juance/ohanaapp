@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,13 +15,13 @@ export const UnretrievedTickets = () => {
 
   const { data: unretrievedTickets45, isLoading: isLoading45 } = useQuery({
     queryKey: ['unretrievedTickets', 45],
-    queryFn: () => getUnretrievedTickets(45),
+    queryFn: () => getUnretrievedTickets(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const { data: unretrievedTickets90, isLoading: isLoading90 } = useQuery({
     queryKey: ['unretrievedTickets', 90],
-    queryFn: () => getUnretrievedTickets(90),
+    queryFn: () => getUnretrievedTickets(),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 

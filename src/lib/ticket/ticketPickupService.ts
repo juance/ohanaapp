@@ -11,9 +11,7 @@ import { logError } from '@/lib/errorService';
  */
 export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
-    const query = buildTicketSelectQuery()
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+    const query = buildTicketSelectQuery("pending");
 
     const { data, error } = await query;
 
@@ -27,6 +25,50 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
   } catch (error) {
     console.error('Unexpected error fetching pickup tickets:', error);
     toast.error('Error inesperado al cargar los tickets pendientes');
+    return [];
+  }
+};
+
+/**
+ * Function to get recent tickets for use in dashboard and reports
+ * @param {number} limit - The number of recent tickets to retrieve
+ * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
+ */
+export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        id, 
+        ticket_number,
+        total,
+        payment_method,
+        status,
+        is_paid,
+        created_at,
+        customers (name, phone)
+      `)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Error fetching recent tickets:', error);
+      return [];
+    }
+
+    return data.map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Unknown',
+      phoneNumber: ticket.customers?.phone || 'N/A',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'pending',
+      isPaid: ticket.is_paid || false,
+      createdAt: ticket.created_at
+    }));
+  } catch (error) {
+    console.error('Error in getRecentTickets:', error);
     return [];
   }
 };
@@ -91,11 +133,21 @@ export const markTicketAsPending = async (ticketId: string): Promise<boolean> =>
  */
 export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
   try {
-    const query = buildTicketSelectQuery()
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        id, 
+        ticket_number,
+        total,
+        payment_method,
+        status,
+        is_paid,
+        created_at,
+        delivered_date,
+        customers (name, phone)
+      `)
       .not('status', 'in', ['delivered', 'canceled'])
       .order('created_at', { ascending: false });
-
-    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching unretrieved tickets:', error);
@@ -103,7 +155,18 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    return data.map(mapTicketData);
+    return data.map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Unknown',
+      phoneNumber: ticket.customers?.phone || 'N/A',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'pending',
+      isPaid: ticket.is_paid || false,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date
+    }));
   } catch (error) {
     console.error('Unexpected error fetching unretrieved tickets:', error);
     toast.error('Error inesperado al cargar los tickets no entregados');

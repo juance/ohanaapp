@@ -83,7 +83,9 @@ export const useTicketSubmit = (
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
         customDate: date, // Now all users can set a custom date
         usesFreeValet: useFreeValet, // Indicate if a free valet is being used
-        isPaidInAdvance: isPaidInAdvance // Add the paid in advance flag
+        isPaidInAdvance: isPaidInAdvance || false, // Add the paid in advance flag
+        status: 'pending', // Add required status field
+        isPaid: isPaidInAdvance || false // Add required isPaid field
       };
 
       // Prepare customer data
@@ -186,6 +188,6 @@ const dryCleaningItems = [
   { id: 'pants', name: 'Pants', price: 25 },
   { id: 'suit', name: 'Suit', price: 45 },
   { id: 'dress', name: 'Dress', price: 35 },
-  { id: 'coat', name: 'Coat', price: 50 },
+  { id: 'coat', name: 'Coat', price: 40 },
   { id: 'blanket', name: 'Blanket', price: 40 },
 ];

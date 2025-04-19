@@ -4,7 +4,7 @@ export * from './auth.types';
 export * from './customer.types';
 export * from './error.types';
 // Explicitly re-export to resolve ambiguity
-export { ExpenseCategory } from './expense.types';
+export type { ExpenseCategory } from './expense.types';
 export * from './feedback.types';
 export * from './inventory.types';
 export * from './metrics.types';
@@ -22,4 +22,8 @@ export interface LocalClient {
   lastVisit?: string;
   pendingSync?: boolean;
   synced?: boolean;
+  // Add these fields that are used in clientsSync.ts
+  phoneNumber?: string;
+  clientName?: string;
+  valetsCount?: number;
 }

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { getNextTicketNumber } from './ticketNumberService';
@@ -11,7 +12,10 @@ import { storeCustomer, getCustomerByPhone } from '../customer/customerStorageSe
  * @param laundryOptions Laundry options to store
  */
 export const storeTicket = async (
-  ticketData: Omit<Ticket, 'id' | 'ticketNumber' | 'createdAt' | 'customer' | 'dryCleaningItems' | 'laundryOptions'>,
+  ticketData: Omit<Ticket, 'id' | 'ticketNumber' | 'createdAt' | 'customer' | 'dryCleaningItems' | 'laundryOptions'> & {
+    customDate?: Date;
+    isPaidInAdvance?: boolean;
+  },
   customerData: { name: string, phoneNumber: string },
   dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[],
   laundryOptions: LaundryOption[]
@@ -41,7 +45,8 @@ export const storeTicket = async (
           valet_quantity: ticketData.valetQuantity,
           customer_id: customer.id,
           date: ticketData.customDate?.toISOString() || new Date().toISOString(),
-          is_paid: ticketData.isPaidInAdvance || false
+          is_paid: ticketData.isPaidInAdvance || ticketData.isPaid || false,
+          status: ticketData.status || 'pending'
         }
       ])
       .select()

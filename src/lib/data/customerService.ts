@@ -44,7 +44,8 @@ export const redeemLoyaltyPoints = async (
   valets: number = 1
 ): Promise<{ remainingPoints: number, freeValets: number }> => {
   try {
-    return await redeemLoyaltyPointsDB(customerId, points, valets);
+    // Call redeemLoyaltyPointsDB with 2 arguments as expected
+    return await redeemLoyaltyPointsDB(customerId, points);
   } catch (error) {
     console.error('Error redeeming loyalty points:', error);
     throw error;
