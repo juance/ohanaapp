@@ -1,5 +1,5 @@
 
-import { SyncStatus } from '@/lib/types';
+import { SyncStatus, SimpleSyncStatus } from '@/lib/types';
 
 // Get sync status
 export const getSyncStatus = (): SyncStatus => {
@@ -56,4 +56,14 @@ export const updateSyncStatus = async (syncData: {
     console.error('Error updating sync status:', error);
     return false;
   }
+};
+
+// Get a simplified sync status for components to use
+export const getSimplifiedSyncStatus = (): SimpleSyncStatus => {
+  return {
+    tickets: 0,
+    expenses: 0,
+    clients: 0,
+    feedback: 0
+  };
 };

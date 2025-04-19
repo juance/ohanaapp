@@ -62,10 +62,22 @@ export const updateValetsCount = async (customerId: string, valetQuantity: numbe
       return false;
     }
 
+    // Direct update instead of using rpc increment which doesn't exist
+    const { data: customer, error: getError } = await supabase
+      .from('customers')
+      .select('valets_count')
+      .eq('id', customerId)
+      .single();
+      
+    if (getError) throw getError;
+    
+    const currentCount = customer?.valets_count || 0;
+    const newCount = currentCount + valetQuantity;
+    
     const { error } = await supabase
       .from('customers')
       .update({
-        valets_count: supabase.rpc('increment', { row_id: customerId, column_name: 'valets_count', increment_amount: valetQuantity }),
+        valets_count: newCount,
         last_visit: new Date().toISOString()
       })
       .eq('id', customerId);

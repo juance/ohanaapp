@@ -1,474 +1,221 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { GenericStringError } from '@/lib/types/error.types';
-import { Ticket } from '@/lib/types/ticket.types';
-import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
+import { Ticket, Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
+import { getCustomerByPhone } from '@/lib/data/customer/customerStorageService';
+import { logError } from '@/lib/errorService';
 
-export const markTicketAsDelivered = async (ticketId: string) => {
+/**
+ * Retrieves a list of tickets that are marked for pickup.
+ * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
+ */
+export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .update({
-        status: 'delivered',
-        delivered_date: new Date().toISOString()
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
+    const query = buildTicketSelectQuery()
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    const { data, error } = await query;
 
     if (error) {
-      throw {
-        message: `Error updating ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
+      console.error('Error fetching pickup tickets:', error);
+      toast.error('Error al cargar los tickets pendientes');
+      return [];
     }
 
-    return data;
+    return data.map(mapTicketData);
   } catch (error) {
-    console.error('Error marking ticket as delivered:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
+    console.error('Unexpected error fetching pickup tickets:', error);
+    toast.error('Error inesperado al cargar los tickets pendientes');
+    return [];
   }
 };
 
-export const markTicketAsPending = async (ticketId: string) => {
+/**
+ * Marks a ticket as delivered by updating its status to 'delivered' and setting the delivered_date.
+ * @param {string} ticketId The ID of the ticket to mark as delivered.
+ * @returns {Promise<boolean>} A promise that resolves to true if the update was successful, false otherwise.
+ */
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .update({
-        status: 'pending',
-        delivered_date: null
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
-
-    if (error) {
-      throw {
-        message: `Error updating ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error marking ticket as pending:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
-  }
-};
-
-export const updateTicketStatus = async (ticketId: string, newStatus: string) => {
-  try {
-    const validStatuses = ['pending', 'ready', 'delivered', 'canceled'];
-    if (!validStatuses.includes(newStatus)) {
-      return {
-        message: `Estado no válido: ${newStatus}`
-      };
-    }
-
-    const { error } = await supabase
-      .from('tickets')
-      .update({
-        status: newStatus,
-        delivered_date: newStatus === 'delivered' ? new Date().toISOString() : null
-      })
+      .update({ status: 'delivered', delivered_date: new Date().toISOString() })
       .eq('id', ticketId);
 
     if (error) {
-      throw {
-        message: `Error al actualizar el ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
+      console.error('Error marking ticket as delivered:', error);
+      toast.error('Error al marcar el ticket como entregado');
+      return false;
     }
 
-    return {
-      message: `Ticket actualizado a estado: ${newStatus}`,
-      id: ticketId
-    };
+    toast.success('Ticket marcado como entregado');
+    return true;
   } catch (error) {
-    console.error('Error updating ticket status:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
+    console.error('Unexpected error marking ticket as delivered:', error);
+    toast.error('Error inesperado al marcar el ticket como entregado');
+    return false;
   }
 };
 
 /**
- * Mapea los tickets con los clientes relacionados (cuando se usa la relación)
+ * Marks a ticket as pending by updating its status to 'pending'.
+ * @param {string} ticketId The ID of the ticket to mark as pending.
+ * @returns {Promise<boolean>} A promise that resolves to true if the update was successful, false otherwise.
  */
-const mapTicketsWithRelatedCustomers = (tickets: any[]): Ticket[] => {
-  console.log('Mapeando tickets con clientes relacionados');
-  return tickets.map(ticket => {
-    try {
-      // Obtener la información del cliente desde la relación
-      const customerId = ticket.customer_id;
-      const customerName = ticket.customers?.name || 'Cliente sin nombre';
-      const customerPhone = ticket.customers?.phone || '';
-
-      console.log('Mapeando ticket con cliente relacionado:', {
-        id: ticket.id,
-        ticket_number: ticket.ticket_number,
-        customer_id: customerId,
-        customerName,
-        customerPhone
-      });
-
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerName,
-        phoneNumber: customerPhone,
-        totalPrice: parseFloat(ticket.total) || 0,
-        paymentMethod: ticket.payment_method,
-        status: ticket.status,
-        isPaid: ticket.is_paid,
-        valetQuantity: ticket.valet_quantity,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date,
-        customerId: customerId,
-        // Incluir los servicios de tintorería si están disponibles
-        dryCleaningItems: ticket.dry_cleaning_items || []
-      };
-    } catch (error) {
-      console.error('Error mapping ticket with related customer:', error);
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: 'Error al obtener cliente',
-        phoneNumber: '',
-        totalPrice: parseFloat(ticket.total) || 0,
-        paymentMethod: ticket.payment_method,
-        status: ticket.status,
-        isPaid: ticket.is_paid,
-        valetQuantity: ticket.valet_quantity,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date,
-        customerId: ticket.customer_id,
-        // Incluir los servicios de tintorería si están disponibles
-        dryCleaningItems: ticket.dry_cleaning_items || []
-      };
-    }
-  });
-};
-
-export const getPickupTickets = async (): Promise<Ticket[]> => {
+export const markTicketAsPending = async (ticketId: string): Promise<boolean> => {
   try {
-    console.log('Fetching pickup tickets...');
-
-    // Verificar la conexión con Supabase
-    const connectionActive = await ensureSupabaseSession();
-    if (!connectionActive) {
-      console.error('No se pudo establecer conexión con Supabase');
-      toast.error('Error de conexión con el servidor');
-      return [];
-    }
-
-    // First, check if there are any tickets with status 'ready' and not canceled
-    const { count, error: countError } = await supabase
-      .from('tickets')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'ready')
-      .eq('is_canceled', false);
-
-    console.log('Count of ready tickets:', count);
-
-    if (countError) {
-      console.error('Error counting tickets:', countError);
-      throw countError;
-    }
-
-    if (count === 0) {
-      console.log('No tickets found with status ready and not canceled');
-      return [];
-    }
-
-    // Obtener los tickets directamente sin intentar usar la relación primero
-    // Esto garantiza que siempre obtendremos los tickets, incluso si hay problemas con la relación
-    console.log('Obteniendo tickets con status "ready" y no cancelados...');
     const { data, error } = await supabase
       .from('tickets')
-      .select(`
-        *,
-        dry_cleaning_items (*)
-      `)
-      .eq('status', 'ready')
-      .eq('is_canceled', false)
-      .order('created_at', { ascending: false });
-
-    // Imprimir todos los tickets para depuración
-    if (data && data.length > 0) {
-      console.log('Tickets obtenidos:', data.map(t => ({ id: t.id, ticket_number: t.ticket_number, status: t.status })));
-    }
+      .update({ status: 'pending' })
+      .eq('id', ticketId);
 
     if (error) {
-      console.error('Error fetching tickets:', error);
-      throw error;
+      console.error('Error marking ticket as pending:', error);
+      toast.error('Error al marcar el ticket como pendiente');
+      return false;
     }
 
-    console.log('Fetched tickets:', data?.length || 0);
-    console.log('First ticket data sample:', data && data.length > 0 ? {
-      id: data[0].id,
-      ticket_number: data[0].ticket_number,
-      customer_id: data[0].customer_id
-    } : 'No tickets');
+    toast.success('Ticket marcado como pendiente');
+    return true;
+  } catch (error) {
+    console.error('Unexpected error marking ticket as pending:', error);
+    toast.error('Error inesperado al marcar el ticket como pendiente');
+    return false;
+  }
+};
 
-    if (!data || data.length === 0) {
-      console.log('No tickets returned from query');
+/**
+ * Retrieves a list of tickets that have not been retrieved, meaning they are not delivered or canceled.
+ * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
+ */
+export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
+  try {
+    const query = buildTicketSelectQuery()
+      .not('status', 'in', ['delivered', 'canceled'])
+      .order('created_at', { ascending: false });
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching unretrieved tickets:', error);
+      toast.error('Error al cargar los tickets no entregados');
       return [];
     }
 
-    // Obtener los IDs de los clientes de los tickets
-    const customerIds = data.map(ticket => ticket.customer_id).filter(Boolean);
-
-    // Obtener los datos de los clientes
-    let customers = [];
-    if (customerIds.length > 0) {
-      const { data: customersData, error: customersError } = await supabase
-        .from('customers')
-        .select('id, name, phone')
-        .in('id', customerIds);
-
-      if (customersError) {
-        console.error('Error fetching customers:', customersError);
-      } else {
-        customers = customersData || [];
-      }
-    }
-
-    console.log('Fetched customers:', customers.length);
-
-    // Map the tickets to the application format
-    const mappedTickets = data.map(ticket => {
-      try {
-        // Buscar el cliente correspondiente al ticket
-        const customerId = ticket.customer_id;
-        const customer = customers.find(c => c.id === customerId);
-        const customerName = customer?.name || 'Cliente sin nombre';
-        const customerPhone = customer?.phone || '';
-
-        console.log('Mapping ticket:', {
-          id: ticket.id,
-          ticket_number: ticket.ticket_number,
-          customer_id: ticket.customer_id,
-          customer_info: customer,
-          customerName,
-          customerPhone
-        });
-
-        // Crear un objeto limpio sin incluir todas las propiedades del ticket original
-        return {
-          id: ticket.id,
-          ticketNumber: ticket.ticket_number,
-          basketTicketNumber: ticket.basket_ticket_number,
-          clientName: customerName,
-          phoneNumber: customerPhone,
-          totalPrice: parseFloat(ticket.total) || 0,
-          paymentMethod: ticket.payment_method,
-          status: ticket.status,
-          isPaid: ticket.is_paid,
-          valetQuantity: ticket.valet_quantity,
-          createdAt: ticket.created_at,
-          deliveredDate: ticket.delivered_date,
-          customerId: customerId,
-          // Incluir los servicios de tintorería si están disponibles
-          dryCleaningItems: ticket.dry_cleaning_items || []
-        };
-      } catch (mapError) {
-        console.error('Error mapping ticket:', mapError, ticket);
-        return null;
-      }
-    }).filter(Boolean) as Ticket[];
-
-    console.log('Mapped tickets:', mappedTickets.length);
-    return mappedTickets;
+    return data.map(mapTicketData);
   } catch (error) {
-    console.error('Error getting pickup tickets:', error);
+    console.error('Unexpected error fetching unretrieved tickets:', error);
+    toast.error('Error inesperado al cargar los tickets no entregados');
     return [];
   }
 };
 
-export const getUnretrievedTickets = async (days: number): Promise<Ticket[]> => {
+/**
+ * Cancels a ticket by updating its status to 'canceled'.
+ * @param {string} ticketId The ID of the ticket to cancel.
+ * @param {string} cancelReason The reason for canceling the ticket.
+ * @returns {Promise<boolean>} A promise that resolves to true if the cancellation was successful, false otherwise.
+ */
+export const cancelTicket = async (ticketId: string, cancelReason: string): Promise<boolean> => {
   try {
-    const now = new Date();
-    const dateXDaysAgo = new Date(now);
-    dateXDaysAgo.setDate(now.getDate() - days);
+    const { data, error } = await supabase
+      .from('tickets')
+      .update({ status: 'canceled', cancel_reason: cancelReason })
+      .eq('id', ticketId);
 
-    // Intentar usar la relación con los clientes si existe
+    if (error) {
+      console.error('Error canceling ticket:', error);
+      toast.error('Error al cancelar el ticket');
+      return false;
+    }
+
+    toast.success('Ticket cancelado exitosamente');
+    return true;
+  } catch (error) {
+    console.error('Unexpected error canceling ticket:', error);
+    toast.error('Error inesperado al cancelar el ticket');
+    return false;
+  }
+};
+
+/**
+ * Marks a ticket as paid in advance.
+ * @param {string} ticketId The ID of the ticket to mark as paid in advance.
+ * @returns {Promise<boolean>} A promise that resolves to true if the update was successful, false otherwise.
+ */
+export const markTicketAsPaidInAdvance = async (ticketId: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .update({ is_paid: true })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error marking ticket as paid in advance:', error);
+      toast.error('Error al marcar el ticket como pagado por adelantado');
+      return false;
+    }
+
+    toast.success('Ticket marcado como pagado por adelantado');
+    return true;
+  } catch (error) {
+    console.error('Unexpected error marking ticket as paid in advance:', error);
+    toast.error('Error inesperado al marcar el ticket como pagado por adelantado');
+    return false;
+  }
+};
+
+/**
+ * Retrieves a list of tickets that are marked as delivered.
+ * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
+ */
+export const getDeliveredTickets = async (): Promise<Ticket[]> => {
     try {
-      const { data: relatedData, error: relatedError } = await supabase
-        .from('tickets')
-        .select(`
-          *,
-          customers(id, name, phone),
-          dry_cleaning_items (*)
-        `)
-        .eq('status', 'ready')
-        .eq('is_canceled', false)
-        .lt('created_at', dateXDaysAgo.toISOString())
+      const query = buildTicketSelectQuery()
+        .eq('status', 'delivered')
         .order('created_at', { ascending: false });
-
-      if (!relatedError && relatedData) {
-        console.log(`Usando relación con clientes para tickets no recogidos después de ${days} días:`, relatedData.length);
-        return mapTicketsWithRelatedCustomers(relatedData);
+  
+      const { data, error } = await query;
+  
+      if (error) {
+        console.error('Error fetching delivered tickets:', error);
+        toast.error('Error al cargar los tickets entregados');
+        return [];
       }
-
-      console.log(`No se pudo usar la relación con clientes para tickets no recogidos después de ${days} días, usando método alternativo`);
-    } catch (relatedError) {
-      console.log(`Error al intentar usar la relación con clientes para tickets no recogidos después de ${days} días:`, relatedError);
+  
+      return data.map(mapTicketData);
+    } catch (error) {
+      console.error('Unexpected error fetching delivered tickets:', error);
+      toast.error('Error inesperado al cargar los tickets entregados');
+      return [];
     }
+  };
 
-    // Método alternativo: obtener los tickets sin usar la relación
-    const { data, error } = await supabase
-      .from('tickets')
-      .select(`
-        *,
-        dry_cleaning_items (*)
-      `)
-      .eq('status', 'ready')
-      .eq('is_canceled', false)
-      .lt('created_at', dateXDaysAgo.toISOString())
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Obtener los IDs de los clientes de los tickets
-    const customerIds = data.map(ticket => ticket.customer_id).filter(Boolean);
-
-    // Obtener los datos de los clientes
-    let customers = [];
-    if (customerIds.length > 0) {
-      const { data: customersData, error: customersError } = await supabase
-        .from('customers')
-        .select('id, name, phone')
-        .in('id', customerIds);
-
-      if (customersError) {
-        console.error('Error fetching customers for unretrieved tickets:', customersError);
-      } else {
-        customers = customersData || [];
-      }
-    }
-
-    return (data || []).map(ticket => {
-      // Buscar el cliente correspondiente al ticket
-      const customerId = ticket.customer_id;
-      const customer = customers.find(c => c.id === customerId);
-      const customerName = customer?.name || 'Cliente sin nombre';
-      const customerPhone = customer?.phone || '';
-
-      return {
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        basketTicketNumber: ticket.basket_ticket_number,
-        clientName: customerName,
-        phoneNumber: customerPhone,
-        totalPrice: parseFloat(ticket.total) || 0,
-        paymentMethod: ticket.payment_method,
-        status: ticket.status,
-        isPaid: ticket.is_paid,
-        valetQuantity: ticket.valet_quantity,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date,
-        customerId: ticket.customer_id,
-        // Incluir los servicios de tintorería si están disponibles
-        dryCleaningItems: ticket.dry_cleaning_items || []
-      };
-    });
-  } catch (error) {
-    console.error(`Error getting unretrieved tickets after ${days} days:`, error);
-    return [];
-  }
-};
-
-export const cancelTicket = async (ticketId: string, reason?: string) => {
-  try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .update({
-        status: 'canceled',
-        is_canceled: true,
-        cancel_reason: reason || 'No reason provided'
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
-
-    if (error) {
-      throw {
-        message: `Error canceling ticket: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error canceling ticket:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
-  }
-};
-
-/**
- * Update the payment method of a ticket
- * @param ticketId The ID of the ticket to update
- * @param paymentMethod The new payment method
- * @returns The updated ticket data
+  /**
+ * Updates the payment method for a specific ticket.
+ * @param {string} ticketId - The ID of the ticket to update.
+ * @param {string} paymentMethod - The new payment method to set for the ticket.
+ * @returns {Promise<boolean>} - Returns true if the update was successful, false otherwise.
  */
-export const updateTicketPaymentMethod = async (ticketId: string, paymentMethod: string) => {
+export const updateTicketPaymentMethod = async (ticketId: string, paymentMethod: string): Promise<boolean> => {
   try {
-    console.log(`Updating payment method for ticket ${ticketId} to ${paymentMethod}`);
-
     const { data, error } = await supabase
       .from('tickets')
-      .update({
-        payment_method: paymentMethod,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', ticketId)
-      .select()
-      .single();
+      .update({ payment_method: paymentMethod })
+      .eq('id', ticketId);
 
     if (error) {
-      console.error('Error updating payment method:', error);
-      throw {
-        message: `Error updating payment method: ${error.message}`,
-        id: ticketId
-      } as GenericStringError;
+      console.error('Error updating ticket payment method:', error);
+      toast.error('Error al actualizar el método de pago del ticket');
+      return false;
     }
 
-    console.log('Payment method updated successfully:', data);
-    return data;
+    toast.success('Método de pago del ticket actualizado exitosamente');
+    return true;
   } catch (error) {
-    console.error('Error updating payment method:', error);
-    if (error instanceof Error) {
-      throw {
-        message: error.message,
-        id: ticketId
-      } as GenericStringError;
-    }
-    throw error;
+    console.error('Unexpected error updating ticket payment method:', error);
+    toast.error('Error inesperado al actualizar el método de pago del ticket');
+    return false;
   }
 };

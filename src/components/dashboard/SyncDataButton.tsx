@@ -4,15 +4,15 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { toast } from '@/lib/toast';
 import { syncAllData } from "@/lib/data/sync/comprehensiveSync";
-import { SyncStatus } from '@/lib/types';
+import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
 export const SyncDataButton = () => {
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
-    ticketsSync: 0,
-    expensesSync: 0,
-    clientsSync: 0,
-    feedbackSync: 0
+  const [syncStatus, setSyncStatus] = useState<SimpleSyncStatus>({
+    tickets: 0,
+    expenses: 0,
+    clients: 0,
+    feedback: 0
   });
 
   const handleSync = async () => {
@@ -26,24 +26,24 @@ export const SyncDataButton = () => {
       const result = await syncAllData();
       
       // Create a SyncStatus object from the result
-      const mappedResult: SyncStatus = {
-        ticketsSync: result.tickets,
-        expensesSync: result.expenses,
-        clientsSync: result.clients,
-        feedbackSync: result.feedback
+      const mappedResult: SimpleSyncStatus = {
+        tickets: result.tickets,
+        expenses: result.expenses,
+        clients: result.clients,
+        feedback: result.feedback
       };
       
       setSyncStatus(mappedResult);
       
       const totalSynced = 
-        mappedResult.ticketsSync + 
-        mappedResult.expensesSync + 
-        mappedResult.clientsSync + 
-        mappedResult.feedbackSync;
+        mappedResult.tickets + 
+        mappedResult.expenses + 
+        mappedResult.clients + 
+        mappedResult.feedback;
       
       if (totalSynced > 0) {
         toast.success(`Sincronización completa: ${totalSynced} elementos sincronizados`, {
-          description: `Tickets: ${mappedResult.ticketsSync}, Clientes: ${mappedResult.clientsSync}, Gastos: ${mappedResult.expensesSync}, Feedback: ${mappedResult.feedbackSync}`
+          description: `Tickets: ${mappedResult.tickets}, Clientes: ${mappedResult.clients}, Gastos: ${mappedResult.expenses}, Feedback: ${mappedResult.feedback}`
         });
       } else {
         toast.info('No hay datos nuevos para sincronizar');

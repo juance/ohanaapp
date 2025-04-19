@@ -1,4 +1,3 @@
-
 export interface SyncStatus {
   ticketsSync: {
     lastSync: string | null;
@@ -20,6 +19,14 @@ export interface SyncStatus {
     pendingCount: number;
     error: string | null;
   };
+}
+
+// Add a new simplified sync status interface for use in components
+export interface SimpleSyncStatus {
+  tickets: number;
+  expenses: number;
+  clients: number;
+  feedback: number;
 }
 
 export interface SyncStats {

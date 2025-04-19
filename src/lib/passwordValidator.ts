@@ -2,7 +2,8 @@
 import { zxcvbn, zxcvbnOptions } from '@zxcvbn-ts/core';
 import * as zxcvbnCommonPackage from '@zxcvbn-ts/language-common';
 import * as zxcvbnEnPackage from '@zxcvbn-ts/language-en';
-import * as zxcvbnEsPackage from '@zxcvbn-ts/language-es';
+// Remove the ES language package since it's causing issues
+// import * as zxcvbnEsPackage from '@zxcvbn-ts/language-es';
 
 // Initialize zxcvbn with language packs
 const options = {
@@ -11,7 +12,7 @@ const options = {
   dictionary: {
     ...zxcvbnCommonPackage.dictionary,
     ...zxcvbnEnPackage.dictionary,
-    ...zxcvbnEsPackage.dictionary,
+    // ...zxcvbnEsPackage.dictionary, // Remove this line
   },
 };
 zxcvbnOptions.setOptions(options);
