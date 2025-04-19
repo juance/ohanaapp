@@ -1,7 +1,122 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
-import { toast } from '@/lib/toast';
+import { Ticket, LaundryOption, DryCleaningItem } from '@/lib/types';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Get full ticket details including related data
+ */
+export const getFullTicketDetails = async (ticketId: string): Promise<{
+  ticket: Ticket | null;
+  dryCleaningItems: DryCleaningItem[];
+  laundryOptions: LaundryOption[];
+}> => {
+  try {
+    // Get the ticket data
+    const { data: ticketData, error: ticketError } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (
+          id,
+          name,
+          phone
+        )
+      `)
+      .eq('id', ticketId)
+      .single();
+
+    if (ticketError) {
+      console.error('Error fetching ticket:', ticketError);
+      return { ticket: null, dryCleaningItems: [], laundryOptions: [] };
+    }
+
+    // Get dry cleaning items
+    const { data: dryCleaningData, error: dryCleaningError } = await supabase
+      .from('dry_cleaning_items')
+      .select('*')
+      .eq('ticket_id', ticketId);
+
+    if (dryCleaningError) {
+      console.error('Error fetching dry cleaning items:', dryCleaningError);
+      return { 
+        ticket: mapTicketData(ticketData), 
+        dryCleaningItems: [], 
+        laundryOptions: [] 
+      };
+    }
+
+    // Get laundry options
+    const { data: laundryOptionsData, error: laundryOptionsError } = await supabase
+      .from('ticket_laundry_options')
+      .select('*')
+      .eq('ticket_id', ticketId);
+
+    if (laundryOptionsError) {
+      console.error('Error fetching laundry options:', laundryOptionsError);
+      return { 
+        ticket: mapTicketData(ticketData), 
+        dryCleaningItems: mapDryCleaningItems(dryCleaningData || []), 
+        laundryOptions: [] 
+      };
+    }
+
+    // Map and return all data
+    return {
+      ticket: mapTicketData(ticketData),
+      dryCleaningItems: mapDryCleaningItems(dryCleaningData || []),
+      laundryOptions: mapLaundryOptions(laundryOptionsData || [])
+    };
+  } catch (error) {
+    console.error('Error in getFullTicketDetails:', error);
+    return { ticket: null, dryCleaningItems: [], laundryOptions: [] };
+  }
+};
+
+/**
+ * Map database ticket data to application ticket model
+ */
+const mapTicketData = (data: any): Ticket => {
+  return {
+    id: data.id,
+    ticketNumber: data.ticket_number,
+    clientName: data.customers?.name || 'Cliente sin nombre',
+    phoneNumber: data.customers?.phone || '',
+    totalPrice: data.total || 0,
+    paymentMethod: data.payment_method || 'cash',
+    status: data.status || 'pending',
+    isPaid: data.is_paid || false,
+    valetQuantity: data.valet_quantity || 0,
+    createdAt: data.created_at,
+    deliveredDate: data.delivered_date
+  };
+};
+
+/**
+ * Map database dry cleaning items to application model
+ */
+const mapDryCleaningItems = (data: any[]): DryCleaningItem[] => {
+  return data.map(item => ({
+    id: item.id,
+    name: item.name || 'Ítem sin nombre',
+    quantity: item.quantity || 1,
+    price: item.price || 0,
+    ticketId: item.ticket_id
+  }));
+};
+
+/**
+ * Map database laundry options to application model
+ */
+const mapLaundryOptions = (data: any[]): LaundryOption[] => {
+  return data.map(option => ({
+    id: option.id,
+    name: option.name || 'Opción sin nombre',
+    optionType: option.option_type || 'general',
+    ticketId: option.ticket_id,
+    createdAt: option.created_at,
+    price: option.price || 0 // Adding price since it's required in LaundryOption
+  }));
+};
 
 // Get ticket services (dry cleaning items and laundry options)
 export const getTicketServices = async (ticketId: string): Promise<any[]> => {

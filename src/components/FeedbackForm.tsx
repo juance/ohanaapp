@@ -9,6 +9,7 @@ import { getCustomerByPhone } from '@/lib/dataService';
 import { Star } from 'lucide-react';
 import { toast } from '@/lib/toast';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { FeedbackSource } from '@/lib/types/feedback.types';
 
 const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -81,12 +82,12 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     setIsSubmitting(true);
 
     try {
-      // Pass only the required fields for feedback
+      // Pass all required fields for feedback, including 'source'
       const result = await addFeedback({
         customerName,
         rating,
         comment,
-        source: 'admin' // Indicar que el comentario viene del panel de administración
+        source: 'admin' as FeedbackSource // Explicitly cast to FeedbackSource
       });
 
       if (result) {

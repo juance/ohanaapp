@@ -14,8 +14,8 @@ import DebugPanel from '@/components/debug/DebugPanel';
 
 const PickupOrders = () => {
   const {
-    pickupTickets: tickets,
-    filteredTickets = tickets || [],
+    pickupTickets,
+    filteredTickets,
     selectedTicket,
     setSelectedTicket,
     searchQuery,
@@ -49,7 +49,7 @@ const PickupOrders = () => {
     if (selectedTicket) {
       loadTicketServices(selectedTicket);
     }
-  }, [selectedTicket]);
+  }, [selectedTicket, loadTicketServices]);
 
   if (isLoading) {
     return (
@@ -100,7 +100,7 @@ const PickupOrders = () => {
           </div>
 
           <DebugPanel
-            tickets={tickets}
+            tickets={pickupTickets}
             isLoading={isLoading}
             error={error}
             refetch={refetch}
@@ -110,7 +110,7 @@ const PickupOrders = () => {
             <h2 className="text-xl font-bold mb-4">Pedidos a Retirar</h2>
 
             <PickupActionButtons
-              tickets={tickets}
+              tickets={pickupTickets}
               selectedTicket={selectedTicket}
               handleMarkAsDelivered={handleMarkAsDelivered}
               handleOpenCancelDialog={handleOpenCancelDialog}
@@ -141,7 +141,7 @@ const PickupOrders = () => {
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 <TicketDetailPanel
                   selectedTicket={selectedTicket}
-                  tickets={tickets}
+                  tickets={pickupTickets}
                   ticketServices={ticketServices}
                   formatDate={formatDate}
                 />
@@ -164,9 +164,9 @@ const PickupOrders = () => {
         <PaymentMethodDialog
           open={paymentMethodDialogOpen}
           onOpenChange={setPaymentMethodDialogOpen}
-          currentPaymentMethod={(tickets.find(t => t.id === selectedTicket)?.paymentMethod || 'cash') as any}
+          currentPaymentMethod={(pickupTickets.find(t => t.id === selectedTicket)?.paymentMethod || 'cash') as any}
           onConfirm={handleUpdatePaymentMethod}
-          ticketNumber={tickets.find(t => t.id === selectedTicket)?.ticketNumber || ''}
+          ticketNumber={pickupTickets.find(t => t.id === selectedTicket)?.ticketNumber || ''}
         />
       )}
     </div>

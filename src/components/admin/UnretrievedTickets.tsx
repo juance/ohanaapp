@@ -6,7 +6,7 @@ import { Ticket } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DateRangeSelector } from '@/components/shared/DateRangeSelector';
+import DateRangeSelector from '@/components/shared/DateRangeSelector';
 import { FormatDate } from '@/components/Format/FormatDate';
 import { toast } from '@/lib/toast';
 

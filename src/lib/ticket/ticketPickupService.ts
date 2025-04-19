@@ -1,75 +1,81 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, Customer } from '@/lib/types';
-import { toast } from '@/lib/toast';
-import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
-import { getCustomerByPhone } from '@/lib/data/customer/customerStorageService';
-import { logError } from '@/lib/errorService';
+import { Ticket } from '@/lib/types';
 
 /**
- * Retrieves a list of tickets that are marked for pickup.
- * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
+ * Get tickets that are ready for pickup (status ready, processing or pending)
  */
 export const getPickupTickets = async (): Promise<Ticket[]> => {
-  try {
-    const query = buildTicketSelectQuery("pending");
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error fetching pickup tickets:', error);
-      toast.error('Error al cargar los tickets pendientes');
-      return [];
-    }
-
-    return data.map(mapTicketData);
-  } catch (error) {
-    console.error('Unexpected error fetching pickup tickets:', error);
-    toast.error('Error inesperado al cargar los tickets pendientes');
-    return [];
-  }
-};
-
-/**
- * Function to get recent tickets for use in dashboard and reports
- * @param {number} limit - The number of recent tickets to retrieve
- * @returns {Promise<Ticket[]>} A promise that resolves to an array of Ticket objects.
- */
-export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        id, 
-        ticket_number,
-        total,
-        payment_method,
-        status,
-        is_paid,
-        created_at,
-        customers (name, phone)
+        *,
+        customers (
+          name,
+          phone
+        )
       `)
-      .order('created_at', { ascending: false })
-      .limit(limit);
+      .in('status', ['ready', 'processing', 'pending'])
+      .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching recent tickets:', error);
-      return [];
-    }
+    if (error) throw error;
 
-    return data.map(ticket => ({
+    // Convert to our application format
+    return data.map((ticket: any): Ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.customers?.name || 'Unknown',
-      phoneNumber: ticket.customers?.phone || 'N/A',
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
       totalPrice: ticket.total || 0,
       paymentMethod: ticket.payment_method || 'cash',
       status: ticket.status || 'pending',
       isPaid: ticket.is_paid || false,
-      createdAt: ticket.created_at
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date || null
     }));
   } catch (error) {
-    console.error('Error in getRecentTickets:', error);
-    return [];
+    console.error('Error fetching pickup tickets:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get recent tickets (limit: 30)
+ */
+export const getRecentTickets = async (): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (
+          name,
+          phone
+        )
+      `)
+      .order('created_at', { ascending: false })
+      .limit(30);
+
+    if (error) throw error;
+
+    // Convert to our application format
+    return data.map((ticket: any): Ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'pending',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date || null
+    }));
+  } catch (error) {
+    console.error('Error fetching recent tickets:', error);
+    throw error;
   }
 };
 
