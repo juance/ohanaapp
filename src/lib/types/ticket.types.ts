@@ -2,7 +2,7 @@
 export interface Ticket {
   id: string;
   ticketNumber: string;
-  basketTicketNumber?: string;
+
   clientName?: string;
   phoneNumber?: string;
   totalPrice: number;
@@ -19,7 +19,6 @@ export interface Ticket {
   updatedAt?: string;
 
   // Additional fields for database compatibility
-  basket_ticket_number?: string;
   ticket_number?: string;
   customerId?: string; // Add customerId field to fix error in ticketServiceCore.ts
 }

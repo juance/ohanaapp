@@ -58,9 +58,8 @@ export const buildTicketSelectQuery = (statusFilter?: string) => {
   let query = supabase
     .from('tickets')
     .select(`
-      id, 
+      id,
       ticket_number,
-      basket_ticket_number,
       total,
       payment_method,
       status,
@@ -97,7 +96,7 @@ export const mapTicketData = (ticket: any, hasDeliveredDate?: boolean): Ticket =
   return {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
-    basketTicketNumber: ticket.basket_ticket_number,
+
     clientName: ticket.customers?.name || '',
     phoneNumber: ticket.customers?.phone || '',
     totalPrice: ticket.total || 0,
