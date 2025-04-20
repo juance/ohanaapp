@@ -6,7 +6,6 @@ import { toast } from '@/lib/toast';
 import { useState, useRef } from 'react';
 
 export const usePickupOrdersLogic = () => {
-<<<<<<< HEAD
   // Estado para el ticket seleccionado
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
 
@@ -26,9 +25,6 @@ export const usePickupOrdersLogic = () => {
 
   // Referencia para el panel de detalles del ticket
   const ticketDetailRef = useRef<HTMLDivElement>(null);
-
-=======
->>>>>>> c09ef8fd9ddf6e25dc3e638b872d1a8788e6b305
   // Función para formatear fechas
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
