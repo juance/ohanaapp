@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { SyncableExpense } from '@/lib/types/sync.types';
 import { Expense } from '@/lib/types/expense.types';
+import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEY = 'expenses';
 
@@ -22,7 +23,7 @@ export const getStoredExpenses = (): SyncableExpense[] => {
 export const storeExpense = async (expense: Omit<SyncableExpense, 'id'>): Promise<SyncableExpense | null> => {
   try {
     const newExpense: SyncableExpense = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       description: expense.description,
       amount: expense.amount,
       date: expense.date,
