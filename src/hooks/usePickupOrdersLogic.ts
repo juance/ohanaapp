@@ -5,6 +5,16 @@ import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';
 
 export const usePickupOrdersLogic = () => {
+  // Función para formatear fechas
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    try {
+      return new Date(dateString).toLocaleDateString('es-ES');
+    } catch (e) {
+      return dateString;
+    }
+  };
+
   // Fetch pickup tickets
   const {
     data: pickupTickets,
@@ -69,7 +79,7 @@ export const usePickupOrdersLogic = () => {
     console.error("Error in usePickupOrdersLogic:", err);
     toast.error(`Error: ${err.message || 'Something went wrong'}`);
   };
-  
+
   return {
     pickupTickets,
     isLoading,
@@ -77,6 +87,7 @@ export const usePickupOrdersLogic = () => {
     error,
     refetch,
     markAsDelivered,
-    handleError
+    handleError,
+    formatDate
   };
 };
