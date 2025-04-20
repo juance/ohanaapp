@@ -1,8 +1,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
+import { Ticket, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { useExpensesData } from './useExpensesData';
+import { useClientData } from './useClientData';
+import { useChartData } from './useChartData';
 
 interface TicketStats {
   total: number;
@@ -24,6 +27,12 @@ export const useDashboardData = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Obtener datos de gastos
+  const { expenses, loading: expensesLoading, error: expensesError } = useExpensesData();
+
+  // Obtener datos de clientes
+  const { clients, loading: clientsLoading, error: clientsError } = useClientData();
 
   // Fetch ticket details from Supabase
   const fetchTicketDetails = async (): Promise<TicketStats> => {
@@ -104,6 +113,24 @@ export const useDashboardData = () => {
     }
   };
 
+  // Generar datos para los gráficos
+  const chartData = useChartData('monthly', {
+    daily: null,
+    weekly: null,
+    monthly: {
+      salesByWeek: {
+        'Semana 1': ticketStats.revenue * 0.25,
+        'Semana 2': ticketStats.revenue * 0.25,
+        'Semana 3': ticketStats.revenue * 0.25,
+        'Semana 4': ticketStats.revenue * 0.25
+      },
+      dryCleaningItems: {
+        'Valet': ticketStats.valetCount,
+        'Tintorería': ticketStats.dryCleaningItemsCount
+      }
+    }
+  }, expenses);
+
   // Función para refrescar los datos
   const refreshData = useCallback(async () => {
     try {
@@ -121,23 +148,21 @@ export const useDashboardData = () => {
     refreshData().catch(err => console.error('Error in initial data load:', err));
   }, [refreshData]);
 
+  // Determinar si está cargando cualquiera de los datos
+  const isLoading = loading || expensesLoading || clientsLoading;
+
+  // Combinar errores
+  const combinedError = error || expensesError || clientsError;
+
   return {
     data: {
       metrics: ticketStats,
-      expenses: {
-        daily: 0,
-        weekly: 0,
-        monthly: 0
-      },
-      clients: [],
-      chartData: {
-        barData: [],
-        lineData: [],
-        pieData: []
-      }
+      expenses: expenses,
+      clients: clients,
+      chartData: chartData
     },
-    isLoading: loading,
-    error,
+    isLoading: isLoading,
+    error: combinedError,
     refreshData
   };
 };
