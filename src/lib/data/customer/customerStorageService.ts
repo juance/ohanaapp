@@ -98,11 +98,14 @@ export const getCustomerByPhone = async (phone: string): Promise<Customer | null
       throw new Error('Phone number is required');
     }
 
-    // Search for customer in Supabase
+    // Limpiar el número de teléfono para la búsqueda (eliminar caracteres no numéricos)
+    const cleanedPhone = phone.replace(/\D/g, '');
+
+    // Buscar por número de teléfono usando LIKE para una búsqueda más flexible
     const { data, error } = await supabase
       .from('customers')
       .select('*')
-      .eq('phone', phone);
+      .or(`phone.ilike.%${cleanedPhone}%,phone.ilike.%${phone}%`);
 
     if (error) throw error;
 
