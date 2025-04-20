@@ -18,11 +18,31 @@ export const logError = async (error: Error | string | unknown, context: Record<
       resolved: false
     };
 
-    // Verificar si hay una sesión activa antes de intentar registrar el error
+    // En modo de desarrollo, solo registramos los errores en la consola
+    // para evitar problemas con las políticas de seguridad de Supabase
+    if (import.meta.env.DEV) {
+      console.log('Error registrado (modo desarrollo):', {
+        ...systemError,
+        browser_info: getBrowserInfo(),
+        component: context.component,
+        user_id: context.userId
+      });
+      return systemError;
+    }
+
+    // En producción, intentamos registrar el error en Supabase
+    // solo si hay una sesión activa
     const isSessionActive = await ensureSupabaseSession();
 
     if (isSessionActive) {
       try {
+        // Verificar si el usuario está autenticado
+        const { data: session } = await supabase.auth.getSession();
+        if (!session?.session?.user) {
+          console.warn('No se pudo registrar el error en Supabase: Usuario no autenticado');
+          return systemError;
+        }
+
         const { error: insertError } = await supabase
           .from('error_logs')
           .insert({
@@ -33,7 +53,7 @@ export const logError = async (error: Error | string | unknown, context: Record<
             id: systemError.id,
             browser_info: getBrowserInfo(),
             component: context.component,
-            user_id: context.userId
+            user_id: session.session.user.id // Usar el ID del usuario autenticado
           });
 
         if (insertError) {
