@@ -11,7 +11,7 @@ interface TicketPrintContentProps {
 const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selectedOptions }) => {
   // Create a default empty array for services if it doesn't exist
   const services = ticket.services || [];
-  
+
   return (
     <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
       <div className="text-center mb-4">
@@ -19,34 +19,31 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
         <p className="text-sm text-gray-600">Lavandería - Tintorería</p>
         <p className="text-xs text-gray-600">Camargo 590 | CABA | 11 3642 4871</p>
       </div>
-      
+
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Ticket Número:</span>
           <span>{ticket.ticketNumber || 'N/A'}</span>
         </div>
-        
-        <div className="flex justify-between">
-          <span className="font-medium">N° Canasto:</span>
-          <span>{ticket.basketTicketNumber || 'N/A'}</span>
-        </div>
-        
+
+
+
         <div className="flex justify-between">
           <span className="font-medium">Fecha:</span>
           <span>{format(new Date(ticket.createdAt), 'dd/MM/yyyy')}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="font-medium">Cliente:</span>
           <span>{ticket.clientName}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="font-medium">Celular:</span>
           <span>{ticket.phoneNumber}</span>
         </div>
       </div>
-      
+
       <div className="flex space-x-6 mb-4">
         <div className="flex items-center">
           <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
@@ -54,7 +51,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           </div>
           <span>Lavandería</span>
         </div>
-        
+
         <div className="flex items-center">
           <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => !s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
             {services.some(s => !s.name?.includes('Valet')) && '✓'}
@@ -62,7 +59,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           <span>Tintorería</span>
         </div>
       </div>
-      
+
       {/* Display services with quantities */}
       <div className="mb-4">
         {services.map((service, index) => (
@@ -77,7 +74,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           </div>
         ))}
       </div>
-      
+
       <div className="mb-4">
         {selectedOptions.map((option, index) => (
           <div key={index} className="flex items-center my-1">
@@ -86,9 +83,9 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           </div>
         ))}
       </div>
-      
+
       <div className="border-t border-dashed border-gray-300 my-4"></div>
-      
+
       <div className="space-y-2 mb-4">
         <div className="flex justify-between">
           <span className="font-medium">Cantidad:</span>
@@ -97,7 +94,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
             return sum + quantity;
           }, 0)}</span>
         </div>
-        
+
         <div className="flex justify-between">
           <span className="font-medium">Importe:</span>
           <span>${ticket.totalPrice.toLocaleString()}</span>
