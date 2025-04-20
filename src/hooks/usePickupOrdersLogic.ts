@@ -226,18 +226,25 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   }, [handleError]);
 
   /**
-   * Marca un ticket como entregado
+   * Marca un ticket como entregado y pagado
    */
   const handleMarkAsDelivered = useCallback(async (ticketId: string): Promise<void> => {
     try {
+      const now = new Date().toISOString();
+
       const { error } = await supabase
         .from('tickets')
-        .update({ status: 'delivered', delivered_date: new Date().toISOString() })
+        .update({
+          status: 'delivered',
+          delivered_date: now,
+          is_paid: true, // Marcar como pagado al entregar
+          updated_at: now
+        })
         .eq('id', ticketId);
 
       if (error) throw error;
 
-      toast.success('Ticket marcado como entregado');
+      toast.success('Ticket marcado como entregado y pagado');
       refetch(); // Actualizar la lista de tickets
     } catch (err: any) {
       toast.error(`Error al marcar como entregado: ${err.message}`);
