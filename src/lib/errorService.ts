@@ -2,6 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { SystemError } from './types/error.types';
 import { v4 as uuidv4 } from 'uuid';
+import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
 
 export const logError = async (error: Error | string | unknown, context: Record<string, any> = {}) => {
   try {
@@ -17,20 +18,33 @@ export const logError = async (error: Error | string | unknown, context: Record<
       resolved: false
     };
 
-    const { error: insertError } = await supabase
-      .from('error_logs')
-      .insert({
-        error_message: systemError.error_message,
-        error_stack: systemError.error_stack,
-        error_context: systemError.error_context,
-        resolved: systemError.resolved,
-        id: systemError.id,
-        browser_info: getBrowserInfo(),
-        component: context.component,
-        user_id: context.userId
-      });
+    // Verificar si hay una sesión activa antes de intentar registrar el error
+    const isSessionActive = await ensureSupabaseSession();
 
-    if (insertError) throw insertError;
+    if (isSessionActive) {
+      try {
+        const { error: insertError } = await supabase
+          .from('error_logs')
+          .insert({
+            error_message: systemError.error_message,
+            error_stack: systemError.error_stack,
+            error_context: systemError.error_context,
+            resolved: systemError.resolved,
+            id: systemError.id,
+            browser_info: getBrowserInfo(),
+            component: context.component,
+            user_id: context.userId
+          });
+
+        if (insertError) {
+          console.warn('Error al insertar en error_logs:', insertError);
+        }
+      } catch (dbError) {
+        console.warn('Error al registrar error en Supabase:', dbError);
+      }
+    } else {
+      console.warn('No se pudo registrar el error en Supabase: No hay sesión activa');
+    }
 
     return systemError;
   } catch (err) {
