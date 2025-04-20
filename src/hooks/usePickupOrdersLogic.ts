@@ -25,7 +25,6 @@ export const usePickupOrdersLogic = () => {
 
   // Referencia para el panel de detalles del ticket
   const ticketDetailRef = useRef<HTMLDivElement>(null);
-
   // Función para formatear fechas
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -212,7 +211,6 @@ export const usePickupOrdersLogic = () => {
         return false;
       })
     : pickupTickets;
-
   return {
     pickupTickets,
     filteredTickets,
