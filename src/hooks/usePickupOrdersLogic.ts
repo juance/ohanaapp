@@ -1,20 +1,83 @@
 
+import { useState, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
+import { Ticket, TicketService } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { useState, useRef } from 'react';
 
-export const usePickupOrdersLogic = () => {
+// Tipos para el hook
+interface TicketServiceWithDetails extends TicketService {
+  services: any | null;
+}
+
+type SearchFilterType = 'name' | 'phone';
+
+interface UsePickupOrdersLogicReturn {
+  // Datos
+  pickupTickets: Ticket[] | undefined;
+  filteredTickets: Ticket[] | undefined;
+  ticketServices: TicketServiceWithDetails[];
+
+  // Estados
+  selectedTicket: string | null;
+  searchQuery: string;
+  searchFilter: SearchFilterType;
+  cancelDialogOpen: boolean;
+  cancelReason: string;
+  paymentMethodDialogOpen: boolean;
+
+  // Referencias
+  ticketDetailRef: React.RefObject<HTMLDivElement>;
+
+  // Estado de la consulta
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+
+  // Setters
+  setSelectedTicket: (id: string | null) => void;
+  setSearchQuery: (query: string) => void;
+  setSearchFilter: (filter: SearchFilterType) => void;
+  setCancelDialogOpen: (open: boolean) => void;
+  setCancelReason: (reason: string) => void;
+  setPaymentMethodDialogOpen: (open: boolean) => void;
+
+  // Funciones
+  refetch: () => Promise<any>;
+  loadTicketServices: (ticketId: string) => Promise<void>;
+  handleMarkAsDelivered: (ticketId: string) => Promise<void>;
+  handleOpenCancelDialog: () => void;
+  handleCancelTicket: () => Promise<void>;
+  handlePrintTicket: (ticketId: string) => void;
+  handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => void;
+  handleNotifyClient: (ticketId: string, phoneNumber?: string) => void;
+  handleOpenPaymentMethodDialog: () => void;
+  handleUpdatePaymentMethod: (paymentMethod: string) => Promise<void>;
+  handleError: (err: any) => void;
+  formatDate: (dateString: string) => string;
+}
+
+/**
+ * Hook para manejar la lógica de los pedidos a retirar
+ *
+ * Este hook proporciona toda la funcionalidad necesaria para la pantalla de pedidos a retirar,
+ * incluyendo la carga de tickets, filtrado, selección, y operaciones como marcar como entregado,
+ * cancelar, etc.
+ */
+export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
+  // =========================================================================
+  // Estados
+  // =========================================================================
+
   // Estado para el ticket seleccionado
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
 
   // Estado para la búsqueda
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
+  const [searchFilter, setSearchFilter] = useState<SearchFilterType>('name');
 
   // Estado para los servicios del ticket
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [ticketServices, setTicketServices] = useState<TicketServiceWithDetails[]>([]);
 
   // Estado para el diálogo de cancelación
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -25,17 +88,38 @@ export const usePickupOrdersLogic = () => {
 
   // Referencia para el panel de detalles del ticket
   const ticketDetailRef = useRef<HTMLDivElement>(null);
-  // Función para formatear fechas
-  const formatDate = (dateString: string) => {
+
+  // =========================================================================
+  // Funciones de utilidad
+  // =========================================================================
+
+  /**
+   * Formatea una fecha en formato legible
+   */
+  const formatDate = useCallback((dateString: string): string => {
     if (!dateString) return 'N/A';
     try {
       return new Date(dateString).toLocaleDateString('es-ES');
     } catch (e) {
       return dateString;
     }
-  };
+  }, []);
 
-  // Fetch pickup tickets
+  /**
+   * Maneja errores de forma centralizada
+   */
+  const handleError = useCallback((err: any): void => {
+    console.error("Error in usePickupOrdersLogic:", err);
+    toast.error(`Error: ${err.message || 'Ha ocurrido un error inesperado'}`);
+  }, []);
+
+  // =========================================================================
+  // Consultas a la base de datos
+  // =========================================================================
+
+  /**
+   * Consulta para obtener los tickets pendientes de entrega
+   */
   const {
     data: pickupTickets,
     isLoading,
@@ -53,7 +137,7 @@ export const usePickupOrdersLogic = () => {
 
       if (error) throw error;
 
-      // Map database records to Ticket model
+      // Mapear los registros de la base de datos al modelo Ticket
       return data.map(ticket => ({
         id: ticket.id,
         ticketNumber: ticket.ticket_number,
@@ -73,35 +157,18 @@ export const usePickupOrdersLogic = () => {
         toast.error(`Error cargando tickets: ${error.message}`);
       }
     },
-    staleTime: 1000 * 60, // 1 minute
-    gcTime: 1000 * 60 * 5 // 5 minutes
+    staleTime: 1000 * 60, // 1 minuto
+    gcTime: 1000 * 60 * 5 // 5 minutos
   });
 
-  // Function to mark a ticket as delivered
-  const handleMarkAsDelivered = async (ticketId: string) => {
-    try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ status: 'delivered', delivered_date: new Date().toISOString() })
-        .eq('id', ticketId);
+  // =========================================================================
+  // Operaciones con tickets
+  // =========================================================================
 
-      if (error) throw error;
-
-      toast.success('Ticket marcado como entregado');
-      refetch(); // Refresh the ticket list
-    } catch (err: any) {
-      toast.error(`Error al marcar como entregado: ${err.message}`);
-    }
-  };
-
-  // Function to handle errors
-  const handleError = (err: any) => {
-    console.error("Error in usePickupOrdersLogic:", err);
-    toast.error(`Error: ${err.message || 'Something went wrong'}`);
-  };
-
-  // Función para cargar los servicios de un ticket
-  const loadTicketServices = async (ticketId: string) => {
+  /**
+   * Carga los servicios asociados a un ticket
+   */
+  const loadTicketServices = useCallback(async (ticketId: string): Promise<void> => {
     try {
       // Primero obtenemos los servicios del ticket
       const { data: ticketServicesData, error: ticketServicesError } = await supabase
@@ -122,7 +189,7 @@ export const usePickupOrdersLogic = () => {
 
       // Si no hay IDs de servicios, devolvemos los datos de ticket_services tal cual
       if (serviceIds.length === 0) {
-        setTicketServices(ticketServicesData);
+        setTicketServices(ticketServicesData as TicketServiceWithDetails[]);
         return;
       }
 
@@ -140,7 +207,7 @@ export const usePickupOrdersLogic = () => {
         return {
           ...ts,
           services: service
-        };
+        } as TicketServiceWithDetails;
       });
 
       setTicketServices(combinedData || []);
@@ -149,15 +216,39 @@ export const usePickupOrdersLogic = () => {
       handleError(err);
       setTicketServices([]);
     }
-  };
+  }, [handleError]);
 
-  // Función para abrir el diálogo de cancelación
-  const handleOpenCancelDialog = () => {
+  /**
+   * Marca un ticket como entregado
+   */
+  const handleMarkAsDelivered = useCallback(async (ticketId: string): Promise<void> => {
+    try {
+      const { error } = await supabase
+        .from('tickets')
+        .update({ status: 'delivered', delivered_date: new Date().toISOString() })
+        .eq('id', ticketId);
+
+      if (error) throw error;
+
+      toast.success('Ticket marcado como entregado');
+      refetch(); // Actualizar la lista de tickets
+    } catch (err: any) {
+      toast.error(`Error al marcar como entregado: ${err.message}`);
+      handleError(err);
+    }
+  }, [refetch, handleError]);
+
+  /**
+   * Abre el diálogo de cancelación
+   */
+  const handleOpenCancelDialog = useCallback((): void => {
     setCancelDialogOpen(true);
-  };
+  }, []);
 
-  // Función para cancelar un ticket
-  const handleCancelTicket = async () => {
+  /**
+   * Cancela un ticket
+   */
+  const handleCancelTicket = useCallback(async (): Promise<void> => {
     if (!selectedTicket) return;
 
     try {
@@ -176,17 +267,20 @@ export const usePickupOrdersLogic = () => {
     } catch (err: any) {
       handleError(err);
     }
-  };
+  }, [selectedTicket, cancelReason, refetch, handleError]);
 
-  // Función para imprimir un ticket
-  const handlePrintTicket = (ticketId: string) => {
-    // Implementación pendiente
+  /**
+   * Imprime un ticket (implementación pendiente)
+   */
+  const handlePrintTicket = useCallback((ticketId: string): void => {
     console.log('Imprimir ticket:', ticketId);
     toast.info('Función de impresión no implementada');
-  };
+  }, []);
 
-  // Función para compartir por WhatsApp
-  const handleShareWhatsApp = (ticketId: string, phoneNumber?: string) => {
+  /**
+   * Comparte un ticket por WhatsApp
+   */
+  const handleShareWhatsApp = useCallback((ticketId: string, phoneNumber?: string): void => {
     if (!phoneNumber) {
       toast.error('No hay número de teléfono para este cliente');
       return;
@@ -201,21 +295,26 @@ export const usePickupOrdersLogic = () => {
     const message = `Hola! Tu pedido #${ticket.ticketNumber} está listo para retirar. Total: $${ticket.totalPrice}. Gracias por tu compra!`;
     const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
-  };
+  }, [pickupTickets]);
 
-  // Función para notificar al cliente
-  const handleNotifyClient = (ticketId: string, phoneNumber?: string) => {
-    // Por ahora, redirigimos a la función de WhatsApp
+  /**
+   * Notifica al cliente (actualmente usa WhatsApp)
+   */
+  const handleNotifyClient = useCallback((ticketId: string, phoneNumber?: string): void => {
     handleShareWhatsApp(ticketId, phoneNumber);
-  };
+  }, [handleShareWhatsApp]);
 
-  // Función para abrir el diálogo de método de pago
-  const handleOpenPaymentMethodDialog = () => {
+  /**
+   * Abre el diálogo de método de pago
+   */
+  const handleOpenPaymentMethodDialog = useCallback((): void => {
     setPaymentMethodDialogOpen(true);
-  };
+  }, []);
 
-  // Función para actualizar el método de pago
-  const handleUpdatePaymentMethod = async (paymentMethod: string) => {
+  /**
+   * Actualiza el método de pago de un ticket
+   */
+  const handleUpdatePaymentMethod = useCallback(async (paymentMethod: string): Promise<void> => {
     if (!selectedTicket) return;
 
     try {
@@ -232,9 +331,15 @@ export const usePickupOrdersLogic = () => {
     } catch (err: any) {
       handleError(err);
     }
-  };
+  }, [selectedTicket, refetch, handleError]);
 
-  // Filtrar tickets basados en la búsqueda
+  // =========================================================================
+  // Filtrado de tickets
+  // =========================================================================
+
+  /**
+   * Filtra los tickets basados en la búsqueda
+   */
   const filteredTickets = searchQuery.trim()
     ? pickupTickets?.filter((ticket) => {
         if (searchFilter === 'name' && ticket.clientName) {
@@ -245,28 +350,40 @@ export const usePickupOrdersLogic = () => {
         return false;
       })
     : pickupTickets;
-<<<<<<< HEAD
-
-=======
->>>>>>> d57c03af09d39f8ef4d6f67f524793f24e069d31
+  // =========================================================================
+  // Retorno del hook
+  // =========================================================================
   return {
+    // Datos
     pickupTickets,
     filteredTickets,
-    selectedTicket,
-    setSelectedTicket,
-    searchQuery,
-    setSearchQuery,
-    searchFilter,
-    setSearchFilter,
     ticketServices,
+
+    // Estados
+    selectedTicket,
+    searchQuery,
+    searchFilter,
     cancelDialogOpen,
-    setCancelDialogOpen,
     cancelReason,
-    setCancelReason,
+    paymentMethodDialogOpen,
+
+    // Referencias
     ticketDetailRef,
+
+    // Estado de la consulta
     isLoading,
     isError,
     error,
+
+    // Setters
+    setSelectedTicket,
+    setSearchQuery,
+    setSearchFilter,
+    setCancelDialogOpen,
+    setCancelReason,
+    setPaymentMethodDialogOpen,
+
+    // Funciones
     refetch,
     loadTicketServices,
     handleMarkAsDelivered,
@@ -275,8 +392,6 @@ export const usePickupOrdersLogic = () => {
     handlePrintTicket,
     handleShareWhatsApp,
     handleNotifyClient,
-    paymentMethodDialogOpen,
-    setPaymentMethodDialogOpen,
     handleOpenPaymentMethodDialog,
     handleUpdatePaymentMethod,
     handleError,
