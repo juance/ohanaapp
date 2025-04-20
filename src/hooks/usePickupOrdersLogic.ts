@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,7 +16,7 @@ interface UsePickupOrdersLogicReturn {
   pickupTickets: Ticket[] | undefined;
   filteredTickets: Ticket[] | undefined;
   ticketServices: TicketServiceWithDetails[];
-
+  
   // Estados
   selectedTicket: string | null;
   searchQuery: string;
@@ -25,15 +24,15 @@ interface UsePickupOrdersLogicReturn {
   cancelDialogOpen: boolean;
   cancelReason: string;
   paymentMethodDialogOpen: boolean;
-
+  
   // Referencias
   ticketDetailRef: React.RefObject<HTMLDivElement>;
-
+  
   // Estado de la consulta
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
-
+  
   // Setters
   setSelectedTicket: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
@@ -41,7 +40,7 @@ interface UsePickupOrdersLogicReturn {
   setCancelDialogOpen: (open: boolean) => void;
   setCancelReason: (reason: string) => void;
   setPaymentMethodDialogOpen: (open: boolean) => void;
-
+  
   // Funciones
   refetch: () => Promise<any>;
   loadTicketServices: (ticketId: string) => Promise<void>;
@@ -59,7 +58,7 @@ interface UsePickupOrdersLogicReturn {
 
 /**
  * Hook para manejar la lógica de los pedidos a retirar
- *
+ * 
  * Este hook proporciona toda la funcionalidad necesaria para la pantalla de pedidos a retirar,
  * incluyendo la carga de tickets, filtrado, selección, y operaciones como marcar como entregado,
  * cancelar, etc.
@@ -68,7 +67,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   // =========================================================================
   // Estados
   // =========================================================================
-
+  
   // Estado para el ticket seleccionado
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
 
@@ -92,7 +91,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   // =========================================================================
   // Funciones de utilidad
   // =========================================================================
-
+  
   /**
    * Formatea una fecha en formato legible
    */
@@ -116,7 +115,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   // =========================================================================
   // Consultas a la base de datos
   // =========================================================================
-
+  
   /**
    * Consulta para obtener los tickets pendientes de entrega
    */
@@ -161,21 +160,10 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
     gcTime: 1000 * 60 * 5 // 5 minutos
   });
 
-<<<<<<< HEAD
   // =========================================================================
   // Operaciones con tickets
   // =========================================================================
-
-  /**
-   * Carga los servicios asociados a un ticket
-   */
-  const loadTicketServices = useCallback(async (ticketId: string): Promise<void> => {
-=======
-<<<<<<< HEAD
-  // =========================================================================
-  // Operaciones con tickets
-  // =========================================================================
-
+  
   /**
    * Carga los servicios asociados a un ticket
    */
@@ -188,7 +176,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
         .eq('ticket_id', ticketId);
 
       if (ticketServicesError) throw ticketServicesError;
-
+      
       // Si no hay servicios, devolvemos un array vacío
       if (!ticketServicesData || ticketServicesData.length === 0) {
         setTicketServices([]);
@@ -197,7 +185,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
 
       // Obtenemos los IDs de los servicios
       const serviceIds = ticketServicesData.map(ts => ts.service_id).filter(Boolean);
-
+      
       // Si no hay IDs de servicios, devolvemos los datos de ticket_services tal cual
       if (serviceIds.length === 0) {
         setTicketServices(ticketServicesData as TicketServiceWithDetails[]);
@@ -233,90 +221,6 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
    * Marca un ticket como entregado
    */
   const handleMarkAsDelivered = useCallback(async (ticketId: string): Promise<void> => {
-=======
-  // Function to mark a ticket as delivered
-  const handleMarkAsDelivered = async (ticketId: string) => {
->>>>>>> a2dcf148c30312505394f3e02a19909be5ba886b
-    try {
-      const { error } = await supabase
-        .from('tickets')
-        .update({ status: 'delivered', delivered_date: new Date().toISOString() })
-        .eq('id', ticketId);
-
-      if (error) throw error;
-
-      toast.success('Ticket marcado como entregado');
-      refetch(); // Actualizar la lista de tickets
-    } catch (err: any) {
-      toast.error(`Error al marcar como entregado: ${err.message}`);
-<<<<<<< HEAD
-=======
-    }
-  };
-
-  // Function to handle errors
-  const handleError = (err: any) => {
-    console.error("Error in usePickupOrdersLogic:", err);
-    toast.error(`Error: ${err.message || 'Something went wrong'}`);
-  };
-
-  // Función para cargar los servicios de un ticket
-  const loadTicketServices = async (ticketId: string) => {
->>>>>>> 37b60053af6622cbbe999949b9f2138a2ee0d043
-    try {
-      // Primero obtenemos los servicios del ticket
-      const { data: ticketServicesData, error: ticketServicesError } = await supabase
-        .from('ticket_services')
-        .select('*')
-        .eq('ticket_id', ticketId);
-
-      if (ticketServicesError) throw ticketServicesError;
-
-      // Si no hay servicios, devolvemos un array vacío
-      if (!ticketServicesData || ticketServicesData.length === 0) {
-        setTicketServices([]);
-        return;
-      }
-
-      // Obtenemos los IDs de los servicios
-      const serviceIds = ticketServicesData.map(ts => ts.service_id).filter(Boolean);
-
-      // Si no hay IDs de servicios, devolvemos los datos de ticket_services tal cual
-      if (serviceIds.length === 0) {
-        setTicketServices(ticketServicesData as TicketServiceWithDetails[]);
-        return;
-      }
-
-      // Obtenemos los detalles de los servicios
-      const { data: servicesData, error: servicesError } = await supabase
-        .from('services')
-        .select('*')
-        .in('id', serviceIds);
-
-      if (servicesError) throw servicesError;
-
-      // Combinamos los datos
-      const combinedData = ticketServicesData.map(ts => {
-        const service = servicesData?.find(s => s.id === ts.service_id) || null;
-        return {
-          ...ts,
-          services: service
-        } as TicketServiceWithDetails;
-      });
-
-      setTicketServices(combinedData || []);
-    } catch (err: any) {
-      console.error('Error cargando servicios del ticket:', err);
->>>>>>> a2dcf148c30312505394f3e02a19909be5ba886b
-      handleError(err);
-    }
-<<<<<<< HEAD
-  }, [handleError]);
-
-  /**
-   * Marca un ticket como entregado
-   */
-  const handleMarkAsDelivered = useCallback(async (ticketId: string): Promise<void> => {
     try {
       const { error } = await supabase
         .from('tickets')
@@ -334,11 +238,6 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   }, [refetch, handleError]);
 
   /**
-=======
-  }, [refetch, handleError]);
-
-  /**
->>>>>>> 37b60053af6622cbbe999949b9f2138a2ee0d043
    * Abre el diálogo de cancelación
    */
   const handleOpenCancelDialog = useCallback((): void => {
@@ -436,7 +335,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
   // =========================================================================
   // Filtrado de tickets
   // =========================================================================
-
+  
   /**
    * Filtra los tickets basados en la búsqueda
    */
@@ -450,28 +349,15 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
         return false;
       })
     : pickupTickets;
-<<<<<<< HEAD
   // =========================================================================
   // Retorno del hook
   // =========================================================================
-=======
-<<<<<<< HEAD
-  // =========================================================================
-  // Retorno del hook
-  // =========================================================================
-=======
-<<<<<<< HEAD
-
-=======
->>>>>>> d57c03af09d39f8ef4d6f67f524793f24e069d31
->>>>>>> a2dcf148c30312505394f3e02a19909be5ba886b
->>>>>>> 37b60053af6622cbbe999949b9f2138a2ee0d043
   return {
     // Datos
     pickupTickets,
     filteredTickets,
     ticketServices,
-
+    
     // Estados
     selectedTicket,
     searchQuery,
@@ -479,15 +365,15 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
     cancelDialogOpen,
     cancelReason,
     paymentMethodDialogOpen,
-
+    
     // Referencias
     ticketDetailRef,
-
+    
     // Estado de la consulta
     isLoading,
     isError,
     error,
-
+    
     // Setters
     setSelectedTicket,
     setSearchQuery,
@@ -495,7 +381,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
     setCancelDialogOpen,
     setCancelReason,
     setPaymentMethodDialogOpen,
-
+    
     // Funciones
     refetch,
     loadTicketServices,
