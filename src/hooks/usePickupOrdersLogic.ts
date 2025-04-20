@@ -204,13 +204,48 @@ export const usePickupOrdersLogic = () => {
     }
   };
 
+  // Filtrar tickets basados en la búsqueda
+  const filteredTickets = searchQuery.trim()
+    ? pickupTickets?.filter((ticket) => {
+        if (searchFilter === 'name' && ticket.clientName) {
+          return ticket.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+        } else if (searchFilter === 'phone' && ticket.phoneNumber) {
+          return ticket.phoneNumber.includes(searchQuery);
+        }
+        return false;
+      })
+    : pickupTickets;
+
   return {
     pickupTickets,
+    filteredTickets,
+    selectedTicket,
+    setSelectedTicket,
+    searchQuery,
+    setSearchQuery,
+    searchFilter,
+    setSearchFilter,
+    ticketServices,
+    cancelDialogOpen,
+    setCancelDialogOpen,
+    cancelReason,
+    setCancelReason,
+    ticketDetailRef,
     isLoading,
     isError,
     error,
     refetch,
+    loadTicketServices,
     markAsDelivered,
+    handleOpenCancelDialog,
+    handleCancelTicket,
+    handlePrintTicket,
+    handleShareWhatsApp,
+    handleNotifyClient,
+    paymentMethodDialogOpen,
+    setPaymentMethodDialogOpen,
+    handleOpenPaymentMethodDialog,
+    handleUpdatePaymentMethod,
     handleError,
     formatDate
   };
