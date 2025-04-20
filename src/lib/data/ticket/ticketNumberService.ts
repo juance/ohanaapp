@@ -8,38 +8,17 @@ export const getNextTicketNumber = async (): Promise<string> => {
   try {
     console.log('Getting next ticket number from database');
 
-    // Alternativa: Actualizar directamente la tabla ticket_sequence
-    const { data: sequenceData, error: sequenceError } = await supabase
-      .from('ticket_sequence')
-      .select('last_number')
-      .eq('id', 1)
-      .single();
+    // Llamar a la función de la base de datos para obtener el siguiente número de ticket
+    const { data: ticketNumber, error: ticketNumberError } = await supabase
+      .rpc('get_next_ticket_number');
 
-    if (sequenceError) {
-      console.error('Error getting ticket sequence:', sequenceError);
-      throw sequenceError;
+    if (ticketNumberError) {
+      console.error('Error getting next ticket number:', ticketNumberError);
+      throw ticketNumberError;
     }
 
-    console.log('Current sequence value:', sequenceData.last_number);
-
-    // Incrementar el número
-    const nextNumber = (sequenceData.last_number || 0) + 1;
-
-    // Actualizar la secuencia
-    const { error: updateError } = await supabase
-      .from('ticket_sequence')
-      .update({ last_number: nextNumber })
-      .eq('id', 1);
-
-    if (updateError) {
-      console.error('Error updating ticket sequence:', updateError);
-      throw updateError;
-    }
-
-    // Formatear el número con ceros a la izquierda (8 dígitos)
-    const formattedNumber = nextNumber.toString().padStart(8, '0');
-    console.log('Ticket number generated successfully:', formattedNumber);
-    return formattedNumber;
+    console.log('Ticket number generated successfully:', ticketNumber);
+    return ticketNumber;
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
