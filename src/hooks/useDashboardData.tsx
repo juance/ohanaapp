@@ -30,69 +30,56 @@ export const useDashboardData = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log('Fetching dashboard data...');
 
-      const fetchPromises: Promise<any>[] = [];
-
-      // Fetch all tickets
+      // Fetch all tickets with a simpler query
       const { data, error: ticketsError } = await supabase
         .from('tickets')
-        .select('*');
+        .select('id, total, status, valet_quantity, created_at');
 
-      if (ticketsError) throw ticketsError;
+      if (ticketsError) {
+        console.error('Error fetching tickets:', ticketsError);
+        throw ticketsError;
+      }
+
+      console.log(`Fetched ${data?.length || 0} tickets`);
 
       // Initialize statistics
-      let total = data.length;
+      let total = data?.length || 0;
       let delivered = 0;
       let pending = 0;
       let revenue = 0;
       let valetCount = 0;
 
       // Process each ticket to calculate the statistics
-      const processedTickets = data.map(ticket => {
-        revenue += ticket.total || 0;
+      if (data && data.length > 0) {
+        data.forEach(ticket => {
+          revenue += ticket.total || 0;
 
-        if (ticket.status === 'delivered') {
-          delivered++;
-        } else {
-          pending++;
-        }
+          if (ticket.status === 'delivered') {
+            delivered++;
+          } else {
+            pending++;
+          }
 
-        valetCount += ticket.valet_quantity || 0;
+          valetCount += ticket.valet_quantity || 0;
+        });
+      }
 
-        // Safely handle the dry cleaning items
-        let dryCleaningItemsCount = 0;
+      console.log('Basic stats calculated:', { total, delivered, pending, revenue, valetCount });
 
-        // Fetch dry cleaning items separately since they might not be included in the join
-        const getDryCleaningItems = async (ticketId: string) => {
-          const { data: items } = await supabase
-            .from('dry_cleaning_items')
-            .select('*')
-            .eq('ticket_id', ticketId);
+      // Fetch dry cleaning items count with a single query
+      const { data: dryCleaningData, error: dryCleaningError } = await supabase
+        .from('dry_cleaning_items')
+        .select('id');
 
-          return items || [];
-        };
+      if (dryCleaningError) {
+        console.error('Error fetching dry cleaning items:', dryCleaningError);
+        throw dryCleaningError;
+      }
 
-        // Track async calls to fetch dry cleaning items
-        fetchPromises.push(
-          getDryCleaningItems(ticket.id).then(items => {
-            dryCleaningItemsCount = items.length;
-          })
-        );
-
-        return {
-          id: ticket.id,
-          total: ticket.total,
-          status: ticket.status,
-          valet_quantity: ticket.valet_quantity,
-          dryCleaningItemsCount, // This will be updated after the promise resolves
-        };
-      });
-
-      // Wait for all dry cleaning items to be fetched
-      await Promise.all(fetchPromises);
-
-      // Sum up the dry cleaning items count
-      const totalDryCleaningItemsCount = processedTickets.reduce((sum, ticket) => sum + ticket.dryCleaningItemsCount, 0);
+      const totalDryCleaningItemsCount = dryCleaningData?.length || 0;
+      console.log(`Fetched ${totalDryCleaningItemsCount} dry cleaning items`);
 
       return {
         total,
