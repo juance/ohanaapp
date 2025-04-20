@@ -47,12 +47,36 @@ const Expenses = () => {
 
     setIsSubmitting(true);
 
-    const result = await storeExpense({
-      description,
-      amount: parseFloat(amount.toString()),
-      date
-      // Removed category field as it doesn't exist in the database
-    });
+    try {
+      // Asegurarse de que la fecha sea un string ISO válido
+      let dateToUse = date;
+      if (dateToUse) {
+        try {
+          // Intentar crear un objeto Date a partir del string
+          const dateObj = new Date(dateToUse);
+          // Verificar si es una fecha válida
+          if (!isNaN(dateObj.getTime())) {
+            // Convertir a formato ISO
+            dateToUse = dateObj.toISOString();
+          } else {
+            // Si no es válida, usar la fecha actual
+            dateToUse = new Date().toISOString();
+          }
+        } catch (dateError) {
+          console.error('Error al procesar la fecha:', dateError);
+          dateToUse = new Date().toISOString();
+        }
+      } else {
+        // Si no hay fecha, usar la fecha actual
+        dateToUse = new Date().toISOString();
+      }
+
+      const result = await storeExpense({
+        description,
+        amount: parseFloat(amount.toString()),
+        date: dateToUse
+        // Removed category field as it doesn't exist in the database
+      });
 
     if (result) {
       toast({
@@ -73,8 +97,16 @@ const Expenses = () => {
         description: "Error al agregar el gasto"
       });
     }
-
-    setIsSubmitting(false);
+    } catch (error) {
+      console.error('Error al guardar el gasto:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Error al agregar el gasto: " + (error instanceof Error ? error.message : 'Error desconocido')
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGoToHome = () => {
