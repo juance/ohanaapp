@@ -38,25 +38,27 @@ const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
  */
 export const storeCustomer = async (customerData: Partial<Customer>): Promise<Customer> => {
   try {
-    const { phone, name } = customerData;
-    
+    // Aceptar tanto 'phone' como 'phoneNumber' para mayor compatibilidad
+    const phone = customerData.phone || customerData.phoneNumber;
+    const { name } = customerData;
+
     if (!phone) {
       throw new Error('Phone number is required');
     }
-    
+
     // Check if customer exists in Supabase
     const { data: existingCustomers, error } = await supabase
       .from('customers')
       .select('*')
       .eq('phone', phone);
-    
+
     if (error) throw error;
-    
+
     // If customer exists, return it
     if (existingCustomers && existingCustomers.length > 0) {
       return mapDatabaseCustomerToModel(existingCustomers[0]);
     }
-    
+
     // Customer doesn't exist, create a new one
     const { data: newCustomer, error: createError } = await supabase
       .from('customers')
@@ -72,13 +74,13 @@ export const storeCustomer = async (customerData: Partial<Customer>): Promise<Cu
         }
       ])
       .select();
-    
+
     if (createError) throw createError;
-    
+
     if (!newCustomer || newCustomer.length === 0) {
       throw new Error('Error creating customer');
     }
-    
+
     return mapDatabaseCustomerToModel(newCustomer[0]);
   } catch (error) {
     console.error('Error storing customer:', error);
@@ -95,20 +97,20 @@ export const getCustomerByPhone = async (phone: string): Promise<Customer | null
     if (!phone) {
       throw new Error('Phone number is required');
     }
-    
+
     // Search for customer in Supabase
     const { data, error } = await supabase
       .from('customers')
       .select('*')
       .eq('phone', phone);
-    
+
     if (error) throw error;
-    
+
     // Return the customer if found
     if (data && data.length > 0) {
       return mapDatabaseCustomerToModel(data[0]);
     }
-    
+
     // Customer not found
     return null;
   } catch (error) {
@@ -126,7 +128,7 @@ export const updateCustomerLastVisit = async (customerId: string): Promise<void>
     if (!customerId) {
       throw new Error('Customer ID is required');
     }
-    
+
     // Update the last visit date in Supabase
     const { error } = await supabase
       .from('customers')
@@ -134,7 +136,7 @@ export const updateCustomerLastVisit = async (customerId: string): Promise<void>
         last_visit: new Date().toISOString()
       })
       .eq('id', customerId);
-    
+
     if (error) throw error;
   } catch (error) {
     console.error('Error updating customer last visit:', error);
