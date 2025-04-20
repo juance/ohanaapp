@@ -39,7 +39,7 @@ export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => 
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        id, 
+        id,
         ticket_number,
         total,
         payment_method,
@@ -74,15 +74,22 @@ export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => 
 };
 
 /**
- * Marks a ticket as delivered by updating its status to 'delivered' and setting the delivered_date.
+ * Marks a ticket as delivered by updating its status to 'delivered', setting the delivered_date, and marking it as paid.
  * @param {string} ticketId The ID of the ticket to mark as delivered.
  * @returns {Promise<boolean>} A promise that resolves to true if the update was successful, false otherwise.
  */
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
+    const now = new Date().toISOString();
+
     const { data, error } = await supabase
       .from('tickets')
-      .update({ status: 'delivered', delivered_date: new Date().toISOString() })
+      .update({
+        status: 'delivered',
+        delivered_date: now,
+        is_paid: true, // Marcar como pagado al entregar
+        updated_at: now
+      })
       .eq('id', ticketId);
 
     if (error) {
@@ -91,7 +98,7 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
       return false;
     }
 
-    toast.success('Ticket marcado como entregado');
+    toast.success('Ticket marcado como entregado y pagado');
     return true;
   } catch (error) {
     console.error('Unexpected error marking ticket as delivered:', error);
@@ -136,7 +143,7 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        id, 
+        id,
         ticket_number,
         total,
         payment_method,
@@ -238,15 +245,15 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
       const query = buildTicketSelectQuery()
         .eq('status', 'delivered')
         .order('created_at', { ascending: false });
-  
+
       const { data, error } = await query;
-  
+
       if (error) {
         console.error('Error fetching delivered tickets:', error);
         toast.error('Error al cargar los tickets entregados');
         return [];
       }
-  
+
       return data.map(mapTicketData);
     } catch (error) {
       console.error('Unexpected error fetching delivered tickets:', error);
