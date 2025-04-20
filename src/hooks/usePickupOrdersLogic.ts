@@ -3,8 +3,29 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { useState, useRef } from 'react';
 
 export const usePickupOrdersLogic = () => {
+  // Estado para el ticket seleccionado
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+
+  // Estado para la búsqueda
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
+
+  // Estado para los servicios del ticket
+  const [ticketServices, setTicketServices] = useState<any[]>([]);
+
+  // Estado para el diálogo de cancelación
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+
+  // Estado para el diálogo de método de pago
+  const [paymentMethodDialogOpen, setPaymentMethodDialogOpen] = useState(false);
+
+  // Referencia para el panel de detalles del ticket
+  const ticketDetailRef = useRef<HTMLDivElement>(null);
+
   // Función para formatear fechas
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
