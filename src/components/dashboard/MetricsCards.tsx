@@ -18,24 +18,27 @@ const formatCurrency = (value: number) => {
 };
 
 export default function MetricsCards({ metrics, expenses, viewType }: MetricsCardsProps) {
-  // Select metrics for current view
-  const currentMetrics = metrics ? metrics[viewType] || {} : {};
+  // Usar directamente los datos de las estadísticas de tickets
+  console.log('MetricsCards - metrics completo:', metrics);
+
+  // Calcular métricas directamente desde los datos de tickets
+  const revenue = Number(metrics?.revenue || 0);
   const currentExpenses = expenses ? expenses[viewType] || 0 : 0;
-
-  console.log('MetricsCards - metrics:', metrics);
-  console.log('MetricsCards - viewType:', viewType);
-  console.log('MetricsCards - currentMetrics:', currentMetrics);
-
-  // Calculate metrics safely
-  const revenue = Number(currentMetrics?.totalRevenue || 0);
   const profit = revenue - Number(currentExpenses || 0);
-  const totalTickets = Number(currentMetrics?.totalTickets || 0);
-  const paidTickets = Number(currentMetrics?.paidTickets || 0);
-  const freeValets = Number(currentMetrics?.freeValets || 0);
+  const totalTickets = Number(metrics?.total || 0);
+  const deliveredTickets = Number(metrics?.delivered || 0);
+  const pendingTickets = Number(metrics?.pending || 0);
+  const valetCount = Number(metrics?.valetCount || 0);
+  const dryCleaningItemsCount = Number(metrics?.dryCleaningItemsCount || 0);
 
-  console.log('MetricsCards - currentMetrics:', currentMetrics);
-  console.log('MetricsCards - revenue:', revenue);
-  console.log('MetricsCards - totalTickets:', totalTickets);
+  console.log('MetricsCards - Valores calculados:', {
+    revenue,
+    totalTickets,
+    deliveredTickets,
+    pendingTickets,
+    valetCount,
+    dryCleaningItemsCount
+  });
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -95,11 +98,11 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Tickets Pagados</CardTitle>
+          <CardTitle className="text-sm font-medium">Tickets Entregados</CardTitle>
           <CheckCircle className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{paidTickets}</div>
+          <div className="text-2xl font-bold">{deliveredTickets}</div>
           <p className="text-xs text-muted-foreground">
             {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
           </p>
@@ -108,11 +111,11 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Valets Gratis</CardTitle>
+          <CardTitle className="text-sm font-medium">Tickets Pendientes</CardTitle>
           <Award className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{freeValets}</div>
+          <div className="text-2xl font-bold">{pendingTickets}</div>
           <p className="text-xs text-muted-foreground">
             {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
           </p>
