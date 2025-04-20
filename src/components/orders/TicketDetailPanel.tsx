@@ -42,7 +42,7 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     if (!selectedTicket) return null;
 
     const selectedTicketObj = ticket;
-    
+
     return (
       <div className="mt-4 grid gap-2">
         {selectedTicketObj.status === 'delivered' && selectedTicketObj.deliveredDate && (
@@ -73,6 +73,19 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
         ticketId: ticket.id
       }))
     : hasLoadedServices ? ticketServices : [];
+
+  // Si no hay servicios, crear un servicio por defecto para mostrar
+  if (displayServices.length === 0) {
+    const quantity = ticket.valetQuantity || 1;
+    const price = ticket.totalPrice / quantity;
+    displayServices.push({
+      id: `default-${Math.random()}`,
+      name: quantity > 1 ? 'Valets' : 'Valet',
+      quantity: quantity,
+      price: price,
+      ticketId: ticket.id
+    });
+  }
 
   // Función para arreglar los servicios del ticket
   const handleFixServices = async () => {
@@ -140,45 +153,21 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
 
       <div>
         <h3 className="text-xl font-semibold mb-4">Servicios</h3>
-        {displayServices.length > 0 ? (
-          <div className="space-y-2">
-            {displayServices.map(service => (
-              <div key={service.id} className="flex justify-between items-center border-b pb-2">
-                <div>
-                  <span className="font-medium">{service.name}</span>
-                  {service.quantity > 1 && <span className="ml-1 text-sm text-gray-500">x{service.quantity}</span>}
-                </div>
-                <span className="font-medium">${service.price.toLocaleString()}</span>
+        <div className="space-y-2">
+          {displayServices.map(service => (
+            <div key={service.id} className="flex justify-between items-center border-b pb-2">
+              <div>
+                <span className="font-medium">{service.name}</span>
+                {service.quantity > 1 && <span className="ml-1 text-sm text-gray-500">x{service.quantity}</span>}
               </div>
-            ))}
-            <div className="flex justify-between items-center pt-4">
-              <span className="font-bold">Total</span>
-              <span className="font-bold text-blue-700">${ticket.totalPrice.toLocaleString()}</span>
+              <span className="font-medium">${service.price.toLocaleString()}</span>
             </div>
+          ))}
+          <div className="flex justify-between items-center pt-4">
+            <span className="font-bold">Total</span>
+            <span className="font-bold text-blue-700">${ticket.totalPrice.toLocaleString()}</span>
           </div>
-        ) : (
-          <div className="text-center py-4 border rounded-md bg-gray-50">
-            <p className="text-gray-500 mb-2">No hay servicios registrados para este ticket</p>
-            <p className="text-sm text-gray-400 mb-4">Haga clic en el botón para crear servicios automáticamente</p>
-
-            <Button
-              onClick={handleFixServices}
-              disabled={isFixingServices || fixAttempted}
-              className="mx-auto flex items-center gap-2"
-              variant="outline"
-              size="sm"
-            >
-              {isFixingServices ? (
-                <>
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                  Creando servicios...
-                </>
-              ) : (
-                <>Crear servicios automáticamente</>
-              )}
-            </Button>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );

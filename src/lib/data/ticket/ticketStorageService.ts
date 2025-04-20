@@ -96,6 +96,27 @@ export const storeTicket = async (
       }
     }
 
+    // 6. Si no hay servicios de lavado en seco, crear un servicio por defecto
+    if (!dryCleaningItems || dryCleaningItems.length === 0) {
+      console.log('Creando servicio por defecto para el ticket');
+      const quantity = ticketData.valetQuantity || 1;
+      const price = ticketData.totalPrice / quantity;
+
+      const { error: defaultServiceError } = await supabase
+        .from('dry_cleaning_items')
+        .insert({
+          ticket_id: ticketId,
+          name: quantity > 1 ? 'Valets' : 'Valet',
+          quantity: quantity,
+          price: price
+        });
+
+      if (defaultServiceError) {
+        console.error('Error al crear servicio por defecto:', defaultServiceError);
+        // No lanzamos error para no interrumpir el flujo si falla la creación del servicio por defecto
+      }
+    }
+
     return true;
   } catch (error) {
     console.error('Error storing ticket:', error);
