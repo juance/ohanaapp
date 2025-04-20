@@ -78,7 +78,7 @@ export const usePickupOrdersLogic = () => {
   });
 
   // Function to mark a ticket as delivered
-  const markAsDelivered = async (ticketId: string) => {
+  const handleMarkAsDelivered = async (ticketId: string) => {
     try {
       const { error } = await supabase
         .from('tickets')
@@ -103,15 +103,49 @@ export const usePickupOrdersLogic = () => {
   // Función para cargar los servicios de un ticket
   const loadTicketServices = async (ticketId: string) => {
     try {
-      const { data, error } = await supabase
+      // Primero obtenemos los servicios del ticket
+      const { data: ticketServicesData, error: ticketServicesError } = await supabase
         .from('ticket_services')
-        .select('*, services(*)')
+        .select('*')
         .eq('ticket_id', ticketId);
 
-      if (error) throw error;
+      if (ticketServicesError) throw ticketServicesError;
 
-      setTicketServices(data || []);
+      // Si no hay servicios, devolvemos un array vacío
+      if (!ticketServicesData || ticketServicesData.length === 0) {
+        setTicketServices([]);
+        return;
+      }
+
+      // Obtenemos los IDs de los servicios
+      const serviceIds = ticketServicesData.map(ts => ts.service_id).filter(Boolean);
+
+      // Si no hay IDs de servicios, devolvemos los datos de ticket_services tal cual
+      if (serviceIds.length === 0) {
+        setTicketServices(ticketServicesData);
+        return;
+      }
+
+      // Obtenemos los detalles de los servicios
+      const { data: servicesData, error: servicesError } = await supabase
+        .from('services')
+        .select('*')
+        .in('id', serviceIds);
+
+      if (servicesError) throw servicesError;
+
+      // Combinamos los datos
+      const combinedData = ticketServicesData.map(ts => {
+        const service = servicesData?.find(s => s.id === ts.service_id) || null;
+        return {
+          ...ts,
+          services: service
+        };
+      });
+
+      setTicketServices(combinedData || []);
     } catch (err: any) {
+      console.error('Error cargando servicios del ticket:', err);
       handleError(err);
       setTicketServices([]);
     }
@@ -231,7 +265,7 @@ export const usePickupOrdersLogic = () => {
     error,
     refetch,
     loadTicketServices,
-    markAsDelivered,
+    handleMarkAsDelivered,
     handleOpenCancelDialog,
     handleCancelTicket,
     handlePrintTicket,
