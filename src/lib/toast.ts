@@ -27,13 +27,18 @@ export const toast = {
       description,
       ...options
     });
-  },
-  
-  // Alias for default to make it easier to use directly
-  (message: string, options?: any) {
-    return sonnerToast(message, options);
   }
 };
 
-// Make toast callable directly with the signature of the default method
-export default toast;
+// Add function capability to the toast object
+const toastFunction = (message: string, options?: any) => {
+  return sonnerToast(message, options);
+};
+
+// Copy all properties from toast object to the function
+Object.assign(toastFunction, toast);
+
+// Export the function with all properties
+export default toastFunction as typeof toast & {
+  (message: string, options?: any): any;
+};
