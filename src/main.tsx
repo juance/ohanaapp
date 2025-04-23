@@ -16,13 +16,15 @@ const queryClient = new QueryClient()
 // Inicializar servicio de errores
 initErrorService();
 
-// Crear el elemento raíz antes de renderizar
-const rootElement = document.getElementById('root');
-
-// Verificar que el elemento raíz existe
-if (!rootElement) {
-  console.error('No se pudo encontrar el elemento raíz "root"');
-} else {
+// Asegurarnos de que el documento esté completamente cargado antes de renderizar
+document.addEventListener('DOMContentLoaded', () => {
+  const rootElement = document.getElementById('root');
+  
+  if (!rootElement) {
+    console.error('No se pudo encontrar el elemento raíz "root"');
+    return;
+  }
+  
   const root = ReactDOM.createRoot(rootElement);
   
   root.render(
@@ -39,4 +41,4 @@ if (!rootElement) {
       </ErrorBoundary>
     </React.StrictMode>
   );
-}
+});
