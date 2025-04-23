@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User, Clock, AlertTriangle } from 'lucide-react';
+import { BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User, Clock, AlertTriangle, BookOpen } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
@@ -29,6 +29,7 @@ const Navbar: React.FC = () => {
     { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/diagnostics', name: 'Diagnóstico', icon: <AlertTriangle className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/code-documentation', name: 'Documentación del Código', icon: <BookOpen className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/user-tickets', name: 'Portal para Clientes', icon: <User className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role, 'client' as Role] },
   ];
 

@@ -27,6 +27,9 @@ const Auth = lazy(() => import('@/pages/Auth'));
 const ChangePassword = lazy(() => import('@/pages/ChangePassword'));
 
 // Loading fallback with optimized rendering
+const CodeDocumentation = lazy(() => import('@/pages/CodeDocumentation'));
+
+// Loading fallback with optimized rendering
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <Loading className="scale-150" />
@@ -118,6 +121,12 @@ function App() {
           <Route path="/diagnostics" element={
             <ProtectedRoute allowedRoles={['admin']}>
               <Diagnostics />
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/code-documentation" element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <CodeDocumentation />
             </ProtectedRoute>
           } />
 

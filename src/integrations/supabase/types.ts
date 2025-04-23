@@ -379,7 +379,6 @@ export type Database = {
       }
       tickets: {
         Row: {
-          basket_ticket_number: string | null
           cancel_reason: string | null
           created_at: string | null
           customer_id: string | null
@@ -398,7 +397,6 @@ export type Database = {
           valet_quantity: number | null
         }
         Insert: {
-          basket_ticket_number?: string | null
           cancel_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
@@ -417,7 +415,6 @@ export type Database = {
           valet_quantity?: number | null
         }
         Update: {
-          basket_ticket_number?: string | null
           cancel_reason?: string | null
           created_at?: string | null
           customer_id?: string | null
@@ -550,6 +547,10 @@ export type Database = {
           role: string
           created_at: string
         }[]
+      }
+      recalculate_customer_visits: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       reset_ticket_sequence: {
         Args: Record<PropertyKey, never>

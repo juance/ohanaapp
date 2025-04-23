@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, PlusCircle, ShoppingBasket, Clock, CheckSquare, ChevronRight, Search, User, LogIn } from 'lucide-react';
+import { ShoppingBag, PlusCircle, ShoppingBasket, Clock, CheckSquare, ChevronRight, Search, User, LogIn, BookOpen } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -103,21 +103,39 @@ const Index = () => {
       </Card>
 
       {user?.role === 'admin' && (
-        <Card className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
-          <CardContent className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">Dashboard</h2>
-              <ShoppingBasket className="h-6 w-6 text-purple-500" />
-            </div>
-            <p className="text-gray-500 mb-4">Ver estadísticas y métricas</p>
-            <Link to="/dashboard">
-              <Button variant="outline" className="w-full">
-                Ver Dashboard
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <>
+          <Card className="hover:shadow-md transition-shadow border-l-4 border-l-purple-500">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Dashboard</h2>
+                <ShoppingBasket className="h-6 w-6 text-purple-500" />
+              </div>
+              <p className="text-gray-500 mb-4">Ver estadísticas y métricas</p>
+              <Link to="/dashboard">
+                <Button variant="outline" className="w-full">
+                  Ver Dashboard
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover:shadow-md transition-shadow border-l-4 border-l-teal-500">
+            <CardContent className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Documentación del Código</h2>
+                <BookOpen className="h-6 w-6 text-teal-500" />
+              </div>
+              <p className="text-gray-500 mb-4">Ver documentación técnica del sistema</p>
+              <Link to="/code-documentation">
+                <Button variant="outline" className="w-full">
+                  Ver Documentación
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <Card className="hover:shadow-md transition-shadow border-l-4 border-l-orange-500">
