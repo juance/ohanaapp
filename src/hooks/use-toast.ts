@@ -49,7 +49,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// The useToast hook now simply returns the toast object without using React.useState
+// Simplificamos useToast para que no use useState
 export function useToast() {
   return { toast };
 }

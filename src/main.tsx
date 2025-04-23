@@ -16,7 +16,8 @@ const queryClient = new QueryClient()
 // Inicializar servicio de errores
 initErrorService();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+// Componente raíz para envolver la aplicación con proveedores
+const Root = () => (
   <React.StrictMode>
     <ErrorBoundary>
       <BrowserRouter>
@@ -28,5 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </ThemeProvider>
       </BrowserRouter>
     </ErrorBoundary>
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
+
+ReactDOM.createRoot(document.getElementById('root')!).render(<Root />);
