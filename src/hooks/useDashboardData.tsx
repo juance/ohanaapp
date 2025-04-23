@@ -118,16 +118,28 @@ export const useDashboardData = () => {
     daily: null,
     weekly: null,
     monthly: {
+      totalTickets: ticketStats.total,
+      paidTickets: ticketStats.delivered,
+      totalRevenue: ticketStats.revenue,
       salesByWeek: {
         'Semana 1': ticketStats.revenue * 0.25,
         'Semana 2': ticketStats.revenue * 0.25,
         'Semana 3': ticketStats.revenue * 0.25,
         'Semana 4': ticketStats.revenue * 0.25
       },
+      salesByDay: {}, // Campo requerido por MonthlyMetrics
       dryCleaningItems: {
         'Valet': ticketStats.valetCount,
         'Tintorería': ticketStats.dryCleaningItemsCount
-      }
+      },
+      paymentMethods: {
+        cash: 0,
+        debit: 0,
+        mercadopago: 0,
+        cuentaDni: 0
+      },
+      totalSales: ticketStats.revenue,
+      valetCount: ticketStats.valetCount
     }
   }, expenses);
 

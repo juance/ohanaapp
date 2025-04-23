@@ -106,8 +106,7 @@ export const getFullTicket = async (ticketId: string): Promise<Ticket | null> =>
     const formattedTicket: Ticket = {
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      basketTicketNumber: ticket.basket_ticket_number,
-      customerId: ticket.customer_id, // Use customerId instead of customer
+      customerId: ticket.customer_id,
       clientName: ticket.customers?.name || 'Unknown',
       phoneNumber: ticket.customers?.phone || 'N/A',
       totalPrice: ticket.total || 0,

@@ -48,10 +48,10 @@ export const logError = async (error: Error | string | unknown, context: Record<
           .insert({
             error_message: systemError.error_message,
             error_stack: systemError.error_stack,
-            error_context: systemError.error_context,
+            error_context: JSON.stringify(systemError.error_context),
             resolved: systemError.resolved,
             id: systemError.id,
-            browser_info: getBrowserInfo(),
+            browser_info: JSON.stringify(getBrowserInfo()),
             component: context.component,
             user_id: session.session.user.id // Usar el ID del usuario autenticado
           });
@@ -88,11 +88,15 @@ export const getErrors = async (): Promise<SystemError[]> => {
       error_message: item.error_message,
       error_stack: item.error_stack,
       timestamp: new Date(item.created_at),
-      error_context: item.error_context,
+      error_context: typeof item.error_context === 'string' 
+        ? JSON.parse(item.error_context) 
+        : (item.error_context as Record<string, any>),
       resolved: item.resolved,
       component: item.component,
       user_id: item.user_id,
-      browser_info: item.browser_info,
+      browser_info: typeof item.browser_info === 'string' 
+        ? JSON.parse(item.browser_info) 
+        : (item.browser_info as Record<string, any>),
       message: item.error_message // For compatibility
     }));
   } catch (error) {

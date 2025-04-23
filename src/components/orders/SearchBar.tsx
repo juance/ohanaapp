@@ -1,49 +1,35 @@
 
-import React from 'react';
+import { ChangeEvent } from 'react';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search } from 'lucide-react';
 
-interface SearchBarProps {
+export interface SearchBarProps {
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  searchFilter: 'name' | 'phone';
-  setSearchFilter: (filter: 'name' | 'phone') => void;
-  placeholder?: string;
+  setSearchQuery: (value: string) => void;
+  searchFilter?: string;
+  setSearchFilter?: (value: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({
-  searchQuery,
+const SearchBar: React.FC<SearchBarProps> = ({ 
+  searchQuery, 
   setSearchQuery,
   searchFilter,
-  setSearchFilter,
-  placeholder = 'Buscar...'
+  setSearchFilter
 }) => {
+  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
-    <div className="mb-4">
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <Input
-            type="text"
-            placeholder={placeholder}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <Tabs 
-          value={searchFilter} 
-          onValueChange={(value) => setSearchFilter(value as 'name' | 'phone')}
-          className="w-auto"
-        >
-          <TabsList>
-            <TabsTrigger value="name">Nombre</TabsTrigger>
-            <TabsTrigger value="phone">Teléfono</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+    <div className="relative mb-4 w-full">
+      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      <Input
+        type="text"
+        placeholder="Buscar por nombre o teléfono..."
+        value={searchQuery}
+        onChange={handleSearchChange}
+        className="pl-9"
+      />
     </div>
   );
 };

@@ -6,9 +6,8 @@ import { Ticket } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { DateRangeSelector } from '@/components/shared/DateRangeSelector';
-import { FormatDate } from '@/components/Format/FormatDate';
-import { toast } from '@/lib/toast';
+import DateRangeSelector from '@/components/shared/DateRangeSelector';
+import { toast } from '@/hooks/use-toast';
 
 export const UnretrievedTickets = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -65,10 +64,12 @@ export const UnretrievedTickets = () => {
         <CardTitle>Tickets sin retirar</CardTitle>
         <div className="flex gap-4">
           <DateRangeSelector 
-            startDate={startDate} 
-            endDate={endDate}
-            onStartDateChange={setStartDate}
-            onEndDateChange={setEndDate}
+            from={startDate || new Date()} 
+            to={endDate || new Date()}
+            onUpdate={(from, to) => {
+              setStartDate(from);
+              setEndDate(to);
+            }}
           />
           <Button onClick={handleRefresh} size="sm">Actualizar</Button>
         </div>
@@ -120,7 +121,7 @@ export const UnretrievedTickets = () => {
   );
 };
 
-// Simple FormatDate component to avoid adding it as a separate file
+// FormatDate component para evitar conflicto con el import
 const FormatDate = ({ date }: { date: string }) => {
   if (!date) return <span>N/A</span>;
   

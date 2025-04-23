@@ -10,48 +10,13 @@ export enum PasswordStrength {
   STRONG = 4
 }
 
+// Corrigiendo el formato del objeto de opciones para que sea compatible con el tipo OptionsType
 const options = {
   translations: englishTranslations,
-  graphs: {
-    qwerty: {
-      adjacencyGraph: {
-        'q': 'wa2wsxzaq',
-        'w': 'e3edcswq1qaz',
-        'e': 'r4rfvde3wq2wsd',
-        'r': 't5tgbfr4e3dwf',
-        't': 'y6yhnvgt5re4fg',
-        'y': 'u7ujmnhy6tr5gh',
-        'u': 'i8ik,mjuy7yt6hj',
-        'i': 'o9ol<.ki8yu7jk',
-        'o': 'p0op/>li9i8kl',
-        'p': '-[pl?;o0ui',
-        'a': 'qwsxza',
-        's': 'wedcvfraswqaz',
-        'd': 'erfbgtcdsewsx',
-        'f': 'rtgyhnbvfdecr',
-        'g': 'tyhujmngfvtrf',
-        'h': 'yujik,nhgtgyb',
-        'j': 'uikol.mhyujnv',
-        'k': 'iolp/>mjkiuhb',
-        'l': 'op[?+<lkijo',
-        'z': 'asxzaq',
-        'x': 'sdczaswec',
-        'c': 'dfxzsderfv',
-        'v': 'fgbvcrtby',
-        'b': 'ghnvtyujn',
-        'n': 'hjmbgtuikm',
-        'm': 'jknbmhyilo',
-        ',': 'klm,juiop',
-        '.': 'l,kiop',
-        '/': 'pl<.op',
-        '-': 'p0[pl',
-        '[': 'p-[ol',
-        ']': 'p[];\'',
-        '\'': 'p[];\''
-      }
-    }
-  },
-  dictionary: Object.assign({}, commonDictionary, enDictionary)
+  dictionary: {
+    ...commonDictionary,
+    ...enDictionary
+  }
 };
 
 zxcvbnOptions.setOptions(options);

@@ -1,17 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Ticket } from '@/lib/types';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { createDefaultServicesForTicket } from '@/lib/services/ticketMigrationService';
-import { toast } from '@/lib/toast';
 
-interface TicketDetailPanelProps {
+export interface TicketDetailPanelProps {
   selectedTicket: string | null;
   tickets: Ticket[];
   ticketServices: any[];
-  formatDate: (dateString: string) => string;
+  formatDate: (date: string) => string;
 }
 
 const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
@@ -20,153 +16,69 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
   ticketServices,
   formatDate
 }) => {
-  if (!selectedTicket) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Seleccione un ticket para ver los detalles</p>
-      </div>
-    );
-  }
-
   const ticket = tickets.find(t => t.id === selectedTicket);
 
-  if (!ticket) {
+  if (!selectedTicket || !ticket) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-gray-500">Ticket no encontrado</p>
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+        <p className="mb-2 text-lg font-medium">Detalle del Ticket</p>
+        <p className="text-gray-500">Seleccione un ticket para ver sus detalles</p>
       </div>
     );
   }
-
-  const renderDeliveryInfo = () => {
-    if (!selectedTicket) return null;
-
-    const selectedTicketObj = ticket;
-
-    return (
-      <div className="mt-4 grid gap-2">
-        {selectedTicketObj.status === 'delivered' && selectedTicketObj.deliveredDate && (
-          <div className="flex justify-between items-center py-1 border-t border-dashed border-gray-200">
-            <span className="text-sm text-gray-500">Entregado:</span>
-            <span className="text-sm">{formatDate(selectedTicketObj.deliveredDate)}</span>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Estado para controlar la carga de servicios
-  const [isFixingServices, setIsFixingServices] = useState(false);
-  const [fixAttempted, setFixAttempted] = useState(false);
-
-  // Verificar si el ticket tiene servicios directamente
-  const hasTicketServices = ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0;
-  const hasLoadedServices = ticketServices && ticketServices.length > 0;
-
-  // Usar los servicios del ticket si están disponibles, de lo contrario usar los servicios cargados
-  const displayServices = hasTicketServices
-    ? ticket.dryCleaningItems.map((item: any) => ({
-        id: item.id || `temp-${Math.random()}`,
-        name: item.name,
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-        ticketId: ticket.id
-      }))
-    : hasLoadedServices ? ticketServices : [];
-
-  // Si no hay servicios, crear un servicio por defecto para mostrar
-  if (displayServices.length === 0) {
-    const quantity = ticket.valetQuantity || 1;
-    const price = ticket.totalPrice / quantity;
-    displayServices.push({
-      id: `default-${Math.random()}`,
-      name: quantity > 1 ? 'Valets' : 'Valet',
-      quantity: quantity,
-      price: price,
-      ticketId: ticket.id
-    });
-  }
-
-  // Función para arreglar los servicios del ticket
-  const handleFixServices = async () => {
-    if (!ticket || isFixingServices) return;
-
-    setIsFixingServices(true);
-    setFixAttempted(true);
-
-    try {
-      const success = await createDefaultServicesForTicket(ticket.id, ticket.valetQuantity);
-
-      if (success) {
-        toast.success('Servicios creados correctamente');
-        // Recargar los servicios
-        if (typeof window !== 'undefined') {
-          window.location.reload();
-        }
-      } else {
-        toast.error('No se pudieron crear los servicios');
-      }
-    } catch (error) {
-      console.error('Error al arreglar servicios:', error);
-      toast.error('Error al crear servicios');
-    } finally {
-      setIsFixingServices(false);
-    }
-  };
 
   return (
     <div>
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Detalles del Ticket</h3>
+      <h3 className="text-xl font-bold mb-4">Detalle del Ticket #{ticket.ticketNumber}</h3>
+      
+      <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <p className="text-sm text-gray-500">Número de Ticket</p>
-            <p className="font-medium">{ticket.ticketNumber}</p>
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Fecha</p>
-            <p className="font-medium">{formatDate(ticket.createdAt)}</p>
-          </div>
-          {renderDeliveryInfo()}
-          <div>
-            <p className="text-sm text-gray-500">Estado de Pago</p>
-            <Badge variant={ticket.isPaid ? "success" : "outline"}>
-              {ticket.isPaid ? "Pagado" : "Pendiente de pago"}
-            </Badge>
-          </div>
-        </div>
-      </div>
-
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Cliente</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-gray-500">Nombre</p>
-            <p className="font-medium">{ticket.clientName}</p>
+            <p className="text-sm text-gray-500">Cliente</p>
+            <p className="font-medium">{ticket.clientName || 'No especificado'}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Teléfono</p>
-            <p className="font-medium">{ticket.phoneNumber}</p>
+            <p className="font-medium">{ticket.phoneNumber || 'No especificado'}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Fecha de Creación</p>
+            <p className="font-medium">{formatDate(ticket.createdAt)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Fecha de Entrega</p>
+            <p className="font-medium">
+              {ticket.deliveredDate ? formatDate(ticket.deliveredDate) : 'No entregado'}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Estado</p>
+            <Badge
+              variant={ticket.status === 'delivered' ? 'default' : 'secondary'}
+            >
+              {ticket.status === 'delivered' ? 'Entregado' : 'Pendiente'}
+            </Badge>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Total</p>
+            <p className="font-medium">${ticket.totalPrice?.toFixed(2)}</p>
           </div>
         </div>
-      </div>
 
-      <div>
-        <h3 className="text-xl font-semibold mb-4">Servicios</h3>
-        <div className="space-y-2">
-          {displayServices.map(service => (
-            <div key={service.id} className="flex justify-between items-center border-b pb-2">
-              <div>
-                <span className="font-medium">{service.name}</span>
-                {service.quantity > 1 && <span className="ml-1 text-sm text-gray-500">x{service.quantity}</span>}
-              </div>
-              <span className="font-medium">${service.price.toLocaleString()}</span>
-            </div>
-          ))}
-          <div className="flex justify-between items-center pt-4">
-            <span className="font-bold">Total</span>
-            <span className="font-bold text-blue-700">${ticket.totalPrice.toLocaleString()}</span>
-          </div>
+        <div>
+          <h4 className="font-medium mb-2">Items</h4>
+          {ticketServices.length > 0 ? (
+            <ul className="space-y-2">
+              {ticketServices.map(item => (
+                <li key={item.id} className="flex justify-between">
+                  <span>{item.name} x{item.quantity || 1}</span>
+                  <span>${item.price?.toFixed(2) || '0.00'}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-500">No hay items para mostrar</p>
+          )}
         </div>
       </div>
     </div>

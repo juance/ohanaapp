@@ -38,4 +38,6 @@ export interface SyncStatus {
   expensesSync: number;
   clientsSync: number;
   feedbackSync: number;
+  pending?: boolean;
+  lastSync?: string;
 }

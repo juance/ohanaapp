@@ -2,6 +2,7 @@
 export interface Ticket {
   id: string;
   ticketNumber: string;
+  basketTicketNumber?: string;
 
   clientName?: string;
   phoneNumber?: string;

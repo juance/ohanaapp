@@ -32,9 +32,8 @@ export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
 export const checkTicketsCustomersRelationExists = async (): Promise<boolean> => {
   try {
     const { data, error } = await supabase.rpc('check_relation_exists', {
-      parent_table: 'customers',
-      child_table: 'tickets',
-      column_name: 'customer_id'
+      table_name: 'tickets',
+      foreign_table: 'customers'
     });
 
     if (error) {
@@ -89,14 +88,14 @@ export const buildTicketSelectQuery = (statusFilter?: string) => {
 /**
  * Maps raw ticket data from the database to the Ticket type.
  * @param {any} ticket The raw ticket data from the database.
- * @param {boolean} hasDeliveredDate Whether the delivered_date column exists.
  * @returns {Ticket} A mapped Ticket object.
  */
-export const mapTicketData = (ticket: any, hasDeliveredDate?: boolean): Ticket => {
+export const mapTicketData = (ticket: any): Ticket => {
   return {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
-
+    basketTicketNumber: ticket.basket_ticket_number,
+    
     clientName: ticket.customers?.name || '',
     phoneNumber: ticket.customers?.phone || '',
     totalPrice: ticket.total || 0,
@@ -117,7 +116,6 @@ export const mapTicketData = (ticket: any, hasDeliveredDate?: boolean): Ticket =
     })) || [],
     createdAt: ticket.created_at,
     deliveredDate: ticket.delivered_date,
-    // Add updatedAt as an optional field to Ticket type
     updatedAt: ticket.updated_at || ticket.created_at
   };
 };
