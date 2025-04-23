@@ -1,9 +1,9 @@
 
-import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 
 const NotFound = () => {
-  // Intentamos usar useLocation, pero lo envolvemos en un try/catch para evitar errores
+  // Use try/catch to handle the case when useLocation fails
   let pathname = "ruta-desconocida";
   try {
     const location = useLocation();

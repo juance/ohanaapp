@@ -1,7 +1,6 @@
 
 "use client";
 
-import * as React from "react";
 import { toast as sonnerToast } from "sonner";
 
 export interface ToastProps {
@@ -49,7 +48,7 @@ toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
   return sonnerToast.loading(title, options);
 };
 
-// Simplificamos useToast para que no use useState
+// Simplified useToast hook that doesn't use React.useState
 export function useToast() {
   return { toast };
 }
