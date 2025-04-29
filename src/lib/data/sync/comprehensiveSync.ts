@@ -4,7 +4,7 @@ import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
 import { syncExpenses } from './expensesSync';
 import { updateSyncStatus } from './syncStatusService';
-import { SyncableTicket, SyncableExpense, SyncableCustomerFeedback } from '@/lib/types/sync.types';
+import { SyncableTicket, SyncableExpense, SyncableCustomerFeedback, SimpleSyncStatus } from '@/lib/types/sync.types';
 
 /**
  * Perform a comprehensive synchronization of all offline data
@@ -42,12 +42,11 @@ export const syncComprehensive = async (): Promise<{
     console.log(`Synced ${expensesCount} expense entries`);
     
     // Update sync status
-    const syncStatus = {
-      ticketsSync: ticketsCount,
-      clientsSync: clientsCount,
-      feedbackSync: feedbackCount,
-      expensesSync: expensesCount,
-      lastSync: new Date().toISOString()
+    const syncStatus: SimpleSyncStatus = {
+      tickets: ticketsCount,
+      clients: clientsCount,
+      feedback: feedbackCount,
+      expenses: expensesCount
     };
     
     await updateSyncStatus(syncStatus);

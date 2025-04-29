@@ -25,12 +25,12 @@ export const syncTickets = async (tickets: SyncableTicket[] = []): Promise<numbe
         .from('tickets')
         .insert({
           id: ticket.id,
-          ticket_number: ticket.ticketNumber,
-          total: ticket.totalPrice,
-          payment_method: ticket.paymentMethod,
+          ticket_number: ticket.ticket_number || ticket.ticketNumber,
+          total: ticket.total || ticket.totalPrice,
+          payment_method: ticket.payment_method || ticket.paymentMethod,
           status: ticket.status,
-          is_paid: ticket.isPaid,
-          created_at: ticket.createdAt
+          is_paid: ticket.is_paid || ticket.isPaid,
+          created_at: ticket.created_at || new Date().toISOString()
         });
         
       if (error) {

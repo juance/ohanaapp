@@ -61,8 +61,11 @@ export interface LocalClient {
   id: string;
   name: string;
   phone: string;
+  clientName: string; // Added for compatibility
+  phoneNumber: string; // Added for compatibility
   loyaltyPoints: number;
   freeValets: number;
+  valetsCount: number;
   valetsRedeemed: number;
   lastVisit?: string;
   pendingSync?: boolean;

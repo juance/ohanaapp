@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { LocalClient } from '@/lib/types';
+import { LocalClient } from '@/lib/types/sync.types';
 
 /**
  * Sync local clients data with Supabase
@@ -21,7 +21,7 @@ export const syncClients = async (): Promise<number> => {
       const { data: existingClient } = await supabase
         .from('customers')
         .select('*')
-        .eq('phone', client.phoneNumber)
+        .eq('phone', client.phone)
         .single();
 
       if (existingClient) {
@@ -29,7 +29,7 @@ export const syncClients = async (): Promise<number> => {
         await supabase
           .from('customers')
           .update({
-            name: client.clientName,
+            name: client.name,
             loyalty_points: client.loyaltyPoints || 0,
             free_valets: client.freeValets || 0,
             valets_count: client.valetsCount || 0,
@@ -42,8 +42,8 @@ export const syncClients = async (): Promise<number> => {
         await supabase
           .from('customers')
           .insert({
-            name: client.clientName,
-            phone: client.phoneNumber,
+            name: client.name,
+            phone: client.phone,
             loyalty_points: client.loyaltyPoints || 0,
             free_valets: client.freeValets || 0,
             valets_count: client.valetsCount || 0,

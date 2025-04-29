@@ -57,10 +57,10 @@ export const getCustomerByPhone = async (phone: string): Promise<Customer | null
 };
 
 // Define the saveTicket function (used in storeTicket)
-const saveTicket = async (ticketData) => {
+const saveTicket = async (ticketData: any) => {
   try {
     // Get existing tickets from local storage
-    const existingTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const existingTickets = getFromLocalStorage<Ticket>(TICKETS_STORAGE_KEY) || [];
     
     // Add the new ticket
     existingTickets.push(ticketData);
@@ -70,19 +70,21 @@ const saveTicket = async (ticketData) => {
     
     // Try to save to Supabase if available
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('tickets')
         .insert([{
           ticket_number: ticketData.ticketNumber,
-          client_name: ticketData.clientName,
-          phone_number: ticketData.phoneNumber,
-          total_price: ticketData.totalPrice,
+          customer_id: ticketData.customerId,
+          total: ticketData.totalPrice,
           payment_method: ticketData.paymentMethod,
           status: ticketData.status,
           is_paid: ticketData.isPaid,
           valet_quantity: ticketData.valetQuantity || 0,
           created_at: ticketData.createdAt,
-          delivered_date: ticketData.deliveredDate
+          delivered_date: ticketData.deliveredDate,
+          // Additional fields for client information
+          client_name: ticketData.clientName,
+          phone_number: ticketData.phoneNumber
         }]);
       
       if (error) throw error;
@@ -99,10 +101,10 @@ const saveTicket = async (ticketData) => {
 
 // Add a storeTicket function for the component
 export const storeTicket = async (
-  ticketData, 
-  customerData, 
-  dryCleaningItemsData, 
-  laundryOptions
+  ticketData: any, 
+  customerData: any, 
+  dryCleaningItemsData: any, 
+  laundryOptions: any
 ) => {
   try {
     // Generate a ticket number if not provided
@@ -111,6 +113,7 @@ export const storeTicket = async (
     }
     
     // Create or update customer record
+    let customerId = null;
     try {
       const { data: customerExists } = await supabase
         .from('customers')
@@ -120,17 +123,18 @@ export const storeTicket = async (
       
       if (customerExists) {
         // Update existing customer
+        customerId = customerExists.id;
         await supabase
           .from('customers')
           .update({
             name: customerData.name,
             last_visit: new Date().toISOString(),
-            valets_count: supabase.rpc('increment', { row_id: customerExists.id, table_name: 'customers', column_name: 'valets_count' })
+            valets_count: supabase.rpc('increment_valets_count', { customer_id: customerId }) // Changed from increment
           })
-          .eq('id', customerExists.id);
+          .eq('id', customerId);
       } else {
         // Create new customer
-        await supabase
+        const { data: newCustomer, error } = await supabase
           .from('customers')
           .insert([{
             name: customerData.name,
@@ -138,13 +142,20 @@ export const storeTicket = async (
             last_visit: new Date().toISOString(),
             valets_count: 1,
             free_valets: 0
-          }]);
+          }])
+          .select();
+        
+        if (error) throw error;
+        if (newCustomer && newCustomer.length > 0) {
+          customerId = newCustomer[0].id;
+        }
       }
     } catch (customerError) {
       console.warn('Could not update customer in Supabase:', customerError);
     }
     
     // Save the ticket
+    ticketData.customerId = customerId;
     const success = await saveTicket({
       ...ticketData,
       clientName: customerData.name,
@@ -160,10 +171,10 @@ export const storeTicket = async (
         
         // Save to Supabase if available
         await supabase
-          .from('laundry_options')
-          .insert(laundryOptions.map(option => ({
+          .from('ticket_laundry_options')
+          .insert(laundryOptions.map((option: any) => ({
             name: option.name,
-            option_type: option.optionType,
+            option_type: option.optionType || option.option_type,
             ticket_id: ticketId
           })));
       } catch (optionsError) {
@@ -188,6 +199,8 @@ export const getAllClients = async (): Promise<Customer[]> => {
       
     if (error) throw error;
     
+    if (!data) return [];
+    
     return data.map(customer => ({
       id: customer.id,
       name: customer.name,
@@ -199,12 +212,12 @@ export const getAllClients = async (): Promise<Customer[]> => {
       loyaltyPoints: customer.loyalty_points || 0,
       valetsRedeemed: customer.valets_redeemed || 0,
       createdAt: customer.created_at
-    })) || [];
+    }));
   } catch (error) {
     console.error('Error fetching clients:', error);
     
     // Fallback to local storage
-    const localClients = getFromLocalStorage<Customer[]>(CLIENT_STORAGE_KEY) || [];
+    const localClients = getFromLocalStorage<Customer>(CLIENT_STORAGE_KEY) || [];
     return localClients;
   }
 };
@@ -220,25 +233,27 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       
     if (error) throw error;
     
+    if (!data) return [];
+    
     // Map to our Ticket type
     return data.map(ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.client_name,
-      phoneNumber: ticket.phone_number,
-      totalPrice: ticket.total_price,
-      paymentMethod: ticket.payment_method,
-      status: ticket.status,
-      isPaid: ticket.is_paid,
-      valetQuantity: ticket.valet_quantity,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date
+      clientName: ticket.client_name || '',
+      phoneNumber: ticket.phone_number || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || '',
+      status: ticket.status || '',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at || '',
+      deliveredDate: ticket.delivered_date || null
     }));
   } catch (error) {
     console.error('Error fetching pickup tickets:', error);
     
     // Fallback to local storage
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<Ticket>(TICKETS_STORAGE_KEY) || [];
     return localTickets.filter(ticket => ticket.status === 'ready');
   }
 };
@@ -255,25 +270,27 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       
     if (error) throw error;
     
+    if (!data) return [];
+    
     // Map to our Ticket type
     return data.map(ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.client_name,
-      phoneNumber: ticket.phone_number,
-      totalPrice: ticket.total_price,
-      paymentMethod: ticket.payment_method,
-      status: ticket.status,
-      isPaid: ticket.is_paid,
-      valetQuantity: ticket.valet_quantity,
-      createdAt: ticket.created_at,
+      clientName: ticket.client_name || '',
+      phoneNumber: ticket.phone_number || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || '',
+      status: ticket.status || '',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at || '',
       deliveredDate: ticket.delivered_date
     }));
   } catch (error) {
     console.error('Error fetching unretrieved tickets:', error);
     
     // Fallback to local storage
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<Ticket>(TICKETS_STORAGE_KEY) || [];
     return localTickets.filter(ticket => ticket.status === 'ready' && !ticket.deliveredDate);
   }
 };
@@ -295,7 +312,7 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     if (error) throw error;
     
     // Also update in local storage
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<Ticket>(TICKETS_STORAGE_KEY) || [];
     const updatedTickets = localTickets.map(ticket => {
       if (ticket.id === ticketId) {
         return {
@@ -330,7 +347,7 @@ export const cancelTicket = async (ticketId: string): Promise<boolean> => {
     if (error) throw error;
     
     // Also update in local storage
-    const localTickets = getFromLocalStorage<Ticket[]>(TICKETS_STORAGE_KEY) || [];
+    const localTickets = getFromLocalStorage<Ticket>(TICKETS_STORAGE_KEY) || [];
     const updatedTickets = localTickets.map(ticket => {
       if (ticket.id === ticketId) {
         return {

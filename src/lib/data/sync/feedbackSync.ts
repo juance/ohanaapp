@@ -2,61 +2,68 @@
 import { supabase } from '@/integrations/supabase/client';
 import { SyncableCustomerFeedback } from '@/lib/types/sync.types';
 
-// Function to sync customer feedback with the server
-export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[]): Promise<number> => {
+/**
+ * Sync feedback data with server
+ */
+export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[] = []): Promise<number> => {
   try {
     let syncedCount = 0;
+    let deletedCount = 0;
     
-    if (!feedbackItems || !Array.isArray(feedbackItems) || feedbackItems.length === 0) {
+    if (!Array.isArray(feedbackItems) || feedbackItems.length === 0) {
       return 0;
     }
     
-    // Filter feedback items that need to be synced (both created and deleted)
-    const feedbackToSync = feedbackItems.filter(item => 
-      (item.pendingSync && !item.pendingDelete) || item.pendingDelete
-    );
+    // Filter items that need syncing or deletion
+    const pendingSyncItems = feedbackItems.filter(item => item.pendingSync && !item.pendingDelete);
+    const pendingDeleteItems = feedbackItems.filter(item => item.pendingDelete);
     
-    if (feedbackToSync.length === 0) {
-      return 0;
-    }
-    
-    // Process each feedback item
-    for (const feedback of feedbackToSync) {
-      // Handle deleted feedback
-      if (feedback.pendingDelete) {
+    // Handle items to delete
+    for (const item of pendingDeleteItems) {
+      try {
         const { error } = await supabase
           .from('customer_feedback')
           .delete()
-          .eq('id', feedback.id);
+          .eq('id', item.id);
           
         if (error) {
           console.error('Error deleting feedback:', error);
           continue;
         }
-      } 
-      // Handle new feedback that needs to be created
-      else if (feedback.pendingSync) {
+        
+        deletedCount++;
+      } catch (deleteError) {
+        console.error('Error during feedback deletion:', deleteError);
+      }
+    }
+    
+    // Handle items to sync
+    for (const item of pendingSyncItems) {
+      try {
         const { error } = await supabase
           .from('customer_feedback')
           .insert({
-            id: feedback.id,
-            customer_name: feedback.customerName,
-            rating: feedback.rating,
-            comment: feedback.comment,
-            created_at: feedback.createdAt,
-            source: feedback.source || 'admin'
+            id: item.id,
+            customer_name: item.customer_name || item.customerName,
+            rating: item.rating,
+            comment: item.comment,
+            created_at: item.created_at || item.createdAt || new Date().toISOString(),
+            source: item.source || 'app'
           });
           
         if (error) {
-          console.error('Error creating feedback:', error);
+          console.error('Error syncing feedback:', error);
           continue;
         }
+        
+        syncedCount++;
+        item.pendingSync = false;
+      } catch (syncError) {
+        console.error('Error during feedback sync:', syncError);
       }
-      
-      syncedCount++;
     }
     
-    return syncedCount;
+    return syncedCount + deletedCount;
   } catch (error) {
     console.error('Error in syncFeedback:', error);
     return 0;

@@ -1,3 +1,4 @@
+
 import { ClientVisit, Ticket } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -151,6 +152,7 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
       phoneNumber: client.phone || '',
       visitCount: client.valets_count || 0,
       lastVisit: client.last_visit || client.created_at,
+      lastVisitDate: client.last_visit || client.created_at, // Add lastVisitDate field
       loyaltyPoints: client.loyalty_points || 0,
       valetsCount: client.valets_count || 0,
       freeValets: client.free_valets || 0,
@@ -163,30 +165,22 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
   }
 };
 
-// A function to calculate client frequency
+// A function to calculate client frequency - Fixed async/await issue and property access
 export const calculateClientFrequency = (visits: any[]): any[] => {
   try {
-    // Get customer data with visit stats from Supabase
-    const { data: customers, error } = await supabase
-      .from('customers')
-      .select('*')
-      .order('valets_count', { ascending: false });
-
-    if (error) throw error;
-
-    // Map to ClientVisit format
-    return customers.map(client => ({
+    // Process the visits data
+    return visits.map(client => ({
       id: client.id,
       clientId: client.id,
       clientName: client.name,
       phoneNumber: client.phone || '',
-      visitCount: client.visits?.length || 0,
-      lastVisit: client.lastVisit || '',
-      lastVisitDate: client.lastVisit || '', // Add lastVisitDate field
-      loyaltyPoints: (client.visits?.length || 0) * 10,
-      valetsCount: client.visits?.length || 0,
-      freeValets: Math.floor((client.visits?.length || 0) / 9),
-      visitFrequency: calculateVisitFrequency(client.lastVisit)
+      visitCount: client.valets_count || 0,
+      lastVisit: client.last_visit || '',
+      lastVisitDate: client.last_visit || '',
+      loyaltyPoints: (client.valets_count || 0) * 10,
+      valetsCount: client.valets_count || 0,
+      freeValets: Math.floor((client.valets_count || 0) / 9),
+      visitFrequency: calculateVisitFrequency(client.last_visit)
     }));
   } catch (error) {
     console.error("Error calculating client frequency:", error);
@@ -195,13 +189,15 @@ export const calculateClientFrequency = (visits: any[]): any[] => {
 };
 
 // Helper function to calculate visit frequency
-const calculateVisitFrequency = (lastVisit: string): string => {
+const calculateVisitFrequency = (lastVisit?: string): string => {
+  if (!lastVisit) return 'N/A';
+  
   const date = new Date(lastVisit);
-  const today = new Date();
-  const daysSinceLastVisit = Math.floor((today - date) / (1000 * 60 * 60 * 24));
-
-  if (daysSinceLastVisit < 7) return 'Reciente';
-  else if (daysSinceLastVisit < 30) return 'Mensual';
-  else if (daysSinceLastVisit < 90) return 'Bimestral';
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 7) return 'Reciente';
+  else if (diffDays <= 30) return 'Mensual';
+  else if (diffDays <= 90) return 'Bimestral';
   else return 'Anual';
 };
