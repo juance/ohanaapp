@@ -1,6 +1,6 @@
 
 import { toast } from '@/hooks/use-toast';
-import { Customer } from '@/lib/types/customer.types';
+import { Customer } from '@/lib/types';
 import { getCustomerByPhone } from '@/lib/dataService';
 
 export const useCustomerLookup = (
@@ -26,11 +26,11 @@ export const useCustomerLookup = (
 
       if (customer) {
         setCustomerName(customer.name);
-        setPhoneNumber(customer.phone); // Use phone property
+        setPhoneNumber(customer.phoneNumber); // Use phoneNumber property
         setFoundCustomer(customer);
 
         // Si el cliente tiene valets gratis, mostrar la opción
-        if (customer.freeValets > 0 && activeTab === 'valet') {
+        if (customer.freeValets && customer.freeValets > 0 && activeTab === 'valet') {
           setShowFreeValetDialog(true);
         } else {
           setUseFreeValet(false);

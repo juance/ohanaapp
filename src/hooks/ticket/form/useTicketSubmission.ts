@@ -1,6 +1,7 @@
+
 import { toast } from '@/lib/toast';
 import { storeTicket } from '@/lib/dataService';
-import { PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { PaymentMethod, LaundryOption } from '@/lib/types';
 import { useFormValidation } from './useFormValidation';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -37,7 +38,7 @@ export const useTicketSubmission = (
 
     try {
       // Prepare dry cleaning items
-      const dryCleaningItems: Omit<DryCleaningItem, 'id' | 'ticketId'>[] = selectedDryCleaningItems.map(item => {
+      const dryCleaningItems = selectedDryCleaningItems.map(item => {
         const itemDetails = dryCleaningOptions.find(opt => opt.id === item.id);
         return {
           name: itemDetails?.name || '',
@@ -47,11 +48,10 @@ export const useTicketSubmission = (
       });
 
       // Prepare laundry options - convert strings to LaundryOption objects
-      const laundryOptions: LaundryOption[] = selectedLaundryOptions.map(option => ({
-        id: option,
+      const laundryOptions = selectedLaundryOptions.map(option => ({
         name: option,
-        price: 0
-      }));
+        optionType: 'preference'
+      })) as LaundryOption[];
 
       // Store the ticket data
       const success = await storeTicket(
@@ -60,7 +60,10 @@ export const useTicketSubmission = (
           paymentMethod,
           valetQuantity: 1, // Default to 1, could be made configurable
           status: 'pending', // Required status field
-          isPaid: false // Required isPaid field
+          isPaid: false, // Required isPaid field
+          clientName,
+          phoneNumber,
+          deliveredDate: null
         },
         {
           name: clientName,

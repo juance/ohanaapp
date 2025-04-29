@@ -26,8 +26,8 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, onAction, actionLabel }
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <div className="font-medium">{ticket.clientName || ticket.customerName || 'Cliente sin nombre'}</div>
-            <div className="text-sm text-gray-500">{ticket.phoneNumber || ticket.customerPhone || 'Sin teléfono'}</div>
+            <div className="font-medium">{ticket.clientName}</div>
+            <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
           </div>
           <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">
             {ticket.isPaid ? "Pagado" : "Pendiente de pago"}

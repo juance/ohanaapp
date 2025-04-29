@@ -1,98 +1,71 @@
-import { useState, useEffect } from 'react';
-import { ClientVisit } from '@/lib/types/customer.types';
-import { getAllClients } from '@/lib/dataService';
-import { cacheService } from '@/lib/cacheService';
-import { toast } from '@/hooks/use-toast';
 
+import { useState, useEffect } from 'react';
+import { getAllClients } from '@/lib/dataService';
+import { ClientVisit } from '@/lib/types';
+import { cacheService } from '@/lib/services/cacheService';
+
+// Define a proper implementation of cacheService that's actually used
 export const useCachedClients = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const CACHE_KEY = 'clients_list';
 
-  // Implementar la versión simple sin usar getOrFetch
-const fetchAndCacheClients = async () => {
-  const cacheKey = 'all-clients';
-  
-  // Check if data is in cache
-  const cachedData = cacheService.get<ClientVisit[]>(cacheKey);
-  if (cachedData !== null) {
-    return cachedData;
-  }
-  
-  // Fetch fresh data
-  const data = await getAllClients();
-  
-  // Cache the result with TTL of 5 minutes
-  cacheService.set(cacheKey, data, 5 * 60 * 1000);
-  
-  return data;
-};
-
-  useEffect(() => {
-    const loadClients = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const cachedClients = await fetchAndCacheClients();
-        setClients(cachedClients);
-      } catch (err) {
-        console.error("Error fetching clients:", err);
-        setError(err instanceof Error ? err : new Error('Failed to load clients'));
-        toast({
-          title: "Error",
-          description: "Failed to load clients.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadClients();
-  }, []);
-
-  // Implementar una versión simple de invalidación de cache
-const invalidateClientsCache = () => {
-  cacheService.delete('all-clients');
-  // También podemos invalidar otras claves relacionadas si las hay
-};
-
-  const refreshClients = async () => {
-    setLoading(true);
+  const fetchClients = async () => {
+    setIsLoading(true);
     setError(null);
     try {
-      // Invalidate cache
-      invalidateClientsCache();
-
-      // Fetch fresh data
-      const freshClients = await getAllClients();
-      setClients(freshClients);
-
-      // Update cache
-      cacheService.set('all-clients', freshClients, 5 * 60 * 1000);
-
-      toast({
-        title: "Clientes actualizados",
-        description: "La lista de clientes ha sido actualizada.",
-        variant: "success"
-      });
+      // Check cache first
+      const cachedData = cacheService.get<ClientVisit[]>(CACHE_KEY);
+      
+      if (cachedData) {
+        setClients(cachedData);
+        setIsLoading(false);
+        
+        // Refresh in background
+        refreshClientsInBackground();
+        return;
+      }
+      
+      // No cache, fetch from API
+      const data = await getAllClients();
+      setClients(data);
+      
+      // Save to cache
+      cacheService.set(CACHE_KEY, data, 60 * 5); // Cache for 5 minutes
     } catch (err) {
-      console.error("Error refreshing clients:", err);
-      setError(err instanceof Error ? err : new Error('Failed to refresh clients'));
-      toast({
-        title: "Error",
-        description: "Failed to refresh clients.",
-        variant: "destructive"
-      });
+      setError(err instanceof Error ? err : new Error('Failed to fetch clients'));
+      console.error('Error fetching clients:', err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+  
+  const refreshClientsInBackground = async () => {
+    try {
+      const freshData = await getAllClients();
+      setClients(freshData);
+      cacheService.set(CACHE_KEY, freshData, 60 * 5); // Update cache
+    } catch (err) {
+      console.error('Error refreshing clients in background:', err);
+      // Don't set error state here as this is a background refresh
+    }
+  };
+  
+  const invalidateCache = () => {
+    cacheService.remove(CACHE_KEY);
+    fetchClients();
+  };
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
 
   return {
     clients,
-    loading,
+    isLoading,
     error,
-    refreshClients
+    refetch: fetchClients,
+    invalidateCache
   };
 };

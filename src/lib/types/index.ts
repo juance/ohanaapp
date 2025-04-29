@@ -24,6 +24,23 @@ export interface Ticket {
   paymentMethod?: string;
   valetQuantity?: number;
   isPaid?: boolean;
+  services?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  customerName?: string; // Alias para clientName
+  customerPhone?: string; // Alias para phoneNumber
+  basketTicketNumber?: string;
 }
 
 export type PaymentMethod = 'cash' | 'mercadopago' | 'card' | 'debit' | 'credit' | 'transfer' | 'cuentaDni' | string;
+
+// Define LaundryService type
+export interface LaundryService {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}

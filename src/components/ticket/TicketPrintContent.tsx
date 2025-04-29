@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import { Ticket, LaundryOption } from '@/lib/types';
@@ -25,8 +26,6 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           <span className="font-medium">Ticket Número:</span>
           <span>{ticket.ticketNumber || 'N/A'}</span>
         </div>
-
-
 
         <div className="flex justify-between">
           <span className="font-medium">Fecha:</span>

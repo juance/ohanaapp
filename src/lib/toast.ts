@@ -1,99 +1,27 @@
 
-import { toast as sonnerToast } from 'sonner';
+import { toast as useToast } from "@/hooks/use-toast";
 
-type ToastOptions = {
-  title?: string;
-  description?: string;
-  duration?: number;
-  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
+// Direct mapping to original toast function
+export const toast = {
+  ...useToast,
+  success: (message: string) => useToast({
+    title: "Success",
+    description: message
+  }),
+  error: (message: string) => useToast({
+    variant: "destructive",
+    title: "Error",
+    description: message
+  }),
+  warning: (message: string) => useToast({
+    variant: "destructive",
+    title: "Warning",
+    description: message
+  }),
+  info: (message: string) => useToast({
+    title: "Info",
+    description: message
+  })
 };
 
-type ToastFunction = {
-  (message: string): void;
-  (options: ToastOptions): void;
-  success: {
-    (message: string): void;
-    (options: ToastOptions): void;
-  };
-  error: {
-    (message: string): void;
-    (options: ToastOptions): void;
-  };
-  info: {
-    (message: string): void;
-    (options: ToastOptions): void;
-  };
-  warning: {
-    (message: string): void;
-    (options: ToastOptions): void;
-  };
-};
-
-// Base toast function
-const baseToast = (message: string | ToastOptions, variant = 'default') => {
-  if (typeof message === 'string') {
-    sonnerToast(message);
-  } else {
-    const { variant: msgVariant, ...rest } = message;
-    sonnerToast({
-      title: rest.title || 'Notificación',
-      description: rest.description,
-      duration: rest.duration,
-    });
-  }
-};
-
-// Create the toast function with all methods
-const successToast = (message: string | ToastOptions) => {
-  if (typeof message === 'string') {
-    sonnerToast.success(message);
-  } else {
-    const { variant: msgVariant, ...rest } = message;
-    sonnerToast.success(rest.title || '', {
-      description: rest.description,
-      duration: rest.duration
-    });
-  }
-};
-
-const errorToast = (message: string | ToastOptions) => {
-  if (typeof message === 'string') {
-    sonnerToast.error(message);
-  } else {
-    const { variant: msgVariant, ...rest } = message;
-    sonnerToast.error(rest.title || '', {
-      description: rest.description,
-      duration: rest.duration
-    });
-  }
-};
-
-const infoToast = (message: string | ToastOptions) => {
-  if (typeof message === 'string') {
-    sonnerToast.info(message);
-  } else {
-    const { variant: msgVariant, ...rest } = message;
-    sonnerToast.info(rest.title || '', {
-      description: rest.description,
-      duration: rest.duration
-    });
-  }
-};
-
-const warningToast = (message: string | ToastOptions) => {
-  if (typeof message === 'string') {
-    sonnerToast.warning(message);
-  } else {
-    const { variant: msgVariant, ...rest } = message;
-    sonnerToast.warning(rest.title || '', {
-      description: rest.description,
-      duration: rest.duration
-    });
-  }
-};
-
-export const toast = baseToast as ToastFunction;
-toast.success = successToast as ToastFunction['success'];
-toast.error = errorToast as ToastFunction['error'];
-toast.info = infoToast as ToastFunction['info'];
-toast.warning = warningToast as ToastFunction['warning'];
+export default toast;

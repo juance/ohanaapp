@@ -10,7 +10,7 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     // Obtener directamente los datos de clientes con su contador de visitas
     const { data, error } = await supabase
       .from('customers')
-      .select('id, name, phone, valets_count, last_visit')
+      .select('id, name, phone, valets_count, last_visit, free_valets, loyalty_points')
       .order('valets_count', { ascending: false });
 
     if (error) throw error;
@@ -23,7 +23,12 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
       phoneNumber: customer.phone,
       clientName: customer.name,
       visitCount: customer.valets_count || 0,
-      lastVisit: customer.last_visit
+      lastVisitDate: customer.last_visit || '',
+      lastVisit: customer.last_visit || '',
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      loyaltyPoints: customer.loyalty_points || 0,
+      visitFrequency: calculateFrequency(customer.last_visit)
     }));
 
     return result;
@@ -51,7 +56,7 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
         } else {
           clientsMap.set(ticket.phoneNumber, {
             id: ticket.id || ticket.phoneNumber, // Use ticketId or phoneNumber as fallback
-            name: ticket.customerName,
+            name: ticket.customerName || ticket.clientName,
             visits: [ticket.createdAt],
             lastVisit: ticket.createdAt
           });
@@ -64,7 +69,12 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
         phoneNumber,
         clientName: data.name,
         visitCount: data.visits.length,
-        lastVisit: data.lastVisit
+        lastVisit: data.lastVisit,
+        lastVisitDate: data.lastVisit,
+        valetsCount: data.visits.length,
+        freeValets: Math.floor(data.visits.length / 9),
+        loyaltyPoints: data.visits.length * 10,
+        visitFrequency: calculateFrequency(data.lastVisit)
       }));
 
       return result.sort((a, b) => b.visitCount - a.visitCount);
@@ -73,4 +83,18 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
       return [];
     }
   }
+};
+
+// Helper function to calculate visit frequency based on last visit date
+const calculateFrequency = (lastVisit: string | null): string => {
+  if (!lastVisit) return 'N/A';
+  
+  const lastVisitDate = new Date(lastVisit);
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - lastVisitDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 7) return 'Semanal';
+  if (diffDays <= 30) return 'Mensual';
+  if (diffDays <= 90) return 'Trimestral';
+  return 'Ocasional';
 };

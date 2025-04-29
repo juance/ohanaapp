@@ -32,12 +32,12 @@ export const useValetForm = () => {
   // Collect laundry options
   const getSelectedLaundryOptions = (): LaundryOption[] => {
     const laundryOptions: LaundryOption[] = [];
-    if (separateByColor) laundryOptions.push({ id: 'separateByColor', name: 'Separar por color', price: 0 });
-    if (delicateDry) laundryOptions.push({ id: 'delicateDry', name: 'Secado delicado', price: 0 });
-    if (stainRemoval) laundryOptions.push({ id: 'stainRemoval', name: 'Quitar manchas', price: 0 });
-    if (bleach) laundryOptions.push({ id: 'bleach', name: 'Usar blanqueador', price: 0 });
-    if (noFragrance) laundryOptions.push({ id: 'noFragrance', name: 'Sin perfume', price: 0 });
-    if (noDry) laundryOptions.push({ id: 'noDry', name: 'Sin secado', price: 0 });
+    if (separateByColor) laundryOptions.push({ id: 'separateByColor', name: 'Separar por color', optionType: 'preference' });
+    if (delicateDry) laundryOptions.push({ id: 'delicateDry', name: 'Secado delicado', optionType: 'drying' });
+    if (stainRemoval) laundryOptions.push({ id: 'stainRemoval', name: 'Quitar manchas', optionType: 'cleaning' });
+    if (bleach) laundryOptions.push({ id: 'bleach', name: 'Usar blanqueador', optionType: 'cleaning' });
+    if (noFragrance) laundryOptions.push({ id: 'noFragrance', name: 'Sin perfume', optionType: 'preference' });
+    if (noDry) laundryOptions.push({ id: 'noDry', name: 'Sin secado', optionType: 'drying' });
     return laundryOptions;
   };
 

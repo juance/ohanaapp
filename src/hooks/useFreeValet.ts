@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { Customer } from '@/lib/types/customer.types';
+import { Customer } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -31,13 +32,20 @@ export function useFreeValet() {
 
       if (updateError) throw updateError;
 
-      toast.success('Se ha utilizado un valet gratis correctamente');
+      toast({
+        title: "Success",
+        description: 'Se ha utilizado un valet gratis correctamente'
+      });
       return true;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al utilizar el valet gratis';
       console.error('Error using free valet:', err);
       setError(err instanceof Error ? err : new Error(errorMessage));
-      toast.error(errorMessage);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: errorMessage
+      });
       throw err;
     } finally {
       setLoading(false);
