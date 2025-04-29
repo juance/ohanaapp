@@ -37,7 +37,7 @@ export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Pro
     // Transform data to match application types
     return data
       .filter(ticket => ticket && typeof ticket === 'object')
-      .map(ticket => mapTicketData(ticket, hasDeliveredDate))
+      .map(ticket => mapTicketData(ticket))
       .filter((ticket): ticket is Ticket => ticket !== null);
   } catch (error) {
     console.error('Error fetching delivered tickets:', error);

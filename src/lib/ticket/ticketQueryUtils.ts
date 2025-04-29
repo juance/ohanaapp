@@ -88,9 +88,11 @@ export const buildTicketSelectQuery = (statusFilter?: string) => {
 /**
  * Maps raw ticket data from the database to the Ticket type.
  * @param {any} ticket The raw ticket data from the database.
- * @returns {Ticket} A mapped Ticket object.
+ * @returns {Ticket | null} A mapped Ticket object or null if mapping fails.
  */
-export const mapTicketData = (ticket: any): Ticket => {
+export const mapTicketData = (ticket: any): Ticket | null => {
+  if (!ticket) return null;
+  
   return {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,

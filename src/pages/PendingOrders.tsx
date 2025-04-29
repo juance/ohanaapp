@@ -89,9 +89,9 @@ const PendingOrders = () => {
 
             <SearchBar 
               searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              setSearchQuery={(value: string) => setSearchQuery(value)}
               searchFilter={searchFilter}
-              setSearchFilter={setSearchFilter}
+              setSearchFilter={(value: string) => setSearchFilter(value as any)}
               placeholder={`Buscar por ${searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
             />
 

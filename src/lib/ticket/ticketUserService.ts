@@ -40,7 +40,7 @@ export const getTicketsByPhoneNumber = async (phoneNumber: string): Promise<Tick
 
     // Map to application Ticket model
     const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket, hasDeliveredDateColumn))
+      .map(ticket => mapTicketData(ticket))
       .filter(ticket => ticket !== null) as Ticket[];
 
     return tickets;

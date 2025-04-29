@@ -27,3 +27,12 @@ export interface LocalClient {
   clientName?: string;
   valetsCount?: number;
 }
+
+// Add the TicketService interface
+export interface TicketService {
+  id: string;
+  name: string;
+  quantity?: number;
+  price?: number;
+  ticketId?: string;
+}

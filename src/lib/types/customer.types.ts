@@ -3,25 +3,32 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
-  phoneNumber?: string; // Added for compatibility with components using phoneNumber
-  loyaltyPoints: number;
-  valetsCount: number;
-  freeValets: number;
-  createdAt: string;
-  updatedAt?: string;
+  loyaltyPoints?: number;
+  freeValets?: number;
+  valetCount?: number;
+  valetsCount?: number; // Alternative field name
   lastVisit?: string;
-  valetsRedeemed?: number;
+  createdAt?: string;
+  
+  // Fields for compatibility with ClientVisit
+  clientName?: string;
+  phoneNumber?: string;
+  visitCount?: number;
 }
 
 export interface ClientVisit {
   id: string;
-  clientId?: string;
   clientName: string;
   phoneNumber: string;
   visitCount: number;
-  lastVisit: string;
+  lastVisit?: string;
   loyaltyPoints?: number;
-  valetsCount?: number;
   freeValets?: number;
-  visitFrequency?: string;
+  valetsCount?: number;
+  
+  // Fields for compatibility with Customer
+  name?: string;
+  phone?: string;
 }
+
+export type CustomerUpdate = Partial<Omit<Customer, 'id'>>;

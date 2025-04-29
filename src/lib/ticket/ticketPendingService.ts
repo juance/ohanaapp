@@ -29,7 +29,7 @@ export const getPendingTickets = async (): Promise<Ticket[]> => {
 
     // Map to application Ticket model
     const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket, hasDeliveredDateColumn))
+      .map(ticket => mapTicketData(ticket))
       .filter(ticket => ticket !== null) as Ticket[];
 
     return tickets;
@@ -62,7 +62,7 @@ export const getProcessingTickets = async (): Promise<Ticket[]> => {
 
     // Map to application Ticket model
     const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket, hasDeliveredDateColumn))
+      .map(ticket => mapTicketData(ticket))
       .filter(ticket => ticket !== null) as Ticket[];
 
     return tickets;

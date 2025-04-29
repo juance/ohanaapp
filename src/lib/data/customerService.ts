@@ -42,8 +42,39 @@ export const redeemLoyaltyPoints = async (
   points: number
 ): Promise<{ remainingPoints: number, freeValets: number }> => {
   try {
-    // Call redeemLoyaltyPointsDB with 2 arguments as expected
-    return await redeemLoyaltyPointsDB(customerId, points);
+    // Get current loyalty points and free valets
+    const { data, error } = await supabase
+      .from('customers')
+      .select('loyalty_points, free_valets')
+      .eq('id', customerId)
+      .single();
+    
+    if (error) throw error;
+    
+    const currentPoints = data?.loyalty_points || 0;
+    
+    if (currentPoints < points) {
+      throw new Error('Not enough loyalty points');
+    }
+    
+    const newPoints = currentPoints - points;
+    const newFreeValets = (data?.free_valets || 0) + 1;
+    
+    // Update the customer record
+    const { error: updateError } = await supabase
+      .from('customers')
+      .update({
+        loyalty_points: newPoints,
+        free_valets: newFreeValets
+      })
+      .eq('id', customerId);
+    
+    if (updateError) throw updateError;
+    
+    return {
+      remainingPoints: newPoints,
+      freeValets: newFreeValets
+    };
   } catch (error) {
     console.error('Error redeeming loyalty points:', error);
     throw error;

@@ -3,7 +3,7 @@
 import { toast as sonnerToast } from 'sonner';
 
 // Define the base toast function
-const toastFunction = (props: any) => {
+const toastFunction = function(props: any) {
   // If it's an object with title/description (shadcn style)
   if (typeof props === 'object' && (props.title || props.description)) {
     const { title, description, variant, ...rest } = props;

@@ -23,7 +23,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
     setLoading(true);
     
     try {
-      await addLoyaltyPoints(selectedClient, pointsToAdd);
+      await addLoyaltyPoints(selectedClient.id, pointsToAdd);
       toast.success(`${pointsToAdd} puntos añadidos a ${selectedClient.name}`);
       setPointsToAdd(0);
       await refreshData();
@@ -43,7 +43,7 @@ export const useLoyaltyProgram = (refreshData: () => Promise<void>) => {
     setLoading(true);
     
     try {
-      await redeemLoyaltyPoints(selectedClient, pointsToRedeem);
+      await redeemLoyaltyPoints(selectedClient.id, pointsToRedeem);
       toast.success(`${pointsToRedeem} puntos canjeados`);
       setPointsToRedeem(0);
       await refreshData();
