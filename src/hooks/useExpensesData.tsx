@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { getStoredExpenses } from '@/lib/dataService';
+import { getStoredExpenses } from '@/lib/data/expenseService';
+import { toast } from '@/lib/toast';
 
 interface UseExpensesDataReturn {
   loading: boolean;
@@ -24,77 +25,61 @@ export const useExpensesData = (): UseExpensesDataReturn => {
   
   const fetchExpenses = async () => {
     try {
-      // Get current date
+      console.log('Obteniendo datos de gastos...');
+      // Obtener todos los gastos almacenados
+      const allExpenses = await getStoredExpenses();
+      console.log('Gastos obtenidos:', allExpenses.length);
+      
+      // Obtener fecha actual
       const today = new Date();
       
-      // Get expenses for today
+      // Calcular gastos diarios
       const startOfDay = new Date(today);
       startOfDay.setHours(0, 0, 0, 0);
       
       const endOfDay = new Date(today);
       endOfDay.setHours(23, 59, 59, 999);
       
-      // Implement a try-catch to handle potential mismatch in function signature
-      let dailyExpenses = [];
-      try {
-        dailyExpenses = await getStoredExpenses();
-        // Filter for today's expenses only
-        dailyExpenses = dailyExpenses.filter(exp => {
-          const expDate = new Date(exp.date);
-          return expDate >= startOfDay && expDate <= endOfDay;
-        });
-      } catch (err) {
-        console.error("Error fetching daily expenses:", err);
-        dailyExpenses = [];
-      }
+      // Filtrar gastos del día
+      const dailyExpenses = allExpenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate >= startOfDay && expDate <= endOfDay;
+      });
       
       const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      console.log('Gastos diarios:', dailyTotal);
       
-      // Get expenses for current week
+      // Calcular gastos semanales
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay()); // Start of week (Sunday)
+      startOfWeek.setDate(today.getDate() - today.getDay()); // Inicio de semana (Domingo)
       startOfWeek.setHours(0, 0, 0, 0);
       
       const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); // End of week (Saturday)
+      endOfWeek.setDate(startOfWeek.getDate() + 6); // Fin de semana (Sábado)
       endOfWeek.setHours(23, 59, 59, 999);
       
-      // Try-catch for weekly expenses
-      let weeklyExpenses = [];
-      try {
-        weeklyExpenses = await getStoredExpenses();
-        // Filter for this week's expenses
-        weeklyExpenses = weeklyExpenses.filter(exp => {
-          const expDate = new Date(exp.date);
-          return expDate >= startOfWeek && expDate <= endOfWeek;
-        });
-      } catch (err) {
-        console.error("Error fetching weekly expenses:", err);
-        weeklyExpenses = [];
-      }
+      // Filtrar gastos de la semana
+      const weeklyExpenses = allExpenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate >= startOfWeek && expDate <= endOfWeek;
+      });
       
       const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      console.log('Gastos semanales:', weeklyTotal);
       
-      // Get expenses for current month
+      // Calcular gastos mensuales
       const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
       endOfMonth.setHours(23, 59, 59, 999);
       
-      // Try-catch for monthly expenses
-      let monthlyExpenses = [];
-      try {
-        monthlyExpenses = await getStoredExpenses();
-        // Filter for this month's expenses
-        monthlyExpenses = monthlyExpenses.filter(exp => {
-          const expDate = new Date(exp.date);
-          return expDate >= startOfMonth && expDate <= endOfMonth;
-        });
-      } catch (err) {
-        console.error("Error fetching monthly expenses:", err);
-        monthlyExpenses = [];
-      }
+      // Filtrar gastos del mes
+      const monthlyExpenses = allExpenses.filter(exp => {
+        const expDate = new Date(exp.date);
+        return expDate >= startOfMonth && expDate <= endOfMonth;
+      });
       
       const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      console.log('Gastos mensuales:', monthlyTotal);
       
       setExpenses({
         daily: dailyTotal,
@@ -102,8 +87,9 @@ export const useExpensesData = (): UseExpensesDataReturn => {
         monthly: monthlyTotal
       });
     } catch (err) {
-      console.error("Error fetching expenses:", err);
-      setError(err instanceof Error ? err : new Error('Unknown error fetching expenses'));
+      console.error("Error al obtener gastos:", err);
+      setError(err instanceof Error ? err : new Error('Error desconocido al obtener gastos'));
+      toast.error("Error al cargar los datos de gastos");
     } finally {
       setLoading(false);
     }

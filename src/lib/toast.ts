@@ -2,9 +2,20 @@
 // Re-export toast from use-toast.ts with additional methods 
 import { toast as sonnerToast } from 'sonner';
 
+type ToastFunction = {
+  (props: string | object): string | number;
+  success: (message: string, options?: any) => string | number;
+  error: (message: string, options?: any) => string | number;
+  info: (message: string, options?: any) => string | number;
+  warning: (message: string, options?: any) => string | number;
+  loading: (message: string, options?: any) => string | number;
+  default: (message: string, options?: any) => string | number;
+  custom: (title: string, description?: string, options?: any) => string | number;
+};
+
 // Define the base toast function
-const toastFunction = function(props: any) {
-  // If it's an object with title/description (shadcn style)
+const toastFunction = function(props: any): string | number {
+  // Si es un objeto con title/description (estilo shadcn)
   if (typeof props === 'object' && (props.title || props.description)) {
     const { title, description, variant, ...rest } = props;
     
@@ -21,7 +32,7 @@ const toastFunction = function(props: any) {
     });
   }
   
-  // If it's a simple message string (sonner style)
+  // Si es un simple mensaje string (estilo sonner)
   if (typeof props === 'string') {
     const message = props;
     const options = arguments[1];
@@ -29,7 +40,7 @@ const toastFunction = function(props: any) {
   }
   
   return sonnerToast(props);
-};
+} as ToastFunction;
 
 // Add all the helper methods
 toastFunction.success = (message: string, options?: any) => sonnerToast.success(message, options);

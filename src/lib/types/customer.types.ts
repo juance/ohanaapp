@@ -6,11 +6,13 @@ export interface Customer {
   loyaltyPoints?: number;
   freeValets?: number;
   valetCount?: number;
-  valetsCount?: number; // Alternative field name
+  valetsCount?: number; // Campo alternativo 
+  valetsRedeemed?: number; // Agregando este campo
   lastVisit?: string;
   createdAt?: string;
+  updatedAt?: string; // Agregando este campo
   
-  // Fields for compatibility with ClientVisit
+  // Campos para compatibilidad con ClientVisit
   clientName?: string;
   phoneNumber?: string;
   visitCount?: number;
@@ -25,8 +27,9 @@ export interface ClientVisit {
   loyaltyPoints?: number;
   freeValets?: number;
   valetsCount?: number;
+  valetsRedeemed?: number;
   
-  // Fields for compatibility with Customer
+  // Campos para compatibilidad con Customer
   name?: string;
   phone?: string;
 }
