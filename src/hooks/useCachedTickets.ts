@@ -26,7 +26,21 @@ export const useCachedTickets = (statusFilter?: string) => {
         const { data, error } = await query.order('created_at', { ascending: false });
         
         if (error) throw error;
-        return data as Ticket[];
+        
+        // Map database records to Ticket interface
+        return data.map((item: any) => ({
+          id: item.id,
+          ticketNumber: item.ticket_number,
+          clientName: item.customer_name || '',
+          phoneNumber: item.customer_phone || '',
+          totalPrice: item.total || 0,
+          paymentMethod: item.payment_method || 'cash',
+          status: item.status || 'pending',
+          isPaid: item.is_paid || false,
+          valetQuantity: item.valet_quantity || 0,
+          createdAt: item.created_at,
+          deliveredDate: item.delivered_date
+        })) as Ticket[];
       };
       
       // Get from cache or fetch new data with 2 minute TTL

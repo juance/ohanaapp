@@ -13,6 +13,7 @@ import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
 
 const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name'); // Add searchFilter state
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
   const [ticketServices, setTicketServices] = useState<any[]>([]);
 
@@ -89,6 +90,8 @@ const DeliveredOrders = () => {
             <SearchBar
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
+              searchFilter={searchFilter}
+              setSearchFilter={setSearchFilter}
             />
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -103,9 +106,8 @@ const DeliveredOrders = () => {
 
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50">
                 <TicketDetailPanel
-                  selectedTicket={selectedTicket}
-                  tickets={tickets}
-                  ticketServices={ticketServices}
+                  ticket={tickets.find(t => t.id === selectedTicket)}
+                  services={ticketServices}
                   formatDate={formatDate}
                 />
               </div>

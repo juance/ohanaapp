@@ -1,62 +1,75 @@
 
-// Servicios para manejar los estados de tickets
-import { Ticket } from '@/lib/types';
+// Ticket status management utilities
 
-/**
- * Verifica si un ticket está entregado basado en su estado
- */
-export const isDelivered = (status?: string): boolean => {
-  return status === 'delivered';
+type DatabaseStatus = 'pending' | 'processing' | 'ready' | 'delivered' | 'cancelled';
+type SimplifiedStatus = 'pending' | 'ready' | 'completed' | 'cancelled';
+
+// Map database status to simplified UI status
+export const mapToSimplifiedStatus = (status: DatabaseStatus): SimplifiedStatus => {
+  switch (status) {
+    case 'pending':
+    case 'processing':
+      return 'pending';
+    case 'ready':
+      return 'ready';
+    case 'delivered':
+      return 'completed';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
 };
 
-/**
- * Verifica si un ticket está pendiente/en progreso
- */
-export const isPending = (status?: string): boolean => {
-  return status === 'pending' || 
-         status === 'processing' || 
-         status === 'ready';
+// Map simplified status to database status
+export const mapToDatabaseStatus = (status: SimplifiedStatus): DatabaseStatus => {
+  switch (status) {
+    case 'pending':
+      return 'processing';
+    case 'ready':
+      return 'ready';
+    case 'completed':
+      return 'delivered';
+    case 'cancelled':
+      return 'cancelled';
+    default:
+      return 'pending';
+  }
 };
 
-/**
- * Verifica si un ticket tiene un estado específico
- */
-export const isInStatus = (ticket: Ticket, status: string | string[]): boolean => {
-  const statuses = Array.isArray(status) ? status : [status];
-  return statuses.includes(ticket.status);
-};
-
-/**
- * Devuelve una lista de estados posibles para la base de datos
- */
-export const getDatabaseStatuses = (): string[] => {
+// Get all database statuses
+export const getDatabaseStatuses = (): DatabaseStatus[] => {
   return ['pending', 'processing', 'ready', 'delivered', 'cancelled'];
 };
 
-/**
- * Obtiene el nombre para mostrar de un estado
- */
-export const getStatusDisplayName = (status: string): string => {
+// Check if a ticket is in a specific status
+export const isInStatus = (ticket: any, status: DatabaseStatus | DatabaseStatus[]): boolean => {
+  if (Array.isArray(status)) {
+    return status.includes(ticket.status);
+  }
+  return ticket.status === status;
+};
+
+// Get display name for status
+export const getStatusDisplayName = (status: DatabaseStatus): string => {
   switch (status) {
     case 'pending':
       return 'Pendiente';
     case 'processing':
-      return 'En proceso';
+      return 'En Proceso';
     case 'ready':
-      return 'Listo para retirar';
+      return 'Listo para Retirar';
     case 'delivered':
       return 'Entregado';
     case 'cancelled':
       return 'Cancelado';
     default:
-      return status;
+      return 'Desconocido';
   }
 };
 
-/**
- * Obtiene la clase de badge para un estado
- */
-export const getStatusBadgeClass = (status: string): string => {
+// Get badge class for status
+export const getStatusBadgeClass = (status: DatabaseStatus): string => {
   switch (status) {
     case 'pending':
       return 'bg-yellow-100 text-yellow-800';
@@ -65,7 +78,7 @@ export const getStatusBadgeClass = (status: string): string => {
     case 'ready':
       return 'bg-green-100 text-green-800';
     case 'delivered':
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-purple-100 text-purple-800';
     case 'cancelled':
       return 'bg-red-100 text-red-800';
     default:
@@ -73,42 +86,8 @@ export const getStatusBadgeClass = (status: string): string => {
   }
 };
 
-// Funciones para mapeo de estados que faltan en los tests
-export const mapToSimplifiedStatus = (status?: string): string => {
-  if (!status) return 'pending';
-  
-  switch (status) {
-    case 'delivered':
-      return 'delivered';
-    case 'pending':
-    case 'processing': 
-    case 'ready':
-      return 'pending';
-    default:
-      return 'pending';
-  }
-};
-
-export const mapToDatabaseStatus = (status?: string): string => {
-  if (!status) return 'pending';
-  
-  switch (status) {
-    case 'pending':
-      return 'pending';
-    case 'processing':
-      return 'processing';
-    case 'ready':
-      return 'ready';
-    case 'delivered':
-      return 'delivered';
-    default:
-      return 'pending';
-  }
-};
-
-export const moveToNextStatus = (currentStatus?: string): string => {
-  if (!currentStatus) return 'processing';
-  
+// Move a ticket to the next status in the workflow
+export const moveToNextStatus = (currentStatus: DatabaseStatus): DatabaseStatus => {
   switch (currentStatus) {
     case 'pending':
       return 'processing';
@@ -116,9 +95,7 @@ export const moveToNextStatus = (currentStatus?: string): string => {
       return 'ready';
     case 'ready':
       return 'delivered';
-    case 'delivered':
-      return 'delivered'; // No hay siguiente estado después de entregado
     default:
-      return 'processing';
+      return currentStatus;
   }
 };

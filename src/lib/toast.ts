@@ -1,66 +1,58 @@
 
-// Re-export toast from use-toast.ts with additional methods 
-import { toast as sonnerToast } from 'sonner';
+import { toast as sonnerToast } from '@/components/ui/sonner';
+
+type ToastOptions = {
+  title?: string;
+  description?: string;
+  duration?: number;
+};
 
 type ToastFunction = {
-  (props: string | object): string | number;
-  success: (message: string, options?: any) => string | number;
-  error: (message: string, options?: any) => string | number;
-  info: (message: string, options?: any) => string | number;
-  warning: (message: string, options?: any) => string | number;
-  loading: (message: string, options?: any) => string | number;
-  default: (message: string, options?: any) => string | number;
-  custom: (title: string, description?: string, options?: any) => string | number;
+  (message: string): void;
+  (options: ToastOptions): void;
+  success: {
+    (message: string): void;
+    (options: ToastOptions): void;
+  };
+  error: {
+    (message: string): void;
+    (options: ToastOptions): void;
+  };
+  info: {
+    (message: string): void;
+    (options: ToastOptions): void;
+  };
+  warning: {
+    (message: string): void;
+    (options: ToastOptions): void;
+  };
 };
 
-// Define the base toast function
-const toastFunction = function(props: any): string | number {
-  // Si es un objeto con title/description (estilo shadcn)
-  if (typeof props === 'object' && (props.title || props.description)) {
-    const { title, description, variant, ...rest } = props;
-    
-    if (variant === 'destructive') {
-      return sonnerToast.error(title || '', {
-        description,
-        ...rest
-      });
-    }
-    
-    return sonnerToast(title || '', {
-      description,
-      ...rest
+// Base toast function
+const baseToast = (message: string | ToastOptions, variant = 'default') => {
+  if (typeof message === 'string') {
+    sonnerToast({
+      title: message,
+      variant
+    });
+  } else {
+    sonnerToast({
+      title: message.title || 'Notificación',
+      description: message.description,
+      duration: message.duration,
+      variant
     });
   }
-  
-  // Si es un simple mensaje string (estilo sonner)
-  if (typeof props === 'string') {
-    const message = props;
-    // Access options from second parameter, not 'arguments'
-    const options = arguments[1] as any;
-    return sonnerToast(message, options);
-  }
-  
-  return sonnerToast(props);
-} as ToastFunction;
-
-// Add all the helper methods
-toastFunction.success = (message: string, options?: any) => sonnerToast.success(message, options);
-toastFunction.error = (message: string, options?: any) => sonnerToast.error(message, options);
-toastFunction.info = (message: string, options?: any) => sonnerToast.info(message, options);
-toastFunction.warning = (message: string, options?: any) => sonnerToast.warning(message, options);
-toastFunction.loading = (message: string, options?: any) => sonnerToast.loading(message, options);
-
-// Add the default method for classic object style
-toastFunction.default = (message: string, options?: any) => sonnerToast(message, options);
-
-// Add custom toast with title and description
-toastFunction.custom = (title: string, description?: string, options?: any) => {
-  return sonnerToast(title, {
-    description,
-    ...options
-  });
 };
 
-// Export as both named and default export
-export const toast = toastFunction;
-export default toastFunction;
+// Create the toast function with all methods
+const successToast = (message: string | ToastOptions) => baseToast(message, 'success');
+const errorToast = (message: string | ToastOptions) => baseToast(message, 'destructive');
+const infoToast = (message: string | ToastOptions) => baseToast(message, 'default');
+const warningToast = (message: string | ToastOptions) => baseToast(message, 'warning');
+
+export const toast = baseToast as ToastFunction;
+toast.success = successToast as ToastFunction['success'];
+toast.error = errorToast as ToastFunction['error'];
+toast.info = infoToast as ToastFunction['info'];
+toast.warning = warningToast as ToastFunction['warning'];

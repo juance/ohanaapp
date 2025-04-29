@@ -1,73 +1,39 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
-import { checkDeliveredDateColumnExists, buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
-import { getDatabaseStatuses } from './ticketStatusService';
+import { toast } from '@/lib/toast';
 
-/**
- * Get all pending tickets (including ready tickets)
- */
-export const getPendingTickets = async (): Promise<Ticket[]> => {
-  try {
-    // Check if delivered_date column exists
-    const hasDeliveredDateColumn = await checkDeliveredDateColumnExists();
-
-    // Get all pending tickets (not delivered) using the status service
-    const pendingStatuses = getDatabaseStatuses('PENDING');
-
-    // Build select query based on available columns
-    const selectQuery = buildTicketSelectQuery();
-
-    const { data: ticketsData, error } = await selectQuery
-      .in('status', pendingStatuses)
-      .eq('is_canceled', false);
-
-    if (error) {
-      console.error('Error retrieving pending tickets:', error);
-      throw error;
-    }
-
-    // Map to application Ticket model
-    const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket))
-      .filter(ticket => ticket !== null) as Ticket[];
-
-    return tickets;
-  } catch (error) {
-    console.error('Error retrieving pending tickets:', error);
-    return [];
-  }
+// Create or export the getDatabaseStatuses function
+export const getDatabaseStatuses = () => {
+  return ['pending', 'processing', 'ready', 'delivered', 'cancelled'];
 };
 
-/**
- * Get tickets with status 'pending' or 'processing' (not including 'ready')
- */
 export const getProcessingTickets = async (): Promise<Ticket[]> => {
   try {
-    // Check if delivered_date column exists
-    const hasDeliveredDateColumn = await checkDeliveredDateColumnExists();
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, customers(name, phone)')
+      .in('status', ['processing', 'pending']) // Use array directly here
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
 
-    // Build select query based on available columns
-    const selectQuery = buildTicketSelectQuery();
-
-    // Get only tickets in 'pending' or 'processing' status (not 'ready')
-    const { data: ticketsData, error } = await selectQuery
-      .in('status', ['pending', 'processing']) // We still use explicit values here as this is a subset
-      .eq('is_canceled', false);
-
-    if (error) {
-      console.error('Error retrieving processing tickets:', error);
-      throw error;
-    }
-
-    // Map to application Ticket model
-    const tickets = ticketsData
-      .map(ticket => mapTicketData(ticket))
-      .filter(ticket => ticket !== null) as Ticket[];
-
-    return tickets;
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number || '000',
+      clientName: ticket.customers?.name || 'Cliente',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'pending',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date
+    }));
   } catch (error) {
-    console.error('Error retrieving processing tickets:', error);
+    console.error('Error fetching processing tickets:', error);
+    toast.error('Error al cargar los tickets en proceso');
     return [];
   }
 };

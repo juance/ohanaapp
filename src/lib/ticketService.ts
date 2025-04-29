@@ -1,76 +1,151 @@
-// Re-export all ticket-related services from the modular files
 
-export {
-  getTicketOptions,
-  // cancelTicket, // Comentado para evitar conflicto con ticketPickupService
-  markTicketAsPaidInAdvance
-} from './ticket/ticketServiceCore';
+import { supabase } from '@/integrations/supabase/client';
+import { Ticket } from '@/lib/types';
+import { toast } from '@/lib/toast';
+import { 
+  isInStatus, 
+  getDatabaseStatuses, 
+  getStatusDisplayName, 
+  getStatusBadgeClass 
+} from './ticket/ticketStatusService';
 
-export {
-  getPickupTickets as getReadyTickets, // Alias to maintain compatibility
-  markTicketAsDelivered,
-  markTicketAsPending,
-  getUnretrievedTickets,
-  cancelTicket, 
-  updateTicketPaymentMethod,
-  getRecentTickets
-} from './ticket/ticketPickupService';
+// Get tickets that are ready for pickup
+export const getReadyTickets = async (): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, customers(name, phone)')
+      .eq('status', 'ready')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
 
-export {
-  getDeliveredTickets
-} from './ticket/ticketDeliveryService';
-
-export {
-  getPendingTickets
-} from './ticket/ticketPendingService';
-
-export {
-  createTicket
-} from './ticket/ticketCreationService';
-
-// Calculate total - add this function
-export const calculateTicketTotal = (ticket: any): number => {
-  let total = 0;
-  
-  // Add dry cleaning items
-  if (ticket.dryCleaningItems && Array.isArray(ticket.dryCleaningItems)) {
-    total += ticket.dryCleaningItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number || '000',
+      clientName: ticket.customers?.name || 'Cliente',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'ready',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: null
+    }));
+  } catch (error) {
+    console.error('Error fetching ready tickets:', error);
+    toast.error('Error al cargar los tickets listos para entrega');
+    return [];
   }
-  
-  // Add valet service if applicable
-  if (ticket.valetQuantity && ticket.valetPrice) {
-    total += ticket.valetQuantity * ticket.valetPrice;
-  }
-  
-  return total;
 };
 
-// Re-export query utilities for other modules to use
-export {
-  checkDeliveredDateColumnExists,
-  buildTicketSelectQuery,
-  mapTicketData
-} from './ticket/ticketQueryUtils';
+// Get delivered tickets
+export const getDeliveredTickets = async (): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, customers(name, phone)')
+      .eq('status', 'delivered')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
 
-// Re-export status service functions 
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number || '000',
+      clientName: ticket.customers?.name || 'Cliente',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'delivered',
+      isPaid: ticket.is_paid || true,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date
+    }));
+  } catch (error) {
+    console.error('Error fetching delivered tickets:', error);
+    toast.error('Error al cargar los tickets entregados');
+    return [];
+  }
+};
+
+// Get services for a specific ticket
+export const getTicketServices = async (ticketId: string): Promise<any[]> => {
+  try {
+    // Get dry cleaning items
+    const { data: dryCleaningItems, error: dryCleaningError } = await supabase
+      .from('dry_cleaning_items')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (dryCleaningError) throw dryCleaningError;
+    
+    // Get laundry options
+    const { data: laundryOptions, error: laundryError } = await supabase
+      .from('ticket_laundry_options')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (laundryError) throw laundryError;
+    
+    // Combine and return services
+    const services = [
+      ...(dryCleaningItems || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price || 0,
+        quantity: item.quantity || 1,
+        type: 'dry_cleaning'
+      })),
+      ...(laundryOptions || []).map(option => ({
+        id: option.id,
+        name: option.option_type,
+        price: 0,
+        quantity: 1,
+        type: 'laundry_option'
+      }))
+    ];
+    
+    return services;
+  } catch (error) {
+    console.error('Error fetching ticket services:', error);
+    toast.error('Error al cargar los servicios del ticket');
+    return [];
+  }
+};
+
+// Mark a ticket as delivered
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
+  try {
+    const now = new Date().toISOString();
+    
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        status: 'delivered',
+        delivered_date: now,
+        is_paid: true,
+        updated_at: now
+      })
+      .eq('id', ticketId);
+      
+    if (error) throw error;
+    
+    toast.success('Ticket marcado como entregado');
+    return true;
+  } catch (error) {
+    console.error('Error marking ticket as delivered:', error);
+    toast.error('Error al marcar el ticket como entregado');
+    return false;
+  }
+};
+
+// Re-export useful functions from ticketStatusService
 export {
-  mapToSimplifiedStatus,
-  mapToDatabaseStatus,
   isInStatus,
-  isPending,
-  isDelivered,
   getDatabaseStatuses,
   getStatusDisplayName,
   getStatusBadgeClass
-} from './ticket/ticketStatusService';
-
-// Re-export status transition service functions
-export {
-  markTicketAsProcessing,
-  markTicketAsReady,
-  moveToNextStatus,
-  getNextStatus
-} from './ticket/ticketStatusTransitionService';
-
-// Export the ticket service function directly from this file
-export { getTicketServices } from './ticket/ticketServiceCore';
+};

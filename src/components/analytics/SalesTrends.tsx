@@ -27,13 +27,14 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
         // Define date range based on selected time range
         let startDate: Date;
         let dateFormat: string;
+        // Fixed: Use proper types for groupBy
         let groupBy: 'day' | 'week' | 'month';
         
         switch (timeRange) {
           case 'week':
             startDate = subWeeks(new Date(), 1);
             dateFormat = 'EEE';
-            groupBy = 'day';
+            groupBy = 'day'; // Changed from 'week' to 'day'
             break;
           case 'month':
             startDate = subMonths(new Date(), 1);
@@ -50,6 +51,10 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
             dateFormat = 'MMM';
             groupBy = 'month';
             break;
+          default:
+            startDate = subMonths(new Date(), 1);
+            dateFormat = 'dd MMM';
+            groupBy = 'day';
         }
         
         // Create cache key based on time range

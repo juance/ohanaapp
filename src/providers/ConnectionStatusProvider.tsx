@@ -1,107 +1,101 @@
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { toast } from '@/lib/toast';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
-import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { syncAllData } from '@/lib/data/syncComprehensiveService';
-import { SyncStatus } from '@/lib/types/sync.types';
 
-interface ConnectionStatusContextType {
+// Define the sync status types
+export interface SyncStatus {
   online: boolean;
-  lastSyncTimestamp: Date | null;
-  pendingSync: number;
-  isSyncing: boolean;
-  syncStatus: SyncStatus | null;
-  sync: () => Promise<void>;
+  syncing: boolean;
+  error: string | null;
+  lastSyncedAt: Date | null;
+  pendingSyncCount: number;
 }
 
-const ConnectionStatusContext = createContext<ConnectionStatusContextType | null>(null);
-
-export const useConnectionStatus = () => {
-  const context = useContext(ConnectionStatusContext);
-  if (!context) {
-    throw new Error('useConnectionStatus must be used within ConnectionStatusProvider');
-  }
-  return context;
-};
-
-interface ConnectionStatusProviderProps {
-  children: ReactNode;
+interface ConnectionContextType {
+  connectionStatus: 'online' | 'offline';
+  syncStatus: 'synced' | 'syncing' | 'error' | 'pending';
+  pendingSyncCount: number;
+  lastSyncedAt: Date | null;
+  syncData: () => Promise<void>;
 }
 
-export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({ children }) => {
-  const { online } = useNetworkStatus();
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
+const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
 
+export const ConnectionStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { isOnline } = useNetworkStatus();
+  const [syncState, setSyncState] = useState<SyncStatus>({
+    online: isOnline,
+    syncing: false,
+    error: null,
+    lastSyncedAt: null,
+    pendingSyncCount: 0
+  });
+
+  // Update online status when network changes
   useEffect(() => {
-    // Cargar estado de sincronización al inicio
-    refreshSyncStatus();
+    setSyncState(prev => ({ ...prev, online: isOnline }));
+  }, [isOnline]);
 
-    // Si vuelve a estar online después de estar offline, ofrecer sincronizar
-    const handleOnlineStatusChange = () => {
-      if (online && syncStatus?.pending) {
-        toast({
-          title: 'Conexión restaurada',
-          description: `Hay ${syncStatus.pending} elementos pendientes de sincronización. ¿Desea sincronizar ahora?`,
-          variant: 'default',
-          action: {
-            label: 'Sincronizar',
-            onClick: () => sync()
-          }
-        });
-      }
-    };
-
-    window.addEventListener('online', handleOnlineStatusChange);
-    
-    return () => {
-      window.removeEventListener('online', handleOnlineStatusChange);
-    };
-  }, [online, syncStatus]);
-
-  const refreshSyncStatus = () => {
-    try {
-      const status = getSyncStatus();
-      setSyncStatus(status);
-      return status;
-    } catch (error) {
-      console.error('Error refreshing sync status:', error);
-      return null;
+  // Mock function to simulate syncing data
+  const syncData = async () => {
+    if (!isOnline) {
+      return;
     }
-  };
 
-  const sync = async () => {
-    if (isSyncing || !online) return;
-    
-    setIsSyncing(true);
-    toast.loading('Sincronizando datos...');
-    
     try {
-      await syncAllData();
-      const newStatus = refreshSyncStatus();
+      setSyncState(prev => ({ ...prev, syncing: true }));
       
-      toast.success(`Sincronización completada. Último registro: ${newStatus?.lastSync ? new Date(newStatus.lastSync).toLocaleString() : 'N/A'}`);
-    } catch (error) {
-      console.error('Error during sync:', error);
-      toast.error('Error durante la sincronización');
-    } finally {
-      setIsSyncing(false);
+      // Simulate API request
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setSyncState({
+        online: isOnline,
+        syncing: false,
+        error: null,
+        lastSyncedAt: new Date(),
+        pendingSyncCount: 0
+      });
+    } catch (err) {
+      setSyncState(prev => ({
+        ...prev,
+        syncing: false,
+        error: err instanceof Error ? err.message : 'Error de sincronización'
+      }));
     }
   };
 
-  const value: ConnectionStatusContextType = {
-    online,
-    lastSyncTimestamp: syncStatus?.lastSync || null,
-    pendingSync: syncStatus?.pending || 0,
-    isSyncing,
-    syncStatus,
-    sync
+  // Determine the current sync status
+  let currentSyncStatus: 'synced' | 'syncing' | 'error' | 'pending';
+  
+  if (syncState.syncing) {
+    currentSyncStatus = 'syncing';
+  } else if (syncState.error) {
+    currentSyncStatus = 'error';
+  } else if (syncState.pendingSyncCount > 0) {
+    currentSyncStatus = 'pending';
+  } else {
+    currentSyncStatus = 'synced';
+  }
+
+  const value = {
+    connectionStatus: isOnline ? 'online' : 'offline',
+    syncStatus: currentSyncStatus,
+    pendingSyncCount: syncState.pendingSyncCount,
+    lastSyncedAt: syncState.lastSyncedAt,
+    syncData
   };
 
   return (
-    <ConnectionStatusContext.Provider value={value}>
+    <ConnectionContext.Provider value={value}>
       {children}
-    </ConnectionStatusContext.Provider>
+    </ConnectionContext.Provider>
   );
+};
+
+export const useConnection = () => {
+  const context = useContext(ConnectionContext);
+  if (context === undefined) {
+    throw new Error('useConnection must be used within a ConnectionStatusProvider');
+  }
+  return context;
 };

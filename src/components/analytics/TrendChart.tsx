@@ -13,7 +13,7 @@ import {
   Area 
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { InfoCircle } from 'lucide-react';
+import { Info } from 'lucide-react'; // Changed from InfoCircle to Info which is available
 
 interface TrendChartProps {
   data: any[];
@@ -48,7 +48,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
         </CardHeader>
         <CardContent className="flex items-center justify-center h-52">
           <div className="text-center text-gray-500">
-            <InfoCircle className="mx-auto h-10 w-10 mb-2 text-gray-400" />
+            <Info className="mx-auto h-10 w-10 mb-2 text-gray-400" />
             <p>No hay datos disponibles</p>
           </div>
         </CardContent>

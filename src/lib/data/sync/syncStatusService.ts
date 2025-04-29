@@ -1,41 +1,31 @@
 
-import { SyncStatus, SimpleSyncStatus } from '@/lib/types';
+/**
+ * Simple sync status service to track synchronization status
+ */
+
+import { SyncStatus } from '@/lib/types';
 
 // Get sync status
 export const getSyncStatus = (): SyncStatus => {
   try {
     // Initialize status with default values
     const status: SyncStatus = {
-      ticketsSync: {
-        lastSync: null,
-        pendingCount: 0,
-        error: null
-      },
-      expensesSync: {
-        lastSync: null,
-        pendingCount: 0,
-        error: null
-      },
-      clientsSync: {
-        lastSync: null,
-        pendingCount: 0,
-        error: null
-      },
-      feedbackSync: {
-        lastSync: null,
-        pendingCount: 0,
-        error: null
-      }
+      online: navigator.onLine,
+      syncing: false,
+      error: null,
+      lastSyncedAt: null,
+      pendingSyncCount: 0 
     };
     
     return status;
   } catch (error) {
     console.error('Error getting sync status:', error);
     return {
-      ticketsSync: { lastSync: null, pendingCount: 0, error: String(error) },
-      expensesSync: { lastSync: null, pendingCount: 0, error: String(error) },
-      clientsSync: { lastSync: null, pendingCount: 0, error: String(error) },
-      feedbackSync: { lastSync: null, pendingCount: 0, error: String(error) }
+      online: navigator.onLine,
+      syncing: false,
+      error: String(error),
+      lastSyncedAt: null,
+      pendingSyncCount: 0
     };
   }
 };
@@ -59,7 +49,7 @@ export const updateSyncStatus = async (syncData: {
 };
 
 // Get a simplified sync status for components to use
-export const getSimplifiedSyncStatus = (): SimpleSyncStatus => {
+export const getSimplifiedSyncStatus = () => {
   return {
     tickets: 0,
     expenses: 0,
