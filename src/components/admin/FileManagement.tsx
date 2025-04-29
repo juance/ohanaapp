@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -139,11 +138,7 @@ const FileManagement = () => {
   // Handle file upload
   const handleUpload = async () => {
     if (uploadFiles.length === 0) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se seleccionaron archivos para subir"
-      });
+      toast.error("No se seleccionaron archivos para subir");
       return;
     }
 
@@ -165,21 +160,14 @@ const FileManagement = () => {
 
         if (error) {
           console.error(`Error uploading ${file.name}:`, error);
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: `Error al subir ${file.name}: ${error.message}`
-          });
+          toast.error(`Error al subir ${file.name}: ${error.message}`);
         } else {
           successCount++;
         }
       }
 
       if (successCount > 0) {
-        toast({
-          title: "Éxito",
-          description: `${successCount} de ${uploadFiles.length} archivos subidos correctamente`
-        });
+        toast.success(`${successCount} de ${uploadFiles.length} archivos subidos correctamente`);
         setUploadFiles([]);
         setIsUploadOpen(false);
         fetchFiles();
@@ -187,11 +175,7 @@ const FileManagement = () => {
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error("Error in upload process:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Error en el proceso de carga: " + error.message
-      });
+      toast.error("Error en el proceso de carga: " + error.message);
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

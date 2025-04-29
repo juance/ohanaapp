@@ -83,9 +83,9 @@ export const useTicketSubmit = (
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
         status: 'pending', // Required status field
         isPaid: isPaidInAdvance || false, // Required isPaid field
-        clientName: customerName,
-        phoneNumber,
-        deliveredDate: null,
+        clientName: customerName, // Include client name
+        phoneNumber: phoneNumber, // Include phone number
+        deliveredDate: null, // Include null delivered date
         // Additional fields (will be handled appropriately in the service layer)
         customDate: date,
         usesFreeValet: useFreeValet,

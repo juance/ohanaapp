@@ -15,50 +15,30 @@ export const ErrorLogList: React.FC<ErrorLogListProps> = ({ errors }) => {
   const handleResolveError = async (id: string) => {
     try {
       await resolveError(id);
-      toast({
-        title: "Error marcado como resuelto",
-        description: "El error ha sido marcado como resuelto correctamente."
-      });
+      toast.success("El error ha sido marcado como resuelto correctamente.");
     } catch (error) {
       console.error("Error al marcar como resuelto:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo marcar el error como resuelto."
-      });
+      toast.error("No se pudo marcar el error como resuelto.");
     }
   };
 
   const handleDeleteError = async (id: string) => {
     try {
       await deleteError(id);
-      toast({
-        title: "Error eliminado",
-        description: "El registro de error ha sido eliminado permanentemente."
-      });
+      toast.success("El registro de error ha sido eliminado permanentemente.");
     } catch (error) {
       console.error("Error al eliminar:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo eliminar el error."
-      });
+      toast.error("No se pudo eliminar el error.");
     }
   };
 
   const handleClearResolved = async () => {
     try {
       await clearResolvedErrors();
-      toast({
-        title: "Errores resueltos eliminados",
-        description: "Se han eliminado los errores resueltos."
-      });
+      toast.success("Se han eliminado los errores resueltos.");
     } catch (error) {
       console.error("Error clearing resolved errors:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron eliminar los errores resueltos."
-      });
+      toast.error("No se pudieron eliminar los errores resueltos.");
     }
   };
 

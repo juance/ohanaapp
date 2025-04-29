@@ -1,65 +1,69 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { toast } from '@/lib/toast';
 import { LaundryOption } from '@/lib/types';
 
 export const useValetForm = () => {
-  // Valet information
-  const [valetQuantity, setValetQuantity] = useState(1);
+  const [quantity, setQuantity] = useState<number>(1);
+  const [pricePerValet, setPricePerValet] = useState<number>(200);
   const [useFreeValet, setUseFreeValet] = useState(false);
   const [showFreeValetDialog, setShowFreeValetDialog] = useState(false);
-  
-  // Laundry options
-  const [separateByColor, setSeparateByColor] = useState(false);
-  const [delicateDry, setDelicateDry] = useState(false);
-  const [stainRemoval, setStainRemoval] = useState(false);
-  const [bleach, setBleach] = useState(false);
-  const [noFragrance, setNoFragrance] = useState(false);
-  const [noDry, setNoDry] = useState(false);
-  
-  // Reset valet form data
+
+  // Handle quantity change
+  const handleQuantityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value, 10);
+    if (!isNaN(value) && value > 0) {
+      setQuantity(value);
+    } else {
+      toast.error('La cantidad debe ser un número mayor a cero');
+    }
+  };
+
+  // Handle price per valet change
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = parseInt(event.target.value, 10);
+    if (!isNaN(value) && value >= 0) {
+      setPricePerValet(value);
+    } else {
+      toast.error('El precio debe ser un número mayor o igual a cero');
+    }
+  };
+
+  // Calculate total price
+  const calculateTotalPrice = useCallback(() => {
+    return useFreeValet ? 0 : quantity * pricePerValet;
+  }, [quantity, pricePerValet, useFreeValet]);
+
+  // Reset form
   const resetValetForm = () => {
-    setValetQuantity(1);
+    setQuantity(1);
+    setPricePerValet(200);
     setUseFreeValet(false);
     setShowFreeValetDialog(false);
-    setSeparateByColor(false);
-    setDelicateDry(false);
-    setStainRemoval(false);
-    setBleach(false);
-    setNoFragrance(false);
-    setNoDry(false);
   };
-  
-  // Collect laundry options
+
+  // Get selected laundry options
   const getSelectedLaundryOptions = (): LaundryOption[] => {
-    const laundryOptions: LaundryOption[] = [];
-    if (separateByColor) laundryOptions.push({ id: 'separateByColor', name: 'Separar por color', optionType: 'preference' });
-    if (delicateDry) laundryOptions.push({ id: 'delicateDry', name: 'Secado delicado', optionType: 'drying' });
-    if (stainRemoval) laundryOptions.push({ id: 'stainRemoval', name: 'Quitar manchas', optionType: 'cleaning' });
-    if (bleach) laundryOptions.push({ id: 'bleach', name: 'Usar blanqueador', optionType: 'cleaning' });
-    if (noFragrance) laundryOptions.push({ id: 'noFragrance', name: 'Sin perfume', optionType: 'preference' });
-    if (noDry) laundryOptions.push({ id: 'noDry', name: 'Sin secado', optionType: 'drying' });
-    return laundryOptions;
+    return [
+      { id: 'soft_fragrance', name: 'Fragancia suave', optionType: 'fragance', option_type: 'fragance' },
+      { id: 'strong_fragrance', name: 'Fragancia intensa', optionType: 'fragance', option_type: 'fragance' },
+      { id: 'no_fragrance', name: 'Sin fragancia', optionType: 'fragance', option_type: 'fragance' },
+      { id: 'normal_ironing', name: 'Planchado normal', optionType: 'iron', option_type: 'iron' },
+      { id: 'special_ironing', name: 'Planchado especial', optionType: 'iron', option_type: 'iron' },
+      { id: 'no_ironing', name: 'Sin planchar', optionType: 'iron', option_type: 'iron' }
+    ].filter(option => useFreeValet); // Only add options if using the service
   };
 
   return {
-    valetQuantity,
-    setValetQuantity,
+    quantity,
+    pricePerValet,
     useFreeValet,
-    setUseFreeValet,
     showFreeValetDialog,
+    setUseFreeValet,
     setShowFreeValetDialog,
-    separateByColor,
-    setSeparateByColor,
-    delicateDry,
-    setDelicateDry,
-    stainRemoval,
-    setStainRemoval,
-    bleach,
-    setBleach,
-    noFragrance,
-    setNoFragrance,
-    noDry,
-    setNoDry,
+    handleQuantityChange,
+    handlePriceChange,
+    calculateTotalPrice,
     resetValetForm,
     getSelectedLaundryOptions
   };

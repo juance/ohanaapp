@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,10 +46,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
 
         if (success) {
           setFeedback(feedback.filter(item => item.id !== id));
-          toast.success({
-            title: "Success",
-            description: "Comentario eliminado exitosamente"
-          });
+          toast.success("Comentario eliminado exitosamente");
         } else {
           throw new Error("No se pudo eliminar el comentario");
         }
@@ -57,10 +55,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error("Error deleting feedback:", error);
       logError(error, { context: 'FeedbackList', operation: 'delete feedback' });
-      toast.error({
-        title: "Error",
-        description: error.message || "Error al eliminar el comentario"
-      });
+      toast.error(error.message || "Error al eliminar el comentario");
     }
   };
 

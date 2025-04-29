@@ -109,3 +109,5 @@ export const UnretrievedTickets = () => {
     </Card>
   );
 };
+
+export default UnretrievedTickets;

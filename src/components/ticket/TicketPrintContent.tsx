@@ -1,103 +1,133 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 import { Ticket, LaundryOption } from '@/lib/types';
-import { translateOption } from '@/utils/translationUtils';
 
 interface TicketPrintContentProps {
   ticket: Ticket;
-  selectedOptions: LaundryOption[];
+  laundryOptions?: LaundryOption[];
+  logoUrl?: string;
 }
 
-const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selectedOptions }) => {
-  // Create a default empty array for services if it doesn't exist
+const TicketPrintContent: React.FC<TicketPrintContentProps> = ({
+  ticket,
+  laundryOptions,
+  logoUrl
+}) => {
   const services = ticket.services || [];
+  
+  const formatDate = (date: string) => {
+    if (!date) return '';
+    return format(new Date(date), 'dd/MM/yyyy HH:mm', { locale: es });
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+    <div className="bg-white p-4 max-w-md mx-auto">
+      {/* Header */}
       <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold">Ohana</h2>
-        <p className="text-sm text-gray-600">Lavandería - Tintorería</p>
-        <p className="text-xs text-gray-600">Camargo 590 | CABA | 11 3642 4871</p>
+        {logoUrl && <img src={logoUrl} alt="Logo" className="h-12 mx-auto mb-2" />}
+        <h1 className="text-xl font-bold">Lavandería Express</h1>
+        <p className="text-sm">Av. Principal 123, Ciudad</p>
+        <p className="text-sm">Tel: (123) 456-7890</p>
       </div>
 
-      <div className="space-y-2 mb-4">
-        <div className="flex justify-between">
-          <span className="font-medium">Ticket Número:</span>
-          <span>{ticket.ticketNumber || 'N/A'}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="font-medium">Fecha:</span>
-          <span>{format(new Date(ticket.createdAt), 'dd/MM/yyyy')}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="font-medium">Cliente:</span>
-          <span>{ticket.clientName}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="font-medium">Celular:</span>
-          <span>{ticket.phoneNumber}</span>
-        </div>
+      {/* Ticket Info */}
+      <div className="border-t border-b border-gray-300 py-2 mb-4">
+        <p className="text-center font-bold">Ticket #{ticket.ticketNumber}</p>
+        <p className="text-center text-sm">{formatDate(ticket.createdAt)}</p>
       </div>
 
-      <div className="flex space-x-6 mb-4">
-        <div className="flex items-center">
-          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
-            {services.some(s => s.name?.includes('Valet')) && '✓'}
-          </div>
-          <span>Lavandería</span>
-        </div>
-
-        <div className="flex items-center">
-          <div className={`w-4 h-4 border border-gray-400 mr-2 flex items-center justify-center ${services.some(s => !s.name?.includes('Valet')) ? 'bg-blue-500 text-white' : 'bg-white'}`}>
-            {services.some(s => !s.name?.includes('Valet')) && '✓'}
-          </div>
-          <span>Tintorería</span>
-        </div>
-      </div>
-
-      {/* Display services with quantities */}
+      {/* Customer Info */}
       <div className="mb-4">
-        {services.map((service, index) => (
-          <div key={index} className="flex justify-between items-center my-1">
-            <div className="flex items-center">
-              <div className="w-4 h-4 border border-gray-400 mr-2 bg-blue-500 text-white flex items-center justify-center">✓</div>
-              <span>{service.name}</span>
-            </div>
-            {('quantity' in service && typeof service.quantity === 'number' && service.quantity > 1) && (
-              <span className="text-sm font-medium">x{service.quantity}</span>
-            )}
-          </div>
-        ))}
+        <p><strong>Cliente:</strong> {ticket.clientName}</p>
+        <p><strong>Teléfono:</strong> {ticket.phoneNumber}</p>
       </div>
 
+      {/* Services */}
+      {services && services.length > 0 ? (
+        <div className="mb-4">
+          <h2 className="font-bold border-b border-gray-300 pb-1 mb-2">Servicios</h2>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                <th className="text-left py-1">Detalle</th>
+                <th className="text-center py-1">Cant</th>
+                <th className="text-right py-1">Precio</th>
+                <th className="text-right py-1">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.map((service) => (
+                <tr key={service.id} className="border-b border-gray-100">
+                  <td className="py-1">{service.name}</td>
+                  <td className="text-center py-1">{service.quantity}</td>
+                  <td className="text-right py-1">${service.price}</td>
+                  <td className="text-right py-1">${service.price * service.quantity}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        ticket.valetQuantity && ticket.valetQuantity > 0 ? (
+          <div className="mb-4">
+            <h2 className="font-bold border-b border-gray-300 pb-1 mb-2">Servicios</h2>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  <th className="text-left py-1">Detalle</th>
+                  <th className="text-center py-1">Cant</th>
+                  <th className="text-right py-1">Precio</th>
+                  <th className="text-right py-1">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-gray-100">
+                  <td className="py-1">Servicio de valet</td>
+                  <td className="text-center py-1">{ticket.valetQuantity}</td>
+                  <td className="text-right py-1">${(ticket.totalPrice / ticket.valetQuantity).toFixed(2)}</td>
+                  <td className="text-right py-1">${ticket.totalPrice}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="mb-4 text-center italic text-gray-500">
+            No hay servicios registrados
+          </div>
+        )
+      )}
+
+      {/* Laundry Options */}
+      {laundryOptions && laundryOptions.length > 0 && (
+        <div className="mb-4">
+          <h2 className="font-bold border-b border-gray-300 pb-1 mb-2">Opciones</h2>
+          <div className="grid grid-cols-2 gap-1 text-sm">
+            {laundryOptions.map((option) => (
+              <div key={option.id} className="flex items-center">
+                <span className="mr-1">✓</span>
+                <span>{option.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Info */}
       <div className="mb-4">
-        {selectedOptions.map((option, index) => (
-          <div key={index} className="flex items-center my-1">
-            <div className="w-4 h-4 border border-gray-400 mr-2 bg-blue-500 text-white flex items-center justify-center">✓</div>
-            <span>{translateOption(option)}</span>
-          </div>
-        ))}
+        <div className="flex justify-between font-bold border-t border-b border-gray-300 py-1">
+          <span>TOTAL:</span>
+          <span>${ticket.totalPrice}</span>
+        </div>
+        <p className="text-sm mt-1"><strong>Método de pago:</strong> {ticket.paymentMethod}</p>
+        <p className="text-sm"><strong>Estado:</strong> {ticket.isPaid ? 'Pagado' : 'Pendiente'}</p>
       </div>
 
-      <div className="border-t border-dashed border-gray-300 my-4"></div>
-
-      <div className="space-y-2 mb-4">
-        <div className="flex justify-between">
-          <span className="font-medium">Cantidad:</span>
-          <span>{services.reduce((sum, service) => {
-            const quantity = 'quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1;
-            return sum + quantity;
-          }, 0)}</span>
-        </div>
-
-        <div className="flex justify-between">
-          <span className="font-medium">Importe:</span>
-          <span>${ticket.totalPrice.toLocaleString()}</span>
-        </div>
+      {/* Footer */}
+      <div className="text-center text-xs mt-6">
+        <p>Gracias por su preferencia</p>
+        <p className="mt-1">www.lavanderiaexpress.com</p>
       </div>
     </div>
   );

@@ -19,7 +19,7 @@ export interface ClientVisit {
   phoneNumber: string;
   clientName: string;
   visitCount: number;
-  lastVisitDate?: string; // Optional for compatibility
+  lastVisitDate: string; // Required for compatibility
   lastVisit: string; // For compatibility with existing code
   valetsCount: number;
   freeValets: number;

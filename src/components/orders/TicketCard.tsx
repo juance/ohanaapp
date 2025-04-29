@@ -20,14 +20,18 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, onAction, actionLabel }
       return dateString;
     }
   };
+  
+  // Use clientName (primary) or fallback to customerName if available
+  const displayName = ticket.clientName;
+  const displayPhone = ticket.phoneNumber;
 
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex justify-between items-start mb-3">
           <div>
-            <div className="font-medium">{ticket.clientName}</div>
-            <div className="text-sm text-gray-500">{ticket.phoneNumber}</div>
+            <div className="font-medium">{displayName}</div>
+            <div className="text-sm text-gray-500">{displayPhone}</div>
           </div>
           <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">
             {ticket.isPaid ? "Pagado" : "Pendiente de pago"}

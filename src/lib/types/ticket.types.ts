@@ -11,6 +11,16 @@ export interface Ticket {
   valetQuantity: number;
   createdAt: string;
   deliveredDate: string | null;
+  // Optional fields for backwards compatibility
+  customerName?: string; // Alias for clientName
+  customerPhone?: string; // Alias for phoneNumber
+  services?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+  }>;
+  basketTicketNumber?: string;
 }
 
 export interface DryCleaningItem {
@@ -23,7 +33,11 @@ export interface DryCleaningItem {
 export interface LaundryOption {
   id: string;
   name: string;
-  option_type: string;
+  optionType: string;
+  option_type?: string; // For backwards compatibility
+  price?: number; // Added price as optional
+  ticketId?: string;
+  createdAt?: string;
 }
 
 export interface TicketService {

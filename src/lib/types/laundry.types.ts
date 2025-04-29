@@ -8,3 +8,10 @@ export interface LaundryOption {
   ticketId?: string;
   createdAt?: string;
 }
+
+export interface LaundryService {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+}

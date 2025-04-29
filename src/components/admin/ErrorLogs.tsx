@@ -27,11 +27,7 @@ export const ErrorLogs = () => {
       setErrors(systemErrors);
     } catch (error) {
       console.error("Error loading error logs:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron cargar los registros de errores."
-      });
+      toast.error("No se pudieron cargar los registros de errores.");
     } finally {
       setIsLoading(false);
     }
@@ -42,17 +38,10 @@ export const ErrorLogs = () => {
     try {
       await clearErrors();
       setErrors([]);
-      toast({
-        title: "Registros limpiados",
-        description: "Los registros de errores han sido limpiados exitosamente."
-      });
+      toast.success("Los registros de errores han sido limpiados exitosamente.");
     } catch (error) {
       console.error("Error clearing error logs:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron limpiar los registros de errores."
-      });
+      toast.error("No se pudieron limpiar los registros de errores.");
     } finally {
       setIsClearing(false);
     }
@@ -63,17 +52,10 @@ export const ErrorLogs = () => {
     try {
       await clearResolvedErrors();
       loadErrors(); // Recargar errores
-      toast({
-        title: "Registros resueltos limpiados",
-        description: "Se han eliminado los registros de errores resueltos."
-      });
+      toast.success("Se han eliminado los registros de errores resueltos.");
     } catch (error) {
       console.error("Error clearing resolved error logs:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudieron limpiar los registros de errores resueltos."
-      });
+      toast.error("No se pudieron limpiar los registros de errores resueltos.");
     } finally {
       setIsClearingResolved(false);
     }
@@ -86,17 +68,10 @@ export const ErrorLogs = () => {
       setErrors(errors.map(error =>
         error.id === errorId ? { ...error, resolved: true } : error
       ));
-      toast({
-        title: "Error resuelto",
-        description: "El error ha sido marcado como resuelto."
-      });
+      toast.success("El error ha sido marcado como resuelto.");
     } catch (error) {
       console.error("Error resolving error log:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo marcar el error como resuelto."
-      });
+      toast.error("No se pudo marcar el error como resuelto.");
     }
   };
 
@@ -105,17 +80,10 @@ export const ErrorLogs = () => {
       await deleteError(errorId);
       // Actualizar el estado local
       setErrors(errors.filter(error => error.id !== errorId));
-      toast({
-        title: "Error eliminado",
-        description: "El error ha sido eliminado correctamente."
-      });
+      toast.success("El error ha sido eliminado correctamente.");
     } catch (error) {
       console.error("Error deleting error log:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo eliminar el error."
-      });
+      toast.error("No se pudo eliminar el error.");
     }
   };
 
@@ -328,3 +296,5 @@ export const ErrorLogs = () => {
     </Card>
   );
 };
+
+export default ErrorLogs;

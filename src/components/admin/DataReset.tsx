@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,10 +35,7 @@ const DataReset = () => {
       localStorage.removeItem('tickets');
       localStorage.removeItem('expenses');
 
-      toast({
-        title: "Datos reiniciados",
-        description: "Todos los datos han sido reiniciados exitosamente."
-      });
+      toast.success("Todos los datos han sido reiniciados exitosamente.");
 
       // Refresh the page after a short delay to show updated data
       setTimeout(() => {
@@ -46,11 +44,7 @@ const DataReset = () => {
 
     } catch (err) {
       console.error("Error resetting data:", err);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Hubo un problema al reiniciar los datos. Intente nuevamente."
-      });
+      toast.error("Hubo un problema al reiniciar los datos. Intente nuevamente.");
     } finally {
       setIsResetting(false);
     }
