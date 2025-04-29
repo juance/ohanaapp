@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CustomerFeedback } from '@/lib/types';
+import { CustomerFeedback } from '@/lib/types/feedback.types';
 import { getAllFeedback, deleteFeedback } from '@/lib/feedbackService';
 import { saveToLocalStorage } from '@/lib/data/coreUtils';
 import { Star, Trash2, RefreshCw, User, MessageSquare } from 'lucide-react';
@@ -46,7 +45,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
 
         if (success) {
           setFeedback(feedback.filter(item => item.id !== id));
-          toast({
+          toast.success({
             title: "Success",
             description: "Comentario eliminado exitosamente"
           });
@@ -58,8 +57,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error("Error deleting feedback:", error);
       logError(error, { context: 'FeedbackList', operation: 'delete feedback' });
-      toast({
-        variant: "destructive",
+      toast.error({
         title: "Error",
         description: error.message || "Error al eliminar el comentario"
       });

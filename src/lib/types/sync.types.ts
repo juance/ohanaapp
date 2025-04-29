@@ -18,6 +18,10 @@ export interface SyncableCustomerFeedback {
   rating: number;
   comment: string;
   created_at: string;
+  customerName?: string;
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
+  source?: string;
 }
 
 export interface SyncStats {

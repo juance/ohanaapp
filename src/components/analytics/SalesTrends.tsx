@@ -34,7 +34,7 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
           case 'week':
             startDate = subWeeks(new Date(), 1);
             dateFormat = 'EEE';
-            groupBy = 'day'; // Changed from 'week' to 'day'
+            groupBy = 'day';
             break;
           case 'month':
             startDate = subMonths(new Date(), 1);

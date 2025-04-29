@@ -1,93 +1,101 @@
 
 import React from 'react';
+import { Wifi, WifiOff, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Button } from './button';
 import { cn } from '@/lib/utils';
-import { CheckCircle, CloudOff, RotateCw, AlertTriangle } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
-export type SyncStatus = 'synchronized' | 'offline' | 'syncing' | 'error';
 
 interface DataStatusIndicatorProps {
-  status: SyncStatus;
+  status: 'synchronized' | 'offline' | 'syncing' | 'error';
   pendingCount?: number;
-  className?: string;
   showLabel?: boolean;
   size?: 'sm' | 'md' | 'lg';
   onClick?: () => void;
+  className?: string;
 }
 
 export function DataStatusIndicator({
   status,
   pendingCount = 0,
-  className,
   showLabel = false,
   size = 'md',
-  onClick
+  onClick,
+  className
 }: DataStatusIndicatorProps) {
-  const iconSize = size === 'sm' ? 16 : size === 'md' ? 20 : 24;
-  const containerClasses = cn(
-    'flex items-center gap-2',
-    onClick && 'cursor-pointer hover:opacity-80',
-    className
-  );
-
-  const statusConfig = {
-    synchronized: {
-      icon: <CheckCircle size={iconSize} className="text-green-500" />,
-      label: 'Datos sincronizados',
-      description: 'Todos los datos están actualizados'
-    },
-    offline: {
-      icon: <CloudOff size={iconSize} className="text-amber-500" />,
-      label: 'Modo sin conexión',
-      description: pendingCount > 0 
-        ? `${pendingCount} cambios pendientes de sincronizar` 
-        : 'Trabajando sin conexión'
-    },
-    syncing: {
-      icon: <RotateCw size={iconSize} className="text-blue-500 animate-spin" />,
-      label: 'Sincronizando',
-      description: 'Actualizando datos...'
-    },
-    error: {
-      icon: <AlertTriangle size={iconSize} className="text-red-500" />,
-      label: 'Error de sincronización',
-      description: 'No se pudieron sincronizar los datos'
+  const sizeClass = {
+    sm: 'h-4 w-4',
+    md: 'h-5 w-5',
+    lg: 'h-6 w-6'
+  };
+  
+  const containerClass = onClick ? 'cursor-pointer' : '';
+  
+  const renderIcon = () => {
+    switch (status) {
+      case 'synchronized':
+        return <Wifi className={`${sizeClass[size]} text-green-500`} />;
+      case 'offline':
+        return <WifiOff className={`${sizeClass[size]} text-gray-500`} />;
+      case 'syncing':
+        return <RefreshCw className={`${sizeClass[size]} text-blue-500 animate-spin`} />;
+      case 'error':
+        return <AlertTriangle className={`${sizeClass[size]} text-red-500`} />;
+    }
+  };
+  
+  const getLabel = () => {
+    switch (status) {
+      case 'synchronized':
+        return 'Datos sincronizados';
+      case 'offline':
+        return 'Sin conexión';
+      case 'syncing':
+        return 'Sincronizando...';
+      case 'error':
+        return 'Error de sincronización';
     }
   };
 
-  const config = statusConfig[status];
-
+  const getColor = () => {
+    switch (status) {
+      case 'synchronized': return 'text-green-700';
+      case 'offline': return 'text-gray-600';
+      case 'syncing': return 'text-blue-600';
+      case 'error': return 'text-red-600';
+    }
+  };
+  
+  if (onClick) {
+    return (
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onClick}
+        className={cn("p-1 h-auto flex items-center gap-1.5", className)}
+      >
+        {renderIcon()}
+        {showLabel && (
+          <span className={cn("text-sm font-medium", getColor())}>
+            {getLabel()}
+            {pendingCount > 0 && status !== 'syncing' && (
+              <span className="ml-1 text-amber-500">({pendingCount})</span>
+            )}
+          </span>
+        )}
+      </Button>
+    );
+  }
+  
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div 
-          className={containerClasses}
-          onClick={onClick}
-          role={onClick ? 'button' : undefined}
-          tabIndex={onClick ? 0 : undefined}
-        >
-          {config.icon}
-          {showLabel && (
-            <span className={cn(
-              'text-sm font-medium',
-              status === 'synchronized' && 'text-green-700',
-              status === 'offline' && 'text-amber-700',
-              status === 'syncing' && 'text-blue-700',
-              status === 'error' && 'text-red-700'
-            )}>
-              {config.label}
-            </span>
+    <div className={cn("flex items-center gap-1.5", containerClass, className)}>
+      {renderIcon()}
+      {showLabel && (
+        <span className={cn("text-sm font-medium", getColor())}>
+          {getLabel()}
+          {pendingCount > 0 && status !== 'syncing' && (
+            <span className="ml-1 text-amber-500">({pendingCount})</span>
           )}
-          {pendingCount > 0 && status === 'offline' && (
-            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-amber-500 rounded-full">
-              {pendingCount}
-            </span>
-          )}
-        </div>
-      </TooltipTrigger>
-      <TooltipContent side="bottom">
-        <p>{config.description}</p>
-      </TooltipContent>
-    </Tooltip>
+        </span>
+      )}
+    </div>
   );
 }

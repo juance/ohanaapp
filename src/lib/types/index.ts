@@ -2,6 +2,8 @@
 export * from './ticket.types';
 export * from './sync.types';
 export * from './metrics.types';
+export * from './feedback.types';
+export * from './inventory.types';
 
 export interface ClientVisit {
   id: string;

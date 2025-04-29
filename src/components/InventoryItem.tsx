@@ -1,18 +1,16 @@
-
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { InventoryItem as InventoryItemType } from '@/lib/types';
+import { InventoryItem } from '@/lib/types/inventory.types';
 import { toast } from '@/lib/toast';
 import { Package, Trash, Plus, Minus, Save, X, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
 interface InventoryItemProps {
-  item: InventoryItemType;
+  item: InventoryItem;
   onDelete: (id: string) => void;
-  onUpdate: (item: InventoryItemType) => void;
+  onUpdate: (item: InventoryItem) => void;
 }
 
 const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
@@ -67,6 +65,36 @@ const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
 
   return (
     <Card className="transition-all duration-200 hover:shadow-md">
+      <CardHeader>
+        <CardTitle>{item.name}</CardTitle>
+        <CardFooter>
+          <div className="flex space-x-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              onClick={handleEdit}
+            >
+              <Edit className="h-4 w-4" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+              onClick={() => {
+                toast.success('Item deleted', {
+                  description: `${item.name} has been removed from inventory`,
+                });
+                onDelete(item.id);
+              }}
+            >
+              <Trash className="h-4 w-4" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          </div>
+        </CardFooter>
+      </CardHeader>
       <CardContent className="p-4">
         {isEditing ? (
           <div className="space-y-4">

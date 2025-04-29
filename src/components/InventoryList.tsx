@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
-import { getInventoryItems, addInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/lib/inventoryService';
-import { InventoryItem } from '@/lib/types';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { InventoryItem } from '@/lib/types/inventory.types';
+import { getInventoryItems, addInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/lib/inventoryService';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Package, AlertTriangle, Pencil, Trash, Plus, Search, X, Save } from 'lucide-react';

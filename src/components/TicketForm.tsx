@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import ClientInfo from './ticket/form/ClientInfo';
 import ServicesSection from './ticket/form/ServicesSection';
@@ -42,7 +41,7 @@ const TicketForm = () => {
     { id: '1', value: 'cash', label: 'Efectivo' },
     { id: '2', value: 'debit', label: 'Débito' },
     { id: '3', value: 'mercadopago', label: 'Mercado Pago' },
-    { id: '4', value: 'cuenta_dni', label: 'Cuenta DNI' }
+    { id: '4', value: 'cuentaDni', label: 'Cuenta DNI' }
   ];
 
   return (
