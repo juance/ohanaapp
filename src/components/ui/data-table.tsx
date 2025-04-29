@@ -138,5 +138,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-
-export { DataTable };

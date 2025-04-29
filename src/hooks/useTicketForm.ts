@@ -21,7 +21,7 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
   const formState = {
     customerName: customerForm.customerName,
     phoneNumber: customerForm.phoneNumber,
-    valetQuantity: valetForm.valetQuantity,
+    valetQuantity: valetForm.valetQuantity, // Use valetQuantity from valetForm
     useFreeValet: valetForm.useFreeValet,
     paymentMethod: ticketFormState.paymentMethod,
     totalPrice: ticketFormState.totalPrice,

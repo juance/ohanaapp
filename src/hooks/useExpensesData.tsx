@@ -1,140 +1,118 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { getStoredExpenses } from '@/lib/data/expenseService';
-import { toast } from '@/lib/toast';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
+import { SyncableExpense } from '@/lib/types/sync.types';
 
-interface UseExpensesDataReturn {
-  loading: boolean;
-  error: Error | null;
-  expenses: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-  };
-  refreshData: () => Promise<void>;
-}
-
-export const useExpensesData = (): UseExpensesDataReturn => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [expenses, setExpenses] = useState<{daily: number; weekly: number; monthly: number}>({
-    daily: 0,
-    weekly: 0,
-    monthly: 0
+export const useExpensesData = () => {
+  const [expenses, setExpenses] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [newExpense, setNewExpense] = useState({
+    amount: 0,
+    description: '',
+    date: new Date().toISOString().split('T')[0]
   });
-  
-  const fetchExpenses = useCallback(async () => {
+  const [isAddingExpense, setIsAddingExpense] = useState(false);
+
+  // Load expenses data
+  const loadExpensesData = async () => {
+    setIsLoading(true);
     try {
-      console.log('Obteniendo datos de gastos...');
-      setLoading(true);
-      
-      // Obtener todos los gastos directamente de la base de datos para asegurar datos actualizados
-      const { data: expensesData, error: expensesError } = await supabase
+      const { data, error } = await supabase
         .from('expenses')
         .select('*')
         .order('date', { ascending: false });
+
+      if (error) throw error;
       
-      if (expensesError) throw expensesError;
+      setExpenses(data || []);
+    } catch (error) {
+      console.error('Error loading expenses data:', error);
+      toast.error('Error al cargar datos de gastos');
       
-      console.log('Gastos obtenidos de la base de datos:', expensesData?.length);
-      
-      // También obtener gastos locales que podrían no estar sincronizados
-      const localExpenses = await getStoredExpenses();
-      console.log('Gastos locales:', localExpenses.length);
-      
-      // Combinar gastos, dando prioridad a los de la base de datos
-      const allExpenses = [...expensesData];
-      
-      // Añadir gastos locales que no estén en la base de datos
-      localExpenses.forEach(localExp => {
-        if (!expensesData.some(dbExp => dbExp.id === localExp.id)) {
-          allExpenses.push(localExp);
-        }
-      });
-      
-      console.log('Total de gastos combinados:', allExpenses.length);
-      
-      // Obtener fecha actual
-      const today = new Date();
-      
-      // Calcular gastos diarios
-      const startOfDay = new Date(today);
-      startOfDay.setHours(0, 0, 0, 0);
-      
-      const endOfDay = new Date(today);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      // Filtrar gastos del día
-      const dailyExpenses = allExpenses.filter(exp => {
-        const expDate = new Date(exp.date);
-        return expDate >= startOfDay && expDate <= endOfDay;
-      });
-      
-      const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-      console.log('Gastos diarios:', dailyTotal);
-      
-      // Calcular gastos semanales
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay()); // Inicio de semana (Domingo)
-      startOfWeek.setHours(0, 0, 0, 0);
-      
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6); // Fin de semana (Sábado)
-      endOfWeek.setHours(23, 59, 59, 999);
-      
-      // Filtrar gastos de la semana
-      const weeklyExpenses = allExpenses.filter(exp => {
-        const expDate = new Date(exp.date);
-        return expDate >= startOfWeek && expDate <= endOfWeek;
-      });
-      
-      const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-      console.log('Gastos semanales:', weeklyTotal);
-      
-      // Calcular gastos mensuales
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-      endOfMonth.setHours(23, 59, 59, 999);
-      
-      // Filtrar gastos del mes
-      const monthlyExpenses = allExpenses.filter(exp => {
-        const expDate = new Date(exp.date);
-        return expDate >= startOfMonth && expDate <= endOfMonth;
-      });
-      
-      const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-      console.log('Gastos mensuales:', monthlyTotal);
-      
-      setExpenses({
-        daily: dailyTotal,
-        weekly: weeklyTotal,
-        monthly: monthlyTotal
-      });
-      
-      setError(null);
-      
-    } catch (err) {
-      console.error("Error al obtener gastos:", err);
-      setError(err instanceof Error ? err : new Error('Error desconocido al obtener gastos'));
-      toast.error("Error al cargar los datos de gastos");
+      // Try to get expenses from local storage as fallback
+      const localExpenses = localStorage.getItem('expenses');
+      if (localExpenses) {
+        setExpenses(JSON.parse(localExpenses));
+      }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
-  }, []);
-  
-  const refreshData = async () => {
-    await fetchExpenses();
   };
-  
+
+  // Load data on component mount
   useEffect(() => {
-    fetchExpenses();
-  }, [fetchExpenses]);
-  
+    loadExpensesData();
+  }, []);
+
+  // Handle adding a new expense
+  const handleAddExpense = async () => {
+    if (newExpense.amount <= 0) {
+      toast.error('El monto debe ser mayor que cero');
+      return;
+    }
+
+    if (!newExpense.description.trim()) {
+      toast.error('La descripción es requerida');
+      return;
+    }
+
+    setIsAddingExpense(true);
+    
+    try {
+      // Prepare the data ensuring it has all required properties
+      const expenseData: Partial<SyncableExpense> = {
+        amount: newExpense.amount,
+        description: newExpense.description,
+        date: newExpense.date,
+        created_at: new Date().toISOString()
+      };
+      
+      const { data, error } = await supabase
+        .from('expenses')
+        .insert([expenseData])
+        .select();
+
+      if (error) throw error;
+      
+      toast.success('Gasto agregado correctamente');
+      // Reset form
+      setNewExpense({
+        amount: 0,
+        description: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      // Refresh data
+      loadExpensesData();
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      toast.error('Error al agregar el gasto');
+      
+      // Store in local storage for later sync
+      const localExpenses = localStorage.getItem('expenses');
+      const expenses = localExpenses ? JSON.parse(localExpenses) : [];
+      const newLocalExpense = {
+        ...newExpense,
+        id: `local-${Date.now()}`,
+        created_at: new Date().toISOString(),
+        synced: false
+      };
+      expenses.push(newLocalExpense);
+      localStorage.setItem('expenses', JSON.stringify(expenses));
+      
+      toast.info('Gasto guardado localmente para sincronización posterior');
+    } finally {
+      setIsAddingExpense(false);
+    }
+  };
+
   return {
-    loading,
-    error,
     expenses,
-    refreshData
+    isLoading,
+    newExpense,
+    setNewExpense,
+    isAddingExpense,
+    handleAddExpense,
+    refreshExpenses: loadExpensesData
   };
 };

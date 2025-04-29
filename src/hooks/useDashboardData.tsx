@@ -1,219 +1,99 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { Ticket, ClientVisit } from '@/lib/types';
-import { toast } from '@/lib/toast';
-import { useExpensesData } from './useExpensesData';
-import { useClientData } from './useClientData';
-import { useChartData } from './useChartData';
 
-interface TicketStats {
-  total: number;
-  delivered: number;
-  pending: number;
-  revenue: number;
-  valetCount: number;
-  dryCleaningItemsCount: number;
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
+
+interface DashboardStats {
+  totalTickets: number;
+  ticketsToday: number;
+  pendingTickets: number;
+  dailyRevenue: number;
+  totalRevenue: number;
+  monthlyRevenue: number;
+  completedTickets: number;
+  topServices: any[];
 }
 
 export const useDashboardData = () => {
-  const [ticketStats, setTicketStats] = useState<TicketStats>({
-    total: 0,
-    delivered: 0,
-    pending: 0,
-    revenue: 0,
-    valetCount: 0,
-    dryCleaningItemsCount: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
-  // Obtener datos de gastos con force refresh para asegurar datos actualizados
-  const { expenses, loading: expensesLoading, error: expensesError, refreshData: refreshExpenses } = useExpensesData();
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  // Obtener datos de clientes
-  const { clients, loading: clientsLoading, error: clientsError } = useClientData();
-
-  // Fetch ticket details from Supabase
-  const fetchTicketDetails = async (): Promise<TicketStats> => {
+  const fetchDashboardData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      setError(null);
-      
-      // Hacer una única consulta con agregaciones
-      const { data, error: ticketsError } = await supabase
-        .rpc('get_ticket_stats');
-      
-      if (ticketsError) {
-        console.error('Error fetching tickets stats:', ticketsError);
-        // Si la función RPC no existe, hacer un fallback a la consulta manual
-        return fetchTicketDetailsManual();
-      }
-      
-      if (data && data.length > 0) {
-        const stats = data[0];
-        return {
-          total: stats.total_tickets || 0,
-          delivered: stats.delivered_tickets || 0,
-          pending: stats.pending_tickets || 0,
-          revenue: stats.total_revenue || 0,
-          valetCount: stats.valet_count || 0,
-          dryCleaningItemsCount: stats.dry_cleaning_count || 0,
-        };
-      }
-      
-      return fetchTicketDetailsManual();
-    } catch (error) {
-      console.error("Error fetching stats:", error);
-      return fetchTicketDetailsManual();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Mantener el método manual como fallback
-  const fetchTicketDetailsManual = async (): Promise<TicketStats> => {
-    try {
-      setLoading(true);
-      setError(null);
-      console.log('Fetching dashboard data...');
-      
-      // Fetch all tickets with a simpler query
-      const { data, error: ticketsError } = await supabase
+      // Get statistics directly from the tickets and other tables
+      const { data: ticketsData, error: ticketsError } = await supabase
         .from('tickets')
-        .select('id, total, status, valet_quantity, created_at');
+        .select('*');
       
-      if (ticketsError) {
-        console.error('Error fetching tickets:', ticketsError);
-        throw ticketsError;
-      }
+      if (ticketsError) throw ticketsError;
       
-      console.log(`Fetched ${data?.length || 0} tickets`);
+      // Process the data to calculate statistics
+      const totalTickets = ticketsData ? ticketsData.length : 0;
+      const today = new Date().toISOString().split('T')[0];
+      const ticketsToday = ticketsData ? ticketsData.filter(t => 
+        t.created_at && t.created_at.startsWith(today)
+      ).length : 0;
       
-      // Initialize statistics
-      let total = data?.length || 0;
-      let delivered = 0;
-      let pending = 0;
-      let revenue = 0;
-      let valetCount = 0;
+      const pendingTickets = ticketsData ? ticketsData.filter(t => 
+        t.status === 'pending' || t.status === 'processing'
+      ).length : 0;
       
-      // Process each ticket to calculate the statistics
-      if (data && data.length > 0) {
-        data.forEach(ticket => {
-          revenue += ticket.total || 0;
-          
-          if (ticket.status === 'delivered') {
-            delivered++;
-          } else {
-            pending++;
+      const completedTickets = ticketsData ? ticketsData.filter(t => 
+        t.status === 'delivered'
+      ).length : 0;
+      
+      let totalRevenue = 0;
+      let dailyRevenue = 0;
+      let monthlyRevenue = 0;
+      
+      const currentMonth = new Date().getMonth() + 1;
+      const currentYear = new Date().getFullYear();
+      
+      if (ticketsData && ticketsData.length > 0) {
+        ticketsData.forEach(ticket => {
+          if (ticket.is_paid) {
+            totalRevenue += Number(ticket.total || 0);
+            
+            const ticketDate = new Date(ticket.created_at);
+            if (ticketDate.toISOString().split('T')[0] === today) {
+              dailyRevenue += Number(ticket.total || 0);
+            }
+            
+            if (ticketDate.getMonth() + 1 === currentMonth && 
+                ticketDate.getFullYear() === currentYear) {
+              monthlyRevenue += Number(ticket.total || 0);
+            }
           }
-          
-          valetCount += ticket.valet_quantity || 0;
         });
       }
       
-      console.log('Basic stats calculated:', { total, delivered, pending, revenue, valetCount });
+      // Calculate top services (simplified)
+      const topServices = []; // This would require more detailed analysis of services
       
-      // Fetch dry cleaning items count with a single query
-      const { data: dryCleaningData, error: dryCleaningError } = await supabase
-        .from('dry_cleaning_items')
-        .select('id');
-      
-      if (dryCleaningError) {
-        console.error('Error fetching dry cleaning items:', dryCleaningError);
-        throw dryCleaningError;
-      }
-      
-      const totalDryCleaningItemsCount = dryCleaningData?.length || 0;
-      console.log(`Fetched ${totalDryCleaningItemsCount} dry cleaning items`);
-      
-      return {
-        total,
-        delivered,
-        pending,
-        revenue,
-        valetCount,
-        dryCleaningItemsCount: totalDryCleaningItemsCount,
+      const dashboardStats: DashboardStats = {
+        totalTickets,
+        ticketsToday,
+        pendingTickets,
+        dailyRevenue,
+        totalRevenue,
+        monthlyRevenue,
+        completedTickets,
+        topServices
       };
+      
+      setStats(dashboardStats);
     } catch (error) {
-      setError(error instanceof Error ? error : new Error('Error fetching ticket details'));
-      return {
-        total: 0,
-        delivered: 0,
-        pending: 0,
-        revenue: 0,
-        valetCount: 0,
-        dryCleaningItemsCount: 0,
-      };
+      console.error("Error fetching dashboard data:", error);
+      toast.error("Error al cargar datos del dashboard");
     } finally {
       setLoading(false);
     }
   };
 
-  // Generar datos para los gráficos
-  const chartData = useChartData('monthly', {
-    daily: null,
-    weekly: null,
-    monthly: {
-      totalTickets: ticketStats.total,
-      paidTickets: ticketStats.delivered,
-      totalRevenue: ticketStats.revenue,
-      salesByWeek: {
-        'Semana 1': ticketStats.revenue * 0.25,
-        'Semana 2': ticketStats.revenue * 0.25,
-        'Semana 3': ticketStats.revenue * 0.25,
-        'Semana 4': ticketStats.revenue * 0.25
-      },
-      salesByDay: {}, // Campo requerido por MonthlyMetrics
-      dryCleaningItems: {
-        'Valet': ticketStats.valetCount,
-        'Tintorería': ticketStats.dryCleaningItemsCount
-      },
-      paymentMethods: {
-        cash: 0,
-        debit: 0,
-        mercadopago: 0,
-        cuentaDni: 0
-      },
-      totalSales: ticketStats.revenue,
-      valetCount: ticketStats.valetCount
-    }
-  }, expenses);
-
-  // Función para refrescar los datos
-  const refreshData = useCallback(async () => {
-    try {
-      // Primero refrescamos los datos de gastos para asegurarnos de tener la información más actual
-      await refreshExpenses();
-      
-      const stats = await fetchTicketDetails();
-      setTicketStats(stats);
-      return stats;
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error('Error refreshing data'));
-      toast.error('Error al actualizar los datos del dashboard');
-      throw err;
-    }
-  }, [refreshExpenses]);
-
-  useEffect(() => {
-    refreshData().catch(err => console.error('Error in initial data load:', err));
-  }, [refreshData]);
-
-  // Determinar si está cargando cualquiera de los datos
-  const isLoading = loading || expensesLoading || clientsLoading;
-
-  // Combinar errores
-  const combinedError = error || expensesError || clientsError;
-
-  return {
-    data: {
-      metrics: ticketStats,
-      expenses: expenses,
-      clients: clients,
-      chartData: chartData
-    },
-    isLoading: isLoading,
-    error: combinedError,
-    refreshData
-  };
+  return { stats, loading, refreshData: fetchDashboardData };
 };

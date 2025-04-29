@@ -1,80 +1,168 @@
-
 import { useState, useEffect } from 'react';
-import { getClientVisitFrequency } from '@/lib/dataService';
-import { ClientVisit } from '@/lib/types';
-import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
+import { getClientVisitFrequency } from '@/lib/data/clientService';
+import { ClientVisit, Customer } from '@/lib/types/customer.types';
 
-interface UseClientDataReturn {
-  loading: boolean;
-  isLoading: boolean;
-  error: Error | null;
-  frequentClients: ClientVisit[];
-  clients: ClientVisit[];
-  refreshData: () => Promise<void>;
-}
+export const useClientData = () => {
+  const [clients, setClients] = useState<ClientVisit[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
+  const [isEditingClient, setIsEditingClient] = useState<string | null>(null);
+  const [editClientName, setEditClientName] = useState('');
+  const [editClientPhone, setEditClientPhone] = useState('');
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
+  const [isAddingClient, setIsAddingClient] = useState(false);
 
-export const useClientData = (): UseClientDataReturn => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [frequentClients, setFrequentClients] = useState<ClientVisit[]>([]);
-
-  const fetchClientData = async () => {
+  // Load client data
+  const loadClientData = async () => {
+    setIsLoading(true);
     try {
-      console.log('Fetching client data...');
-
-      // Get all customers directly from the database
-      const { data: customersData, error: customersError } = await supabase
-        .from('customers')
-        .select('id, phone, name, loyalty_points, valets_count, free_valets, created_at, last_visit')
-        .order('valets_count', { ascending: false });
-
-      if (customersError) {
-        console.error('Error fetching customers from Supabase:', customersError);
-        throw customersError;
-      }
-
-      console.log(`Fetched ${customersData?.length || 0} customers from database`);
-
-      // Transform customer data to ClientVisit format
-      const enhancedClients = (customersData || []).map(customer => {
-        return {
-          id: customer.id,
-          phoneNumber: customer.phone || '',
-          clientName: customer.name || 'Cliente sin nombre',
-          visitCount: customer.valets_count || 0,
-          lastVisit: customer.last_visit || customer.created_at || '',
-          valetsCount: customer.valets_count || 0,
-          freeValets: customer.free_valets || 0,
-          loyaltyPoints: customer.loyalty_points || 0,
-          visitFrequency: `${customer.valets_count || 0} visitas`
-        };
-      });
-
-      console.log('Processed client data:', enhancedClients.length, 'clients');
-      setFrequentClients(enhancedClients);
-    } catch (err) {
-      console.error("Error fetching client data:", err);
-      setError(err instanceof Error ? err : new Error('Unknown error fetching client data'));
+      const visitData = await getClientVisitFrequency();
+      
+      // Make sure all required properties are present
+      const formattedData: ClientVisit[] = visitData.map(client => ({
+        ...client,
+        lastVisitDate: client.lastVisit, // Ensure lastVisitDate is set
+      }));
+      
+      setClients(formattedData);
+    } catch (error) {
+      console.error('Error loading client data:', error);
+      toast.error('Error al cargar datos de clientes');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const refreshData = async () => {
-    setLoading(true);
-    await fetchClientData();
-  };
-
+  // Load data on component mount
   useEffect(() => {
-    fetchClientData();
+    loadClientData();
   }, []);
 
+  // Handle client selection
+  const handleSelectClient = (client: ClientVisit) => {
+    setSelectedClient(client);
+  };
+
+  // Handle edit mode
+  const handleEditClient = (client: ClientVisit) => {
+    setIsEditingClient(client.id);
+    setEditClientName(client.clientName);
+    setEditClientPhone(client.phoneNumber);
+  };
+
+  // Handle save edit
+  const handleSaveClient = async (id: string) => {
+    try {
+      // Find the client to update
+      const clientToUpdate = clients.find(client => client.id === id);
+      
+      if (!clientToUpdate) {
+        toast.error('Cliente no encontrado');
+        return;
+      }
+      
+      // Update the client
+      const updatedClients = clients.map(client => {
+        if (client.id === id) {
+          return {
+            ...client,
+            clientName: editClientName,
+            phoneNumber: editClientPhone
+          };
+        }
+        return client;
+      });
+      
+      // Update state
+      setClients(updatedClients);
+      
+      // Update local storage
+      localStorage.setItem('clients', JSON.stringify(updatedClients));
+      
+      toast.success('Cliente actualizado correctamente');
+    } catch (error) {
+      console.error('Error updating client:', error);
+      toast.error('Error al actualizar el cliente');
+    }
+    
+    // Refresh client data
+    loadClientData();
+    // Reset edit state
+    setIsEditingClient(null);
+  };
+
+  // Handle cancel edit
+  const handleCancelEdit = () => {
+    setIsEditingClient(null);
+  };
+
+  // Handle adding a new client
+  const handleAddClient = async () => {
+    if (!newClientName.trim() || !newClientPhone.trim()) {
+      toast.error('Por favor, complete todos los campos');
+      return;
+    }
+
+    setIsAddingClient(true);
+
+    try {
+      // Create a new client object
+      const newClient: ClientVisit = {
+        id: `local-${Date.now()}`,
+        clientName: newClientName,
+        phoneNumber: newClientPhone,
+        visitCount: 0,
+        lastVisit: new Date().toISOString(),
+        valetsCount: 0,
+        freeValets: 0,
+        loyaltyPoints: 0,
+        visitFrequency: 'Ocasional',
+        lastVisitDate: new Date().toISOString()
+      };
+
+      // Update state
+      setClients([...clients, newClient]);
+
+      // Update local storage
+      const updatedClients = [...clients, newClient];
+      localStorage.setItem('clients', JSON.stringify(updatedClients));
+
+      toast.success('Cliente agregado correctamente');
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast.error('Error al agregar el cliente');
+    }
+    
+    // Refresh client data
+    loadClientData();
+    // Reset form
+    setNewClientName('');
+    setNewClientPhone('');
+    setIsAddingClient(false);
+  };
+
   return {
-    loading,
-    isLoading: loading,
-    error,
-    frequentClients,
-    clients: frequentClients,
-    refreshData
+    clients,
+    isLoading,
+    selectedClient,
+    isEditingClient,
+    editClientName,
+    editClientPhone,
+    newClientName,
+    newClientPhone,
+    isAddingClient,
+    setNewClientName,
+    setNewClientPhone,
+    setIsAddingClient,
+    handleSelectClient,
+    handleEditClient,
+    handleSaveClient,
+    handleCancelEdit,
+    handleAddClient,
+    setEditClientName,
+    setEditClientPhone,
+    refreshClients: loadClientData
   };
 };

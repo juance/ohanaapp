@@ -1,6 +1,69 @@
-
-import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/lib/types';
+import { supabase } from '@/integrations/supabase/client';
+import { getFromLocalStorage, saveToLocalStorage, CLIENT_STORAGE_KEY } from '../coreUtils';
+
+// Create a new customer
+export const createCustomer = async (customerData: Partial<Customer>): Promise<Customer | null> => {
+  try {
+    // Try to create in Supabase first
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        name: customerData.name,
+        phone: customerData.phoneNumber,
+        valets_count: customerData.valetsCount || 0,
+        free_valets: customerData.freeValets || 0,
+        last_visit: customerData.lastVisit || new Date().toISOString()
+      }])
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    
+    // Map the Supabase response to our Customer type
+    const customer: Customer = {
+      id: data.id,
+      name: data.name,
+      phoneNumber: data.phone,
+      lastVisit: data.last_visit,
+      valetsCount: data.valets_count || 0,
+      freeValets: data.free_valets || 0,
+      loyaltyPoints: (data.valets_count || 0) * 10,
+      createdAt: data.created_at
+    };
+    
+    return customer;
+  } catch (error) {
+    console.error('Error creating customer in Supabase:', error);
+    
+    // Fallback to local storage
+    try {
+      // Get existing customers
+      const customers = getFromLocalStorage<Customer[]>(CLIENT_STORAGE_KEY) || [];
+      
+      // Create new customer
+      const newCustomer: Customer = {
+        id: `local-${Date.now()}`,
+        name: customerData.name || '',
+        phoneNumber: customerData.phoneNumber || '',
+        valetsCount: customerData.valetsCount || 0,
+        freeValets: customerData.freeValets || 0,
+        lastVisit: customerData.lastVisit || new Date().toISOString(),
+        loyaltyPoints: (customerData.valetsCount || 0) * 10,
+        createdAt: new Date().toISOString()
+      };
+      
+      // Add to array and save
+      customers.push(newCustomer);
+      saveToLocalStorage(CLIENT_STORAGE_KEY, customers);
+      
+      return newCustomer;
+    } catch (localError) {
+      console.error('Error creating customer in local storage:', localError);
+      return null;
+    }
+  }
+};
 
 // Types for local customer data
 export interface LocalClient {
