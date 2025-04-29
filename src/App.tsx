@@ -1,6 +1,6 @@
 
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Loading } from '@/components/ui/loading';
 import './App.css';
 
@@ -26,30 +26,28 @@ const Expenses = lazy(() => import('./pages/Expenses'));
 
 function App() {
   return (
-    <BrowserRouter>
-      <Suspense fallback={<div className="h-screen w-full flex items-center justify-center"><Loading size="lg" /></div>}>
-        <Routes>
-          <Route path="/login" element={<Auth />} />
-          <Route path="/change-password" element={<ChangePassword />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/clients" element={<Clients />} />
-          <Route path="/tickets" element={<Tickets />} />
-          <Route path="/pending-orders" element={<PendingOrders />} />
-          <Route path="/pickup-orders" element={<PickupOrders />} />
-          <Route path="/delivered-orders" element={<DeliveredOrders />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/loyalty" element={<Loyalty />} />
-          <Route path="/admin" element={<Administration />} />
-          <Route path="/feedback" element={<Feedback />} />
-          <Route path="/expenses" element={<Expenses />} />
-          <Route path="/metrics" element={<TicketMetrics />} />
-          <Route path="/analysis" element={<TicketAnalysis />} />
-          <Route path="/trends" element={<TrendAnalysis />} />
-          <Route path="/" element={<Index />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
-    </BrowserRouter>
+    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center"><Loading size="lg" /></div>}>
+      <Routes>
+        <Route path="/login" element={<Auth />} />
+        <Route path="/change-password" element={<ChangePassword />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/pending-orders" element={<PendingOrders />} />
+        <Route path="/pickup-orders" element={<PickupOrders />} />
+        <Route path="/delivered-orders" element={<DeliveredOrders />} />
+        <Route path="/inventory" element={<Inventory />} />
+        <Route path="/loyalty" element={<Loyalty />} />
+        <Route path="/admin" element={<Administration />} />
+        <Route path="/feedback" element={<Feedback />} />
+        <Route path="/expenses" element={<Expenses />} />
+        <Route path="/metrics" element={<TicketMetrics />} />
+        <Route path="/analysis" element={<TicketAnalysis />} />
+        <Route path="/trends" element={<TrendAnalysis />} />
+        <Route path="/" element={<Index />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 }
 
