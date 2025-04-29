@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { Customer } from '@/lib/types';
+import { Customer } from '@/lib/types/customer.types';
 
 export const useCustomerForm = () => {
   // Customer information

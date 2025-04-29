@@ -81,7 +81,8 @@ export const ResetCounters = () => {
 
       console.log("Reset counters response:", data);
 
-      toast.success("Contadores reiniciados", {
+      toast({
+        title: "Contadores reiniciados",
         description: "Los contadores han sido reiniciados exitosamente."
       });
 
@@ -91,7 +92,8 @@ export const ResetCounters = () => {
       }, 1500);
     } catch (error) {
       console.error('Error resetting counters:', error);
-      toast.error("Error al reiniciar contadores", {
+      toast({
+        title: "Error al reiniciar contadores",
         description: error instanceof Error ? error.message : "Ocurrió un error al reiniciar los contadores."
       });
     } finally {

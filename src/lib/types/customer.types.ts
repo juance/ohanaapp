@@ -17,10 +17,10 @@ export interface ClientVisit {
   phoneNumber: string;
   clientName: string;
   visitCount: number;
-  lastVisitDate: string;
-  lastVisit?: string; // For backwards compatibility
-  valetsCount?: number;
-  freeValets?: number;
-  loyaltyPoints?: number;
+  lastVisitDate?: string; // Opcional para compatibilidad
+  lastVisit: string; // Para mantener compatibilidad con código existente
+  valetsCount: number;
+  freeValets: number;
+  loyaltyPoints: number;
   visitFrequency: string;
 }

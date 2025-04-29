@@ -1,6 +1,6 @@
 
-import { toast } from '@/lib/toast';
-import { Customer } from '@/lib/types';
+import { toast } from '@/hooks/use-toast';
+import { Customer } from '@/lib/types/customer.types';
 import { getCustomerByPhone } from '@/lib/dataService';
 
 export const useCustomerLookup = (

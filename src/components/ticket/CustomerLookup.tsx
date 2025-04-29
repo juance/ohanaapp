@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, Gift } from 'lucide-react';
-import { Customer } from '@/lib/types';
+import { Customer } from '@/lib/types/customer.types';
 
 interface CustomerLookupProps {
   lookupPhone: string;

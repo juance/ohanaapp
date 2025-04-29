@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Customer } from '@/lib/types';
+import { Customer } from '@/lib/types/customer.types';
 import { useFreeValet } from '@/hooks/useFreeValet';
 
 interface FreeValetDialogProps {

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { TrendChart } from './TrendChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +17,16 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
   const [salesData, setSalesData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+
+  // Reemplazar getOrFetch con implementación manual
+  const fetchCachedData = async (key: string, fetchFn: () => Promise<any>) => {
+    const cachedData = cacheService.get<any>(key);
+    if (cachedData) return cachedData;
+    
+    const data = await fetchFn();
+    cacheService.set(key, data, 5 * 60 * 1000); // 5 minutos TTL
+    return data;
+  };
 
   useEffect(() => {
     const fetchSalesData = async () => {

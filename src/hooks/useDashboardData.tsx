@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, ClientVisit } from '@/lib/types';
@@ -39,57 +38,94 @@ export const useDashboardData = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching dashboard data...');
+      
+      // Hacer una única consulta con agregaciones
+      const { data, error: ticketsError } = await supabase
+        .rpc('get_ticket_stats');
+      
+      if (ticketsError) {
+        console.error('Error fetching tickets stats:', ticketsError);
+        // Si la función RPC no existe, hacer un fallback a la consulta manual
+        return fetchTicketDetailsManual();
+      }
+      
+      if (data && data.length > 0) {
+        const stats = data[0];
+        return {
+          total: stats.total_tickets || 0,
+          delivered: stats.delivered_tickets || 0,
+          pending: stats.pending_tickets || 0,
+          revenue: stats.total_revenue || 0,
+          valetCount: stats.valet_count || 0,
+          dryCleaningItemsCount: stats.dry_cleaning_count || 0,
+        };
+      }
+      
+      return fetchTicketDetailsManual();
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      return fetchTicketDetailsManual();
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Mantener el método manual como fallback
+  const fetchTicketDetailsManual = async (): Promise<TicketStats> => {
+    try {
+      setLoading(true);
+      setError(null);
+      console.log('Fetching dashboard data...');
+      
       // Fetch all tickets with a simpler query
       const { data, error: ticketsError } = await supabase
         .from('tickets')
         .select('id, total, status, valet_quantity, created_at');
-
+      
       if (ticketsError) {
         console.error('Error fetching tickets:', ticketsError);
         throw ticketsError;
       }
-
+      
       console.log(`Fetched ${data?.length || 0} tickets`);
-
+      
       // Initialize statistics
       let total = data?.length || 0;
       let delivered = 0;
       let pending = 0;
       let revenue = 0;
       let valetCount = 0;
-
+      
       // Process each ticket to calculate the statistics
       if (data && data.length > 0) {
         data.forEach(ticket => {
           revenue += ticket.total || 0;
-
+          
           if (ticket.status === 'delivered') {
             delivered++;
           } else {
             pending++;
           }
-
+          
           valetCount += ticket.valet_quantity || 0;
         });
       }
-
+      
       console.log('Basic stats calculated:', { total, delivered, pending, revenue, valetCount });
-
+      
       // Fetch dry cleaning items count with a single query
       const { data: dryCleaningData, error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
         .select('id');
-
+      
       if (dryCleaningError) {
         console.error('Error fetching dry cleaning items:', dryCleaningError);
         throw dryCleaningError;
       }
-
+      
       const totalDryCleaningItemsCount = dryCleaningData?.length || 0;
       console.log(`Fetched ${totalDryCleaningItemsCount} dry cleaning items`);
-
+      
       return {
         total,
         delivered,

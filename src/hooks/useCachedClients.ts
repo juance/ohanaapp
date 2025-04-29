@@ -1,64 +1,98 @@
-
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+import { ClientVisit } from '@/lib/types/customer.types';
+import { getAllClients } from '@/lib/dataService';
 import { cacheService } from '@/lib/cacheService';
-import { toast } from '@/lib/toast';
-
-export interface CachedClient {
-  id: string;
-  name: string;
-  phone: string;
-  valets_count: number;
-  free_valets: number;
-  loyalty_points: number;
-  last_visit?: string;
-}
+import { toast } from '@/hooks/use-toast';
 
 export const useCachedClients = () => {
-  const [clients, setClients] = useState<CachedClient[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [clients, setClients] = useState<ClientVisit[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      
-      const fetchFunction = async () => {
-        const { data, error } = await supabase
-          .from('customers')
-          .select('*')
-          .order('name');
-          
-        if (error) throw error;
-        return data as CachedClient[];
-      };
-      
-      // Get from cache or fetch new data with 5 minute TTL
-      const data = await cacheService.getOrFetch<CachedClient[]>(
-        'all-clients',
-        fetchFunction,
-        { namespace: 'clients', ttl: 5 * 60 * 1000 }
-      );
-      
-      setClients(data);
-      setError(null);
-    } catch (err) {
-      console.error('Error fetching clients:', err);
-      setError(err instanceof Error ? err : new Error(String(err)));
-      toast.error('Error al cargar los clientes');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const invalidateCache = useCallback(() => {
-    cacheService.invalidateNamespace('clients');
-    fetchClients();
-  }, [fetchClients]);
+  // Implementar la versión simple sin usar getOrFetch
+const fetchAndCacheClients = async () => {
+  const cacheKey = 'all-clients';
+  
+  // Check if data is in cache
+  const cachedData = cacheService.get<ClientVisit[]>(cacheKey);
+  if (cachedData !== null) {
+    return cachedData;
+  }
+  
+  // Fetch fresh data
+  const data = await getAllClients();
+  
+  // Cache the result with TTL of 5 minutes
+  cacheService.set(cacheKey, data, 5 * 60 * 1000);
+  
+  return data;
+};
 
   useEffect(() => {
-    fetchClients();
-  }, [fetchClients]);
+    const loadClients = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const cachedClients = await fetchAndCacheClients();
+        setClients(cachedClients);
+      } catch (err) {
+        console.error("Error fetching clients:", err);
+        setError(err instanceof Error ? err : new Error('Failed to load clients'));
+        toast({
+          title: "Error",
+          description: "Failed to load clients.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  return { clients, isLoading, error, invalidateCache, refetch: fetchClients };
+    loadClients();
+  }, []);
+
+  // Implementar una versión simple de invalidación de cache
+const invalidateClientsCache = () => {
+  cacheService.delete('all-clients');
+  // También podemos invalidar otras claves relacionadas si las hay
+};
+
+  const refreshClients = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Invalidate cache
+      invalidateClientsCache();
+
+      // Fetch fresh data
+      const freshClients = await getAllClients();
+      setClients(freshClients);
+
+      // Update cache
+      cacheService.set('all-clients', freshClients, 5 * 60 * 1000);
+
+      toast({
+        title: "Clientes actualizados",
+        description: "La lista de clientes ha sido actualizada.",
+        variant: "success"
+      });
+    } catch (err) {
+      console.error("Error refreshing clients:", err);
+      setError(err instanceof Error ? err : new Error('Failed to refresh clients'));
+      toast({
+        title: "Error",
+        description: "Failed to refresh clients.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    clients,
+    loading,
+    error,
+    refreshClients
+  };
 };

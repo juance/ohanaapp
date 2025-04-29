@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
-import { Customer } from '@/lib/types';
+import { Customer } from '@/lib/types/customer.types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
+import { toast } from '@/hooks/use-toast';
 
 export function useFreeValet() {
   const [loading, setLoading] = useState(false);

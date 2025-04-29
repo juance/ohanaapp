@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "@/lib/toast";
@@ -46,7 +45,8 @@ export const ResetDashboardCounters = () => {
 
       console.log("Reset counters response:", data);
 
-      toast.success("Contadores del dashboard reiniciados", {
+      toast({
+        title: "Contadores del dashboard reiniciados",
         description: "Los contadores del dashboard han sido reiniciados exitosamente."
       });
 
@@ -56,7 +56,8 @@ export const ResetDashboardCounters = () => {
       }, 1500);
     } catch (error) {
       console.error('Error resetting dashboard counters:', error);
-      toast.error("Error al reiniciar contadores del dashboard", {
+      toast({
+        title: "Error al reiniciar contadores del dashboard",
         description: error instanceof Error ? error.message : "Ocurrió un error al reiniciar los contadores del dashboard."
       });
     } finally {

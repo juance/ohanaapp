@@ -1,22 +1,29 @@
 
-export * from './ticket.types';
-export * from './sync.types';
-export * from './metrics.types';
+// Importar los tipos necesarios
+export * from './customer.types';
+export * from './laundry.types';
+export * from './error.types';
+export * from './expense.types';
 export * from './feedback.types';
 export * from './inventory.types';
+export * from './metrics.types';
+export * from './sync.types';
+export * from './ticket.types';
+export * from './auth.types';
 
-export interface ClientVisit {
+// Definir o re-exportar cualquier tipo adicional necesario
+export interface Ticket {
   id: string;
+  ticketNumber: string;
   clientName: string;
   phoneNumber: string;
-  visitCount: number;
-  lastVisitDate: string;
+  status: string;
+  createdAt: string;
+  deliveredDate: string | null;
+  totalPrice: number;
+  paymentMethod?: string;
+  valetQuantity?: number;
+  isPaid?: boolean;
 }
 
-export interface LaundryService {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-  icon?: string;
-}
+export type PaymentMethod = 'cash' | 'mercadopago' | 'card' | 'debit' | 'credit' | 'transfer' | 'cuentaDni' | string;

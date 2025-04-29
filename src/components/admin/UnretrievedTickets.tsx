@@ -1,13 +1,13 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets } from '@/lib/ticketService';
+import { getUnretrievedTickets } from '@/lib/ticketServices';
 import { Ticket } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DateRangeSelector from '@/components/shared/DateRangeSelector';
-import { toast } from '@/lib/toast';
+import { toast } from '@/hooks/use-toast';
 
 export const UnretrievedTickets = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);
@@ -47,7 +47,9 @@ export const UnretrievedTickets = () => {
 
   const handleRefresh = () => {
     refetch();
-    toast.success('Lista de tickets actualizada');
+    toast({
+      title: 'Lista de tickets actualizada'
+    });
   };
 
   if (isLoading) {

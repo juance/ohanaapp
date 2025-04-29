@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,7 +37,8 @@ export const SystemVersions = () => {
     setIsRollingBack(true);
     try {
       await rollbackVersion(selectedVersion);
-      toast.success("Sistema restaurado correctamente", {
+      toast({
+        title: "Sistema restaurado correctamente",
         description: `Se ha vuelto a la versión ${selectedVersion}`
       });
       
@@ -48,7 +48,8 @@ export const SystemVersions = () => {
       }, 1500);
     } catch (error) {
       console.error("Error al restaurar versión:", error);
-      toast.error("Error al restaurar versión", {
+      toast({
+        title: "Error al restaurar versión",
         description: "No se pudo volver a la versión seleccionada"
       });
     } finally {

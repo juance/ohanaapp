@@ -1,4 +1,3 @@
-
 import { toast } from '@/lib/toast';
 import { storeTicket } from '@/lib/dataService';
 import { PaymentMethod, DryCleaningItem, LaundryOption } from '@/lib/types';
@@ -76,21 +75,24 @@ export const useTicketSubmission = (
         queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
 
         // Show success message
-        toast.success('Ticket created successfully', {
-          description: `Ticket for ${clientName}`,
+        toast({
+          title: 'Ticket created successfully',
+          description: `Ticket for ${clientName}`
         });
 
         // Reset form
         resetForm();
       } else {
-        toast.error('Failed to create ticket', {
-          description: 'Please try again or check your connection',
+        toast({
+          title: 'Failed to create ticket',
+          description: 'Please try again or check your connection'
         });
       }
     } catch (error) {
       console.error('Error creating ticket:', error);
-      toast.error('Error creating ticket', {
-        description: 'An unexpected error occurred',
+      toast({
+        title: 'Error creating ticket',
+        description: 'An unexpected error occurred'
       });
     } finally {
       setIsSubmitting(false);

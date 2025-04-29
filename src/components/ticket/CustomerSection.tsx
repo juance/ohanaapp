@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { CustomerForm } from './CustomerForm';
 import { CustomerLookup } from './CustomerLookup';
 import { DateSelector } from './DateSelector';
-import { Customer } from '@/lib/types';
+import { Customer } from '@/lib/types/customer.types';
 
 interface CustomerSectionProps {
   customerName: string;
