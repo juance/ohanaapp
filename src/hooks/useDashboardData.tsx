@@ -17,10 +17,13 @@ interface DashboardStats {
 export const useDashboardData = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<any>({
+    metrics: {},
+    expenses: {},
+    chartData: [],
+    clients: []
+  });
 
   const fetchDashboardData = async () => {
     setLoading(true);
@@ -72,6 +75,45 @@ export const useDashboardData = () => {
         });
       }
       
+      // Get expenses data
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*');
+        
+      if (expensesError) throw expensesError;
+      
+      let totalExpenses = 0;
+      let dailyExpenses = 0;
+      let monthlyExpenses = 0;
+      
+      if (expensesData && expensesData.length > 0) {
+        expensesData.forEach(expense => {
+          totalExpenses += Number(expense.amount || 0);
+          
+          const expenseDate = new Date(expense.date);
+          if (expenseDate.toISOString().split('T')[0] === today) {
+            dailyExpenses += Number(expense.amount || 0);
+          }
+          
+          if (expenseDate.getMonth() + 1 === currentMonth && 
+              expenseDate.getFullYear() === currentYear) {
+            monthlyExpenses += Number(expense.amount || 0);
+          }
+        });
+      }
+      
+      // Get frequent clients data
+      const { data: clientsData, error: clientsError } = await supabase
+        .from('customers')
+        .select('*')
+        .order('valets_count', { ascending: false })
+        .limit(10);
+        
+      if (clientsError) throw clientsError;
+      
+      // Create chart data
+      const chartData = generateChartData(ticketsData || [], expensesData || []);
+      
       // Calculate top services (simplified)
       const topServices = []; // This would require more detailed analysis of services
       
@@ -87,13 +129,80 @@ export const useDashboardData = () => {
       };
       
       setStats(dashboardStats);
+      setData({
+        metrics: {
+          total: totalTickets,
+          delivered: completedTickets,
+          pending: pendingTickets,
+          revenue: totalRevenue,
+          valetCount: ticketsData?.reduce((acc, ticket) => acc + (ticket.valet_quantity || 0), 0) || 0,
+          dryCleaningItemsCount: 0 // Would need to query dry cleaning items
+        },
+        expenses: {
+          daily: dailyExpenses,
+          weekly: 0, // Would need to calculate
+          monthly: monthlyExpenses
+        },
+        chartData,
+        clients: clientsData || []
+      });
+      setError(null);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
       toast.error("Error al cargar datos del dashboard");
+      setError(error as Error);
     } finally {
       setLoading(false);
     }
   };
+  
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+  
+  return { 
+    stats, 
+    loading, 
+    isLoading: loading,
+    error,
+    data,
+    refreshData: fetchDashboardData 
+  };
+};
 
-  return { stats, loading, refreshData: fetchDashboardData };
+// Helper function to generate chart data
+const generateChartData = (tickets: any[], expenses: any[]) => {
+  const today = new Date();
+  const daysOfWeek = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+  const data = [];
+  
+  // Generate data for the last 7 days
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(today.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    // Filter tickets for this date
+    const dayTickets = tickets.filter(ticket => 
+      ticket.created_at && ticket.created_at.startsWith(dateString)
+    );
+    
+    // Filter expenses for this date
+    const dayExpenses = expenses.filter(expense => 
+      expense.date && expense.date.startsWith(dateString)
+    );
+    
+    // Calculate totals
+    const revenue = dayTickets.reduce((sum, ticket) => sum + Number(ticket.total || 0), 0);
+    const expense = dayExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+    
+    data.push({
+      name: daysOfWeek[date.getDay()],
+      ingresos: revenue,
+      gastos: expense,
+      beneficio: revenue - expense
+    });
+  }
+  
+  return data;
 };

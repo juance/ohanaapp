@@ -52,6 +52,8 @@ export const createTicketForPreview = async (
     totalPrice: useFreeValet ? 0 : totalPrice, // If it's a free valet, set price to 0
     status: TICKET_STATUS.READY,
     createdAt: date.toISOString(),
-    isPaid: isPaidInAdvance // Add the paid status
+    isPaid: isPaidInAdvance, // Add the paid status
+    deliveredDate: null, // Add required deliveredDate field
+    valetQuantity: effectiveValetQuantity
   };
 };

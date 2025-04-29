@@ -99,3 +99,13 @@ export const moveToNextStatus = (currentStatus: DatabaseStatus): DatabaseStatus 
       return currentStatus;
   }
 };
+
+// Check if a ticket is delivered
+export const isDelivered = (status: string): boolean => {
+  return status === 'delivered';
+};
+
+// Check if a ticket is pending or in process
+export const isPending = (status: string): boolean => {
+  return status === 'pending' || status === 'processing';
+};

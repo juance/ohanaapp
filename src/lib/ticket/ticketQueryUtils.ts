@@ -97,7 +97,6 @@ export const mapTicketData = (ticket: any): Ticket | null => {
     id: ticket.id,
     ticketNumber: ticket.ticket_number,
     basketTicketNumber: ticket.basket_ticket_number,
-    
     clientName: ticket.customers?.name || '',
     phoneNumber: ticket.customers?.phone || '',
     totalPrice: ticket.total || 0,
@@ -105,19 +104,14 @@ export const mapTicketData = (ticket: any): Ticket | null => {
     status: ticket.status || 'pending',
     isPaid: ticket.is_paid || false,
     valetQuantity: ticket.valet_quantity || 0,
-    dryCleaningItems: ticket.dry_cleaning_items?.map((item: any) => ({
+    createdAt: ticket.created_at,
+    deliveredDate: ticket.delivered_date || null,
+    customerId: ticket.customer_id,
+    services: ticket.dry_cleaning_items?.map((item: any) => ({
       id: item.id,
       name: item.name,
       quantity: item.quantity || 1,
       price: item.price || 0
-    })) || [],
-    laundryOptions: ticket.ticket_laundry_options?.map((option: any) => ({
-      id: option.id,
-      name: option.option_type,
-      price: 0
-    })) || [],
-    createdAt: ticket.created_at,
-    deliveredDate: ticket.delivered_date,
-    updatedAt: ticket.updated_at || ticket.created_at
+    })) || []
   };
 };

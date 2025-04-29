@@ -1,12 +1,20 @@
 
 export interface CustomerFeedback {
   id: string;
-  customerId?: string;
   customerName: string;
   rating: number;
   comment: string;
   createdAt: string;
-  source?: string;
-  pendingSync?: boolean;
-  pendingDelete?: boolean;
+  source?: FeedbackSource;
+}
+
+export type FeedbackSource = 'app' | 'web' | 'store' | 'phone' | string;
+
+export interface FeedbackAnalytics {
+  averageRating: number;
+  totalFeedback: number;
+  ratingsDistribution: {
+    [key: number]: number;
+  };
+  recentComments: CustomerFeedback[];
 }

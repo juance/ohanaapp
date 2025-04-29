@@ -21,6 +21,7 @@ export interface SyncableTicket {
   totalPrice?: number; // Alias for backwards compatibility
   paymentMethod?: string; // Alias for backwards compatibility
   isPaid?: boolean; // Alias for backwards compatibility
+  createdAt?: string; // Alias for backwards compatibility
 }
 
 export interface SyncableCustomerFeedback {
@@ -45,6 +46,7 @@ export interface SyncableExpense {
   synced?: boolean;
   pendingSync?: boolean;
   createdAt?: string; // Alias for backwards compatibility
+  lastUpdated?: string; // Added for tracking sync status
 }
 
 export interface SyncableClient {
@@ -61,8 +63,8 @@ export interface LocalClient {
   id: string;
   name: string;
   phone: string;
-  clientName: string; // Added for compatibility
   phoneNumber: string; // Added for compatibility
+  clientName: string; // Added for compatibility
   loyaltyPoints: number;
   freeValets: number;
   valetsCount: number;

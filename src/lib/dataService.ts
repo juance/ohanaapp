@@ -2,9 +2,12 @@
 // Import required modules
 import { supabase } from '@/integrations/supabase/client';
 import { getNextTicketNumber } from './data/ticket/ticketNumberService';
-import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, CLIENT_STORAGE_KEY } from './data/coreUtils';
+import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY } from './data/coreUtils';
 import { Customer, Ticket, LaundryOption, ClientVisit, convertCustomerToClientVisit } from './types';
 import { getClientVisitFrequency } from './data/clientService';
+
+// Constants for local storage
+export const CLIENT_STORAGE_KEY = 'clients';
 
 // Re-export functions from client service
 export { getClientVisitFrequency } from './data/clientService';
@@ -82,9 +85,9 @@ const saveTicket = async (ticketData: any) => {
           valet_quantity: ticketData.valetQuantity || 0,
           created_at: ticketData.createdAt,
           delivered_date: ticketData.deliveredDate,
-          // Additional fields for client information
-          client_name: ticketData.clientName,
-          phone_number: ticketData.phoneNumber
+          // Additional fields for client information - need to be saved in custom columns
+          name: ticketData.clientName,
+          phone: ticketData.phoneNumber
         }]);
       
       if (error) throw error;
@@ -124,14 +127,21 @@ export const storeTicket = async (
       if (customerExists) {
         // Update existing customer
         customerId = customerExists.id;
-        await supabase
+        const { data, error } = await supabase
           .from('customers')
           .update({
             name: customerData.name,
             last_visit: new Date().toISOString(),
-            valets_count: supabase.rpc('increment_valets_count', { customer_id: customerId }) // Changed from increment
+            valets_count: supabase.rpc('increment', { 
+              row_id: customerId,
+              table: 'customers',
+              column: 'valets_count',
+              amount: 1
+            })
           })
           .eq('id', customerId);
+
+        if (error) throw error;
       } else {
         // Create new customer
         const { data: newCustomer, error } = await supabase
@@ -227,7 +237,10 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        customers (name, phone)
+      `)
       .eq('status', 'ready')
       .order('created_at', { ascending: false });
       
@@ -239,8 +252,8 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
     return data.map(ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.client_name || '',
-      phoneNumber: ticket.phone_number || '',
+      clientName: ticket.customers?.name || '',
+      phoneNumber: ticket.customers?.phone || '',
       totalPrice: ticket.total || 0,
       paymentMethod: ticket.payment_method || '',
       status: ticket.status || '',
@@ -263,7 +276,10 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        customers (name, phone)
+      `)
       .eq('status', 'ready')
       .is('delivered_date', null)
       .order('created_at');
@@ -276,15 +292,15 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
     return data.map(ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.client_name || '',
-      phoneNumber: ticket.phone_number || '',
+      clientName: ticket.customers?.name || '',
+      phoneNumber: ticket.customers?.phone || '',
       totalPrice: ticket.total || 0,
       paymentMethod: ticket.payment_method || '',
       status: ticket.status || '',
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,
       createdAt: ticket.created_at || '',
-      deliveredDate: ticket.delivered_date
+      deliveredDate: ticket.delivered_date || null
     }));
   } catch (error) {
     console.error('Error fetching unretrieved tickets:', error);

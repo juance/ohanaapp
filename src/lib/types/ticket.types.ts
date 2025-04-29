@@ -11,7 +11,7 @@ export interface Ticket {
   valetQuantity: number;
   createdAt: string;
   deliveredDate: string | null;
-  // Optional fields for backwards compatibility
+  // Optional fields for backwards compatibility and extensions
   customerName?: string; // Alias for clientName
   customerPhone?: string; // Alias for phoneNumber
   services?: Array<{
@@ -21,6 +21,9 @@ export interface Ticket {
     quantity: number;
   }>;
   basketTicketNumber?: string;
+  dryCleaningItems?: any[];
+  laundryOptions?: any[];
+  customerId?: string;
 }
 
 export interface DryCleaningItem {

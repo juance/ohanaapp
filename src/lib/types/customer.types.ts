@@ -3,49 +3,44 @@ export interface Customer {
   id: string;
   name: string;
   phoneNumber: string;
-  phone?: string; // Alias for backwards compatibility
-  lastVisit?: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
+  phone: string; // Alias for phoneNumber for database compatibility
+  loyaltyPoints: number;
+  valetsCount: number;
+  freeValets: number;
   valetsRedeemed?: number;
+  lastVisit?: string;
   createdAt?: string;
-  visitCount?: number;
-  visitFrequency?: string;
-  updatedAt?: string;
 }
 
 export interface ClientVisit {
   id: string;
-  phoneNumber: string;
   clientName: string;
+  phoneNumber: string;
   visitCount: number;
-  lastVisitDate?: string; // Making this optional
-  lastVisit: string; // For compatibility with existing code
-  valetsCount: number;
-  freeValets: number;
+  lastVisit: string;
+  lastVisitDate: string; // Required field
   loyaltyPoints: number;
+  freeValets: number;
+  valetsCount: number;
   visitFrequency: string;
 }
 
-// Helper function to convert Customer to ClientVisit
-export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
+export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
   return {
     id: customer.id,
-    phoneNumber: customer.phoneNumber || customer.phone || '',
     clientName: customer.name,
-    visitCount: customer.visitCount || customer.valetsCount || 0,
-    lastVisitDate: customer.lastVisit,
+    phoneNumber: customer.phoneNumber || customer.phone,
+    visitCount: customer.valetsCount,
     lastVisit: customer.lastVisit || '',
-    valetsCount: customer.valetsCount || 0,
-    freeValets: customer.freeValets || 0,
-    loyaltyPoints: customer.loyaltyPoints || 0,
-    visitFrequency: customer.visitFrequency || calculateVisitFrequency(customer.lastVisit)
+    lastVisitDate: customer.lastVisit || '',
+    loyaltyPoints: customer.loyaltyPoints,
+    freeValets: customer.freeValets,
+    valetsCount: customer.valetsCount,
+    visitFrequency: calculateFrequency(customer.lastVisit || '')
   };
-};
+}
 
-// Helper function to calculate visit frequency
-const calculateVisitFrequency = (lastVisit?: string): string => {
+function calculateFrequency(lastVisit: string): string {
   if (!lastVisit) return 'N/A';
   
   const lastVisitDate = new Date(lastVisit);
@@ -56,4 +51,4 @@ const calculateVisitFrequency = (lastVisit?: string): string => {
   if (diffDays <= 30) return 'Mensual';
   if (diffDays <= 90) return 'Trimestral';
   return 'Ocasional';
-};
+}

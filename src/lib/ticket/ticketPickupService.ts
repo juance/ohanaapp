@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -21,7 +22,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    return data.map(mapTicketData);
+    return data.map(mapTicketData).filter(Boolean) as Ticket[];
   } catch (error) {
     console.error('Unexpected error fetching pickup tickets:', error);
     toast.error('Error inesperado al cargar los tickets pendientes');
@@ -46,6 +47,7 @@ export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => 
         status,
         is_paid,
         created_at,
+        delivered_date,
         customers (name, phone)
       `)
       .order('created_at', { ascending: false })
@@ -65,7 +67,8 @@ export const getRecentTickets = async (limit: number = 5): Promise<Ticket[]> => 
       paymentMethod: ticket.payment_method || 'cash',
       status: ticket.status || 'pending',
       isPaid: ticket.is_paid || false,
-      createdAt: ticket.created_at
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date || null
     }));
   } catch (error) {
     console.error('Error in getRecentTickets:', error);
@@ -142,7 +145,10 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*')
+      .select(`
+        *,
+        customers (name, phone)
+      `)
       .in('status', ['ready', 'pending'])
       .is('is_canceled', false)
       .order('created_at', { ascending: false });
@@ -152,16 +158,18 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       throw new Error("No se pudieron cargar los tickets no retirados");
     }
 
-    // Mapear los datos para que se ajusten al tipo Ticket
     return (data || []).map(ticket => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.client_name,
-      phoneNumber: ticket.phone_number,
+      clientName: ticket.customers?.name || '',
+      phoneNumber: ticket.customers?.phone || '',
       status: ticket.status,
       createdAt: ticket.created_at,
       totalPrice: parseFloat(ticket.total) || 0,
-      deliveredDate: ticket.delivered_date || null
+      deliveredDate: ticket.delivered_date || null,
+      isPaid: ticket.is_paid || false,
+      paymentMethod: ticket.payment_method || 'cash',
+      valetQuantity: ticket.valet_quantity || 0
     }));
   } catch (error) {
     console.error("Error en getUnretrievedTickets:", error);
@@ -242,7 +250,7 @@ export const getDeliveredTickets = async (): Promise<Ticket[]> => {
         return [];
       }
 
-      return data.map(mapTicketData);
+      return data.map(mapTicketData).filter(Boolean) as Ticket[];
     } catch (error) {
       console.error('Unexpected error fetching delivered tickets:', error);
       toast.error('Error inesperado al cargar los tickets entregados');
