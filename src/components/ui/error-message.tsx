@@ -1,37 +1,16 @@
 
 import React from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { XCircle } from 'lucide-react';
 
 interface ErrorMessageProps {
   message: string;
-  title?: string;
-  onRetry?: () => void;
 }
 
-export const ErrorMessage: React.FC<ErrorMessageProps> = ({ 
-  message, 
-  title = "Error",
-  onRetry
-}) => {
+export const ErrorMessage: React.FC<ErrorMessageProps> = ({ message }) => {
   return (
-    <Alert variant="destructive" className="my-4">
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle className="font-semibold">{title}</AlertTitle>
-      <AlertDescription className="mt-2">
-        <p className="mb-2">{message}</p>
-        {onRetry && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onRetry}
-            className="mt-2"
-          >
-            Reintentar
-          </Button>
-        )}
-      </AlertDescription>
-    </Alert>
+    <div className="bg-red-50 border border-red-200 text-red-800 rounded-md p-4 flex items-start">
+      <XCircle className="h-5 w-5 text-red-600 mr-2 mt-0.5" />
+      <div>{message}</div>
+    </div>
   );
 };

@@ -1,195 +1,107 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { toast } from '@/lib/toast';
-import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
+import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { DataStatusIndicator } from '@/components/ui/data-status-indicator';
-import { useInterval } from '@/hooks/use-interval';
-import { SyncStatus, SyncStats, SyncStatusResponse } from '@/lib/types/sync.types';
+import { syncAllData } from '@/lib/data/syncComprehensiveService';
+import { SyncStatus } from '@/lib/types/sync.types';
 
-type ConnectionStatus = 'online' | 'offline';
-type SyncStatusState = 'idle' | 'syncing' | 'error' | 'success';
-
-interface ConnectionContextType {
-  connectionStatus: ConnectionStatus;
-  syncStatus: SyncStatusState;
-  pendingSyncCount: number;
-  lastSyncedAt: Date | null;
-  syncData: () => Promise<void>;
-  isPendingSync: boolean;
+interface ConnectionStatusContextType {
+  online: boolean;
+  lastSyncTimestamp: Date | null;
+  pendingSync: number;
+  isSyncing: boolean;
+  syncStatus: SyncStatus | null;
+  sync: () => Promise<void>;
 }
 
-const ConnectionContext = createContext<ConnectionContextType>({
-  connectionStatus: 'online',
-  syncStatus: 'idle',
-  pendingSyncCount: 0,
-  lastSyncedAt: null,
-  syncData: async () => {},
-  isPendingSync: false
-});
+const ConnectionStatusContext = createContext<ConnectionStatusContextType | null>(null);
 
-export const useConnection = () => useContext(ConnectionContext);
+export const useConnectionStatus = () => {
+  const context = useContext(ConnectionStatusContext);
+  if (!context) {
+    throw new Error('useConnectionStatus must be used within ConnectionStatusProvider');
+  }
+  return context;
+};
 
 interface ConnectionStatusProviderProps {
-  children: React.ReactNode;
-  autoSyncInterval?: number; // in minutes
+  children: ReactNode;
 }
 
-export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({
-  children,
-  autoSyncInterval = 5 // default to 5 minutes
-}) => {
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>(
-    navigator.onLine ? 'online' : 'offline'
-  );
-  const [syncStatus, setSyncStatus] = useState<SyncStatusState>('idle');
-  const [pendingSyncCount, setPendingSyncCount] = useState(0);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
-  const [isPendingSync, setIsPendingSync] = useState(false);
+export const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({ children }) => {
+  const { online } = useNetworkStatus();
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
-  // Check for pending syncs
-  const checkPendingSyncs = async () => {
-    try {
-      const status = await getSyncStatus();
-      if (status) {
-        let totalPending = 0;
-        
-        if (status.pending) {
-          if (typeof status.pending === 'boolean') {
-            // If it's just a boolean flag, consider it as 1 pending item
-            totalPending = status.pending ? 1 : 0;
-          } else {
-            // If it's a SyncStats object, sum the values
-            const pendingStats = status.pending as SyncStats;
-            totalPending =
-              (pendingStats.tickets || 0) +
-              (pendingStats.expenses || 0) +
-              (pendingStats.clients || 0) +
-              (pendingStats.feedback || 0) +
-              (pendingStats.inventory || 0);
-          }
-        }
+  useEffect(() => {
+    // Cargar estado de sincronización al inicio
+    refreshSyncStatus();
 
-        setPendingSyncCount(totalPending);
-        setIsPendingSync(totalPending > 0);
-
-        // Update last synced time if available
-        if (status.lastSync) {
-          setLastSyncedAt(new Date(status.lastSync));
-        }
-      }
-    } catch (error) {
-      console.error('Error checking sync status:', error);
-    }
-  };
-
-  // Handle sync
-  const syncData = async () => {
-    if (connectionStatus === 'offline') {
-      toast({
-        title: "Sin conexión",
-        description: "No hay conexión a internet. Los datos se sincronizarán automáticamente cuando vuelvas a estar en línea."
-      });
-      return;
-    }
-
-    if (syncStatus === 'syncing') {
-      return;
-    }
-
-    try {
-      setSyncStatus('syncing');
-      const success = await syncAllData();
-
-      if (success) {
-        setSyncStatus('success');
-        setLastSyncedAt(new Date());
-        await checkPendingSyncs();
-
-        if (pendingSyncCount === 0) {
-          toast({
-            title: "Sincronización exitosa",
-            description: "Todos los datos han sido sincronizados correctamente"
-          });
-        }
-      } else {
-        setSyncStatus('error');
+    // Si vuelve a estar online después de estar offline, ofrecer sincronizar
+    const handleOnlineStatusChange = () => {
+      if (online && syncStatus?.pending) {
         toast({
-          title: "Error de sincronización",
-          description: "No se pudieron sincronizar algunos datos",
-          variant: "destructive"
+          title: 'Conexión restaurada',
+          description: `Hay ${syncStatus.pending} elementos pendientes de sincronización. ¿Desea sincronizar ahora?`,
+          variant: 'default',
+          action: {
+            label: 'Sincronizar',
+            onClick: () => sync()
+          }
         });
       }
+    };
+
+    window.addEventListener('online', handleOnlineStatusChange);
+    
+    return () => {
+      window.removeEventListener('online', handleOnlineStatusChange);
+    };
+  }, [online, syncStatus]);
+
+  const refreshSyncStatus = () => {
+    try {
+      const status = getSyncStatus();
+      setSyncStatus(status);
+      return status;
     } catch (error) {
-      console.error('Error syncing data:', error);
-      setSyncStatus('error');
-      toast({
-        title: "Error de sincronización",
-        description: "Ocurrió un error durante la sincronización",
-        variant: "destructive"
-      });
-    } finally {
-      // Reset status after a delay
-      setTimeout(() => {
-        setSyncStatus('idle');
-      }, 3000);
+      console.error('Error refreshing sync status:', error);
+      return null;
     }
   };
 
-  // Listen for online/offline events
-  useEffect(() => {
-    const handleOnline = () => {
-      setConnectionStatus('online');
-      toast({
-        title: "Conexión restablecida",
-        description: "Tu conexión a internet ha sido restablecida"
-      });
-      // Auto-sync when coming back online
-      syncData();
-    };
+  const sync = async () => {
+    if (isSyncing || !online) return;
+    
+    setIsSyncing(true);
+    toast.loading('Sincronizando datos...');
+    
+    try {
+      await syncAllData();
+      const newStatus = refreshSyncStatus();
+      
+      toast.success(`Sincronización completada. Último registro: ${newStatus?.lastSync ? new Date(newStatus.lastSync).toLocaleString() : 'N/A'}`);
+    } catch (error) {
+      console.error('Error during sync:', error);
+      toast.error('Error durante la sincronización');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
-    const handleOffline = () => {
-      setConnectionStatus('offline');
-      toast({
-        title: "Sin conexión",
-        description: "No hay conexión a internet. Estás trabajando en modo sin conexión."
-      });
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    // Initial check
-    checkPendingSyncs();
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
-  // Auto-sync at interval if we're online and have pending syncs
-  useInterval(
-    () => {
-      if (connectionStatus === 'online' && isPendingSync) {
-        syncData();
-      }
-    },
-    autoSyncInterval * 60 * 1000 // convert minutes to ms
-  );
+  const value: ConnectionStatusContextType = {
+    online,
+    lastSyncTimestamp: syncStatus?.lastSync || null,
+    pendingSync: syncStatus?.pending || 0,
+    isSyncing,
+    syncStatus,
+    sync
+  };
 
   return (
-    <ConnectionContext.Provider
-      value={{
-        connectionStatus,
-        syncStatus,
-        pendingSyncCount,
-        lastSyncedAt,
-        syncData,
-        isPendingSync
-      }}
-    >
+    <ConnectionStatusContext.Provider value={value}>
       {children}
-    </ConnectionContext.Provider>
+    </ConnectionStatusContext.Provider>
   );
 };

@@ -4,8 +4,10 @@ export interface Ticket {
   ticketNumber: string;
   basketTicketNumber?: string;
 
-  clientName?: string;
-  phoneNumber?: string;
+  clientName?: string;      // For backward compatibility
+  customerName?: string;    // Alternative field name
+  phoneNumber?: string;     // For backward compatibility
+  customerPhone?: string;   // Alternative field name
   totalPrice: number;
   paymentMethod: string;
   status: string;
@@ -18,6 +20,7 @@ export interface Ticket {
   deliveredDate?: string;
   services?: Array<{name: string; quantity?: number}>;
   updatedAt?: string;
+  type?: string;             // For compatibility with PickupOrders.tsx
 
   // Additional fields for database compatibility
   ticket_number?: string;
@@ -47,4 +50,14 @@ export interface LaundryService {
   id: string;
   name: string;
   price: number;
+}
+
+export interface TicketService {
+  id: string;
+  name: string;
+  quantity?: number;
+  price?: number;
+  ticketId?: string;
+  type?: string;
+  services?: any;
 }

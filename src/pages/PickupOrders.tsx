@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -51,8 +52,8 @@ const PickupOrders: React.FC = () => {
 
   const filteredTickets = tickets.filter(ticket => {
     const matchesSearch = 
-      ticket.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.customerPhone?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (ticket.clientName || ticket.customerName || '')?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (ticket.phoneNumber || ticket.customerPhone || '')?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.id.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (searchFilter === 'all') return matchesSearch;
@@ -67,14 +68,17 @@ const PickupOrders: React.FC = () => {
       <Navbar />
       <div className="flex-1 p-6 md:ml-64">
         <div className="container mx-auto pt-6">
-          <OrderHeader title="Tickets para Entrega" description="Tickets listos para ser entregados" />
+          <OrderHeader 
+            title="Tickets para Entrega" 
+            description="Tickets listos para ser entregados" 
+          />
           
           <div className="mb-4">
             <SearchBar 
               searchQuery={searchQuery} 
               setSearchQuery={setSearchQuery}
               searchFilter={searchFilter}
-              setSearchFilter={(filter) => setSearchFilter(filter as any)}
+              setSearchFilter={(filter) => setSearchFilter(filter as string)}
             />
           </div>
           

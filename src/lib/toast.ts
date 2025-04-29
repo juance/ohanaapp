@@ -35,7 +35,8 @@ const toastFunction = function(props: any): string | number {
   // Si es un simple mensaje string (estilo sonner)
   if (typeof props === 'string') {
     const message = props;
-    const options = arguments[1];
+    // Access options from second parameter, not 'arguments'
+    const options = arguments[1] as any;
     return sonnerToast(message, options);
   }
   

@@ -33,7 +33,7 @@ const PendingOrders = () => {
     if (selectedTicket) {
       loadTicketServices(selectedTicket);
     }
-  }, [selectedTicket]);
+  }, [selectedTicket, loadTicketServices]);
 
   // Find the selected ticket data
   const selectedTicketData = selectedTicket 

@@ -1,4 +1,3 @@
-
 // Re-export all ticket-related services from the modular files
 
 export {
@@ -8,12 +7,12 @@ export {
 } from './ticket/ticketServiceCore';
 
 export {
-  getPickupTickets,
+  getPickupTickets as getReadyTickets, // Alias to maintain compatibility
   markTicketAsDelivered,
   markTicketAsPending,
   getUnretrievedTickets,
-  cancelTicket, // Añadido explícitamente desde ticketPickupService
-  updateTicketPaymentMethod, // Añadido para permitir cambiar el método de pago
+  cancelTicket, 
+  updateTicketPaymentMethod,
   getRecentTickets
 } from './ticket/ticketPickupService';
 
@@ -53,7 +52,7 @@ export {
   mapTicketData
 } from './ticket/ticketQueryUtils';
 
-// Re-export status service functions
+// Re-export status service functions 
 export {
   mapToSimplifiedStatus,
   mapToDatabaseStatus,
