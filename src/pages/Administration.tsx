@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Loading } from '@/components/ui/loading';
 import Navbar from '@/components/Navbar';
 import { toast } from '@/lib/toast';
@@ -8,12 +7,12 @@ import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 
 const Administration = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isComponentMounted, setIsComponentMounted] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("general");
 
   useEffect(() => {
     setIsComponentMounted(true);
@@ -64,14 +63,14 @@ const Administration = () => {
           
           {error ? (
             <ErrorMessage 
-              title="Error al cargar datos de administración" 
               message={error.message}
+              title="Error al cargar datos de administración" 
               onRetry={() => window.location.reload()}
             />
           ) : isLoading ? (
             <div className="flex justify-center p-6"><Loading /></div>
           ) : (
-            <AdminTabs defaultTab={activeTab} />
+            <AdminDashboard />
           )}
         </div>
       </div>

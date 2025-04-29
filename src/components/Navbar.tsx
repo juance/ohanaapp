@@ -1,53 +1,129 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Home, LayoutDashboard, LineChart, BarChart } from 'lucide-react';
+import {
+  Home,
+  User,
+  ClipboardList,
+  CheckSquare,
+  Package,
+  Truck,
+  BarChart2,
+  Clipboard,
+  Settings,
+  MessageSquare,
+  DollarSign,
+  LayoutDashboard,
+  TrendingUp,
+  Award
+} from 'lucide-react';
+import { NotificationBell } from './ui/notification-bell';
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const location = useLocation();
+  const currentPath = location.pathname;
 
-  const getLinkClasses = (path: string) => {
-    return cn(
-      "flex items-center justify-center p-4 text-sm font-medium transition-colors hover:bg-gray-100 md:justify-start md:pl-6 md:pr-3",
-      location.pathname === path ? "bg-gray-100" : ""
-    );
+  const isActive = (path: string) => {
+    return currentPath === path ? 'bg-blue-700 text-white' : 'text-gray-300 hover:bg-blue-600 hover:text-white';
   };
-  
+
   return (
-    <div className="fixed bottom-0 z-10 w-full border-t border-gray-200 bg-white md:left-0 md:top-0 md:h-screen md:w-64 md:flex-col md:border-r md:border-t-0">
-      <div className="hidden h-20 items-center justify-center border-b px-6 md:flex">
-        <Link to="/" className="text-lg font-semibold">
-          Lavandería Ohana
-        </Link>
+    <div className="fixed left-0 top-0 h-full w-64 bg-blue-800 text-white p-4 hidden md:block">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <Link to="/" className="text-xl font-bold">Lavandería Ohana</Link>
+        </div>
+        <NotificationBell />
       </div>
-      <nav className="grid grid-cols-5 md:block">
-        
-        <Link to="/" className={getLinkClasses('/')}>
-          <Home size={20} />
-          <span className="sr-only md:not-sr-only md:ml-2">Inicio</span>
-        </Link>
-        
-        <Link to="/dashboard" className={getLinkClasses('/dashboard')}>
-          <LayoutDashboard size={20} />
-          <span className="sr-only md:not-sr-only md:ml-2">Dashboard</span>
-        </Link>
-        
-        <Link to="/metrics" className={getLinkClasses('/metrics')}>
-          <BarChart size={20} />
-          <span className="sr-only md:not-sr-only md:ml-2">Métricas</span>
-        </Link>
-        
-        <Link to="/analysis" className={getLinkClasses('/analysis')}>
-          <LineChart size={20} />
-          <span className="sr-only md:not-sr-only md:ml-2">Análisis</span>
-        </Link>
-        
+
+      <nav>
+        <ul className="space-y-2">
+          <li>
+            <Link to="/" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/')}`}>
+              <Home className="h-5 w-5" />
+              <span>Inicio</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/dashboard" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/dashboard')}`}>
+              <LayoutDashboard className="h-5 w-5" />
+              <span>Dashboard</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/tickets" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/tickets')}`}>
+              <ClipboardList className="h-5 w-5" />
+              <span>Nuevo Ticket</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/pending-orders" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/pending-orders')}`}>
+              <Clipboard className="h-5 w-5" />
+              <span>Pedidos Pendientes</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/pickup-orders" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/pickup-orders')}`}>
+              <CheckSquare className="h-5 w-5" />
+              <span>Listos para Entrega</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/delivered-orders" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/delivered-orders')}`}>
+              <Package className="h-5 w-5" />
+              <span>Pedidos Entregados</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/clients" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/clients')}`}>
+              <User className="h-5 w-5" />
+              <span>Clientes</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/loyalty" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/loyalty')}`}>
+              <Award className="h-5 w-5" />
+              <span>Programa de Lealtad</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/inventory" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/inventory')}`}>
+              <Truck className="h-5 w-5" />
+              <span>Inventario</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/expenses" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/expenses')}`}>
+              <DollarSign className="h-5 w-5" />
+              <span>Gastos</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/metrics" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/metrics')}`}>
+              <BarChart2 className="h-5 w-5" />
+              <span>Métricas</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/trends" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/trends')}`}>
+              <TrendingUp className="h-5 w-5" />
+              <span>Tendencias</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/feedback" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/feedback')}`}>
+              <MessageSquare className="h-5 w-5" />
+              <span>Comentarios</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin" className={`flex items-center space-x-2 p-2 rounded-md ${isActive('/admin')}`}>
+              <Settings className="h-5 w-5" />
+              <span>Administración</span>
+            </Link>
+          </li>
+        </ul>
       </nav>
-      <div className="mt-auto hidden p-6 md:block">
-        <p className="text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} Lavandería Ohana
-        </p>
-      </div>
     </div>
   );
 };
