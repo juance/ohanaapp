@@ -7,8 +7,8 @@ import { TicketSettings } from './TicketSettings';
 import { ResetCounters } from './ResetCounters';
 import { UnretrievedTickets } from './UnretrievedTickets';
 import { ErrorLogs } from './ErrorLogs';
-import { DataReset } from './DataReset';
-import { FileManagement } from './FileManagement';
+import DataReset from './DataReset'; // Changed to default import
+import FileManagement from './FileManagement'; // Changed to default import
 import { SystemVersions } from './SystemVersions';
 
 interface AdminTabsProps {

@@ -77,6 +77,49 @@ class CacheService {
       keys: Array.from(this.cache.keys())
     };
   }
+
+  /**
+   * Get data from cache if available, otherwise fetch it and cache the result
+   */
+  async getOrFetch<T>(
+    key: string,
+    fetchFunction: () => Promise<T>,
+    options: { namespace?: string; ttl?: number } = {}
+  ): Promise<T> {
+    // Add namespace to key if provided
+    const cacheKey = options.namespace ? `${options.namespace}:${key}` : key;
+    
+    // Check if data is in cache
+    const cachedData = this.get<T>(cacheKey);
+    if (cachedData !== null) {
+      return cachedData;
+    }
+    
+    // Fetch fresh data
+    const data = await fetchFunction();
+    
+    // Cache the result with the specified TTL or default
+    this.set(cacheKey, data, options.ttl || this.defaultTTL);
+    
+    return data;
+  }
+
+  /**
+   * Invalidate all keys in a namespace
+   */
+  invalidateNamespace(namespace: string): void {
+    const keysToDelete: string[] = [];
+    
+    // Find all keys in the namespace
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(`${namespace}:`)) {
+        keysToDelete.push(key);
+      }
+    }
+    
+    // Delete all the found keys
+    keysToDelete.forEach(key => this.cache.delete(key));
+  }
 }
 
 // Export a singleton instance

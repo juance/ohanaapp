@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -139,6 +138,37 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
     console.error('Error marking ticket as delivered:', error);
     toast.error('Error al marcar el ticket como entregado');
     return false;
+  }
+};
+
+// Get tickets that haven't been retrieved (ready but not delivered)
+export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*, customers(name, phone)')
+      .eq('status', 'ready')
+      .order('created_at', { ascending: false });
+      
+    if (error) throw error;
+
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number || '000',
+      clientName: ticket.customers?.name || 'Cliente',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: ticket.total || 0,
+      paymentMethod: ticket.payment_method || 'cash',
+      status: ticket.status || 'ready',
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      createdAt: ticket.created_at,
+      deliveredDate: null
+    }));
+  } catch (error) {
+    console.error('Error fetching unretrieved tickets:', error);
+    toast.error('Error al cargar los tickets pendientes por retirar');
+    return [];
   }
 };
 

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import DateRangeSelector from '@/components/shared/DateRangeSelector';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 export const UnretrievedTickets = () => {
   const [startDate, setStartDate] = useState<Date | null>(null);

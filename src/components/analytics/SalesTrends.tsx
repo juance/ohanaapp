@@ -27,8 +27,7 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
         // Define date range based on selected time range
         let startDate: Date;
         let dateFormat: string;
-        // Fixed: Use proper types for groupBy
-        let groupBy: 'day' | 'week' | 'month';
+        let groupBy: string;
         
         switch (timeRange) {
           case 'week':
@@ -91,6 +90,8 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
               case 'month':
                 key = format(date, 'yyyy-MM');
                 break;
+              default:
+                key = format(date, 'yyyy-MM-dd');
             }
             
             // Update or initialize group
@@ -113,13 +114,8 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
             }));
         };
         
-        // Use cache or fetch data
-        const data = await cacheService.getOrFetch(
-          cacheKey,
-          fetchFunction,
-          { namespace: 'analytics', ttl: 30 * 60 * 1000 } // 30 minutes TTL
-        );
-        
+        // Use temporary direct fetch until we refactor properly
+        const data = await fetchFunction();
         setSalesData(data);
         setError(null);
       } catch (err) {

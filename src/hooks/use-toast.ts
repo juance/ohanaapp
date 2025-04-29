@@ -6,16 +6,37 @@ import { toast as sonnerToast } from "sonner";
 export interface ToastProps {
   title?: string;
   description?: string;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
   [key: string]: any;
 }
 
 // Create a toast function that properly handles the variant
-export const toast = (props: ToastProps) => {
+export const toast = (props: ToastProps | string) => {
+  // Handle string case
+  if (typeof props === 'string') {
+    return sonnerToast(props);
+  }
+  
+  // Handle object case
   const { title, description, variant, ...rest } = props;
 
   if (variant === 'destructive') {
     return sonnerToast.error(title || '', {
+      description,
+      ...rest
+    });
+  } else if (variant === 'success') {
+    return sonnerToast.success(title || '', {
+      description,
+      ...rest
+    });
+  } else if (variant === 'warning') {
+    return sonnerToast.warning(title || '', {
+      description,
+      ...rest
+    });
+  } else if (variant === 'info') {
+    return sonnerToast.info(title || '', {
       description,
       ...rest
     });
