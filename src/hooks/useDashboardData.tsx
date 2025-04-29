@@ -28,8 +28,8 @@ export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Obtener datos de gastos
-  const { expenses, loading: expensesLoading, error: expensesError } = useExpensesData();
+  // Obtener datos de gastos con force refresh para asegurar datos actualizados
+  const { expenses, loading: expensesLoading, error: expensesError, refreshData: refreshExpenses } = useExpensesData();
 
   // Obtener datos de clientes
   const { clients, loading: clientsLoading, error: clientsError } = useClientData();
@@ -146,6 +146,9 @@ export const useDashboardData = () => {
   // Función para refrescar los datos
   const refreshData = useCallback(async () => {
     try {
+      // Primero refrescamos los datos de gastos para asegurarnos de tener la información más actual
+      await refreshExpenses();
+      
       const stats = await fetchTicketDetails();
       setTicketStats(stats);
       return stats;
@@ -154,7 +157,7 @@ export const useDashboardData = () => {
       toast.error('Error al actualizar los datos del dashboard');
       throw err;
     }
-  }, []);
+  }, [refreshExpenses]);
 
   useEffect(() => {
     refreshData().catch(err => console.error('Error in initial data load:', err));

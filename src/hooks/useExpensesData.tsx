@@ -1,7 +1,8 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getStoredExpenses } from '@/lib/data/expenseService';
 import { toast } from '@/lib/toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UseExpensesDataReturn {
   loading: boolean;
@@ -23,12 +24,36 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     monthly: 0
   });
   
-  const fetchExpenses = async () => {
+  const fetchExpenses = useCallback(async () => {
     try {
       console.log('Obteniendo datos de gastos...');
-      // Obtener todos los gastos almacenados
-      const allExpenses = await getStoredExpenses();
-      console.log('Gastos obtenidos:', allExpenses.length);
+      setLoading(true);
+      
+      // Obtener todos los gastos directamente de la base de datos para asegurar datos actualizados
+      const { data: expensesData, error: expensesError } = await supabase
+        .from('expenses')
+        .select('*')
+        .order('date', { ascending: false });
+      
+      if (expensesError) throw expensesError;
+      
+      console.log('Gastos obtenidos de la base de datos:', expensesData?.length);
+      
+      // También obtener gastos locales que podrían no estar sincronizados
+      const localExpenses = await getStoredExpenses();
+      console.log('Gastos locales:', localExpenses.length);
+      
+      // Combinar gastos, dando prioridad a los de la base de datos
+      const allExpenses = [...expensesData];
+      
+      // Añadir gastos locales que no estén en la base de datos
+      localExpenses.forEach(localExp => {
+        if (!expensesData.some(dbExp => dbExp.id === localExp.id)) {
+          allExpenses.push(localExp);
+        }
+      });
+      
+      console.log('Total de gastos combinados:', allExpenses.length);
       
       // Obtener fecha actual
       const today = new Date();
@@ -46,7 +71,7 @@ export const useExpensesData = (): UseExpensesDataReturn => {
         return expDate >= startOfDay && expDate <= endOfDay;
       });
       
-      const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      const dailyTotal = dailyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
       console.log('Gastos diarios:', dailyTotal);
       
       // Calcular gastos semanales
@@ -64,7 +89,7 @@ export const useExpensesData = (): UseExpensesDataReturn => {
         return expDate >= startOfWeek && expDate <= endOfWeek;
       });
       
-      const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      const weeklyTotal = weeklyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
       console.log('Gastos semanales:', weeklyTotal);
       
       // Calcular gastos mensuales
@@ -78,7 +103,7 @@ export const useExpensesData = (): UseExpensesDataReturn => {
         return expDate >= startOfMonth && expDate <= endOfMonth;
       });
       
-      const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+      const monthlyTotal = monthlyExpenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
       console.log('Gastos mensuales:', monthlyTotal);
       
       setExpenses({
@@ -86,6 +111,9 @@ export const useExpensesData = (): UseExpensesDataReturn => {
         weekly: weeklyTotal,
         monthly: monthlyTotal
       });
+      
+      setError(null);
+      
     } catch (err) {
       console.error("Error al obtener gastos:", err);
       setError(err instanceof Error ? err : new Error('Error desconocido al obtener gastos'));
@@ -93,16 +121,15 @@ export const useExpensesData = (): UseExpensesDataReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
   
   const refreshData = async () => {
-    setLoading(true);
     await fetchExpenses();
   };
   
   useEffect(() => {
     fetchExpenses();
-  }, []);
+  }, [fetchExpenses]);
   
   return {
     loading,

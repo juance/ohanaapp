@@ -1,89 +1,77 @@
 
-/**
- * Simple cache service to reduce database queries
- */
-
-type CacheItem<T> = {
+interface CacheItem<T> {
   data: T;
-  timestamp: number;
   expiresAt: number;
-};
-
-type CacheOptions = {
-  ttl: number; // Time to live in milliseconds
-  namespace?: string;
-};
+}
 
 class CacheService {
   private cache: Map<string, CacheItem<any>> = new Map();
-  private defaultTTL = 5 * 60 * 1000; // 5 minutes default TTL
-  
+  private defaultTTL = 5 * 60 * 1000; // 5 minutes in milliseconds
+
   /**
-   * Get data from cache or fetch it using the provided function
+   * Set a value in the cache
    */
-  async getOrFetch<T>(
-    key: string,
-    fetchFn: () => Promise<T>,
-    options: CacheOptions = { ttl: 0 }
-  ): Promise<T> {
-    const cacheKey = options.namespace ? `${options.namespace}:${key}` : key;
-    const ttl = options.ttl || this.defaultTTL;
-    const now = Date.now();
-    
-    // Check if data exists in cache and is not expired
-    const cachedItem = this.cache.get(cacheKey);
-    if (cachedItem && cachedItem.expiresAt > now) {
-      console.log(`[Cache] Hit for key: ${cacheKey}`);
-      return cachedItem.data;
-    }
-    
-    // If not in cache or expired, fetch fresh data
-    console.log(`[Cache] Miss for key: ${cacheKey}`);
-    const data = await fetchFn();
-    
-    // Store in cache
-    this.cache.set(cacheKey, {
-      data,
-      timestamp: now,
-      expiresAt: now + ttl
-    });
-    
-    return data;
+  set<T>(key: string, value: T, ttl: number = this.defaultTTL): void {
+    const expiresAt = Date.now() + ttl;
+    this.cache.set(key, { data: value, expiresAt });
   }
-  
+
   /**
-   * Invalidate a specific cache entry
+   * Get a value from the cache
    */
-  invalidate(key: string, namespace?: string): void {
-    const cacheKey = namespace ? `${namespace}:${key}` : key;
-    this.cache.delete(cacheKey);
-    console.log(`[Cache] Invalidated key: ${cacheKey}`);
-  }
-  
-  /**
-   * Invalidate all cache entries in a namespace
-   */
-  invalidateNamespace(namespace: string): void {
-    for (const key of this.cache.keys()) {
-      if (key.startsWith(`${namespace}:`)) {
-        this.cache.delete(key);
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    
+    // If item doesn't exist or has expired
+    if (!item || item.expiresAt < Date.now()) {
+      if (item) {
+        this.cache.delete(key); // Clean up expired item
       }
+      return null;
     }
-    console.log(`[Cache] Invalidated namespace: ${namespace}`);
+    
+    return item.data;
   }
-  
+
   /**
-   * Clear the entire cache
+   * Check if a key exists in the cache and is not expired
+   */
+  has(key: string): boolean {
+    const item = this.cache.get(key);
+    if (!item || item.expiresAt < Date.now()) {
+      if (item) {
+        this.cache.delete(key); // Clean up expired item
+      }
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * Delete a specific key from the cache
+   */
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  /**
+   * Clear all cache entries
    */
   clear(): void {
     this.cache.clear();
-    console.log(`[Cache] Cleared all cache entries`);
   }
-  
+
   /**
-   * Get cache stats for debugging
+   * Get cache statistics
    */
-  getStats(): { size: number; keys: string[] } {
+  getStats() {
+    // Clean up expired items first
+    for (const [key, item] of this.cache.entries()) {
+      if (item.expiresAt < Date.now()) {
+        this.cache.delete(key);
+      }
+    }
+    
     return {
       size: this.cache.size,
       keys: Array.from(this.cache.keys())

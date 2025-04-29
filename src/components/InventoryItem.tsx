@@ -1,257 +1,208 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { InventoryItem } from '@/lib/types/inventory.types';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/lib/toast';
-import { Package, Trash, Plus, Minus, Save, X, Edit } from 'lucide-react';
-import { Progress } from '@/components/ui/progress';
-import { cn } from '@/lib/utils';
+import type { InventoryItem as InventoryItemType } from '@/lib/types';
+import { Pencil, Trash2, Save } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface InventoryItemProps {
-  item: InventoryItem;
-  onDelete: (id: string) => void;
-  onUpdate: (item: InventoryItem) => void;
+  item: InventoryItemType;
+  onUpdate: (id: string, data: Partial<InventoryItemType>) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }
 
-const InventoryItem = ({ item, onDelete, onUpdate }: InventoryItemProps) => {
+export const InventoryItem: React.FC<InventoryItemProps> = ({ item, onUpdate, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editedItem, setEditedItem] = useState({ ...item });
+  const [name, setName] = useState(item.name);
+  const [quantity, setQuantity] = useState(item.quantity.toString());
+  const [unit, setUnit] = useState(item.unit || 'unidad');
+  const [threshold, setThreshold] = useState((item.threshold || 5).toString());
+  const [notes, setNotes] = useState(item.notes || '');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleEdit = () => {
-    setIsEditing(true);
-  };
+  // Check if the item is low on stock
+  const isLowStock = item.quantity < (item.threshold || 5);
 
-  const handleCancel = () => {
-    setEditedItem({ ...item });
-    setIsEditing(false);
-  };
-
-  const handleSave = () => {
-    onUpdate(editedItem);
-    setIsEditing(false);
-  };
-
-  const handleQuantityChange = (amount: number) => {
-    const newQuantity = Math.max(0, editedItem.quantity + amount);
-    setEditedItem({ ...editedItem, quantity: newQuantity });
-  };
-
-  const getStockStatus = () => {
-    const ratio = item.quantity / item.threshold;
-    if (ratio <= 0.25) return 'Critical';
-    if (ratio <= 0.5) return 'Low';
-    if (ratio < 1) return 'Warning';
-    return 'Normal';
-  };
-
-  const getProgressColor = () => {
-    const status = getStockStatus();
-    switch (status) {
-      case 'Critical':
-        return 'bg-red-500';
-      case 'Low':
-        return 'bg-orange-500';
-      case 'Warning':
-        return 'bg-yellow-500';
-      default:
-        return 'bg-green-500';
+  const handleUpdate = async () => {
+    try {
+      setIsSubmitting(true);
+      
+      const updatedData = {
+        name,
+        quantity: parseInt(quantity, 10),
+        unit,
+        threshold: parseInt(threshold, 10),
+        notes
+      };
+      
+      await onUpdate(item.id, updatedData);
+      
+      toast.success('Inventario actualizado correctamente');
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating inventory item:', error);
+      toast.error('Error al actualizar el inventario');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const getProgressPercentage = () => {
-    const percentage = (item.quantity / (item.threshold * 2)) * 100;
-    return Math.min(100, Math.max(0, percentage));
+  const handleDelete = async () => {
+    try {
+      setIsSubmitting(true);
+      await onDelete(item.id);
+      toast.success('Artículo eliminado correctamente');
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+      toast.error('Error al eliminar el artículo');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
-  return (
-    <Card className="transition-all duration-200 hover:shadow-md">
-      <CardHeader>
-        <CardTitle>{item.name}</CardTitle>
-        <CardFooter>
-          <div className="flex space-x-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
-              onClick={handleEdit}
-            >
-              <Edit className="h-4 w-4" />
-              <span className="sr-only">Edit</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-              onClick={() => {
-                toast.success('Item deleted', {
-                  description: `${item.name} has been removed from inventory`,
-                });
-                onDelete(item.id);
-              }}
-            >
-              <Trash className="h-4 w-4" />
-              <span className="sr-only">Delete</span>
-            </Button>
+  
+  if (isEditing) {
+    return (
+      <div className="bg-white rounded-lg shadow p-4 mb-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Nombre</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full"
+              placeholder="Nombre del artículo"
+            />
           </div>
-        </CardFooter>
-      </CardHeader>
-      <CardContent className="p-4">
-        {isEditing ? (
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-laundry-100 text-laundry-500">
-                <Package className="h-5 w-5" />
-              </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Cantidad</label>
+            <div className="flex gap-2">
               <Input
-                value={editedItem.name}
-                onChange={(e) => setEditedItem({ ...editedItem, name: e.target.value })}
-                className="h-9"
+                type="number"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="w-full"
+                min="0"
+              />
+              <Input
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+                className="w-1/3"
+                placeholder="Unidad"
               />
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Quantity</label>
-                <div className="flex h-9 items-center rounded-md border">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 rounded-r-none"
-                    onClick={() => handleQuantityChange(-1)}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    type="number"
-                    value={editedItem.quantity}
-                    onChange={(e) => setEditedItem({ ...editedItem, quantity: parseInt(e.target.value) || 0 })}
-                    className="h-9 border-0 text-center"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 rounded-l-none"
-                    onClick={() => handleQuantityChange(1)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Threshold</label>
-                <Input
-                  type="number"
-                  value={editedItem.threshold}
-                  onChange={(e) => setEditedItem({ ...editedItem, threshold: parseInt(e.target.value) || 0 })}
-                  className="h-9"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs text-muted-foreground">Unit</label>
-                <Input
-                  value={editedItem.unit}
-                  onChange={(e) => setEditedItem({ ...editedItem, unit: e.target.value })}
-                  className="h-9"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCancel}
-                className="h-8"
-              >
-                <X className="mr-1 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                className="h-8 bg-laundry-500 hover:bg-laundry-600"
-              >
-                <Save className="mr-1 h-4 w-4" />
-                Save
-              </Button>
-            </div>
           </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-laundry-100 text-laundry-500">
-                  <Package className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-medium">{item.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {item.quantity} {item.unit}
-                  </div>
-                </div>
-              </div>
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  onClick={handleEdit}
-                >
-                  <Edit className="h-4 w-4" />
-                  <span className="sr-only">Edit</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                  onClick={() => {
-                    toast.success('Item deleted', {
-                      description: `${item.name} has been removed from inventory`,
-                    });
-                    onDelete(item.id);
-                  }}
-                >
-                  <Trash className="h-4 w-4" />
-                  <span className="sr-only">Delete</span>
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-xs">
-                <span className="font-medium">Stock Level</span>
-                <span
-                  className={cn(
-                    "font-medium",
-                    getStockStatus() === 'Critical' && "text-red-500",
-                    getStockStatus() === 'Low' && "text-orange-500",
-                    getStockStatus() === 'Warning' && "text-yellow-500",
-                    getStockStatus() === 'Normal' && "text-green-500"
-                  )}
-                >
-                  {getStockStatus()}
-                </span>
-              </div>
-              <Progress
-                value={getProgressPercentage()}
-                className="h-2"
-                indicatorClassName={getProgressColor()}
-              />
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>0</span>
-                <span>Threshold: {item.threshold}</span>
-                <span>{item.threshold * 2}</span>
-              </div>
-            </div>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Umbral mínimo</label>
+            <Input
+              type="number"
+              value={threshold}
+              onChange={(e) => setThreshold(e.target.value)}
+              className="w-full"
+              min="0"
+              placeholder="Cantidad mínima"
+            />
           </div>
-        )}
-      </CardContent>
-    </Card>
+          <div>
+            <label className="text-sm text-gray-600 mb-1 block">Notas</label>
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="w-full"
+              placeholder="Notas adicionales"
+            />
+          </div>
+        </div>
+        <div className="flex justify-end mt-4 gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsEditing(false)}
+            disabled={isSubmitting}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Guardando...' : 'Guardar'}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Display mode
+  return (
+    <div className={`bg-white rounded-lg shadow p-4 mb-4 ${isLowStock ? 'border-l-4 border-red-500' : ''}`}>
+      <div className="flex justify-between">
+        <div>
+          <h3 className="text-lg font-medium">{item.name}</h3>
+          <div className="flex items-center mt-1">
+            <span className={`text-lg font-bold ${isLowStock ? 'text-red-600' : 'text-gray-700'}`}>
+              {item.quantity}
+            </span>
+            <span className="text-sm text-gray-600 ml-1">{item.unit || 'unidades'}</span>
+            {isLowStock && (
+              <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded ml-2">
+                Stock bajo
+              </span>
+            )}
+          </div>
+          {item.threshold && (
+            <p className="text-xs text-gray-500 mt-1">
+              Mínimo recomendado: {item.threshold} {item.unit || 'unidades'}
+            </p>
+          )}
+          {item.notes && <p className="text-sm text-gray-600 mt-2">{item.notes}</p>}
+        </div>
+        <div className="flex space-x-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            className="h-8 w-8"
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esta acción no se puede deshacer. Eliminarás "{item.name}" del inventario.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                  Eliminar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default InventoryItem;

@@ -5,6 +5,7 @@ type ToastOptions = {
   title?: string;
   description?: string;
   duration?: number;
+  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
 };
 
 type ToastFunction = {
@@ -33,10 +34,11 @@ const baseToast = (message: string | ToastOptions, variant = 'default') => {
   if (typeof message === 'string') {
     sonnerToast(message);
   } else {
+    const { variant: msgVariant, ...rest } = message;
     sonnerToast({
-      title: message.title || 'Notificación',
-      description: message.description,
-      duration: message.duration,
+      title: rest.title || 'Notificación',
+      description: rest.description,
+      duration: rest.duration,
     });
   }
 };
@@ -46,9 +48,10 @@ const successToast = (message: string | ToastOptions) => {
   if (typeof message === 'string') {
     sonnerToast.success(message);
   } else {
-    sonnerToast.success(message.title || '', {
-      description: message.description,
-      duration: message.duration
+    const { variant: msgVariant, ...rest } = message;
+    sonnerToast.success(rest.title || '', {
+      description: rest.description,
+      duration: rest.duration
     });
   }
 };
@@ -57,9 +60,10 @@ const errorToast = (message: string | ToastOptions) => {
   if (typeof message === 'string') {
     sonnerToast.error(message);
   } else {
-    sonnerToast.error(message.title || '', {
-      description: message.description,
-      duration: message.duration
+    const { variant: msgVariant, ...rest } = message;
+    sonnerToast.error(rest.title || '', {
+      description: rest.description,
+      duration: rest.duration
     });
   }
 };
@@ -68,9 +72,10 @@ const infoToast = (message: string | ToastOptions) => {
   if (typeof message === 'string') {
     sonnerToast.info(message);
   } else {
-    sonnerToast.info(message.title || '', {
-      description: message.description,
-      duration: message.duration
+    const { variant: msgVariant, ...rest } = message;
+    sonnerToast.info(rest.title || '', {
+      description: rest.description,
+      duration: rest.duration
     });
   }
 };
@@ -79,9 +84,10 @@ const warningToast = (message: string | ToastOptions) => {
   if (typeof message === 'string') {
     sonnerToast.warning(message);
   } else {
-    sonnerToast.warning(message.title || '', {
-      description: message.description,
-      duration: message.duration
+    const { variant: msgVariant, ...rest } = message;
+    sonnerToast.warning(rest.title || '', {
+      description: rest.description,
+      duration: rest.duration
     });
   }
 };
