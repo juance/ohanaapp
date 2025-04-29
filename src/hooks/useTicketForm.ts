@@ -21,7 +21,7 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
   const formState = {
     customerName: customerForm.customerName,
     phoneNumber: customerForm.phoneNumber,
-    valetQuantity: valetForm.valetQuantity, // Use valetQuantity from valetForm
+    valetQuantity: valetForm.quantity, // Use quantity from valetForm instead of valetQuantity
     useFreeValet: valetForm.useFreeValet,
     paymentMethod: ticketFormState.paymentMethod,
     totalPrice: ticketFormState.totalPrice,
@@ -45,6 +45,22 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     
     // Valet form data
     ...valetForm,
+    
+    // For backwards compatibility
+    valetQuantity: valetForm.quantity,
+    setValetQuantity: valetForm.setQuantity,
+    separateByColor: valetForm.separateByColor, 
+    setSeparateByColor: valetForm.setSeparateByColor,
+    delicateDry: valetForm.delicateDry,
+    setDelicateDry: valetForm.setDelicateDry,
+    stainRemoval: valetForm.stainRemoval,
+    setStainRemoval: valetForm.setStainRemoval,
+    bleach: valetForm.bleach,
+    setBleach: valetForm.setBleach,
+    noFragrance: valetForm.noFragrance,
+    setNoFragrance: valetForm.setNoFragrance,
+    noDry: valetForm.noDry,
+    setNoDry: valetForm.setNoDry,
     
     // Dry cleaning form data
     ...dryCleaningForm,

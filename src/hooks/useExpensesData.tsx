@@ -61,7 +61,7 @@ export const useExpensesData = () => {
     
     try {
       // Prepare the data ensuring it has all required properties
-      const expenseData: Partial<SyncableExpense> = {
+      const expenseData = {
         amount: newExpense.amount,
         description: newExpense.description,
         date: newExpense.date,

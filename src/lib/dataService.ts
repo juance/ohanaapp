@@ -1,8 +1,9 @@
+
 // Import required modules
 import { supabase } from '@/integrations/supabase/client';
 import { getNextTicketNumber } from './data/ticket/ticketNumberService';
 import { getFromLocalStorage, saveToLocalStorage, TICKETS_STORAGE_KEY, CLIENT_STORAGE_KEY } from './data/coreUtils';
-import { Customer, Ticket, LaundryOption } from './types';
+import { Customer, Ticket, LaundryOption, ClientVisit, convertCustomerToClientVisit } from './types';
 import { getClientVisitFrequency } from './data/clientService';
 
 // Re-export functions from client service
@@ -12,6 +13,48 @@ export { getClientVisitFrequency } from './data/clientService';
 export { 
   getNextTicketNumber 
 } from './data/ticket/ticketNumberService';
+
+// Export getCustomerByPhone for other modules to use
+export const getCustomerByPhone = async (phone: string): Promise<Customer | null> => {
+  try {
+    if (!phone) {
+      throw new Error('Phone number is required');
+    }
+
+    // Clean the phone number for searching (remove non-numeric characters)
+    const cleanedPhone = phone.replace(/\D/g, '');
+
+    // Search by phone number using LIKE for a more flexible search
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .or(`phone.ilike.%${cleanedPhone}%,phone.ilike.%${phone}%`);
+
+    if (error) throw error;
+
+    // Return the customer if found
+    if (data && data.length > 0) {
+      return {
+        id: data[0].id,
+        name: data[0].name,
+        phoneNumber: data[0].phone,
+        phone: data[0].phone,
+        loyaltyPoints: data[0].loyalty_points || 0,
+        valetsCount: data[0].valets_count || 0,
+        freeValets: data[0].free_valets || 0,
+        lastVisit: data[0].last_visit,
+        valetsRedeemed: data[0].valets_redeemed || 0,
+        createdAt: data[0].created_at
+      };
+    }
+
+    // Customer not found
+    return null;
+  } catch (error) {
+    console.error('Error getting customer by phone:', error);
+    throw error;
+  }
+};
 
 // Define the saveTicket function (used in storeTicket)
 const saveTicket = async (ticketData) => {
@@ -145,7 +188,18 @@ export const getAllClients = async (): Promise<Customer[]> => {
       
     if (error) throw error;
     
-    return data || [];
+    return data.map(customer => ({
+      id: customer.id,
+      name: customer.name,
+      phoneNumber: customer.phone,
+      phone: customer.phone,
+      lastVisit: customer.last_visit,
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      loyaltyPoints: customer.loyalty_points || 0,
+      valetsRedeemed: customer.valets_redeemed || 0,
+      createdAt: customer.created_at
+    })) || [];
   } catch (error) {
     console.error('Error fetching clients:', error);
     

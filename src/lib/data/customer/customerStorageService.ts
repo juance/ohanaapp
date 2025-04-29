@@ -1,3 +1,4 @@
+
 import { Customer } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { getFromLocalStorage, saveToLocalStorage, CLIENT_STORAGE_KEY } from '../coreUtils';
@@ -10,7 +11,7 @@ export const createCustomer = async (customerData: Partial<Customer>): Promise<C
       .from('customers')
       .insert([{
         name: customerData.name,
-        phone: customerData.phoneNumber,
+        phone: customerData.phoneNumber || customerData.phone,
         valets_count: customerData.valetsCount || 0,
         free_valets: customerData.freeValets || 0,
         last_visit: customerData.lastVisit || new Date().toISOString()
@@ -25,6 +26,7 @@ export const createCustomer = async (customerData: Partial<Customer>): Promise<C
       id: data.id,
       name: data.name,
       phoneNumber: data.phone,
+      phone: data.phone,
       lastVisit: data.last_visit,
       valetsCount: data.valets_count || 0,
       freeValets: data.free_valets || 0,
@@ -39,13 +41,14 @@ export const createCustomer = async (customerData: Partial<Customer>): Promise<C
     // Fallback to local storage
     try {
       // Get existing customers
-      const customers = getFromLocalStorage<Customer[]>(CLIENT_STORAGE_KEY) || [];
+      const customers = getFromLocalStorage<Customer>(CLIENT_STORAGE_KEY) || [];
       
       // Create new customer
       const newCustomer: Customer = {
         id: `local-${Date.now()}`,
         name: customerData.name || '',
-        phoneNumber: customerData.phoneNumber || '',
+        phoneNumber: customerData.phoneNumber || customerData.phone || '',
+        phone: customerData.phoneNumber || customerData.phone || '',
         valetsCount: customerData.valetsCount || 0,
         freeValets: customerData.freeValets || 0,
         lastVisit: customerData.lastVisit || new Date().toISOString(),
@@ -54,8 +57,8 @@ export const createCustomer = async (customerData: Partial<Customer>): Promise<C
       };
       
       // Add to array and save
-      customers.push(newCustomer);
-      saveToLocalStorage(CLIENT_STORAGE_KEY, customers);
+      const updatedCustomers = Array.isArray(customers) ? [...customers, newCustomer] : [newCustomer];
+      saveToLocalStorage(CLIENT_STORAGE_KEY, updatedCustomers);
       
       return newCustomer;
     } catch (localError) {
@@ -65,33 +68,18 @@ export const createCustomer = async (customerData: Partial<Customer>): Promise<C
   }
 };
 
-// Types for local customer data
-export interface LocalClient {
-  id: string;
-  name: string;
-  phone: string;
-  loyaltyPoints: number;
-  freeValets: number;
-  valetsRedeemed: number;
-  lastVisit?: string;
-  pendingSync?: boolean;
-  synced?: boolean;
-}
-
 // Function to map database customer to model customer
 const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
   return {
     id: dbCustomer.id,
     name: dbCustomer.name || '',
-    phone: dbCustomer.phone || '',
-    phoneNumber: dbCustomer.phone || '', // For compatibility
+    phoneNumber: dbCustomer.phone || '',
+    phone: dbCustomer.phone || '', // For compatibility
     loyaltyPoints: dbCustomer.loyalty_points || 0,
     valetsCount: dbCustomer.valets_count || 0,
     freeValets: dbCustomer.free_valets || 0,
     createdAt: dbCustomer.created_at || new Date().toISOString(),
-    updatedAt: dbCustomer.updated_at,
-    lastVisit: dbCustomer.last_visit,
-    valetsRedeemed: dbCustomer.valets_redeemed || 0
+    lastVisit: dbCustomer.last_visit
   };
 };
 
@@ -101,7 +89,7 @@ const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
  */
 export const storeCustomer = async (customerData: Partial<Customer>): Promise<Customer> => {
   try {
-    // Aceptar tanto 'phone' como 'phoneNumber' para mayor compatibilidad
+    // Accept both 'phone' and 'phoneNumber' for greater compatibility
     const phone = customerData.phone || customerData.phoneNumber;
     const { name } = customerData;
 
@@ -161,10 +149,10 @@ export const getCustomerByPhone = async (phone: string): Promise<Customer | null
       throw new Error('Phone number is required');
     }
 
-    // Limpiar el número de teléfono para la búsqueda (eliminar caracteres no numéricos)
+    // Clean the phone number for searching (remove non-numeric characters)
     const cleanedPhone = phone.replace(/\D/g, '');
 
-    // Buscar por número de teléfono usando LIKE para una búsqueda más flexible
+    // Search by phone number using LIKE for a more flexible search
     const { data, error } = await supabase
       .from('customers')
       .select('*')

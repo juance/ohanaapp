@@ -17,6 +17,10 @@ export interface SyncableTicket {
   created_at?: string;
   synced?: boolean;
   pendingSync?: boolean;
+  ticketNumber?: string; // Alias for backwards compatibility
+  totalPrice?: number; // Alias for backwards compatibility
+  paymentMethod?: string; // Alias for backwards compatibility
+  isPaid?: boolean; // Alias for backwards compatibility
 }
 
 export interface SyncableCustomerFeedback {
@@ -25,6 +29,11 @@ export interface SyncableCustomerFeedback {
   rating: number;
   comment: string;
   created_at?: string;
+  customerName?: string; // Alias for backwards compatibility
+  createdAt?: string; // Alias for backwards compatibility
+  source?: string;
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 export interface SyncableExpense {
@@ -34,6 +43,8 @@ export interface SyncableExpense {
   date: string;
   created_at?: string;
   synced?: boolean;
+  pendingSync?: boolean;
+  createdAt?: string; // Alias for backwards compatibility
 }
 
 export interface SyncableClient {
@@ -43,4 +54,17 @@ export interface SyncableClient {
   valets_count?: number;
   free_valets?: number;
   last_visit?: string;
+  pendingSync?: boolean;
+}
+
+export interface LocalClient {
+  id: string;
+  name: string;
+  phone: string;
+  loyaltyPoints: number;
+  freeValets: number;
+  valetsRedeemed: number;
+  lastVisit?: string;
+  pendingSync?: boolean;
+  synced?: boolean;
 }

@@ -28,6 +28,8 @@ export const getFromLocalStorage = <T>(key: string): T[] => {
 // Storage keys constants
 export const TICKETS_STORAGE_KEY = 'laundry_tickets';
 export const EXPENSES_STORAGE_KEY = 'laundry_expenses';
+export const CLIENT_STORAGE_KEY = 'laundry_clients';
+export const FEEDBACK_STORAGE_KEY = 'laundry_feedback';
 
 // Utility to convert payment method to the format expected by the database
 export const formatPaymentMethod = (method: string): "cash" | "debit" | "mercadopago" | "cuentadni" => {

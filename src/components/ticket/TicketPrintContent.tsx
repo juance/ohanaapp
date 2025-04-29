@@ -18,8 +18,8 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       </div>
       
       <div className="mb-4">
-        <p><strong>Cliente:</strong> {ticket.clientName}</p>
-        <p><strong>Teléfono:</strong> {ticket.phoneNumber}</p>
+        <p><strong>Cliente:</strong> {ticket.clientName || ticket.customerName}</p>
+        <p><strong>Teléfono:</strong> {ticket.phoneNumber || ticket.customerPhone}</p>
       </div>
       
       {ticket.services && ticket.services.length > 0 && (
