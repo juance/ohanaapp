@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,9 @@ const PendingOrders = () => {
       loadTicketServices(selectedTicket);
     }
   }, [selectedTicket, loadTicketServices]);
+
+  // Fix for setSearchFilter
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
 
   // Find the selected ticket data
   const selectedTicketData = selectedTicket 
@@ -107,7 +109,9 @@ const PendingOrders = () => {
 
               <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
                 <TicketDetailPanel 
-                  ticket={selectedTicketData}
+                  ticket={tickets.find(t => t.id === selectedTicket)}
+                  services={ticketServices}
+                  formatDate={formatDate}
                 />
               </div>
             </div>

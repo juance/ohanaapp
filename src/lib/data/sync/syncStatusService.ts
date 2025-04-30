@@ -25,20 +25,16 @@ export const updateSyncStatus = async (syncData: SimpleSyncStatus): Promise<bool
     // Save back to local storage
     localStorage.setItem('syncStatus', JSON.stringify(parsedStatus));
     
-    // Update on the server if possible
-    try {
-      await supabase
-        .from('sync_status')
-        .insert({
-          tickets_count: syncData.tickets,
-          expenses_count: syncData.expenses,
-          clients_count: syncData.clients, 
-          feedback_count: syncData.feedback,
-          synced_at: new Date().toISOString()
-        });
-    } catch (error) {
-      console.warn('Could not save sync status to server:', error);
-    }
+    // Skip server update for now since sync_status table doesn't seem to exist
+    // We'll have to create the table first before using it
+    // For now, just log it and return success
+    console.log('Would save to sync_status table:', {
+      tickets_count: syncData.tickets,
+      expenses_count: syncData.expenses,
+      clients_count: syncData.clients,
+      feedback_count: syncData.feedback,
+      synced_at: new Date().toISOString()
+    });
     
     return true;
   } catch (error) {

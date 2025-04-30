@@ -1,46 +1,19 @@
 
-// Importar los tipos necesarios
+// Re-export types from various module files
+export * from './app.types';
 export * from './customer.types';
-export * from './laundry.types';
-export * from './error.types';
 export * from './expense.types';
-export * from './feedback.types';
-export * from './inventory.types';
-export * from './metrics.types';
-export * from './sync.types';
 export * from './ticket.types';
-export * from './auth.types';
 
-// Definir o re-exportar cualquier tipo adicional necesario
-export interface Ticket {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  phoneNumber: string;
-  status: string;
-  createdAt: string;
-  deliveredDate: string | null;
-  totalPrice: number;
-  paymentMethod?: string;
-  valetQuantity?: number;
-  isPaid?: boolean;
-  services?: Array<{
-    id: string;
-    name: string;
-    price: number;
-    quantity: number;
-  }>;
-  customerName?: string; // Alias para clientName
-  customerPhone?: string; // Alias para phoneNumber
-  basketTicketNumber?: string;
-}
+// Carefully re-export specific types to avoid ambiguity
+import { ErrorLevel, ErrorContext } from './error.types';
+export { ErrorLevel, ErrorContext };
 
-export type PaymentMethod = 'cash' | 'mercadopago' | 'card' | 'debit' | 'credit' | 'transfer' | 'cuentaDni' | string;
+import { MenuOption, MenuContext, ExpenseCategory as ExpenseTypeCategory } from './error.types';
+export { MenuOption, MenuContext, ExpenseTypeCategory };
 
-// Define LaundryService type
-export interface LaundryService {
-  id: string;
-  name: string;
-  price: number;
-  description?: string;
-}
+import { LaundryOption as LaundryServiceOption } from './laundry.types';
+export { LaundryServiceOption };
+
+export * from './sync.types';
+export * from './inventory.types';

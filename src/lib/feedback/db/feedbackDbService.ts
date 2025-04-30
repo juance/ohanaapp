@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { CustomerFeedback, FeedbackSource } from '@/lib/types';
+import { CustomerFeedback } from '@/lib/types';
+import { FeedbackSource } from '@/lib/types/feedback.types';
 
 export const getFeedbackFromDb = async (): Promise<CustomerFeedback[]> => {
   try {

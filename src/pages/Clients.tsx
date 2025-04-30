@@ -8,7 +8,7 @@ import AddClientForm from '@/components/clients/AddClientForm';
 import LoyaltyProgram from '@/components/clients/LoyaltyProgram';
 import { useClientsList } from '@/hooks/useClientsList';
 import { useLoyaltyProgram } from '@/hooks/useLoyaltyProgram';
-import { Customer, ClientVisit } from '@/lib/types';
+import { Customer, ClientVisit, convertCustomerToClientVisit } from '@/lib/types';
 
 const Clients = () => {
   const { 
@@ -44,19 +44,6 @@ const Clients = () => {
     handleRedeemPoints
   } = useLoyaltyProgram(refreshData);
 
-  // Helper function to convert Customer type to ClientVisit type
-  const convertToClientVisit = (client: Customer): ClientVisit => {
-    return {
-      id: client.id,
-      clientName: client.name,
-      phoneNumber: client.phone,
-      visitCount: client.valetsCount || client.valetCount || 0,
-      lastVisit: client.lastVisit,
-      loyaltyPoints: client.loyaltyPoints,
-      freeValets: client.freeValets
-    };
-  };
-
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
@@ -71,7 +58,7 @@ const Clients = () => {
           ) : error ? (
             <div className="rounded-lg border border-red-200 bg-red-50 p-4">
               <h3 className="text-lg font-medium text-red-800">Error al cargar clientes</h3>
-              <p className="text-red-700">{error.message}</p>
+              <p className="text-red-700">{typeof error === 'string' ? error : error.message}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -81,10 +68,10 @@ const Clients = () => {
                 editClientName={editClientName}
                 editClientPhone={editClientPhone}
                 selectedClient={selectedClient as ClientVisit}
-                onEditClient={(client) => handleEditClient(client as any)}
+                onEditClient={(client) => handleEditClient(client as ClientVisit)}
                 onSaveClient={handleSaveClient}
                 onCancelEdit={handleCancelEdit}
-                onSelectClient={handleSelectClient as any}
+                onSelectClient={(client) => handleSelectClient(client as ClientVisit)}
                 onEditNameChange={(e) => setEditClientName(e.target.value)}
                 onEditPhoneChange={(e) => setEditClientPhone(e.target.value)}
               />

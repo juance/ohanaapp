@@ -1,9 +1,14 @@
-
 export interface SimpleSyncStatus {
   tickets: number;
   expenses: number;
   clients: number;
   feedback: number;
+  lastSync: string;
+}
+
+export interface SyncStatus extends SimpleSyncStatus {
+  pendingSyncCount?: number;
+  lastSyncedAt?: string;
 }
 
 export interface SyncableTicket {

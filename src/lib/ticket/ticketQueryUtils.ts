@@ -1,6 +1,97 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
+import { Ticket, TicketService } from '@/lib/types';
+
+/**
+ * Get all tickets from a specific customer
+ * @param customerId Customer ID
+ * @returns Array of tickets
+ */
+export const getTicketsByCustomer = async (customerId: string): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: '', // Will be populated by caller if needed
+      phoneNumber: '', // Will be populated by caller if needed
+      totalPrice: Number(ticket.total),
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      valetQuantity: ticket.valet_quantity,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      customerId: ticket.customer_id
+    }));
+  } catch (error) {
+    console.error('Error getting tickets by customer:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get a single ticket by its ID with all associated services
+ * @param ticketId Ticket ID
+ * @returns The ticket with its services
+ */
+export const getTicketWithServices = async (ticketId: string): Promise<Ticket> => {
+  try {
+    // Get the ticket
+    const { data: ticketData, error: ticketError } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('id', ticketId)
+      .single();
+      
+    if (ticketError) throw ticketError;
+    
+    // Get the dry cleaning items
+    const { data: dryCleaningItems, error: dryCleaningError } = await supabase
+      .from('dry_cleaning_items')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (dryCleaningError) throw dryCleaningError;
+    
+    // Get laundry options
+    const { data: laundryOptions, error: laundryOptionsError } = await supabase
+      .from('ticket_laundry_options')
+      .select('*')
+      .eq('ticket_id', ticketId);
+      
+    if (laundryOptionsError) throw laundryOptionsError;
+    
+    // Build the ticket object with its services
+    const ticket: Ticket = {
+      id: ticketData.id,
+      ticketNumber: ticketData.ticket_number,
+      clientName: '', // Will be populated by caller if needed
+      phoneNumber: '', // Will be populated by caller if needed
+      totalPrice: Number(ticketData.total),
+      paymentMethod: ticketData.payment_method,
+      status: ticketData.status,
+      isPaid: ticketData.is_paid,
+      valetQuantity: ticketData.valet_quantity,
+      createdAt: ticketData.created_at,
+      deliveredDate: ticketData.delivered_date,
+      dryCleaningItems: dryCleaningItems || [],
+      laundryOptions: laundryOptions || [],
+      customerId: ticketData.customer_id
+    };
+    
+    return ticket;
+  } catch (error) {
+    console.error('Error getting ticket with services:', error);
+    throw error;
+  }
+};
 
 /**
  * Checks if the delivered_date column exists in the tickets table.

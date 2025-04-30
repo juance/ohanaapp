@@ -1,7 +1,106 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
+import { Ticket, TicketService } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { getNextTicketNumber } from '@/lib/dataService';
+
+/**
+ * Create a new ticket with complete details
+ * @param ticketData The ticket data to create
+ * @returns The created ticket ID if successful
+ */
+export const createTicket = async (ticketData: {
+  clientName: string;
+  phoneNumber: string;
+  totalPrice: number;
+  paymentMethod: string;
+  isPaid: boolean;
+  valetQuantity: number;
+  dryCleaningItems?: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
+  laundryOptions?: Array<{
+    optionType: string;
+  }>;
+  customerId?: string;
+}): Promise<string | null> => {
+  try {
+    // Get next ticket number
+    const ticketNumber = await getNextTicketNumber();
+    
+    if (!ticketNumber) {
+      toast.error('Error al obtener número de ticket');
+      return null;
+    }
+
+    // First, create the ticket
+    const { data: ticketResult, error: ticketError } = await supabase
+      .from('tickets')
+      .insert({
+        ticket_number: ticketNumber,
+        total: ticketData.totalPrice,
+        payment_method: ticketData.paymentMethod,
+        status: 'pending',
+        is_paid: ticketData.isPaid,
+        valet_quantity: ticketData.valetQuantity,
+        customer_id: ticketData.customerId
+      })
+      .select('id')
+      .single();
+
+    if (ticketError) {
+      console.error('Error creating ticket:', ticketError);
+      toast.error('Error al crear el ticket');
+      return null;
+    }
+
+    const ticketId = ticketResult.id;
+
+    // Add dry cleaning items if any
+    if (ticketData.dryCleaningItems && ticketData.dryCleaningItems.length > 0) {
+      const dryCleaningItemsWithTicketId = ticketData.dryCleaningItems.map(item => ({
+        ticket_id: ticketId,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      }));
+
+      const { error: itemsError } = await supabase
+        .from('dry_cleaning_items')
+        .insert(dryCleaningItemsWithTicketId);
+
+      if (itemsError) {
+        console.error('Error adding dry cleaning items:', itemsError);
+        // Continue anyway, the ticket has been created
+      }
+    }
+
+    // Add laundry options if any
+    if (ticketData.laundryOptions && ticketData.laundryOptions.length > 0) {
+      const laundryOptionsWithTicketId = ticketData.laundryOptions.map(option => ({
+        ticket_id: ticketId,
+        option_type: option.optionType
+      }));
+
+      const { error: optionsError } = await supabase
+        .from('ticket_laundry_options')
+        .insert(laundryOptionsWithTicketId);
+
+      if (optionsError) {
+        console.error('Error adding laundry options:', optionsError);
+        // Continue anyway, the ticket has been created
+      }
+    }
+
+    // Return the ticket ID on success
+    return ticketId;
+  } catch (error) {
+    console.error('Error creating ticket:', error);
+    toast.error('Error al crear el ticket');
+    return null;
+  }
+};
 
 // Get ticket services (dry cleaning items and laundry options)
 export const getTicketServices = async (ticketId: string): Promise<any[]> => {

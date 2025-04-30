@@ -2,14 +2,12 @@
 export interface Customer {
   id: string;
   name: string;
-  phoneNumber: string;
-  phone: string; // Alias for phoneNumber for database compatibility
-  loyaltyPoints: number;
+  phone: string;
   valetsCount: number;
   freeValets: number;
-  valetsRedeemed?: number;
-  lastVisit?: string;
-  createdAt?: string;
+  loyaltyPoints: number;
+  lastVisit: string;
+  valetCount?: number; // Alias for backward compatibility
 }
 
 export interface ClientVisit {
@@ -18,30 +16,52 @@ export interface ClientVisit {
   phoneNumber: string;
   visitCount: number;
   lastVisit: string;
-  lastVisitDate: string; // Required field
   loyaltyPoints: number;
   freeValets: number;
+  lastVisitDate: string;
   valetsCount: number;
   visitFrequency: string;
 }
 
+export interface LocalClient {
+  id: string;
+  name: string;
+  phone: string;
+  clientName?: string; // For backward compatibility
+  phoneNumber?: string; // For backward compatibility
+  valetsCount: number;
+}
+
+export interface CustomerFeedback {
+  id: string;
+  customerName: string;
+  customerId?: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  source?: string;
+  pendingSync?: boolean;
+}
+
+// Convert Customer to ClientVisit format
 export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
   return {
     id: customer.id,
     clientName: customer.name,
-    phoneNumber: customer.phoneNumber || customer.phone,
-    visitCount: customer.valetsCount,
+    phoneNumber: customer.phone,
+    visitCount: customer.valetsCount || 0,
     lastVisit: customer.lastVisit || '',
+    loyaltyPoints: customer.loyaltyPoints || 0,
+    freeValets: customer.freeValets || 0,
     lastVisitDate: customer.lastVisit || '',
-    loyaltyPoints: customer.loyaltyPoints,
-    freeValets: customer.freeValets,
-    valetsCount: customer.valetsCount,
-    visitFrequency: calculateFrequency(customer.lastVisit || '')
+    valetsCount: customer.valetsCount || 0,
+    visitFrequency: getVisitFrequency(customer.lastVisit)
   };
 }
 
-function calculateFrequency(lastVisit: string): string {
-  if (!lastVisit) return 'N/A';
+// Helper function to determine visit frequency
+function getVisitFrequency(lastVisit: string): string {
+  if (!lastVisit) return 'Nuevo';
   
   const lastVisitDate = new Date(lastVisit);
   const now = new Date();

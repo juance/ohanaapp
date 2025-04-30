@@ -1,20 +1,14 @@
 
+// Add this file to define FeedbackSource type
+export type FeedbackSource = 'admin' | 'web' | 'mobile' | 'kiosk';
+
 export interface CustomerFeedback {
   id: string;
   customerName: string;
+  customerId?: string;
   rating: number;
   comment: string;
   createdAt: string;
-  source?: FeedbackSource;
-}
-
-export type FeedbackSource = 'app' | 'web' | 'store' | 'phone' | string;
-
-export interface FeedbackAnalytics {
-  averageRating: number;
-  totalFeedback: number;
-  ratingsDistribution: {
-    [key: number]: number;
-  };
-  recentComments: CustomerFeedback[];
+  source?: string;
+  pendingSync?: boolean;
 }

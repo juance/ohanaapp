@@ -4,15 +4,8 @@ export interface InventoryItem {
   name: string;
   quantity: number;
   unit: string;
-  threshold: number;
-  notes?: string;
-  createdAt?: string;
-}
-
-export interface InventoryUpdate {
-  name?: string;
-  quantity?: number;
-  unit?: string;
   threshold?: number;
   notes?: string;
+  createdAt: string;
+  lastUpdated?: string; // Add the missing field
 }

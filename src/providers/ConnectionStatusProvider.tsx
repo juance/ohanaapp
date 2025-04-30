@@ -1,124 +1,93 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { SyncStatus, SimpleSyncStatus } from '@/lib/types/sync.types';
-import { dispatchConnectionStatusEvent } from '@/lib/notificationService';
+import { isOnline } from '@/lib/connectionUtils';
+import { SyncStatus } from '@/lib/types/sync.types';
 
-type ConnectionContextValue = {
-  connectionStatus: 'online' | 'offline';
-  syncStatus: 'idle' | 'syncing' | 'error';
-  pendingSyncCount: number;
-  lastSyncedAt: Date | null;
-  syncData: () => Promise<void>;
-  syncStats: {
-    tickets: number;
-    expenses: number;
-    clients: number;
-    feedback: number;
-  };
-};
+interface ConnectionStatusContextType {
+  online: boolean;
+  syncStatus: SyncStatus;
+  lastChecked: Date;
+}
 
-const ConnectionContext = createContext<ConnectionContextValue | undefined>(undefined);
-
-export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isOnline } = useNetworkStatus();
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error'>('idle');
-  const [pendingSyncCount, setPendingSyncCount] = useState<number>(0);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
-  const [syncStats, setSyncStats] = useState<SimpleSyncStatus>({
+const ConnectionStatusContext = createContext<ConnectionStatusContextType>({
+  online: true,
+  syncStatus: {
     tickets: 0,
     expenses: 0,
     clients: 0,
-    feedback: 0
+    feedback: 0,
+    lastSync: '',
+    pendingSyncCount: 0
+  },
+  lastChecked: new Date()
+});
+
+export const useConnectionStatus = () => useContext(ConnectionStatusContext);
+
+export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [online, setOnline] = useState<boolean>(true);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>({
+    tickets: 0,
+    expenses: 0,
+    clients: 0,
+    feedback: 0,
+    lastSync: '',
+    pendingSyncCount: 0
   });
+  const [lastChecked, setLastChecked] = useState<Date>(new Date());
 
-  // Update connection status whenever online status changes
   useEffect(() => {
-    const connectionStatus = isOnline ? 'online' : 'offline';
+    // Check initial connection status
+    setOnline(isOnline());
+
+    // Set up event listeners for online/offline status
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
     
-    // Dispatch connection status change event for notifications
-    dispatchConnectionStatusEvent(isOnline, pendingSyncCount);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
     
-  }, [isOnline, pendingSyncCount]);
-
-  // Periodically check for pending sync items
-  useEffect(() => {
-    if (!isOnline) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const status = getSyncStatus();
-        setPendingSyncCount(status.pendingSyncCount);
-      } catch (error) {
-        console.error('Error checking sync status:', error);
-      }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(interval);
-  }, [isOnline]);
-
-  // Initial sync check
-  useEffect(() => {
-    const checkSyncStatus = async () => {
-      try {
-        const status = getSyncStatus();
-        setPendingSyncCount(status.pendingSyncCount);
-        if (status.lastSyncedAt) {
-          setLastSyncedAt(status.lastSyncedAt);
-        }
-      } catch (error) {
-        console.error('Error in initial sync check:', error);
-      }
+    // Check sync status periodically
+    const checkSyncStatus = () => {
+      const status = getSyncStatus();
+      const pendingCount = status.tickets + status.expenses + status.clients + status.feedback;
+      
+      setSyncStatus({
+        ...status,
+        pendingSyncCount: pendingCount
+      });
+      setLastChecked(new Date());
     };
     
+    // Check immediately
     checkSyncStatus();
+    
+    // Set up interval to check periodically
+    const interval = setInterval(checkSyncStatus, 30000); // Every 30 seconds
+    
+    // Clean up
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
+    };
   }, []);
-
-  const syncData = useCallback(async () => {
-    if (!isOnline || syncStatus === 'syncing') return;
-    
-    setSyncStatus('syncing');
-    
-    try {
-      // Implement actual sync logic here
-      // This would call your synchronization services
-      
-      // Update last sync time
-      setLastSyncedAt(new Date());
-      
-      // Reset pending count after successful sync
-      setPendingSyncCount(0);
-      
-      setSyncStatus('idle');
-    } catch (error) {
-      console.error('Error syncing data:', error);
-      setSyncStatus('error');
-    }
-  }, [isOnline, syncStatus]);
+  
+  // Format the last sync time for display
+  const formattedSyncStatus = {
+    ...syncStatus,
+    pendingSyncCount: syncStatus.tickets + syncStatus.expenses + syncStatus.clients + syncStatus.feedback,
+    lastSyncedAt: syncStatus.lastSync || 'Never'
+  };
 
   return (
-    <ConnectionContext.Provider
-      value={{
-        connectionStatus: isOnline ? 'online' : 'offline',
-        syncStatus,
-        pendingSyncCount,
-        lastSyncedAt,
-        syncData,
-        syncStats
-      }}
-    >
+    <ConnectionStatusContext.Provider value={{ 
+      online, 
+      syncStatus: formattedSyncStatus, 
+      lastChecked 
+    }}>
       {children}
-    </ConnectionContext.Provider>
+    </ConnectionStatusContext.Provider>
   );
-};
-
-export const useConnection = () => {
-  const context = useContext(ConnectionContext);
-  
-  if (context === undefined) {
-    throw new Error('useConnection must be used within a ConnectionStatusProvider');
-  }
-  
-  return context;
 };

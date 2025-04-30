@@ -1,4 +1,3 @@
-
 // Ticket status management utilities
 
 type DatabaseStatus = 'pending' | 'processing' | 'ready' | 'delivered' | 'cancelled';
@@ -102,10 +101,10 @@ export const moveToNextStatus = (currentStatus: DatabaseStatus): DatabaseStatus 
 
 // Check if a ticket is delivered
 export const isDelivered = (status: string): boolean => {
-  return status === 'delivered';
+  return status.toLowerCase() === 'delivered';
 };
 
 // Check if a ticket is pending or in process
 export const isPending = (status: string): boolean => {
-  return status === 'pending' || status === 'processing';
+  return status.toLowerCase() === 'pending';
 };
