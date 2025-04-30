@@ -1,9 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { ClientVisit } from '@/lib/types';
+import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CLIENTS_STORAGE_KEY } from '@/lib/constants/storageKeys';
-import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
 
 export const useCachedClients = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
@@ -29,7 +28,22 @@ export const useCachedClients = () => {
       if (error) throw error;
       
       // Convert from database format to ClientVisit format
-      const clientVisits = data.map(convertCustomerToClientVisit);
+      const clientVisits = data.map((item: any) => {
+        // Map database fields to Customer type
+        const customer: Customer = {
+          id: item.id,
+          name: item.name,
+          phone: item.phone,
+          phoneNumber: item.phone, // For compatibility
+          valetsCount: item.valets_count || 0,
+          freeValets: item.free_valets || 0,
+          loyaltyPoints: item.loyalty_points || 0,
+          lastVisit: item.last_visit || '',
+          valetsRedeemed: item.valets_redeemed || 0,
+          createdAt: item.created_at
+        };
+        return convertCustomerToClientVisit(customer);
+      });
       
       // Update state and cache
       setClients(clientVisits);
@@ -47,7 +61,7 @@ export const useCachedClients = () => {
     localStorage.removeItem(CLIENTS_STORAGE_KEY);
   };
 
-  // Function to refresh clients data
+  // Function to refresh clients data - for API compatibility
   const refreshClients = fetchClients;
   const refetch = fetchClients;
 

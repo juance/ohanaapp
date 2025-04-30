@@ -10,6 +10,7 @@ export interface Customer {
   lastVisit: string;
   valetCount?: number; // Alias for backward compatibility
   valetsRedeemed?: number; // Added for compatibility
+  createdAt?: string; // Added for compatibility with database fields
 }
 
 export interface ClientVisit {
