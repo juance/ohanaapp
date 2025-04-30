@@ -1,110 +1,61 @@
+
 // Ticket status management utilities
 
-type DatabaseStatus = 'pending' | 'processing' | 'ready' | 'delivered' | 'cancelled';
-type SimplifiedStatus = 'pending' | 'ready' | 'completed' | 'cancelled';
+export type DatabaseStatus = 'pending' | 'processing' | 'ready' | 'delivered' | 'cancelled' | 'canceled';
+export type SimplifiedStatus = 'PENDING' | 'READY' | 'DELIVERED' | 'CANCELLED';
 
 // Map database status to simplified UI status
 export const mapToSimplifiedStatus = (status: DatabaseStatus): SimplifiedStatus => {
   switch (status) {
     case 'pending':
     case 'processing':
-      return 'pending';
+      return 'PENDING';
     case 'ready':
-      return 'ready';
+      return 'PENDING'; // Also treated as pending in the UI
     case 'delivered':
-      return 'completed';
+      return 'DELIVERED';
     case 'cancelled':
-      return 'cancelled';
+    case 'canceled':
+      return 'CANCELLED';
     default:
-      return 'pending';
+      return 'PENDING'; // Default to pending for unknown status
   }
 };
 
-// Map simplified status to database status
-export const mapToDatabaseStatus = (status: SimplifiedStatus): DatabaseStatus => {
-  switch (status) {
-    case 'pending':
-      return 'processing';
-    case 'ready':
-      return 'ready';
-    case 'completed':
+// Map simplified status back to database status, preserving pending status detail if needed
+export const mapToDatabaseStatus = (
+  simplified: SimplifiedStatus, 
+  currentStatus?: DatabaseStatus
+): DatabaseStatus => {
+  switch (simplified) {
+    case 'PENDING':
+      // If the current status is already a "pending" type status, preserve it
+      if (currentStatus === 'pending' || currentStatus === 'processing') {
+        return currentStatus;
+      }
+      return 'ready'; // Default pending status is 'ready'
+    case 'DELIVERED':
       return 'delivered';
-    case 'cancelled':
-      return 'cancelled';
+    case 'CANCELLED':
+    case 'CANCELLED':
+      return 'canceled';
     default:
-      return 'pending';
+      return 'ready';
   }
 };
 
-// Get all database statuses
-export const getDatabaseStatuses = (): DatabaseStatus[] => {
-  return ['pending', 'processing', 'ready', 'delivered', 'cancelled'];
-};
-
-// Check if a ticket is in a specific status
-export const isInStatus = (ticket: any, status: DatabaseStatus | DatabaseStatus[]): boolean => {
-  if (Array.isArray(status)) {
-    return status.includes(ticket.status);
-  }
-  return ticket.status === status;
-};
-
-// Get display name for status
-export const getStatusDisplayName = (status: DatabaseStatus): string => {
-  switch (status) {
-    case 'pending':
-      return 'Pendiente';
-    case 'processing':
-      return 'En Proceso';
-    case 'ready':
-      return 'Listo para Retirar';
-    case 'delivered':
-      return 'Entregado';
-    case 'cancelled':
-      return 'Cancelado';
-    default:
-      return 'Desconocido';
-  }
-};
-
-// Get badge class for status
-export const getStatusBadgeClass = (status: DatabaseStatus): string => {
-  switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'processing':
-      return 'bg-blue-100 text-blue-800';
-    case 'ready':
-      return 'bg-green-100 text-green-800';
-    case 'delivered':
-      return 'bg-purple-100 text-purple-800';
-    case 'cancelled':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
-// Move a ticket to the next status in the workflow
-export const moveToNextStatus = (currentStatus: DatabaseStatus): DatabaseStatus => {
+// Function to move a ticket to the next status in the workflow
+export const moveToNextStatus = (ticket: { id: string, status: string }): { id: string, status: string } => {
+  const currentStatus = ticket.status as DatabaseStatus;
+  
   switch (currentStatus) {
     case 'pending':
-      return 'processing';
+      return { ...ticket, status: 'processing' };
     case 'processing':
-      return 'ready';
+      return { ...ticket, status: 'ready' };
     case 'ready':
-      return 'delivered';
+      return { ...ticket, status: 'delivered' };
     default:
-      return currentStatus;
+      return ticket; // No change for delivered or canceled
   }
-};
-
-// Check if a ticket is delivered
-export const isDelivered = (status: string): boolean => {
-  return status.toLowerCase() === 'delivered';
-};
-
-// Check if a ticket is pending or in process
-export const isPending = (status: string): boolean => {
-  return status.toLowerCase() === 'pending';
 };

@@ -53,14 +53,14 @@ export const useTicketSubmission = (
         optionType: 'preference'
       })) as LaundryOption[];
 
-      // Store the ticket data - fix function call to use single object parameter
+      // Store the ticket using a single object parameter
       const success = await storeTicket({
         ticketData: {
           totalPrice: calculateTotal(),
           paymentMethod,
-          valetQuantity: 1, // Default to 1, could be made configurable
-          status: 'pending', // Required status field
-          isPaid: false, // Required isPaid field
+          valetQuantity: 1,
+          status: 'pending',
+          isPaid: false,
           clientName,
           phoneNumber,
           deliveredDate: null

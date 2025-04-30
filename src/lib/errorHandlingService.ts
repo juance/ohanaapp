@@ -1,88 +1,119 @@
 
-// Import necessary modules
-import { supabase } from '@/integrations/supabase/client';
-import { ErrorLevel, ErrorContext } from '@/lib/types';
+import { ErrorLevel, ErrorContext } from './types';
 
-// Interface for error reporting
-interface ErrorReport {
+interface ErrorData {
+  level: ErrorLevel;
+  context: ErrorContext;
   message: string;
-  stack?: string;
-  context?: ErrorContext;
-  level?: ErrorLevel;
-  component?: string;
+  details?: any;
+  timestamp: string;
 }
 
-/**
- * Log an error to the console and optionally to a backend service
- * @param error The error object or message to log
- * @param context Additional context for the error
- */
-export const logError = (error: Error | string, context?: ErrorContext): void => {
-  const errorMessage = typeof error === 'string' ? error : error.message;
-  const errorStack = typeof error !== 'string' ? error.stack : undefined;
-  
-  console.error('Error:', errorMessage);
-  if (errorStack) {
-    console.error('Stack:', errorStack);
-  }
-  
-  // Log to backend if available
-  try {
-    reportErrorToServer({
-      message: errorMessage,
-      stack: errorStack,
-      context: context || {}
-    });
-  } catch (e) {
-    console.error('Failed to report error to server:', e);
-  }
-};
+// Store errors for in-memory logging
+const errorLog: ErrorData[] = [];
 
 /**
- * Report an error to the server for logging
- * @param report Error report containing message and optional stack trace
+ * Log an error with contextual information
  */
-export const reportErrorToServer = async (report: ErrorReport): Promise<void> => {
-  try {
-    // Check if we're in development mode
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Dev mode: Error would be reported to server:', report);
-      return;
-    }
-    
-    // Only send to server if we're in production
-    const { error } = await supabase.from('error_logs').insert({
-      error_message: report.message,
-      error_stack: report.stack,
-      error_context: report.context,
-      component: report.component,
-      browser_info: getBrowserInfo()
-    });
-    
-    if (error) {
-      console.error('Error storing error log:', error);
-    }
-  } catch (e) {
-    console.error('Failed to report error:', e);
-  }
-};
-
-/**
- * Get browser information for error reporting
- */
-const getBrowserInfo = () => {
-  return {
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    platform: navigator.platform,
-    viewport: {
-      width: window.innerWidth,
-      height: window.innerHeight
-    }
+export const logError = (
+  message: string,
+  level: ErrorLevel = ErrorLevel.ERROR,
+  context: ErrorContext | {} = {},
+  details?: any
+): void => {
+  // Create error data
+  const errorData: ErrorData = {
+    level,
+    context: context as ErrorContext,
+    message,
+    details,
+    timestamp: new Date().toISOString()
   };
+
+  // Log to console for development
+  console.error(`[${errorData.level}] ${errorData.message}`, {
+    context: errorData.context,
+    details: errorData.details
+  });
+
+  // Add to in-memory log
+  errorLog.push(errorData);
+
+  // For critical errors, consider additional actions
+  if (level === ErrorLevel.CRITICAL) {
+    // TODO: Implement critical error handling (e.g., notify admin)
+  }
 };
 
-// Export other utility functions
-export const createErrorHandler = (component: string) => (error: Error | string) => {
-  logError(error, { component });
+/**
+ * Handle validation errors during form validation
+ */
+export const handleValidationError = (
+  message: string,
+  field?: string,
+  value?: any
+): void => {
+  logError(
+    `Validation error: ${message}`,
+    ErrorLevel.WARNING,
+    ErrorContext.UI,
+    { field, value }
+  );
+};
+
+/**
+ * Handle API errors during data fetching
+ */
+export const handleApiError = (error: any, endpoint?: string): void => {
+  let message = 'API request failed';
+  if (typeof error === 'string') {
+    message = error;
+  } else if (error instanceof Error) {
+    message = error.message;
+  }
+
+  logError(
+    message,
+    ErrorLevel.ERROR,
+    ErrorContext.API,
+    { endpoint, error }
+  );
+};
+
+/**
+ * Handle database errors during data operations
+ */
+export const handleDatabaseError = (error: any, operation?: string): void => {
+  logError(
+    `Database operation failed: ${operation || 'unknown'}`,
+    ErrorLevel.ERROR,
+    ErrorContext.DATABASE,
+    error
+  );
+};
+
+/**
+ * Handle UI component errors
+ */
+export const handleComponentError = (error: any, component: string): void => {
+  logError(
+    `Error in component: ${component}`,
+    ErrorLevel.ERROR,
+    { component }, // Fix: Use properly typed context
+    error
+  );
+};
+
+/**
+ * Get the full error log
+ */
+export const getErrorLog = (): ErrorData[] => {
+  return [...errorLog];
+};
+
+/**
+ * Clear error log
+ */
+export const clearErrorLog = (): void => {
+  errorLog.length = 0;
 };

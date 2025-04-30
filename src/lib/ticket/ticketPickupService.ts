@@ -2,193 +2,176 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { getCustomerById } from '@/lib/dataService';
 
 /**
- * Get all tickets that are ready for pickup
- * @returns Array of ready tickets
+ * Get all tickets that are ready for pickup (not delivered or canceled)
  */
-export const getReadyTickets = async (): Promise<Ticket[]> => {
+export const getPickupTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
       .select(`
-        id,
-        ticket_number,
-        customer_id,
-        total,
-        payment_method,
-        status,
-        is_paid,
-        created_at,
-        valet_quantity
+        *,
+        customers (
+          id, name, phone
+        )
       `)
-      .eq('status', 'ready')
+      .in('status', ['pending', 'processing', 'ready'])
+      .is('delivered_date', null)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching pickup tickets:', error);
+      return [];
+    }
 
-    // Get customer data for each ticket
-    const ticketsWithClientData = await Promise.all(
-      data.map(async (ticket) => {
-        let clientName = '';
-        let phoneNumber = '';
-
-        if (ticket.customer_id) {
-          try {
-            const customer = await getCustomerById(ticket.customer_id);
-            if (customer) {
-              clientName = customer.name;
-              phoneNumber = customer.phone;
-            }
-          } catch (err) {
-            console.error(`Error fetching customer data for ticket ${ticket.id}:`, err);
-          }
-        }
-
-        return {
-          id: ticket.id,
-          ticketNumber: ticket.ticket_number,
-          clientName,
-          phoneNumber,
-          totalPrice: Number(ticket.total),
-          paymentMethod: ticket.payment_method,
-          status: ticket.status,
-          isPaid: ticket.is_paid,
-          valetQuantity: ticket.valet_quantity,
-          createdAt: ticket.created_at,
-          deliveredDate: null // Adding this to match the Ticket interface
-        };
-      })
-    );
-
-    return ticketsWithClientData;
+    return data.map(item => ({
+      id: item.id,
+      ticketNumber: item.ticket_number,
+      clientName: item.customers?.name || 'Unknown',
+      phoneNumber: item.customers?.phone || '',
+      totalPrice: item.total || 0,
+      paymentMethod: item.payment_method || 'cash',
+      status: item.status || 'pending',
+      isPaid: item.is_paid || false,
+      valetQuantity: item.valet_quantity || 0,
+      createdAt: item.created_at,
+      deliveredDate: item.delivered_date
+    }));
   } catch (error) {
-    console.error('Error fetching ready tickets:', error);
-    throw error;
+    console.error('Error in getPickupTickets:', error);
+    return [];
+  }
+};
+
+/**
+ * Get tickets that weren't retrieved after a certain period
+ */
+export const getUnretrievedTickets = async (daysThreshold = 7): Promise<Ticket[]> => {
+  try {
+    // Calculate the date threshold
+    const thresholdDate = new Date();
+    thresholdDate.setDate(thresholdDate.getDate() - daysThreshold);
+    
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (
+          id, name, phone
+        )
+      `)
+      .in('status', ['pending', 'processing', 'ready'])
+      .is('delivered_date', null)
+      .lt('created_at', thresholdDate.toISOString())
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching unretrieved tickets:', error);
+      return [];
+    }
+
+    return data.map(item => ({
+      id: item.id,
+      ticketNumber: item.ticket_number,
+      clientName: item.customers?.name || 'Unknown',
+      phoneNumber: item.customers?.phone || '',
+      totalPrice: item.total || 0,
+      paymentMethod: item.payment_method || 'cash',
+      status: item.status || 'pending',
+      isPaid: item.is_paid || false,
+      valetQuantity: item.valet_quantity || 0,
+      createdAt: item.created_at,
+      deliveredDate: item.delivered_date
+    }));
+  } catch (error) {
+    console.error('Error in getUnretrievedTickets:', error);
+    return [];
   }
 };
 
 /**
  * Mark a ticket as delivered
- * @param ticketId The ticket ID
- * @param paymentMethod Payment method if paying now
- * @param paymentAmount Amount paid
- * @returns Success status
  */
-export const markTicketAsDelivered = async (
-  ticketId: string,
-  paymentMethod?: string,
-  paymentAmount?: number
-): Promise<boolean> => {
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
-    const now = new Date().toISOString();
-    
-    // Start building the update object
-    const updateData: any = {
-      status: 'delivered',
-      delivered_date: now
-    };
-    
-    // If payment info is provided, update payment status
-    if (paymentMethod) {
-      updateData.payment_method = paymentMethod;
-      updateData.is_paid = true;
-      
-      if (paymentAmount !== undefined) {
-        updateData.payment_amount = paymentAmount;
-      }
-    }
-    
     const { error } = await supabase
       .from('tickets')
-      .update(updateData)
+      .update({ 
+        status: 'delivered',
+        delivered_date: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
       .eq('id', ticketId);
-
+      
     if (error) {
-      console.error('Error updating ticket status:', error);
+      console.error('Error marking ticket as delivered:', error);
       toast.error('Error al marcar el ticket como entregado');
       return false;
     }
-
+    
     toast.success('Ticket marcado como entregado exitosamente');
     return true;
   } catch (error) {
-    console.error('Error marking ticket as delivered:', error);
+    console.error('Error in markTicketAsDelivered:', error);
     toast.error('Error al marcar el ticket como entregado');
     return false;
   }
 };
 
 /**
- * Get all tickets that have been delivered
- * @param limit Optional limit for number of tickets to return
- * @returns Array of delivered tickets
+ * Mark a ticket as pending (use when moving from ready back to pending)
  */
-export const getDeliveredTickets = async (limit?: number): Promise<Ticket[]> => {
+export const markTicketAsPending = async (ticketId: string): Promise<boolean> => {
   try {
-    let query = supabase
+    const { error } = await supabase
       .from('tickets')
-      .select(`
-        id,
-        ticket_number,
-        customer_id,
-        total,
-        payment_method,
-        status,
-        is_paid,
-        created_at,
-        delivered_date,
-        valet_quantity
-      `)
-      .eq('status', 'delivered')
-      .order('delivered_date', { ascending: false });
-
-    if (limit) {
-      query = query.limit(limit);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    // Get customer data for each ticket
-    const ticketsWithClientData = await Promise.all(
-      data.map(async (ticket) => {
-        let clientName = '';
-        let phoneNumber = '';
-
-        if (ticket.customer_id) {
-          try {
-            const customer = await getCustomerById(ticket.customer_id);
-            if (customer) {
-              clientName = customer.name;
-              phoneNumber = customer.phone;
-            }
-          } catch (err) {
-            console.error(`Error fetching customer data for ticket ${ticket.id}:`, err);
-          }
-        }
-
-        return {
-          id: ticket.id,
-          ticketNumber: ticket.ticket_number,
-          clientName,
-          phoneNumber,
-          totalPrice: Number(ticket.total),
-          paymentMethod: ticket.payment_method,
-          status: ticket.status,
-          isPaid: ticket.is_paid,
-          valetQuantity: ticket.valet_quantity,
-          createdAt: ticket.created_at,
-          deliveredDate: ticket.delivered_date
-        };
+      .update({ 
+        status: 'pending',
+        updated_at: new Date().toISOString()
       })
-    );
-
-    return ticketsWithClientData;
+      .eq('id', ticketId);
+      
+    if (error) {
+      console.error('Error marking ticket as pending:', error);
+      toast.error('Error al marcar el ticket como pendiente');
+      return false;
+    }
+    
+    toast.success('Ticket marcado como pendiente');
+    return true;
   } catch (error) {
-    console.error('Error fetching delivered tickets:', error);
-    throw error;
+    console.error('Error in markTicketAsPending:', error);
+    toast.error('Error al marcar el ticket como pendiente');
+    return false;
+  }
+};
+
+/**
+ * Cancel a ticket
+ */
+export const cancelTicket = async (ticketId: string, reason: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ 
+        status: 'canceled',
+        cancel_reason: reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+      
+    if (error) {
+      console.error('Error canceling ticket:', error);
+      toast.error('Error al cancelar el ticket');
+      return false;
+    }
+    
+    toast.success('Ticket cancelado exitosamente');
+    return true;
+  } catch (error) {
+    console.error('Error in cancelTicket:', error);
+    toast.error('Error al cancelar el ticket');
+    return false;
   }
 };

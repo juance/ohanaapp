@@ -46,7 +46,8 @@ export const syncComprehensive = async (): Promise<{
       tickets: ticketsCount,
       clients: clientsCount,
       feedback: feedbackCount,
-      expenses: expensesCount
+      expenses: expensesCount,
+      lastSync: new Date().toISOString() // Add the lastSync property
     };
     
     await updateSyncStatus(syncStatus);

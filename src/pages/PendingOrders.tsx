@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { getPickupTickets, markTicketAsDelivered, cancelTicket } from '@/lib/ticketServices';
@@ -5,8 +6,8 @@ import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
 import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
-import { CancelTicketDialog } from '@/components/orders/CancelTicketDialog';
-import { PaymentMethodDialog } from '@/components/orders/PaymentMethodDialog';
+import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
+import PaymentMethodDialog from '@/components/orders/PaymentMethodDialog';
 import PickupActionButtons from '@/components/orders/PickupActionButtons';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
@@ -191,16 +192,19 @@ const PendingOrders = () => {
       </div>
 
       <CancelTicketDialog
-        isOpen={isCancelDialogOpen}
-        onClose={handleCloseCancelDialog}
-        onCancel={handleCancelTicket}
+        open={isCancelDialogOpen}
+        onOpenChange={setIsCancelDialogOpen}
         cancelReason={cancelReason}
         setCancelReason={setCancelReason}
+        handleCancelTicket={handleCancelTicket}
       />
 
       <PaymentMethodDialog
-        isOpen={isPaymentMethodDialogOpen}
-        onClose={handleClosePaymentMethodDialog}
+        open={isPaymentMethodDialogOpen}
+        onOpenChange={handleClosePaymentMethodDialog}
+        currentPaymentMethod="cash"
+        onConfirm={() => {}}
+        ticketNumber={selectedTicket ? tickets.find(t => t.id === selectedTicket)?.ticketNumber || '' : ''}
       />
     </Layout>
   );

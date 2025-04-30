@@ -77,16 +77,15 @@ export const useTicketSubmit = (
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
 
       // Prepare ticket data
-      const ticketData = {
-        totalPrice: useFreeValet ? 0 : totalPrice, // If it's free, set price to 0
+      const ticketDataObj = {
+        totalPrice: useFreeValet ? 0 : totalPrice,
         paymentMethod: paymentMethod as any,
-        valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0, // Use 0 for dry cleaning only tickets
-        status: 'pending', // Required status field
-        isPaid: isPaidInAdvance || false, // Required isPaid field
-        clientName: customerName, // Include client name
-        phoneNumber: phoneNumber, // Include phone number
-        deliveredDate: null, // Include null delivered date
-        // Additional fields (will be handled appropriately in the service layer)
+        valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0,
+        status: 'pending',
+        isPaid: isPaidInAdvance || false,
+        clientName: customerName,
+        phoneNumber: phoneNumber,
+        deliveredDate: null,
         customDate: date,
         usesFreeValet: useFreeValet,
         isPaidInAdvance: isPaidInAdvance || false
@@ -113,11 +112,11 @@ export const useTicketSubmit = (
       // Collect laundry options
       const laundryOptions = getSelectedLaundryOptions();
 
-      // Store the ticket - fix function call to use single object parameter
+      // Store the ticket using a single object parameter
       const success = await storeTicket({
-        ticketData,
+        ticketData: ticketDataObj,
         customerData,
-        dryCleaningItemsData,
+        dryCleaningItems: dryCleaningItemsData,
         laundryOptions
       });
 
