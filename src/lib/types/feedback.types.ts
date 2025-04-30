@@ -9,6 +9,14 @@ export interface CustomerFeedback {
   rating: number;
   comment: string;
   createdAt: string;
-  source?: string;
+  source?: FeedbackSource | string;
   pendingSync?: boolean;
+}
+
+// Add metrics interface for feedback analysis
+export interface FeedbackMetrics {
+  averageRating: number;
+  totalCount: number;
+  countBySource: Record<string, number>;
+  ratingDistribution: Record<number, number>;
 }

@@ -7,5 +7,10 @@ export interface InventoryItem {
   threshold?: number;
   notes?: string;
   createdAt: string;
-  lastUpdated?: string; // Add the missing field
+  lastUpdated?: string;
+}
+
+// Adding this type to handle items with lastUpdated properly
+export interface InventoryItemWithTimestamp extends InventoryItem {
+  lastUpdated: string;
 }

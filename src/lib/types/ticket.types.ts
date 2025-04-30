@@ -1,3 +1,4 @@
+
 export interface Ticket {
   id: string;
   ticketNumber: string;

@@ -3,11 +3,13 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
+  phoneNumber?: string; // Added for compatibility
   valetsCount: number;
   freeValets: number;
   loyaltyPoints: number;
   lastVisit: string;
   valetCount?: number; // Alias for backward compatibility
+  valetsRedeemed?: number; // Added for compatibility
 }
 
 export interface ClientVisit {
@@ -48,7 +50,7 @@ export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
   return {
     id: customer.id,
     clientName: customer.name,
-    phoneNumber: customer.phone,
+    phoneNumber: customer.phoneNumber || customer.phone,
     visitCount: customer.valetsCount || 0,
     lastVisit: customer.lastVisit || '',
     loyaltyPoints: customer.loyaltyPoints || 0,

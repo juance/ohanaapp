@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -11,7 +12,8 @@ export const SyncDataButton = () => {
     tickets: 0,
     expenses: 0,
     clients: 0,
-    feedback: 0
+    feedback: 0,
+    lastSync: new Date().toISOString()
   });
 
   const handleSync = async () => {
@@ -29,7 +31,8 @@ export const SyncDataButton = () => {
         tickets: result.tickets,
         expenses: result.expenses,
         clients: result.clients,
-        feedback: result.feedback
+        feedback: result.feedback,
+        lastSync: new Date().toISOString()
       };
       
       setSyncStatus(mappedResult);

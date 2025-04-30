@@ -47,8 +47,9 @@ export const useCachedClients = () => {
     localStorage.removeItem(CLIENTS_STORAGE_KEY);
   };
 
-  // Alias for refreshClients to match what useClientsList expects
+  // Function to refresh clients data
   const refreshClients = fetchClients;
+  const refetch = fetchClients;
 
   useEffect(() => {
     fetchClients();
@@ -58,7 +59,7 @@ export const useCachedClients = () => {
     clients, 
     isLoading, 
     error, 
-    refetch: fetchClients, 
+    refetch, 
     invalidateCache,
     refreshClients 
   };

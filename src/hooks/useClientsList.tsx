@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { ClientVisit } from '@/lib/types';
+import { ClientVisit, Customer } from '@/lib/types';
 import { useCachedClients } from './useCachedClients';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
@@ -8,7 +8,7 @@ import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
 
 export const useClientsList = () => {
   // Get clients from the cached clients hook
-  const { clients, isLoading, error, refreshClients } = useCachedClients();
+  const { clients, isLoading, error, refetch } = useCachedClients();
 
   // State for client management
   const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
@@ -55,14 +55,14 @@ export const useClientsList = () => {
       if (error) throw error;
 
       // Refresh client list
-      await refreshClients();
+      await refetch();
       toast.success('Cliente actualizado exitosamente');
       setIsEditingClient('');
     } catch (error) {
       console.error('Error saving client:', error);
       toast.error('Error al actualizar el cliente');
     }
-  }, [isEditingClient, editClientName, editClientPhone, refreshClients]);
+  }, [isEditingClient, editClientName, editClientPhone, refetch]);
 
   // Function to add a new client
   const handleAddClient = useCallback(async () => {
@@ -89,7 +89,7 @@ export const useClientsList = () => {
       if (error) throw error;
 
       // Refresh client list
-      await refreshClients();
+      await refetch();
       toast.success('Cliente agregado exitosamente');
       
       // Clear form
@@ -101,7 +101,7 @@ export const useClientsList = () => {
     } finally {
       setIsAddingClient(false);
     }
-  }, [newClientName, newClientPhone, refreshClients]);
+  }, [newClientName, newClientPhone, refetch]);
 
   // Map to expose the necessary properties and functions that match what's used in pages/Clients.tsx
   return {
@@ -126,6 +126,6 @@ export const useClientsList = () => {
     setNewClientPhone,
     setEditClientName,
     setEditClientPhone,
-    refreshData: refreshClients
+    refreshData: refetch
   };
 };

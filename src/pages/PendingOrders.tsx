@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,7 @@ import SearchBar from '@/components/orders/SearchBar';
 import PickupTicketList from '@/components/orders/PickupTicketList';
 import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
 import { usePendingOrdersLogic } from '@/hooks/usePendingOrdersLogic';
-import { markTicketAsReady } from '@/lib/ticket/ticketStatusTransitionService';
+import { useState } from 'react';
 
 const PendingOrders = () => {
   const {
@@ -33,9 +34,6 @@ const PendingOrders = () => {
       loadTicketServices(selectedTicket);
     }
   }, [selectedTicket, loadTicketServices]);
-
-  // Fix for setSearchFilter
-  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
 
   // Find the selected ticket data
   const selectedTicketData = selectedTicket 
@@ -91,9 +89,9 @@ const PendingOrders = () => {
 
             <SearchBar 
               searchQuery={searchQuery}
-              setSearchQuery={(value: string) => setSearchQuery(value)}
+              setSearchQuery={setSearchQuery}
               searchFilter={searchFilter}
-              setSearchFilter={(value: string) => setSearchFilter(value as any)}
+              setSearchFilter={setSearchFilter}
               placeholder={`Buscar por ${searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
             />
 
