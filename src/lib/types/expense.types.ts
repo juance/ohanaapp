@@ -7,7 +7,7 @@ export interface Expense {
   created_at?: string;
   pendingSync?: boolean;
   synced?: boolean;
-  // Removed category field as it doesn't exist in the database
+  category?: string; // Make category optional to match usage
 }
 
 export type ExpenseCategory =

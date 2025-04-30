@@ -113,13 +113,13 @@ export const useTicketSubmit = (
       // Collect laundry options
       const laundryOptions = getSelectedLaundryOptions();
 
-      // Store the ticket
-      const success = await storeTicket(
+      // Store the ticket - fix function call to use single object parameter
+      const success = await storeTicket({
         ticketData,
         customerData,
         dryCleaningItemsData,
         laundryOptions
-      );
+      });
 
       if (success) {
         // After successfully creating a ticket, update dashboard metrics

@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, TicketService } from '@/lib/types';
+import { Ticket, LaundryOption } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { getNextTicketNumber } from '@/lib/dataService';
 

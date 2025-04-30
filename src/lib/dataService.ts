@@ -1,4 +1,3 @@
-
 // src/lib/dataService.ts
 import { supabase } from '@/integrations/supabase/client';
 import { Customer, Ticket } from '@/lib/types';
@@ -240,3 +239,19 @@ export const getAllClients = async (): Promise<ClientVisit[]> => {
     return [];
   }
 };
+
+// Fix the reference to ClientVisit type
+export const convertCustomerToClientVisit = (customer: any): import('./types/customer.types').ClientVisit => {
+  return {
+    id: customer.id,
+    clientName: customer.name || '',
+    phoneNumber: customer.phone || '',
+    visitCount: customer.valets_count || 0,
+    lastVisit: customer.last_visit || '',
+    loyaltyPoints: customer.loyalty_points || 0,
+    freeValets: customer.free_valets || 0,
+    lastVisitDate: customer.last_visit || '',
+    valetsCount: customer.valets_count || 0,
+    visitFrequency: '' // This would be calculated - see convertCustomerToClientVisit
+  };
+}

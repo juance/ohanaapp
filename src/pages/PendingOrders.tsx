@@ -1,122 +1,208 @@
-
-import { useEffect } from 'react';
-import Navbar from '@/components/Navbar';
+import React, { useState, useEffect } from 'react';
+import Layout from '@/components/Layout';
+import { getPickupTickets, markTicketAsDelivered, cancelTicket } from '@/lib/ticketServices';
+import { Ticket } from '@/lib/types';
+import { toast } from '@/lib/toast';
 import { Button } from '@/components/ui/button';
-import OrderHeader from '@/components/orders/OrderHeader';
-import SearchBar from '@/components/orders/SearchBar';
-import PickupTicketList from '@/components/orders/PickupTicketList';
-import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
-import { usePendingOrdersLogic } from '@/hooks/usePendingOrdersLogic';
-import { useState } from 'react';
+import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
+import { CancelTicketDialog } from '@/components/orders/CancelTicketDialog';
+import { PaymentMethodDialog } from '@/components/orders/PaymentMethodDialog';
+import PickupActionButtons from '@/components/orders/PickupActionButtons';
+import { Loading } from '@/components/ui/loading';
+import { ErrorMessage } from '@/components/ui/error-message';
+import { SearchBar } from '@/components/ui/search-bar';
+import { buildTicketWhatsAppMessage } from '@/lib/utils/whatsappUtils';
+import { useSearchParams } from 'react-router-dom';
 
 const PendingOrders = () => {
-  const {
-    tickets,
-    filteredTickets,
-    selectedTicket,
-    setSelectedTicket,
-    searchQuery,
-    setSearchQuery,
-    searchFilter,
-    setSearchFilter,
-    ticketServices,
-    ticketDetailRef,
-    isLoading,
-    error,
-    refetch,
-    loadTicketServices,
-    handleMarkAsReady,
-    formatDate
-  } = usePendingOrdersLogic();
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
+  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
+  const [isPaymentMethodDialogOpen, setIsPaymentMethodDialogOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
 
   useEffect(() => {
-    if (selectedTicket) {
-      loadTicketServices(selectedTicket);
+    // Update search params when searchQuery changes
+    setSearchParams({ search: searchQuery });
+  }, [searchQuery, setSearchParams]);
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        setIsLoading(true);
+        const fetchedTickets = await getPickupTickets();
+        setTickets(fetchedTickets);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching tickets:", err);
+        setError(err instanceof Error ? err : new Error(String(err)));
+        setTickets([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, []);
+
+  const handleTicketSelect = (ticketId: string) => {
+    setSelectedTicket(ticketId);
+  };
+
+  const handleMarkAsDelivered = async (ticketId: string) => {
+    try {
+      await markTicketAsDelivered(ticketId);
+      setTickets(tickets.filter(ticket => ticket.id !== ticketId));
+      setSelectedTicket(null);
+      toast.success('Ticket marcado como entregado');
+    } catch (err) {
+      console.error("Error marking ticket as delivered:", err);
+      toast.error('Error al marcar el ticket como entregado');
     }
-  }, [selectedTicket, loadTicketServices]);
+  };
 
-  // Find the selected ticket data
-  const selectedTicketData = selectedTicket 
-    ? tickets.find(ticket => ticket.id === selectedTicket) 
-    : undefined;
+  const handleOpenCancelDialog = () => {
+    setIsCancelDialogOpen(true);
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen flex-col md:flex-row">
-        <Navbar />
-        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
-          <p>Cargando tickets...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleCloseCancelDialog = () => {
+    setIsCancelDialogOpen(false);
+    setCancelReason('');
+  };
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen flex-col md:flex-row">
-        <Navbar />
-        <div className="flex-1 md:ml-64 p-6 flex items-center justify-center">
-          <p className="text-red-500">Error al cargar los tickets. Por favor, intente de nuevo.</p>
-          <Button onClick={() => refetch()} className="mt-4">
-            Reintentar
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  const handleCancelTicket = async () => {
+    if (!selectedTicket) return;
+
+    try {
+      await cancelTicket(selectedTicket, cancelReason);
+      setTickets(tickets.filter(ticket => ticket.id !== selectedTicket));
+      setSelectedTicket(null);
+      handleCloseCancelDialog();
+      toast.success('Ticket cancelado exitosamente');
+    } catch (err) {
+      console.error("Error canceling ticket:", err);
+      toast.error('Error al cancelar el ticket');
+    }
+  };
+
+  const handlePrintTicket = (ticketId: string) => {
+    window.open(`/print/${ticketId}`, '_blank');
+  };
+
+  const handleShareWhatsApp = (ticketId: string, phoneNumber?: string) => {
+    if (!phoneNumber) {
+      toast.error('No se puede compartir por WhatsApp: número de teléfono no encontrado');
+      return;
+    }
+
+    const ticket = tickets.find(ticket => ticket.id === ticketId);
+    if (!ticket) {
+      toast.error('No se puede compartir por WhatsApp: ticket no encontrado');
+      return;
+    }
+
+    const message = buildTicketWhatsAppMessage(ticket);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleNotifyClient = (ticketId: string, phoneNumber?: string) => {
+    if (!phoneNumber) {
+      toast.error('No se puede notificar al cliente: número de teléfono no encontrado');
+      return;
+    }
+
+    const message = `Tu pedido #${ticketId} está listo para ser retirado. ¡Te esperamos!`;
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  const handleOpenPaymentMethodDialog = () => {
+    setIsPaymentMethodDialogOpen(true);
+  };
+
+  const handleClosePaymentMethodDialog = () => {
+    setIsPaymentMethodDialogOpen(false);
+  };
+
+  const filteredTickets = tickets.filter(ticket => {
+    const searchTerm = searchQuery.toLowerCase();
+    if (searchFilter === 'name') {
+      return ticket.clientName.toLowerCase().includes(searchTerm);
+    } else if (searchFilter === 'phone') {
+      return ticket.phoneNumber.includes(searchTerm);
+    }
+    return false;
+  });
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Navbar />
+    <Layout>
+      <header className="mb-8">
+        <h1 className="text-2xl font-bold text-blue-600">Tickets Pendientes de Retiro</h1>
+        <p className="text-gray-500">Lista de tickets listos para ser retirados por el cliente</p>
+      </header>
 
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <OrderHeader title="Pedidos en Proceso" />
+      <PickupActionButtons
+        tickets={tickets}
+        selectedTicket={selectedTicket}
+        handleMarkAsDelivered={handleMarkAsDelivered}
+        handleOpenCancelDialog={handleOpenCancelDialog}
+        handlePrintTicket={handlePrintTicket}
+        handleShareWhatsApp={handleShareWhatsApp}
+        handleNotifyClient={handleNotifyClient}
+        handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
+      />
 
-          <div className="mb-6">
-            <h2 className="text-xl font-bold mb-4">Pedidos en Proceso</h2>
+      <SearchBar
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        searchFilter={searchFilter}
+        setSearchFilter={setSearchFilter}
+      />
 
-            <div className="flex space-x-2 mb-4">
-              {selectedTicket && (
-                <Button 
-                  onClick={() => handleMarkAsReady(selectedTicket)}
-                  className="bg-yellow-500 hover:bg-yellow-600"
-                >
-                  Marcar como Listo para Retirar
-                </Button>
-              )}
-            </div>
+      {isLoading && <Loading />}
 
-            <SearchBar 
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              searchFilter={searchFilter}
-              setSearchFilter={setSearchFilter}
-              placeholder={`Buscar por ${searchFilter === 'name' ? 'nombre del cliente' : 'teléfono'}`}
-            />
+      {error && (
+        <ErrorMessage
+          message={error.message}
+          title="Error al cargar los tickets"
+          onRetry={() => window.location.reload()}
+        />
+      )}
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="md:col-span-2 space-y-4 border rounded-lg p-4 bg-gray-50 max-h-[calc(100vh-300px)] overflow-y-auto">
-                <PickupTicketList 
-                  tickets={filteredTickets}
-                  selectedTicket={selectedTicket}
-                  setSelectedTicket={setSelectedTicket}
-                  formatDate={formatDate}
-                />
-              </div>
-
-              <div className="md:col-span-3 border rounded-lg p-6 bg-gray-50" ref={ticketDetailRef}>
-                <TicketDetailPanel 
-                  ticket={tickets.find(t => t.id === selectedTicket)}
-                  services={ticketServices}
-                  formatDate={formatDate}
-                />
-              </div>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredTickets.map(ticket => (
+          <div
+            key={ticket.id}
+            className={`rounded-lg border p-4 cursor-pointer ${selectedTicket === ticket.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
+            onClick={() => handleTicketSelect(ticket.id)}
+          >
+            <h3 className="font-semibold">{ticket.clientName}</h3>
+            <p className="text-sm text-gray-500">{ticket.phoneNumber}</p>
+            <p className="text-sm">Ticket #: {ticket.ticketNumber}</p>
+            <p className="text-sm">Total: ${ticket.totalPrice}</p>
           </div>
-        </div>
+        ))}
       </div>
-    </div>
+
+      <CancelTicketDialog
+        isOpen={isCancelDialogOpen}
+        onClose={handleCloseCancelDialog}
+        onCancel={handleCancelTicket}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+      />
+
+      <PaymentMethodDialog
+        isOpen={isPaymentMethodDialogOpen}
+        onClose={handleClosePaymentMethodDialog}
+      />
+    </Layout>
   );
 };
 

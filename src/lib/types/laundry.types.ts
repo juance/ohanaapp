@@ -12,7 +12,8 @@ export interface LaundryOption {
 export interface LaundryService {
   id: string;
   name: string;
-  price: number;
+  optionType: string; // Required property
+  price?: number;
   description?: string;
   quantity?: number;
 }

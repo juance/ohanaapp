@@ -6,8 +6,8 @@ export interface InventoryItem {
   unit: string;
   threshold?: number;
   notes?: string;
-  createdAt?: string; // Making it optional to fix current usages
-  lastUpdated?: string;
+  createdAt?: string;
+  lastUpdated?: string; // Add the lastUpdated property
 }
 
 // Adding this type to handle items with lastUpdated properly

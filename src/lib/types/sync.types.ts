@@ -36,17 +36,18 @@ export interface SyncableTicket {
   [key: string]: any; // Allow additional properties
 }
 
-// Add SyncableExpense interface
+// Add SyncableExpense interface with synced property
 export interface SyncableExpense {
   id: string;
   description: string;
   amount: number;
   date: string;
-  category: string;
+  category?: string; // Make category optional
   pendingSync?: boolean;
+  synced?: boolean; // Add this property
 }
 
-// Add SyncableCustomerFeedback interface
+// Add SyncableCustomerFeedback interface with pendingDelete
 export interface SyncableCustomerFeedback {
   id: string;
   customerName: string;
@@ -56,9 +57,10 @@ export interface SyncableCustomerFeedback {
   createdAt: string;
   source?: string;
   pendingSync?: boolean;
+  pendingDelete?: boolean; // Add this property
 }
 
-// Add LocalClient interface for backward compatibility
+// Add LocalClient interface with all required fields
 export interface LocalClient {
   id: string;
   name: string;
@@ -66,4 +68,8 @@ export interface LocalClient {
   clientName?: string;
   phoneNumber?: string;
   valetsCount: number;
+  freeValets?: number;
+  loyaltyPoints?: number;
+  lastVisit?: string;
+  pendingSync?: boolean;
 }

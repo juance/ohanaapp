@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import ClientInfo from './ticket/form/ClientInfo';
 import ServicesSection from './ticket/form/ServicesSection';
@@ -44,6 +45,12 @@ const TicketForm = () => {
     { id: '4', value: 'cuentaDni', label: 'Cuenta DNI' }
   ];
 
+  // Add optionType to laundryServices for compatibility with the LaundryService type
+  const laundryServicesWithOptionType = laundryServices.map(service => ({
+    ...service,
+    optionType: 'service'
+  }));
+
   return (
     <form onSubmit={handleSubmit}>
       <Card className="overflow-hidden">
@@ -57,7 +64,7 @@ const TicketForm = () => {
             />
 
             <ServicesSection 
-              laundryServices={laundryServices}
+              laundryServices={laundryServicesWithOptionType}
               selectedServices={selectedServices}
               handleServiceToggle={handleServiceToggle}
             />

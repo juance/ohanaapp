@@ -75,6 +75,6 @@ export const useCachedClients = () => {
     error, 
     refetch, 
     invalidateCache,
-    refreshClients 
+    refreshClients  // Add this to fix the missing property error
   };
 };

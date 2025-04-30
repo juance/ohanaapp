@@ -1,105 +1,108 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
-import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { SyncStatus } from '@/lib/types/sync.types';
-import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { toast } from '@/lib/toast';
+// Fix import for SyncStatus
+import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
+// Define connection status type
+type ConnectionStatus = "online" | "offline";
+
+// Define context type
 interface ConnectionContextType {
-  connectionStatus: 'online' | 'offline';
-  syncStatus: 'idle' | 'syncing' | 'error' | 'success';
+  connectionStatus: ConnectionStatus;
+  syncStatus: 'idle' | 'syncing' | 'success' | 'error';
   syncData: () => Promise<void>;
   pendingSyncCount: number;
   lastSyncedAt: Date | null;
 }
 
-const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
+// Create context with default values
+const ConnectionContext = createContext<ConnectionContextType>({
+  connectionStatus: 'online',
+  syncStatus: 'idle',
+  syncData: async () => {},
+  pendingSyncCount: 0,
+  lastSyncedAt: null,
+});
 
-export function useConnection() {
-  const context = useContext(ConnectionContext);
-  if (!context) {
-    throw new Error('useConnection must be used within a ConnectionStatusProvider');
-  }
-  return context;
-}
+// Hook to use connection context
+export const useConnection = () => useContext(ConnectionContext);
 
-export function ConnectionStatusProvider({ children }: { children: React.ReactNode }) {
-  const { isOnline } = useNetworkStatus();
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'error' | 'success'>('idle');
-  const [pendingSyncCount, setPendingSyncCount] = useState(0);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+// Connection status provider component
+export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [status, setStatus] = useState<ConnectionStatus>('online');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
+  const [lastSync, setLastSync] = useState<Date | null>(null);
+  const [pendingSync, setPendingSync] = useState<number>(0);
 
-  // Function to sync data
+  // Check network status on initial load and changes
+  useEffect(() => {
+    const handleOnline = () => {
+      setStatus('online');
+      toast.success('Conexión restaurada');
+    };
+
+    const handleOffline = () => {
+      setStatus('offline');
+      toast.error('Sin conexión');
+    };
+
+    // Set initial status
+    setStatus(navigator.onLine ? 'online' : 'offline');
+
+    // Add event listeners
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // Function to sync data with backend
   const syncData = async () => {
-    if (!isOnline) {
-      console.warn('Cannot sync while offline');
+    if (status === 'offline') {
+      toast.error('No hay conexión a internet');
       return;
     }
 
     try {
       setSyncStatus('syncing');
+      // Import syncService here to avoid circular dependencies
+      const { syncAllData } = await import('@/lib/data/sync/comprehensiveSync');
       const result = await syncAllData();
-      
-      // Update last sync time and pending count
-      setLastSyncedAt(new Date());
-      
-      // Get total count of synced items
-      const totalSynced = 
-        result.tickets + 
-        result.clients + 
-        result.expenses + 
-        result.feedback;
-        
-      setPendingSyncCount(prev => Math.max(0, prev - totalSynced));
+
+      // Add lastSync field to make it compatible with SimpleSyncStatus
+      const syncResult: SimpleSyncStatus = {
+        ...result,
+        lastSync: new Date().toISOString()
+      };
+
+      setPendingSync(0);
+      setLastSync(new Date());
       setSyncStatus('success');
+      
+      // Show toast only if there was data synced
+      const totalSynced = result.tickets + result.clients + result.feedback + result.expenses;
+      if (totalSynced > 0) {
+        toast.success(`Sincronización completada: ${totalSynced} elementos`);
+      }
     } catch (error) {
-      console.error('Error syncing data:', error);
+      console.error('Error during sync:', error);
       setSyncStatus('error');
+      toast.error('Error al sincronizar datos');
     }
   };
-
-  // Check for pending sync items on mount and when connection status changes
-  useEffect(() => {
-    if (isOnline) {
-      const checkPendingSync = async () => {
-        try {
-          const status = await getSyncStatus();
-          
-          // Get the last sync time
-          const lastSyncTime = status?.lastSync 
-            ? new Date(status.lastSync) 
-            : null;
-            
-          setLastSyncedAt(lastSyncTime);
-          
-          // Calculate pending sync count
-          const pendingCount = 
-            (status?.tickets || 0) + 
-            (status?.clients || 0) + 
-            (status?.feedback || 0) + 
-            (status?.expenses || 0);
-            
-          setPendingSyncCount(pendingCount);
-        } catch (error) {
-          console.error('Error checking pending sync:', error);
-        }
-      };
-      
-      checkPendingSync();
-    }
-  }, [isOnline]);
 
   const value = {
-    connectionStatus: isOnline ? 'online' : 'offline',
+    connectionStatus: status,
     syncStatus,
     syncData,
-    pendingSyncCount,
-    lastSyncedAt
+    pendingSyncCount: pendingSync,
+    lastSyncedAt: lastSync
   };
 
-  return (
-    <ConnectionContext.Provider value={value}>
-      {children}
-    </ConnectionContext.Provider>
-  );
-}
+  return <ConnectionContext.Provider value={value}>{children}</ConnectionContext.Provider>;
+};

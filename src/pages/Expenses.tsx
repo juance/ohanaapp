@@ -74,8 +74,8 @@ const Expenses = () => {
       const result = await storeExpense({
         description,
         amount: parseFloat(amount.toString()),
-        date: dateToUse
-        // Removed category field as it doesn't exist in the database
+        date: dateToUse,
+        category: 'other' // Add default category to fix type error
       });
 
     if (result) {

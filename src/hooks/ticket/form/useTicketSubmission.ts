@@ -53,9 +53,9 @@ export const useTicketSubmission = (
         optionType: 'preference'
       })) as LaundryOption[];
 
-      // Store the ticket data
-      const success = await storeTicket(
-        {
+      // Store the ticket data - fix function call to use single object parameter
+      const success = await storeTicket({
+        ticketData: {
           totalPrice: calculateTotal(),
           paymentMethod,
           valetQuantity: 1, // Default to 1, could be made configurable
@@ -65,13 +65,13 @@ export const useTicketSubmission = (
           phoneNumber,
           deliveredDate: null
         },
-        {
+        customerData: {
           name: clientName,
           phoneNumber
         },
         dryCleaningItems,
         laundryOptions
-      );
+      });
 
       if (success) {
         // Invalidate the pickupTickets query to refresh the list

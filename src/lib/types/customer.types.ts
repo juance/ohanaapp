@@ -33,6 +33,10 @@ export interface LocalClient {
   clientName?: string; // For backward compatibility
   phoneNumber?: string; // For backward compatibility
   valetsCount: number;
+  freeValets?: number;
+  loyaltyPoints?: number;
+  lastVisit?: string;
+  pendingSync?: boolean;
 }
 
 export interface CustomerFeedback {
@@ -44,6 +48,7 @@ export interface CustomerFeedback {
   createdAt: string;
   source?: string;
   pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 // Convert Customer to ClientVisit format

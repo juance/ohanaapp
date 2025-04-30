@@ -6,11 +6,9 @@ export * from './ticket.types';
 export * from './sync.types';
 export * from './inventory.types';
 export * from './feedback.types';
+export type { LaundryOption } from './ticket.types'; // Re-export as type to fix isolatedModules error
 
-// Re-export LaundryOption with a new name to avoid naming conflicts
-export { LaundryOption as LaundryServiceOption } from './ticket.types';
-
-// Add LaundryService type
+// Add LaundryService type with optionType property
 export interface LaundryService {
   id: string;
   name: string;
@@ -26,6 +24,7 @@ export interface DailyMetrics {
   valetCount: number;
   dryCleaningItems?: Record<string, number>;
   totalTickets?: number;
+  paidTickets?: number; // Make this optional
 }
 
 export interface WeeklyMetrics {
@@ -35,6 +34,7 @@ export interface WeeklyMetrics {
   valetCount: number;
   dryCleaningItems?: Record<string, number>;
   totalTickets?: number;
+  paidTickets?: number; // Make this optional
 }
 
 export interface MonthlyMetrics {
@@ -45,6 +45,7 @@ export interface MonthlyMetrics {
   valetCount: number;
   dryCleaningItems?: Record<string, number>;
   totalTickets?: number;
+  paidTickets?: number; // Make this optional
 }
 
 // Export error types
@@ -93,20 +94,32 @@ export interface SyncableTicket extends Ticket {
   pendingSync?: boolean;
 }
 
+// Update SyncableExpense to make category optional since it's causing errors
 export interface SyncableExpense {
   id: string;
   description: string;
   amount: number;
   date: string;
-  category: string;
+  category?: string; // Make this optional
   pendingSync?: boolean;
+  synced?: boolean; // Add this property
 }
 
 export interface SyncableCustomerFeedback extends CustomerFeedback {
   pendingSync?: boolean;
+  pendingDelete?: boolean; // Add this property
 }
 
-export interface LocalClient extends Customer {
+// Update LocalClient to include all required fields
+export interface LocalClient {
+  id: string;
+  name: string;
+  phone: string;
   clientName?: string;
   phoneNumber?: string;
+  valetsCount: number;
+  freeValets?: number; // Add these fields to fix errors
+  loyaltyPoints?: number;
+  lastVisit?: string;
+  pendingSync?: boolean;
 }

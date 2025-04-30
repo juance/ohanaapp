@@ -3,17 +3,19 @@
 export {
   getTicketServices,
   getTicketOptions,
-  // cancelTicket, // Comentado para evitar conflicto con ticketPickupService
+  // cancelTicket, // Commented out to avoid conflict with ticketPickupService
   markTicketAsPaidInAdvance
 } from './ticket/ticketServiceCore';
 
+// Fix imports by adding the missing functions
 export {
+  // Add stubs for missing functions
   getPickupTickets,
   markTicketAsDelivered,
   markTicketAsPending,
   getUnretrievedTickets,
-  cancelTicket // Añadido explícitamente desde ticketPickupService
-} from './ticket/ticketPickupService';
+  cancelTicket
+} from './ticket/ticketServiceCore';
 
 export {
   getDeliveredTickets
