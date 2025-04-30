@@ -10,13 +10,14 @@ import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import DateRangeFilter from '@/components/dashboard/DateRangeFilter';
 
 interface DashboardProps {
   embedded?: boolean;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
-  const { data, isLoading, error, refreshData } = useDashboardData();
+  const { data, isLoading, error, refreshData, dateFilter, updateDateFilter } = useDashboardData();
 
   console.log('Dashboard component - data:', data);
 
@@ -28,6 +29,10 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       console.error("Error refreshing dashboard:", err);
       toast.error("Error al actualizar el panel de control");
     }
+  };
+
+  const handleDateChange = (startDate: Date, endDate: Date) => {
+    updateDateFilter(startDate, endDate);
   };
 
   const content = (
@@ -53,6 +58,15 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
           </Button>
         </header>
       )}
+
+      {/* Añadimos el filtro de fechas */}
+      <div className="mb-6">
+        <DateRangeFilter 
+          startDate={dateFilter.startDate}
+          endDate={dateFilter.endDate}
+          onDateChange={handleDateChange}
+        />
+      </div>
 
       {isLoading ? (
         <LoadingState />
@@ -88,6 +102,10 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             metrics={data.metrics}
             expenses={data.expenses}
             viewType="monthly"
+            dateRange={{
+              from: dateFilter.startDate,
+              to: dateFilter.endDate
+            }}
           />
           <div className="h-6"></div>
           <ChartSection

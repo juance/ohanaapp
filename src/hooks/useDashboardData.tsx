@@ -14,6 +14,11 @@ interface DashboardStats {
   topServices: any[];
 }
 
+interface DateFilter {
+  startDate: Date;
+  endDate: Date;
+}
+
 export const useDashboardData = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,14 +29,30 @@ export const useDashboardData = () => {
     chartData: [],
     clients: []
   });
+  
+  // Añadimos estado para las fechas de filtrado
+  const [dateFilter, setDateFilter] = useState<DateFilter>({
+    startDate: new Date(new Date().setDate(new Date().getDate() - 30)), // Por defecto, último mes
+    endDate: new Date()
+  });
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = async (startDate?: Date, endDate?: Date) => {
     setLoading(true);
     try {
+      // Utilizar las fechas proporcionadas o las del estado
+      const filterStartDate = startDate || dateFilter.startDate;
+      const filterEndDate = endDate || dateFilter.endDate;
+
+      // Convertir fechas a formato ISO para consultas
+      const startDateISO = filterStartDate.toISOString();
+      const endDateISO = filterEndDate.toISOString();
+      
       // Get statistics directly from the tickets and other tables
       const { data: ticketsData, error: ticketsError } = await supabase
         .from('tickets')
-        .select('*');
+        .select('*')
+        .gte('created_at', startDateISO)
+        .lte('created_at', endDateISO);
       
       if (ticketsError) throw ticketsError;
       
@@ -75,10 +96,12 @@ export const useDashboardData = () => {
         });
       }
       
-      // Get expenses data
+      // Get expenses data filtered by date
       const { data: expensesData, error: expensesError } = await supabase
         .from('expenses')
-        .select('*');
+        .select('*')
+        .gte('date', startDateISO)
+        .lte('date', endDateISO);
         
       if (expensesError) throw expensesError;
       
@@ -141,7 +164,8 @@ export const useDashboardData = () => {
         expenses: {
           daily: dailyExpenses,
           weekly: 0, // Would need to calculate
-          monthly: monthlyExpenses
+          monthly: monthlyExpenses,
+          total: totalExpenses
         },
         chartData,
         clients: clientsData || []
@@ -156,6 +180,12 @@ export const useDashboardData = () => {
     }
   };
   
+  // Función para actualizar el filtro de fechas
+  const updateDateFilter = (startDate: Date, endDate: Date) => {
+    setDateFilter({ startDate, endDate });
+    fetchDashboardData(startDate, endDate);
+  };
+  
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -166,6 +196,8 @@ export const useDashboardData = () => {
     isLoading: loading,
     error,
     data,
+    dateFilter,
+    updateDateFilter,
     refreshData: fetchDashboardData 
   };
 };

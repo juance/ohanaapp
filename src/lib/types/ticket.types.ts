@@ -52,3 +52,15 @@ export interface TicketService {
 }
 
 export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'transfer' | 'cuentaDni';
+
+// Extend with new metrics interface
+export interface TicketMetrics {
+  totalCount: number;
+  pendingCount: number;
+  readyCount: number;
+  deliveredCount: number;
+  totalRevenue: number;
+  averageValue: number;
+  paidCount: number;
+  unpaidCount: number;
+}

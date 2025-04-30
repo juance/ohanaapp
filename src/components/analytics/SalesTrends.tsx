@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { TrendChart } from './TrendChart';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,9 +11,16 @@ import { ErrorMessage } from '@/components/ui/error-message';
 
 interface SalesTrendsProps {
   defaultTimeRange?: 'week' | 'month' | 'quarter' | 'year';
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
 }
 
-export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'month' }) => {
+export const SalesTrends: React.FC<SalesTrendsProps> = ({ 
+  defaultTimeRange = 'month',
+  dateRange
+}) => {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>(defaultTimeRange);
   const [salesData, setSalesData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,40 +41,64 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
       try {
         setIsLoading(true);
         
-        // Define date range based on selected time range
+        // Define date range based on selected time range or provided dateRange
         let startDate: Date;
         let dateFormat: string;
         let groupBy: string;
         
-        switch (timeRange) {
-          case 'week':
-            startDate = subWeeks(new Date(), 1);
-            dateFormat = 'EEE';
+        if (dateRange) {
+          startDate = dateRange.from;
+          const endDate = dateRange.to;
+          
+          // Calculate appropriate grouping based on date range length
+          const diffDays = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= 14) {
+            // For ranges under 2 weeks, group by day with short format
+            dateFormat = 'dd/MM';
             groupBy = 'day';
-            break;
-          case 'month':
-            startDate = subMonths(new Date(), 1);
+          } else if (diffDays <= 90) {
+            // For ranges 2 weeks to 3 months, group by week
             dateFormat = 'dd MMM';
-            groupBy = 'day';
-            break;
-          case 'quarter':
-            startDate = subMonths(new Date(), 3);
-            dateFormat = 'MMM';
+            groupBy = 'week';
+          } else {
+            // For longer ranges, group by month
+            dateFormat = 'MMM yyyy';
             groupBy = 'month';
-            break;
-          case 'year':
-            startDate = subMonths(new Date(), 12);
-            dateFormat = 'MMM';
-            groupBy = 'month';
-            break;
-          default:
-            startDate = subMonths(new Date(), 1);
-            dateFormat = 'dd MMM';
-            groupBy = 'day';
+          }
+        } else {
+          switch (timeRange) {
+            case 'week':
+              startDate = subWeeks(new Date(), 1);
+              dateFormat = 'EEE';
+              groupBy = 'day';
+              break;
+            case 'month':
+              startDate = subMonths(new Date(), 1);
+              dateFormat = 'dd MMM';
+              groupBy = 'day';
+              break;
+            case 'quarter':
+              startDate = subMonths(new Date(), 3);
+              dateFormat = 'MMM';
+              groupBy = 'month';
+              break;
+            case 'year':
+              startDate = subMonths(new Date(), 12);
+              dateFormat = 'MMM';
+              groupBy = 'month';
+              break;
+            default:
+              startDate = subMonths(new Date(), 1);
+              dateFormat = 'dd MMM';
+              groupBy = 'day';
+          }
         }
         
-        // Create cache key based on time range
-        const cacheKey = `sales-trend-${timeRange}`;
+        // Create cache key based on time range or date range
+        const cacheKey = dateRange 
+          ? `sales-trend-${dateRange.from.toISOString()}-${dateRange.to.toISOString()}` 
+          : `sales-trend-${timeRange}`;
         
         // Define fetch function
         const fetchFunction = async () => {
@@ -75,6 +107,7 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
             .from('tickets')
             .select('id, created_at, total')
             .gte('created_at', startDate.toISOString())
+            .lte('created_at', dateRange ? dateRange.to.toISOString() : new Date().toISOString())
             .order('created_at');
           
           if (error) throw error;
@@ -136,18 +169,21 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
     };
     
     fetchSalesData();
-  }, [timeRange]);
+  }, [timeRange, dateRange]);
 
+  // Use the predefined date range if provided, otherwise show the tabs
   return (
     <div className="space-y-4">
-      <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
-        <TabsList>
-          <TabsTrigger value="week">Semana</TabsTrigger>
-          <TabsTrigger value="month">Mes</TabsTrigger>
-          <TabsTrigger value="quarter">Trimestre</TabsTrigger>
-          <TabsTrigger value="year">Año</TabsTrigger>
-        </TabsList>
-      </Tabs>
+      {!dateRange && (
+        <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
+          <TabsList>
+            <TabsTrigger value="week">Semana</TabsTrigger>
+            <TabsTrigger value="month">Mes</TabsTrigger>
+            <TabsTrigger value="quarter">Trimestre</TabsTrigger>
+            <TabsTrigger value="year">Año</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
       
       {isLoading ? (
         <div className="h-80 flex items-center justify-center">
@@ -163,11 +199,13 @@ export const SalesTrends: React.FC<SalesTrendsProps> = ({ defaultTimeRange = 'mo
           <TrendChart 
             data={salesData} 
             title="Tendencia de Ventas" 
-            description={`Evolución de ventas (último ${
-              timeRange === 'week' ? 'semana' : 
-              timeRange === 'month' ? 'mes' : 
-              timeRange === 'quarter' ? 'trimestre' : 'año'
-            })`}
+            description={`Evolución de ventas ${
+              dateRange 
+                ? `del ${format(dateRange.from, 'dd/MM/yyyy', { locale: es })} al ${format(dateRange.to, 'dd/MM/yyyy', { locale: es })}` 
+                : timeRange === 'week' ? 'última semana' : 
+                  timeRange === 'month' ? 'último mes' : 
+                  timeRange === 'quarter' ? 'último trimestre' : 'último año'
+            }`}
             dataKey="revenue"
             type="line"
           />

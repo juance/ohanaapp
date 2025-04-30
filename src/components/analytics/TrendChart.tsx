@@ -10,10 +10,15 @@ import {
   Tooltip, 
   Legend, 
   AreaChart, 
-  Area 
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Info } from 'lucide-react'; // Changed from InfoCircle to Info which is available
+import { Info } from 'lucide-react';
 
 interface TrendChartProps {
   data: any[];
@@ -21,10 +26,11 @@ interface TrendChartProps {
   description?: string;
   dataKey: string;
   xAxisKey?: string;
-  type?: 'line' | 'area';
+  type?: 'line' | 'area' | 'bar' | 'pie';
   color?: string;
   height?: number;
   formatter?: (value: number) => string;
+  colors?: string[];
 }
 
 export const TrendChart: React.FC<TrendChartProps> = ({
@@ -36,9 +42,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   type = 'line',
   color = '#3b82f6',
   height = 300,
-  formatter = (value) => `$${value.toLocaleString()}`
+  formatter = (value) => `$${value.toLocaleString()}`,
+  colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899']
 }) => {
-  // If no data, show a message
+  // Si no hay data, mostrar un mensaje
   if (!data || data.length === 0) {
     return (
       <Card>
@@ -68,6 +75,119 @@ export const TrendChart: React.FC<TrendChartProps> = ({
     return null;
   };
 
+  const renderChart = () => {
+    switch (type) {
+      case 'area':
+        return (
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.8} />
+                <stop offset="95%" stopColor={color} stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis 
+              dataKey={xAxisKey} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+            />
+            <YAxis 
+              tickFormatter={(value) => `$${value}`} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+              width={60}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Area 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke={color} 
+              fillOpacity={1} 
+              fill="url(#colorGradient)" 
+              strokeWidth={2}
+            />
+          </AreaChart>
+        );
+        
+      case 'bar':
+        return (
+          <BarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis 
+              dataKey={xAxisKey} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+            />
+            <YAxis 
+              tickFormatter={(value) => `$${value}`} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+              width={60}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Bar dataKey={dataKey} fill={color} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        );
+        
+      case 'pie':
+        return (
+          <PieChart>
+            <Pie
+              data={data}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              outerRadius={80}
+              fill="#8884d8"
+              dataKey={dataKey}
+              nameKey={xAxisKey}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            >
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+              ))}
+            </Pie>
+            <Tooltip formatter={formatter} />
+          </PieChart>
+        );
+        
+      case 'line':
+      default:
+        return (
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis 
+              dataKey={xAxisKey} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+            />
+            <YAxis 
+              tickFormatter={(value) => `$${value}`} 
+              tick={{ fontSize: 12 }} 
+              tickLine={false} 
+              axisLine={false} 
+              width={60}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Line 
+              type="monotone" 
+              dataKey={dataKey} 
+              stroke={color} 
+              strokeWidth={2} 
+              dot={{ r: 4, strokeWidth: 2 }} 
+              activeDot={{ r: 6 }}
+            />
+          </LineChart>
+        );
+    }
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -76,65 +196,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={height}>
-          {type === 'area' ? (
-            <AreaChart data={data}>
-              <defs>
-                <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={color} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={color} stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis 
-                dataKey={xAxisKey} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false} 
-                axisLine={false} 
-              />
-              <YAxis 
-                tickFormatter={(value) => `$${value}`} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false} 
-                axisLine={false} 
-                width={60}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Area 
-                type="monotone" 
-                dataKey={dataKey} 
-                stroke={color} 
-                fillOpacity={1} 
-                fill="url(#colorGradient)" 
-                strokeWidth={2}
-              />
-            </AreaChart>
-          ) : (
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis 
-                dataKey={xAxisKey} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false} 
-                axisLine={false} 
-              />
-              <YAxis 
-                tickFormatter={(value) => `$${value}`} 
-                tick={{ fontSize: 12 }} 
-                tickLine={false} 
-                axisLine={false} 
-                width={60}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Line 
-                type="monotone" 
-                dataKey={dataKey} 
-                stroke={color} 
-                strokeWidth={2} 
-                dot={{ r: 4, strokeWidth: 2 }} 
-                activeDot={{ r: 6 }}
-              />
-            </LineChart>
-          )}
+          {renderChart()}
         </ResponsiveContainer>
       </CardContent>
     </Card>

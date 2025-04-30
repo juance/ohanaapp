@@ -1,11 +1,17 @@
 
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBag, DollarSign, CalendarDays, TrendingUp, Award, CheckCircle } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface MetricsCardsProps {
   metrics: any;
   expenses: any;
   viewType: 'daily' | 'weekly' | 'monthly';
+  dateRange?: {
+    from: Date;
+    to: Date;
+  };
 }
 
 const formatCurrency = (value: number) => {
@@ -17,19 +23,24 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-export default function MetricsCards({ metrics, expenses, viewType }: MetricsCardsProps) {
+export default function MetricsCards({ metrics, expenses, viewType, dateRange }: MetricsCardsProps) {
   // Usar directamente los datos de las estadísticas de tickets
   console.log('MetricsCards - metrics completo:', metrics);
 
   // Calcular métricas directamente desde los datos de tickets
   const revenue = Number(metrics?.revenue || 0);
-  const currentExpenses = expenses ? expenses[viewType] || 0 : 0;
+  const currentExpenses = expenses ? expenses.total || 0 : 0;
   const profit = revenue - Number(currentExpenses || 0);
   const totalTickets = Number(metrics?.total || 0);
   const deliveredTickets = Number(metrics?.delivered || 0);
   const pendingTickets = Number(metrics?.pending || 0);
   const valetCount = Number(metrics?.valetCount || 0);
   const dryCleaningItemsCount = Number(metrics?.dryCleaningItemsCount || 0);
+
+  // Formatear el rango de fechas para mostrar
+  const dateRangeLabel = dateRange 
+    ? `${format(dateRange.from, 'dd/MM/yyyy', { locale: es })} - ${format(dateRange.to, 'dd/MM/yyyy', { locale: es })}`
+    : viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes';
 
   console.log('MetricsCards - Valores calculados:', {
     revenue,
@@ -50,7 +61,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(revenue)}</div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>
@@ -63,7 +74,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
         <CardContent>
           <div className="text-2xl font-bold">{formatCurrency(currentExpenses)}</div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>
@@ -78,7 +89,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
             {formatCurrency(profit)}
           </div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>
@@ -91,7 +102,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
         <CardContent>
           <div className="text-2xl font-bold">{totalTickets}</div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>
@@ -104,7 +115,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
         <CardContent>
           <div className="text-2xl font-bold">{deliveredTickets}</div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>
@@ -117,7 +128,7 @@ export default function MetricsCards({ metrics, expenses, viewType }: MetricsCar
         <CardContent>
           <div className="text-2xl font-bold">{pendingTickets}</div>
           <p className="text-xs text-muted-foreground">
-            {viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes'}
+            {dateRangeLabel}
           </p>
         </CardContent>
       </Card>

@@ -1,12 +1,24 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SalesTrends } from '@/components/analytics/SalesTrends';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ClientTrends } from '@/components/analytics/ClientTrends';
+import { ServiceTrends } from '@/components/analytics/ServiceTrends';
+import DateRangeSelector from '@/components/analysis/DateRangeSelector';
 
 const TrendAnalysis: React.FC = () => {
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: new Date(new Date().setMonth(new Date().getMonth() - 1)),
+    to: new Date()
+  });
+
+  const handleDateChange = (from: Date, to: Date) => {
+    setDateRange({ from, to });
+  };
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <Navbar />
@@ -18,8 +30,16 @@ const TrendAnalysis: React.FC = () => {
               <span>Volver al Inicio</span>
             </Link>
             <h1 className="text-2xl font-bold text-blue-600">Análisis de Tendencias</h1>
-            <p className="text-gray-500">Visualiza la evolución de ventas a lo largo del tiempo</p>
+            <p className="text-gray-500">Visualiza la evolución a lo largo del tiempo</p>
           </header>
+          
+          <div className="mb-6">
+            <DateRangeSelector 
+              from={dateRange.from} 
+              to={dateRange.to} 
+              onUpdate={handleDateChange}
+            />
+          </div>
           
           <Tabs defaultValue="sales">
             <TabsList className="mb-6">
@@ -29,25 +49,15 @@ const TrendAnalysis: React.FC = () => {
             </TabsList>
             
             <TabsContent value="sales" className="space-y-6">
-              <SalesTrends />
+              <SalesTrends dateRange={dateRange} />
             </TabsContent>
             
-            <TabsContent value="clients">
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
-                <h3 className="font-medium text-amber-800">Próximamente</h3>
-                <p className="text-amber-700">
-                  El análisis de tendencias para clientes estará disponible próximamente.
-                </p>
-              </div>
+            <TabsContent value="clients" className="space-y-6">
+              <ClientTrends dateRange={dateRange} />
             </TabsContent>
             
-            <TabsContent value="services">
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-4">
-                <h3 className="font-medium text-amber-800">Próximamente</h3>
-                <p className="text-amber-700">
-                  El análisis de tendencias para servicios estará disponible próximamente.
-                </p>
-              </div>
+            <TabsContent value="services" className="space-y-6">
+              <ServiceTrends dateRange={dateRange} />
             </TabsContent>
           </Tabs>
         </div>
