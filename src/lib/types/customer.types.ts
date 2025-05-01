@@ -5,58 +5,46 @@ export interface Customer {
   id: string;
   name: string;
   phone: string;
-  phoneNumber?: string;  // Alternative name for phone
-  valetCount?: number;
-  valetsCount?: number;
-  freeValets: number;
+  phoneNumber: string;
   loyaltyPoints: number;
-  lastVisit: string | null;
+  valetsCount: number;
+  freeValets: number;
+  lastVisit?: string;
+  valetsRedeemed: number;
+  createdAt: string;
 }
 
 export interface CustomerFeedback {
   id: string;
   customerName: string;
-  customerId?: string;
   rating: number;
   comment: string;
   createdAt: string;
   source?: string;
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
-// Client visit data model, used in UI components
 export interface ClientVisit {
   id: string;
   clientName: string;
   phoneNumber: string;
-  visitCount?: number;
-  lastVisitDate?: string | null;
-  visitFrequency?: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
-  pendingSync?: boolean;
-}
-
-// LocalClient - interface for clients stored locally
-export interface LocalClient {
-  id: string;
-  name: string;
-  phone: string;
+  visitCount: number;
+  lastVisitDate?: string;
   lastVisit?: string;
-  visitCount?: number;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  pendingSync?: boolean;
+  loyaltyPoints: number;
+  freeValets: number;
+  visitFrequency?: string;
 }
 
-// Helper function to convert a Customer to a ClientVisit
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
   return {
     id: customer.id,
     clientName: customer.name,
-    phoneNumber: customer.phone || customer.phoneNumber || '',
+    phoneNumber: customer.phone,
+    visitCount: customer.valetsCount || 0,
     lastVisitDate: customer.lastVisit,
-    visitCount: customer.valetsCount || customer.valetCount || 0,
+    lastVisit: customer.lastVisit,
     loyaltyPoints: customer.loyaltyPoints || 0,
     freeValets: customer.freeValets || 0
   };

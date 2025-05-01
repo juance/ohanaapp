@@ -1,6 +1,8 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
 
 /**
  * Get the next ticket number from the sequence
@@ -145,7 +147,44 @@ export const getOrCreateCustomer = async (name: string, phone: string): Promise<
 };
 
 /**
- * Get client visits (placeholder implementation)
+ * Get customer by phone
+ */
+export const getCustomerByPhone = async (phone: string): Promise<Customer | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', phone)
+      .maybeSingle();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      phoneNumber: data.phone,
+      loyaltyPoints: data.loyalty_points || 0,
+      valetsCount: data.valets_count || 0,
+      freeValets: data.free_valets || 0,
+      lastVisit: data.last_visit,
+      valetsRedeemed: data.valets_redeemed || 0,
+      createdAt: data.created_at
+    };
+  } catch (error) {
+    console.error('Error fetching customer by phone:', error);
+    return null;
+  }
+};
+
+/**
+ * Get client visits (all customers formatted as client visits)
  */
 export const getClientVisits = async (): Promise<ClientVisit[]> => {
   try {
@@ -163,11 +202,91 @@ export const getClientVisits = async (): Promise<ClientVisit[]> => {
       phoneNumber: customer.phone,
       visitCount: customer.valets_count || 0,
       lastVisitDate: customer.last_visit,
+      lastVisit: customer.last_visit,
       loyaltyPoints: customer.loyalty_points || 0,
       freeValets: customer.free_valets || 0
     }));
   } catch (error) {
     console.error('Error fetching client visits:', error);
+    return [];
+  }
+};
+
+/**
+ * Get all customers
+ */
+export const getAllClients = async (): Promise<Customer[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((customer: any) => ({
+      id: customer.id,
+      name: customer.name,
+      phone: customer.phone,
+      phoneNumber: customer.phone,
+      loyaltyPoints: customer.loyalty_points || 0,
+      valetsCount: customer.valets_count || 0,
+      freeValets: customer.free_valets || 0,
+      lastVisit: customer.last_visit,
+      valetsRedeemed: customer.valets_redeemed || 0,
+      createdAt: customer.created_at
+    }));
+  } catch (error) {
+    console.error('Error fetching all clients:', error);
+    return [];
+  }
+};
+
+/**
+ * Get unretrieved tickets
+ */
+export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        id,
+        ticket_number,
+        total,
+        payment_method,
+        status,
+        is_paid,
+        valet_quantity,
+        created_at,
+        delivered_date,
+        customer_id,
+        customers (name, phone)
+      `)
+      .in('status', ['ready'])
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
+      totalPrice: Number(ticket.total),
+      paymentMethod: ticket.payment_method,
+      status: ticket.status,
+      isPaid: ticket.is_paid,
+      valetQuantity: ticket.valet_quantity,
+      createdAt: ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      customerId: ticket.customer_id
+    }));
+  } catch (error) {
+    console.error('Error fetching unretrieved tickets:', error);
     return [];
   }
 };

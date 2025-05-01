@@ -1,212 +1,185 @@
 
-import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
-import { getPickupTickets, markTicketAsDelivered, cancelTicket } from '@/lib/ticketServices';
-import { Ticket } from '@/lib/types';
-import { toast } from '@/lib/toast';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
+import { usePendingOrdersLogic } from '@/hooks/usePendingOrdersLogic';
+import OrderCard from '@/components/orders/OrderCard';
+import { Badge } from '@/components/ui/badge';
+import { Phone, ArrowLeft, ArrowRight, WheatIcon } from 'lucide-react';
 import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
 import PaymentMethodDialog from '@/components/orders/PaymentMethodDialog';
-import PickupActionButtons from '@/components/orders/PickupActionButtons';
-import { Loading } from '@/components/ui/loading';
-import { ErrorMessage } from '@/components/ui/error-message';
-import { SearchBar } from '@/components/ui/search-bar';
-import { buildTicketWhatsAppMessage } from '@/lib/utils/whatsappUtils';
-import { useSearchParams } from 'react-router-dom';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Ticket } from '@/lib/types';
+import SearchBar from '@/components/ui/search-bar';
+import { openWhatsApp } from '@/lib/utils/whatsappUtils';
 
 const PendingOrders = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
-  const [isPaymentMethodDialogOpen, setIsPaymentMethodDialogOpen] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
-  const [searchParams, setSearchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const {
+    pendingTickets,
+    readyTickets,
+    isLoading,
+    handleTicketStatusChange,
+    handleTicketDelivered,
+    refreshTickets
+  } = usePendingOrdersLogic();
+  
+  const [activeTab, setActiveTab] = useState('pending');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
-
-  useEffect(() => {
-    // Update search params when searchQuery changes
-    setSearchParams({ search: searchQuery });
-  }, [searchQuery, setSearchParams]);
-
-  useEffect(() => {
-    const fetchTickets = async () => {
-      try {
-        setIsLoading(true);
-        const fetchedTickets = await getPickupTickets();
-        setTickets(fetchedTickets);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching tickets:", err);
-        setError(err instanceof Error ? err : new Error(String(err)));
-        setTickets([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchTickets();
-  }, []);
-
-  const handleTicketSelect = (ticketId: string) => {
-    setSelectedTicket(ticketId);
-  };
-
-  const handleMarkAsDelivered = async (ticketId: string) => {
-    try {
-      await markTicketAsDelivered(ticketId);
-      setTickets(tickets.filter(ticket => ticket.id !== ticketId));
-      setSelectedTicket(null);
-      toast.success('Ticket marcado como entregado');
-    } catch (err) {
-      console.error("Error marking ticket as delivered:", err);
-      toast.error('Error al marcar el ticket como entregado');
-    }
-  };
-
-  const handleOpenCancelDialog = () => {
-    setIsCancelDialogOpen(true);
-  };
-
-  const handleCloseCancelDialog = () => {
-    setIsCancelDialogOpen(false);
-    setCancelReason('');
-  };
-
-  const handleCancelTicket = async () => {
-    if (!selectedTicket) return;
-
-    try {
-      await cancelTicket(selectedTicket, cancelReason);
-      setTickets(tickets.filter(ticket => ticket.id !== selectedTicket));
-      setSelectedTicket(null);
-      handleCloseCancelDialog();
-      toast.success('Ticket cancelado exitosamente');
-    } catch (err) {
-      console.error("Error canceling ticket:", err);
-      toast.error('Error al cancelar el ticket');
-    }
-  };
-
-  const handlePrintTicket = (ticketId: string) => {
-    window.open(`/print/${ticketId}`, '_blank');
-  };
-
-  const handleShareWhatsApp = (ticketId: string, phoneNumber?: string) => {
-    if (!phoneNumber) {
-      toast.error('No se puede compartir por WhatsApp: número de teléfono no encontrado');
-      return;
-    }
-
-    const ticket = tickets.find(ticket => ticket.id === ticketId);
-    if (!ticket) {
-      toast.error('No se puede compartir por WhatsApp: ticket no encontrado');
-      return;
-    }
-
-    const message = buildTicketWhatsAppMessage(ticket);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const handleNotifyClient = (ticketId: string, phoneNumber?: string) => {
-    if (!phoneNumber) {
-      toast.error('No se puede notificar al cliente: número de teléfono no encontrado');
-      return;
-    }
-
-    const message = `Tu pedido #${ticketId} está listo para ser retirado. ¡Te esperamos!`;
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  const handleOpenPaymentMethodDialog = () => {
-    setIsPaymentMethodDialogOpen(true);
-  };
-
-  const handleClosePaymentMethodDialog = () => {
-    setIsPaymentMethodDialogOpen(false);
-  };
-
-  const filteredTickets = tickets.filter(ticket => {
-    const searchTerm = searchQuery.toLowerCase();
+  const [ticketToCancelId, setTicketToCancelId] = useState<string | null>(null);
+  const [ticketToChangePayment, setTicketToChangePayment] = useState<Ticket | null>(null);
+  
+  // Filter tickets based on search query
+  const filteredPendingTickets = pendingTickets.filter(ticket => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
     if (searchFilter === 'name') {
-      return ticket.clientName.toLowerCase().includes(searchTerm);
-    } else if (searchFilter === 'phone') {
-      return ticket.phoneNumber.includes(searchTerm);
+      return ticket.clientName.toLowerCase().includes(query);
+    } else {
+      return ticket.phoneNumber.toLowerCase().includes(query);
     }
-    return false;
   });
-
+  
+  const filteredReadyTickets = readyTickets.filter(ticket => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    if (searchFilter === 'name') {
+      return ticket.clientName.toLowerCase().includes(query);
+    } else {
+      return ticket.phoneNumber.toLowerCase().includes(query);
+    }
+  });
+  
+  const handleCancelTicket = (ticketId: string) => {
+    setTicketToCancelId(ticketId);
+  };
+  
+  const handleChangePaymentMethod = (ticket: Ticket) => {
+    setTicketToChangePayment(ticket);
+  };
+  
+  const handleSendWhatsAppReminder = (ticket: Ticket) => {
+    const message = `Hola! Tu ropa ya está lista para retirar. Ticket #${ticket.ticketNumber}. Gracias por confiar en nosotros!`;
+    openWhatsApp(ticket.phoneNumber, message);
+  };
+  
   return (
-    <Layout>
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold text-blue-600">Tickets Pendientes de Retiro</h1>
-        <p className="text-gray-500">Lista de tickets listos para ser retirados por el cliente</p>
-      </header>
-
-      <PickupActionButtons
-        tickets={tickets}
-        selectedTicket={selectedTicket}
-        handleMarkAsDelivered={handleMarkAsDelivered}
-        handleOpenCancelDialog={handleOpenCancelDialog}
-        handlePrintTicket={handlePrintTicket}
-        handleShareWhatsApp={handleShareWhatsApp}
-        handleNotifyClient={handleNotifyClient}
-        handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
-      />
-
-      <SearchBar
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        searchFilter={searchFilter}
-        setSearchFilter={setSearchFilter}
-      />
-
-      {isLoading && <Loading />}
-
-      {error && (
-        <ErrorMessage
-          message={error.message}
-          title="Error al cargar los tickets"
-          onRetry={() => window.location.reload()}
+    <div className="container mx-auto py-6">
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle>Órdenes Pendientes</CardTitle>
+            <Button onClick={refreshTickets}>Actualizar</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-6">
+            <SearchBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              searchFilter={searchFilter}
+              setSearchFilter={setSearchFilter}
+              placeholder="Buscar por nombre o teléfono..."
+            />
+          </div>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="pending">
+                Pendiente <Badge variant="outline" className="ml-2">{filteredPendingTickets.length}</Badge>
+              </TabsTrigger>
+              <TabsTrigger value="ready">
+                Listo para Retirar <Badge variant="outline" className="ml-2">{filteredReadyTickets.length}</Badge>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="pending" className="space-y-4">
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : filteredPendingTickets.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPendingTickets.map(ticket => (
+                    <OrderCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      onStatusChange={() => handleTicketStatusChange(ticket.id, ticket.status)}
+                      onCancel={() => handleCancelTicket(ticket.id)}
+                      onPaymentMethodChange={() => handleChangePaymentMethod(ticket)}
+                      actionIcon={<ArrowRight className="h-4 w-4 mr-2" />}
+                      actionLabel="Marcar Listo"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <WheatIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes pendientes</h3>
+                  <p className="mt-1 text-sm text-gray-500">Todas las órdenes están listas para entregar</p>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="ready" className="space-y-4">
+              {isLoading ? (
+                <div className="flex justify-center p-8">
+                  <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                </div>
+              ) : filteredReadyTickets.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredReadyTickets.map(ticket => (
+                    <OrderCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      onStatusChange={() => handleTicketDelivered(ticket.id)}
+                      onCancel={() => handleCancelTicket(ticket.id)}
+                      onPaymentMethodChange={() => handleChangePaymentMethod(ticket)}
+                      actionIcon={<ArrowRight className="h-4 w-4 mr-2" />}
+                      actionLabel="Entregar"
+                      secondaryAction={() => handleSendWhatsAppReminder(ticket)}
+                      secondaryIcon={<Phone className="h-4 w-4 mr-2" />}
+                      secondaryLabel="Avisar"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <WheatIcon className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes listas</h3>
+                  <p className="mt-1 text-sm text-gray-500">Todas las órdenes están pendientes o ya fueron entregadas</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      {/* Cancel Ticket Dialog */}
+      {ticketToCancelId && (
+        <CancelTicketDialog
+          isOpen={!!ticketToCancelId}
+          onClose={() => setTicketToCancelId(null)}
+          ticketId={ticketToCancelId}
+          ticketNumber={(pendingTickets.find(t => t.id === ticketToCancelId) || readyTickets.find(t => t.id === ticketToCancelId))?.ticketNumber || ''}
+          onCanceled={refreshTickets}
         />
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTickets.map(ticket => (
-          <div
-            key={ticket.id}
-            className={`rounded-lg border p-4 cursor-pointer ${selectedTicket === ticket.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:bg-gray-50'}`}
-            onClick={() => handleTicketSelect(ticket.id)}
-          >
-            <h3 className="font-semibold">{ticket.clientName}</h3>
-            <p className="text-sm text-gray-500">{ticket.phoneNumber}</p>
-            <p className="text-sm">Ticket #: {ticket.ticketNumber}</p>
-            <p className="text-sm">Total: ${ticket.totalPrice}</p>
-          </div>
-        ))}
-      </div>
-
-      <CancelTicketDialog
-        open={isCancelDialogOpen}
-        onOpenChange={setIsCancelDialogOpen}
-        cancelReason={cancelReason}
-        setCancelReason={setCancelReason}
-        handleCancelTicket={handleCancelTicket}
-      />
-
-      <PaymentMethodDialog
-        open={isPaymentMethodDialogOpen}
-        onOpenChange={handleClosePaymentMethodDialog}
-        currentPaymentMethod="cash"
-        onConfirm={() => {}}
-        ticketNumber={selectedTicket ? tickets.find(t => t.id === selectedTicket)?.ticketNumber || '' : ''}
-      />
-    </Layout>
+      
+      {/* Change Payment Method Dialog */}
+      {ticketToChangePayment && (
+        <PaymentMethodDialog
+          isOpen={!!ticketToChangePayment}
+          onClose={() => setTicketToChangePayment(null)}
+          ticketId={ticketToChangePayment.id}
+          ticketNumber={ticketToChangePayment.ticketNumber}
+          currentPaymentMethod={ticketToChangePayment.paymentMethod}
+          onPaymentMethodChanged={refreshTickets}
+        />
+      )}
+    </div>
   );
 };
 

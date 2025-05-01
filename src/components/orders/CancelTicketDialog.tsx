@@ -1,58 +1,94 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from '@/components/ui/button';
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/lib/toast';
+import { cancelTicket } from '@/lib/ticket/ticketStatusTransitionService';
 
 interface CancelTicketDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  cancelReason: string;
-  setCancelReason: (reason: string) => void;
-  handleCancelTicket: () => void;
+  isOpen: boolean;
+  onClose: () => void;
+  ticketId: string;
+  ticketNumber: string;
+  onCanceled: () => void;
 }
 
 const CancelTicketDialog: React.FC<CancelTicketDialogProps> = ({
-  open,
-  onOpenChange,
-  cancelReason,
-  setCancelReason,
-  handleCancelTicket
+  isOpen,
+  onClose,
+  ticketId,
+  ticketNumber,
+  onCanceled
 }) => {
+  const [cancelReason, setCancelReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCancel = async () => {
+    if (!cancelReason.trim()) {
+      toast.error('Por favor ingrese un motivo para la cancelación');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await cancelTicket(ticketId, cancelReason);
+      toast.success('Ticket cancelado con éxito');
+      onCanceled();
+      onClose();
+    } catch (error) {
+      console.error('Error al cancelar ticket:', error);
+      toast.error('Error al cancelar el ticket');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Cancelar Ticket</DialogTitle>
-          <DialogDescription>
-            Ingrese el motivo por el cual desea cancelar este ticket.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
+    <AlertDialog open={isOpen} onOpenChange={onClose}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Cancelar Ticket #{ticketNumber}</AlertDialogTitle>
+          <AlertDialogDescription>
+            Esta acción es irreversible. El ticket será marcado como cancelado.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="py-4">
+          <Label htmlFor="cancelReason">Motivo de la cancelación</Label>
           <Textarea
-            placeholder="Motivo de cancelación"
+            id="cancelReason"
+            placeholder="Ingrese el motivo de la cancelación"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
-            className="min-h-[100px]"
+            className="mt-2"
+            rows={3}
           />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          <Button variant="destructive" onClick={handleCancelTicket} disabled={!cancelReason.trim()}>
-            Confirmar Cancelación
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isSubmitting}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={(e) => {
+              e.preventDefault();
+              handleCancel();
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Procesando...' : 'Confirmar'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 };
 

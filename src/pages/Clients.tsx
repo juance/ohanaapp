@@ -1,118 +1,97 @@
 
 import React, { useState, useEffect } from 'react';
-import Layout from '@/components/Layout';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { toast } from '@/hooks/use-toast';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Plus, ArrowLeft, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Customer, ClientVisit } from '@/lib/types';
-import { useCachedClients } from '@/hooks/useCachedClients';
-import ClientList from '@/components/clients/ClientList';
-import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/lib/toast';
+import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
+import { DataTable } from '@/components/ui/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import ClientListItem from '@/components/clients/ClientListItem';
+import { getAllClients } from '@/lib/dataService';
+import { Search } from 'lucide-react';
 
 const Clients = () => {
-  const [isAdding, setIsAdding] = useState(false);
-  const [newClientName, setNewClientName] = useState('');
-  const [newClientPhone, setNewClientPhone] = useState('');
-  const [isEditingClient, setIsEditingClient] = useState<string | null>(null);
+  const [clients, setClients] = useState<ClientVisit[]>([]);
+  const [filteredClients, setFilteredClients] = useState<ClientVisit[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<keyof ClientVisit>('clientName');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditingClient, setIsEditingClient] = useState('');
   const [editClientName, setEditClientName] = useState('');
   const [editClientPhone, setEditClientPhone] = useState('');
   const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
-  // Add local clients state to use with useCachedClients
-  const [localClients, setLocalClients] = useState<ClientVisit[]>([]);
 
-  const { clients, isLoading, error, refetch, invalidateCache } = useCachedClients();
-
-  // Update local clients when clients from hook changes
-  useEffect(() => {
-    setLocalClients(clients);
-  }, [clients]);
-
-  const addCustomer = async (name: string, phone: string) => {
-    setIsAdding(true);
+  // Function to refresh clients data
+  const refreshClients = async () => {
+    setIsLoading(true);
     try {
-      // Basic validation
-      if (!name || !phone) {
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Por favor, complete todos los campos."
-        });
-        setIsAdding(false);
-        return;
-      }
-
-      // Optimistically update the UI
-      const newCustomer: Customer = {
-        id: Math.random().toString(36).substring(7), // Temporary ID
-        name: name,
-        phone: phone,
-        valetsCount: 0,
-        freeValets: 0,
-        loyaltyPoints: 0,
-        lastVisit: new Date().toISOString(),
-        phoneNumber: phone
-      };
-
-      // Use the convertCustomerToClientVisit function from customer.types.ts
-      const clientVisit = convertCustomerToClientVisit(newCustomer);
-      setLocalClients(prev => [...prev, clientVisit]);
-      setIsAdding(false);
-
-      // Clear the form
-      setNewClientName('');
-      setNewClientPhone('');
-
-      toast({
-        title: "Éxito",
-        description: "Cliente agregado correctamente."
-      });
+      const customersData = await getAllClients();
+      const clientVisits = customersData.map(customer => convertCustomerToClientVisit(customer));
+      setClients(clientVisits);
+      setFilteredClients(clientVisits);
     } catch (error) {
-      console.error("Error adding customer:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Error al agregar cliente: ${typeof error === 'string' ? error : (error as Error).message}`
-      });
-      setIsAdding(false);
+      console.error('Error fetching clients:', error);
+      toast.error('Error al cargar los clientes');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const editCustomer = async (id: string, name: string, phone: string) => {
-    try {
-      // Optimistically update the UI
-      const updatedClient = {
-        ...localClients.find(c => c.id === id),
-        clientName: name,
-        phoneNumber: phone
-      };
-      setLocalClients((prevClients) =>
-        prevClients.map((client) =>
-          client.id === id ? updatedClient : client
-        )
-      );
-      setIsEditingClient(null);
+  // Load clients on component mount
+  useEffect(() => {
+    refreshClients();
+  }, []);
 
-      toast({
-        title: "Éxito",
-        description: "Cliente actualizado correctamente."
-      });
-    } catch (error) {
-      console.error("Error updating customer:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: `Error al actualizar cliente: ${typeof error === 'string' ? error : (error as Error).message}`
-      });
+  // Filter clients when search query changes
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredClients(clients);
+      return;
+    }
+
+    const lowercaseQuery = searchQuery.toLowerCase();
+    const filtered = clients.filter(client => {
+      return (
+        client.clientName.toLowerCase().includes(lowercaseQuery) ||
+        client.phoneNumber.toLowerCase().includes(lowercaseQuery)
+      );
+    });
+
+    setFilteredClients(filtered);
+  }, [searchQuery, clients]);
+
+  // Sort clients when sort field or direction changes
+  useEffect(() => {
+    const sorted = [...filteredClients].sort((a, b) => {
+      const aValue = a[sortField] || '';
+      const bValue = b[sortField] || '';
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc' 
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
+      }
+      
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' 
+          ? aValue - bValue 
+          : bValue - aValue;
+      }
+      
+      return 0;
+    });
+
+    setFilteredClients(sorted);
+  }, [sortField, sortDirection]);
+
+  const handleSortChange = (field: keyof ClientVisit) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
     }
   };
 
@@ -120,125 +99,139 @@ const Clients = () => {
     setIsEditingClient(client.id);
     setEditClientName(client.clientName);
     setEditClientPhone(client.phoneNumber);
-  };
-
-  const handleSaveClient = (id: string) => {
-    editCustomer(id, editClientName, editClientPhone)
-      .then(() => {
-        // Use the convertCustomerToClientVisit function for consistency
-        const updatedClient = {
-          ...localClients.find(c => c.id === id),
-          clientName: editClientName,
-          phoneNumber: editClientPhone
-        };
-        setLocalClients((prevClients) =>
-          prevClients.map((client) =>
-            client.id === id ? updatedClient : client
-          )
-        );
-        setIsEditingClient(null);
-      })
-      .catch((error) => {
-        console.error('Error updating client:', error);
-        toast.error(`Error al actualizar cliente: ${typeof error === 'string' ? error : (error as Error).message}`);
-      });
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditingClient(null);
-  };
-
-  const handleSelectClient = (client: ClientVisit) => {
     setSelectedClient(client);
   };
 
-  const handleEditNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditClientName(e.target.value);
+  const handleSaveClient = async (clientId: string) => {
+    try {
+      // Update client in database
+      const { data, error } = await supabase
+        .from('customers')
+        .update({
+          name: editClientName,
+          phone: editClientPhone
+        })
+        .eq('id', clientId);
+
+      if (error) throw error;
+
+      // Update client in local state
+      const updatedClients = clients.map(client => {
+        if (client.id === clientId) {
+          return {
+            ...client,
+            clientName: editClientName,
+            phoneNumber: editClientPhone
+          };
+        }
+        return client;
+      });
+
+      setClients(updatedClients);
+      setFilteredClients(updatedClients);
+      setIsEditingClient('');
+      toast.success('Cliente actualizado correctamente');
+    } catch (error) {
+      console.error('Error updating client:', error);
+      toast.error('Error al actualizar el cliente');
+    }
   };
 
-  const handleEditPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditClientPhone(e.target.value);
+  const handleCancelEdit = () => {
+    setIsEditingClient('');
   };
 
-  return (
-    <Layout>
-      <div className="container mx-auto p-4">
-        <div className="flex items-center justify-between mb-4">
-          <Link to="/" className="flex items-center text-blue-600 hover:underline">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            <span>Volver al Inicio</span>
-          </Link>
-          <h1 className="text-2xl font-bold">Clientes</h1>
-          <div className="space-x-2">
-            <Button variant="outline" size="sm" onClick={() => refetch()}>
-              Refrescar
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => invalidateCache()}>
-              Invalidar Cache
-            </Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Agregar Cliente</CardTitle>
-              <CardDescription>Agregar un nuevo cliente a la lista</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                <div>
-                  <Label htmlFor="name">Nombre</Label>
-                  <Input
-                    type="text"
-                    id="name"
-                    value={newClientName}
-                    onChange={(e) => setNewClientName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Teléfono</Label>
-                  <Input
-                    type="tel"
-                    id="phone"
-                    value={newClientPhone}
-                    onChange={(e) => setNewClientPhone(e.target.value)}
-                  />
-                </div>
-                <Button onClick={() => addCustomer(newClientName, newClientPhone)} disabled={isAdding}>
-                  {isAdding ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Agregando...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Agregar Cliente
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <ClientList
-            clients={localClients}
-            isEditingClient={isEditingClient}
-            editClientName={editClientName}
-            editClientPhone={editClientPhone}
-            selectedClient={selectedClient}
-            onEditClient={handleEditClient}
-            onSaveClient={handleSaveClient}
-            onCancelEdit={handleCancelEdit}
-            onSelectClient={handleSelectClient}
-            onEditNameChange={handleEditNameChange}
-            onEditPhoneChange={handleEditPhoneChange}
-            isLoading={isLoading}
-          />
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-2">Cargando clientes...</p>
         </div>
       </div>
-    </Layout>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6">
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Clientes</CardTitle>
+            <Button onClick={refreshClients}>Actualizar</Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4 relative">
+            <Input
+              type="text"
+              placeholder="Buscar cliente por nombre o teléfono..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pr-10"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+          </div>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="border-b">
+                  <th 
+                    className="text-left py-2 px-3 cursor-pointer"
+                    onClick={() => handleSortChange('clientName')}
+                  >
+                    Nombre {sortField === 'clientName' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    className="text-left py-2 px-3 cursor-pointer"
+                    onClick={() => handleSortChange('phoneNumber')}
+                  >
+                    Teléfono {sortField === 'phoneNumber' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    className="text-left py-2 px-3 cursor-pointer"
+                    onClick={() => handleSortChange('visitCount')}
+                  >
+                    Visitas {sortField === 'visitCount' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th 
+                    className="text-left py-2 px-3 cursor-pointer"
+                    onClick={() => handleSortChange('lastVisit')}
+                  >
+                    Última Visita {sortField === 'lastVisit' && (sortDirection === 'asc' ? '↑' : '↓')}
+                  </th>
+                  <th className="text-right py-2 px-3">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredClients.map((client) => (
+                  <ClientListItem
+                    key={client.id}
+                    client={client}
+                    isEditing={isEditingClient === client.id}
+                    editName={editClientName}
+                    setEditName={setEditClientName}
+                    editPhone={editClientPhone}
+                    setEditPhone={setEditClientPhone}
+                    onSave={() => handleSaveClient(client.id)}
+                    onCancel={handleCancelEdit}
+                    onEdit={() => handleEditClient(client)}
+                  />
+                ))}
+                {filteredClients.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="text-center py-4">
+                      No se encontraron clientes
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

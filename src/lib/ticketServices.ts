@@ -6,18 +6,29 @@ export {
   markTicketAsPaidInAdvance
 } from './ticket/ticketServiceCore';
 
-// Export the functions from ticketPickupService
+// Export the functions from ticketStatusTransitionService
+export {
+  markTicketAsProcessing,
+  markTicketAsReady,
+  markTicketAsDelivered,
+  markTicketAsPending,
+  cancelTicket,
+  getNextStatus,
+  moveToNextStatus
+} from './ticket/ticketStatusTransitionService';
+
+export {
+  getDeliveredTickets
+} from './ticket/ticketDeliveryService';
+
+// Export functions from ticketPickupService
 export {
   getPickupTickets,
   markTicketAsDelivered,
   markTicketAsPending,
   getUnretrievedTickets,
-  cancelTicket
-} from './ticket/ticketPickupService';
-
-export {
-  getDeliveredTickets
-} from './ticket/ticketDeliveryService';
+  cancelTicket as cancelPickupTicket
+} from './ticket/ticketStatusTransitionService';
 
 // Re-export query utilities for other modules to use
 export {

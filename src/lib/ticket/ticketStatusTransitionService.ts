@@ -67,6 +67,36 @@ export const markTicketAsReady = async (ticketId: string): Promise<boolean> => {
 };
 
 /**
+ * Mark a ticket as delivered
+ * @param ticketId The ID of the ticket to update
+ * @returns Promise resolving to true if successful, false otherwise
+ */
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
+  try {
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        status: TICKET_STATUS.DELIVERED,
+        delivered_date: now,
+        is_paid: true,
+        updated_at: now
+      })
+      .eq('id', ticketId);
+
+    if (error) throw error;
+
+    toast.success('Ticket marcado como entregado');
+    return true;
+  } catch (error) {
+    console.error('Error marking ticket as delivered:', error);
+    toast.error('Error al marcar el ticket como entregado');
+    return false;
+  }
+};
+
+/**
  * Mark a ticket as pending (reset to initial state)
  * @param ticketId The ID of the ticket to update
  * @returns Promise resolving to true if successful, false otherwise
@@ -90,6 +120,37 @@ export const markTicketAsPending = async (ticketId: string): Promise<boolean> =>
   } catch (error) {
     console.error('Error marking ticket as pending:', error);
     toast.error('Error al marcar el ticket como pendiente');
+    return false;
+  }
+};
+
+/**
+ * Cancel a ticket
+ * @param ticketId The ID of the ticket to cancel
+ * @param cancelReason The reason for cancellation
+ * @returns Promise resolving to true if successful, false otherwise
+ */
+export const cancelTicket = async (ticketId: string, cancelReason: string): Promise<boolean> => {
+  try {
+    const now = new Date().toISOString();
+
+    const { error } = await supabase
+      .from('tickets')
+      .update({
+        status: 'canceled',
+        is_canceled: true,
+        cancel_reason: cancelReason,
+        updated_at: now
+      })
+      .eq('id', ticketId);
+
+    if (error) throw error;
+
+    toast.success('Ticket cancelado correctamente');
+    return true;
+  } catch (error) {
+    console.error('Error canceling ticket:', error);
+    toast.error('Error al cancelar el ticket');
     return false;
   }
 };

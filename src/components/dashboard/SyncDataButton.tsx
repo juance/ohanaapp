@@ -13,7 +13,7 @@ export const SyncDataButton = () => {
     expenses: 0,
     clients: 0,
     feedback: 0,
-    lastSync: new Date().toISOString()
+    lastSync: null
   });
 
   const handleSync = async () => {
@@ -32,7 +32,7 @@ export const SyncDataButton = () => {
         expenses: result.expenses,
         clients: result.clients,
         feedback: result.feedback,
-        lastSync: new Date().toISOString()
+        lastSync: new Date()
       };
       
       setSyncStatus(mappedResult);

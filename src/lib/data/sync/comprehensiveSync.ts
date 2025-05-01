@@ -2,6 +2,7 @@
 import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
 import { syncExpenses } from './expensesSync';
+import { syncTickets } from './ticketsSync';
 import { SimpleSyncStatus } from '@/lib/types';
 import { toast } from '@/lib/toast';
 
@@ -32,7 +33,7 @@ export const setLastSyncTimestamp = (date: Date = new Date()): void => {
 /**
  * Run a comprehensive sync of all data types
  */
-export const runComprehensiveSync = async (): Promise<SimpleSyncStatus> => {
+export const syncAllData = async (): Promise<SimpleSyncStatus> => {
   try {
     // Start with empty counts
     let syncedClients = 0;
@@ -60,6 +61,13 @@ export const runComprehensiveSync = async (): Promise<SimpleSyncStatus> => {
       console.log(`Synced ${syncedExpenses} expenses`);
     } catch (error) {
       console.error('Error syncing expenses:', error);
+    }
+    
+    try {
+      syncedTickets = await syncTickets();
+      console.log(`Synced ${syncedTickets} tickets`);
+    } catch (error) {
+      console.error('Error syncing tickets:', error);
     }
     
     // Create sync status summary

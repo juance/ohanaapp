@@ -1,5 +1,6 @@
 
 // Ticket status management utilities
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
 
 export type DatabaseStatus = 'pending' | 'processing' | 'ready' | 'delivered' | 'cancelled' | 'canceled';
 export type SimplifiedStatus = 'PENDING' | 'READY' | 'DELIVERED' | 'CANCELLED';

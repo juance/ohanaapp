@@ -1,6 +1,6 @@
 
-import { logError } from './errorHandlingService';
-import { ErrorLevel, ErrorContext } from './types';
+import { toast } from '@/lib/toast';
+import { logError } from '@/lib/errorHandlingService';
 
 /**
  * Handle validation errors during form validation
@@ -12,86 +12,105 @@ export const handleValidationError = (
 ): void => {
   logError(
     `Validation error: ${message}`,
-    ErrorLevel.WARNING,
-    ErrorContext.UI,
-    { field, value }
+    { field, value, type: 'validation' }
   );
+
+  toast.error(message);
 };
 
 /**
- * Validate string field is not empty
+ * Validate customer information
+ * @param name Customer name
+ * @param phone Phone number
+ * @returns true if valid, false otherwise
  */
-export const validateRequired = (value: string | undefined, fieldName: string): boolean => {
-  if (!value || value.trim() === '') {
-    handleValidationError(`${fieldName} is required`, fieldName);
+export const validateCustomer = (name: string, phone: string): boolean => {
+  if (!name.trim()) {
+    handleValidationError('El nombre del cliente es requerido', 'name', name);
     return false;
   }
+
+  if (!phone.trim()) {
+    handleValidationError('El teléfono del cliente es requerido', 'phone', phone);
+    return false;
+  }
+
   return true;
 };
 
 /**
- * Validate field meets minimum length
+ * Validate ticket information
+ * @param ticketData Ticket data object
+ * @returns true if valid, false otherwise
  */
-export const validateMinLength = (value: string | undefined, minLength: number, fieldName: string): boolean => {
-  if (!value || value.length < minLength) {
-    handleValidationError(`${fieldName} must be at least ${minLength} characters`, fieldName, value);
+export const validateTicket = (ticketData: any): boolean => {
+  if (!ticketData.clientName?.trim()) {
+    handleValidationError('El nombre del cliente es requerido', 'clientName', ticketData.clientName);
     return false;
   }
+
+  if (!ticketData.phoneNumber?.trim()) {
+    handleValidationError('El teléfono del cliente es requerido', 'phoneNumber', ticketData.phoneNumber);
+    return false;
+  }
+
+  if (ticketData.totalPrice === undefined || ticketData.totalPrice < 0) {
+    handleValidationError('El precio total debe ser un número positivo', 'totalPrice', ticketData.totalPrice);
+    return false;
+  }
+
+  if (!ticketData.paymentMethod) {
+    handleValidationError('El método de pago es requerido', 'paymentMethod', ticketData.paymentMethod);
+    return false;
+  }
+
   return true;
 };
 
 /**
- * Validate email format
+ * Validate expense information
+ * @param expenseData Expense data object
+ * @returns true if valid, false otherwise
  */
-export const validateEmail = (email: string): boolean => {
-  // Simple regex for email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    handleValidationError('Invalid email format', 'email', email);
+export const validateExpense = (expenseData: any): boolean => {
+  if (!expenseData.description?.trim()) {
+    handleValidationError('La descripción del gasto es requerida', 'description', expenseData.description);
     return false;
   }
+
+  if (expenseData.amount === undefined || expenseData.amount <= 0) {
+    handleValidationError('El monto debe ser mayor que cero', 'amount', expenseData.amount);
+    return false;
+  }
+
+  if (!expenseData.category?.trim()) {
+    handleValidationError('La categoría es requerida', 'category', expenseData.category);
+    return false;
+  }
+
   return true;
 };
 
 /**
- * Validate phone number format
+ * Validate feedback information
+ * @param feedbackData Feedback data object
+ * @returns true if valid, false otherwise
  */
-export const validatePhone = (phone: string): boolean => {
-  // Simple regex that accepts various phone formats
-  const phoneRegex = /^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/;
-  if (!phoneRegex.test(phone)) {
-    handleValidationError('Invalid phone number format', 'phone', phone);
+export const validateFeedback = (feedbackData: any): boolean => {
+  if (!feedbackData.customerName?.trim()) {
+    handleValidationError('El nombre del cliente es requerido', 'customerName', feedbackData.customerName);
     return false;
   }
-  return true;
-};
 
-/**
- * Validate numeric value range
- */
-export const validateNumericRange = (value: number, min: number, max: number, fieldName: string): boolean => {
-  if (value < min || value > max) {
-    handleValidationError(`${fieldName} must be between ${min} and ${max}`, fieldName, value);
+  if (feedbackData.rating === undefined || feedbackData.rating < 1 || feedbackData.rating > 5) {
+    handleValidationError('La calificación debe estar entre 1 y 5', 'rating', feedbackData.rating);
     return false;
   }
-  return true;
-};
 
-/**
- * Validate form data object
- */
-export const validateFormData = (formData: Record<string, any>, validationRules: Record<string, Function[]>): boolean => {
-  let isValid = true;
-  
-  Object.entries(validationRules).forEach(([field, rules]) => {
-    const value = formData[field];
-    
-    rules.forEach(rule => {
-      if (!rule(value)) {
-        isValid = false;
-      }
-    });
-  });
-  
-  return isValid;
+  if (!feedbackData.comment?.trim()) {
+    handleValidationError('El comentario es requerido', 'comment', feedbackData.comment);
+    return false;
+  }
+
+  return true;
 };

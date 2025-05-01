@@ -1,35 +1,39 @@
 
-import { mapToSimplifiedStatus, mapToDatabaseStatus } from '../../lib/ticket/ticketStatusService';
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
 
-// If these tests are not used, they can be replaced with placeholder tests
-test('mapToSimplifiedStatus converts pending to PENDING', () => {
+// Import functions from the module we want to test
+import { mapToSimplifiedStatus, mapToDatabaseStatus, moveToNextStatus } from '@/lib/ticket/ticketStatusService';
+
+// Test mapToSimplifiedStatus function
+test('mapToSimplifiedStatus should simplify pending status', () => {
   expect(mapToSimplifiedStatus('pending')).toBe('PENDING');
 });
 
-test('mapToSimplifiedStatus converts processing to PENDING', () => {
+test('mapToSimplifiedStatus should simplify processing status', () => {
   expect(mapToSimplifiedStatus('processing')).toBe('PENDING');
 });
 
-test('mapToSimplifiedStatus converts ready to READY', () => {
+test('mapToSimplifiedStatus should simplify ready status', () => {
   expect(mapToSimplifiedStatus('ready')).toBe('READY');
 });
 
-test('mapToSimplifiedStatus converts delivered to DELIVERED', () => {
+test('mapToSimplifiedStatus should simplify delivered status', () => {
   expect(mapToSimplifiedStatus('delivered')).toBe('DELIVERED');
 });
 
-test('mapToDatabaseStatus converts PENDING to ready', () => {
+// Test mapToDatabaseStatus function
+test('mapToDatabaseStatus should convert PENDING to ready', () => {
   expect(mapToDatabaseStatus('PENDING')).toBe('ready');
 });
 
-test('mapToDatabaseStatus converts READY to ready', () => {
-  expect(mapToDatabaseStatus('READY')).toBe('ready');
+test('mapToDatabaseStatus should preserve specific pending status', () => {
+  expect(mapToDatabaseStatus('PENDING', 'processing')).toBe('processing');
 });
 
-test('mapToDatabaseStatus converts DELIVERED to delivered', () => {
+test('mapToDatabaseStatus should convert DELIVERED to delivered', () => {
   expect(mapToDatabaseStatus('DELIVERED')).toBe('delivered');
 });
 
-test('mapToDatabaseStatus converts CANCELLED to canceled', () => {
+test('mapToDatabaseStatus should convert CANCELLED to canceled', () => {
   expect(mapToDatabaseStatus('CANCELLED')).toBe('canceled');
 });

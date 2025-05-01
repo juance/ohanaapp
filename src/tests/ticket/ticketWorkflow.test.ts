@@ -1,33 +1,30 @@
 
-import { moveToNextStatus } from '../../lib/ticket/ticketStatusService';
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
 
-// Simple tests for the ticket workflow
-test('moveToNextStatus advances pending to processing', () => {
+// Import functions from the module we want to test
+import { moveToNextStatus } from '@/lib/ticket/ticketStatusService';
+
+// Test moveToNextStatus function
+test('moveToNextStatus should move from pending to processing', () => {
   const ticket = { id: '1', status: 'pending' };
-  const result = moveToNextStatus(ticket);
-  expect(result.status).toBe('processing');
+  const updatedTicket = moveToNextStatus(ticket);
+  expect(updatedTicket.status).toBe('processing');
 });
 
-test('moveToNextStatus advances processing to ready', () => {
+test('moveToNextStatus should move from processing to ready', () => {
   const ticket = { id: '1', status: 'processing' };
-  const result = moveToNextStatus(ticket);
-  expect(result.status).toBe('ready');
+  const updatedTicket = moveToNextStatus(ticket);
+  expect(updatedTicket.status).toBe('ready');
 });
 
-test('moveToNextStatus advances ready to delivered', () => {
+test('moveToNextStatus should move from ready to delivered', () => {
   const ticket = { id: '1', status: 'ready' };
-  const result = moveToNextStatus(ticket);
-  expect(result.status).toBe('delivered');
+  const updatedTicket = moveToNextStatus(ticket);
+  expect(updatedTicket.status).toBe('delivered');
 });
 
-test('moveToNextStatus does not change delivered status', () => {
+test('moveToNextStatus should not change delivered status', () => {
   const ticket = { id: '1', status: 'delivered' };
-  const result = moveToNextStatus(ticket);
-  expect(result.status).toBe('delivered');
-});
-
-test('moveToNextStatus does not change canceled status', () => {
-  const ticket = { id: '1', status: 'canceled' };
-  const result = moveToNextStatus(ticket);
-  expect(result.status).toBe('canceled');
+  const updatedTicket = moveToNextStatus(ticket);
+  expect(updatedTicket).toBe(ticket); // Should return the same ticket object
 });

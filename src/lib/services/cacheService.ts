@@ -1,79 +1,115 @@
 
-interface CacheItem<T> {
-  value: T;
-  expiry: number;
+/**
+ * Simple cache service for local storage with timestamps
+ */
+
+// Type for cache entries
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
 }
 
-class CacheService {
-  private cache: Record<string, CacheItem<any>> = {};
+/**
+ * Get an item from cache
+ * @param key Cache key
+ * @returns Cached value or null if not found
+ */
+const get = <T>(key: string): T | null => {
+  try {
+    const item = localStorage.getItem(`cache_${key}`);
+    if (!item) return null;
+    
+    const cacheEntry: CacheEntry<T> = JSON.parse(item);
+    return cacheEntry.data;
+  } catch (error) {
+    console.error('Error retrieving from cache:', error);
+    return null;
+  }
+};
+
+/**
+ * Get timestamp for a cached item
+ * @param key Cache key
+ * @returns Timestamp or 0 if not found
+ */
+const getTimestamp = (key: string): number => {
+  try {
+    const item = localStorage.getItem(`cache_${key}`);
+    if (!item) return 0;
+    
+    const cacheEntry = JSON.parse(item);
+    return cacheEntry.timestamp;
+  } catch {
+    return 0;
+  }
+};
+
+/**
+ * Set an item in cache with current timestamp
+ * @param key Cache key
+ * @param data Data to cache
+ */
+const set = <T>(key: string, data: T): void => {
+  try {
+    const cacheEntry: CacheEntry<T> = {
+      data,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem(`cache_${key}`, JSON.stringify(cacheEntry));
+  } catch (error) {
+    console.error('Error saving to cache:', error);
+  }
+};
+
+/**
+ * Remove an item from cache
+ * @param key Cache key
+ */
+const remove = (key: string): void => {
+  try {
+    localStorage.removeItem(`cache_${key}`);
+  } catch (error) {
+    console.error('Error removing from cache:', error);
+  }
+};
+
+/**
+ * Check if cache contains an item and it's not expired
+ * @param key Cache key
+ * @param maxAge Maximum age in milliseconds
+ */
+const isValid = (key: string, maxAge: number): boolean => {
+  const timestamp = getTimestamp(key);
+  if (timestamp === 0) return false;
   
-  /**
-   * Get a value from cache
-   */
-  get<T>(key: string): T | null {
-    const item = this.cache[key];
+  const age = Date.now() - timestamp;
+  return age <= maxAge;
+};
+
+/**
+ * Clear all cached items
+ */
+const clear = (): void => {
+  try {
+    // Get all keys from localStorage
+    const keys = Object.keys(localStorage);
     
-    if (!item) {
-      return null;
-    }
-    
-    // Check if expired
-    if (item.expiry < Date.now()) {
-      this.remove(key);
-      return null;
-    }
-    
-    return item.value;
+    // Filter cache keys and remove them
+    keys
+      .filter(key => key.startsWith('cache_'))
+      .forEach(key => localStorage.removeItem(key));
+  } catch (error) {
+    console.error('Error clearing cache:', error);
   }
+};
 
-  /**
-   * Set a value in cache with expiry in seconds
-   */
-  set<T>(key: string, value: T, ttlSeconds: number = 300): void {
-    const expiry = Date.now() + ttlSeconds * 1000;
-    this.cache[key] = { value, expiry };
-  }
-
-  /**
-   * Remove item from cache
-   */
-  remove(key: string): void {
-    delete this.cache[key];
-  }
-
-  /**
-   * Clear all cache
-   */
-  clear(): void {
-    this.cache = {};
-  }
-
-  /**
-   * Get a cached value or fetch it if not available
-   */
-  async getOrFetch<T>(key: string, fetchFn: () => Promise<T>, ttlSeconds: number = 300): Promise<T> {
-    const cachedValue = this.get<T>(key);
-    
-    if (cachedValue !== null) {
-      return cachedValue;
-    }
-    
-    const freshValue = await fetchFn();
-    this.set(key, freshValue, ttlSeconds);
-    return freshValue;
-  }
-
-  /**
-   * Invalidate cache by namespace (prefix)
-   */
-  invalidateNamespace(namespace: string): void {
-    Object.keys(this.cache).forEach(key => {
-      if (key.startsWith(namespace)) {
-        this.remove(key);
-      }
-    });
-  }
-}
-
-// Export a singleton instance
-export const cacheService = new CacheService();
+// Export the cache service
+export const cacheService = {
+  get,
+  set,
+  remove,
+  clear,
+  getTimestamp,
+  isValid
+};
