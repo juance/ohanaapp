@@ -1,6 +1,22 @@
 
-import { logError, handleValidationError } from './errorHandlingService';
+import { logError } from './errorHandlingService';
 import { ErrorLevel, ErrorContext } from './types';
+
+/**
+ * Handle validation errors during form validation
+ */
+export const handleValidationError = (
+  message: string,
+  field?: string,
+  value?: any
+): void => {
+  logError(
+    `Validation error: ${message}`,
+    ErrorLevel.WARNING,
+    ErrorContext.UI,
+    { field, value }
+  );
+};
 
 /**
  * Validate string field is not empty

@@ -1,95 +1,25 @@
 
-// Re-export types from existing module files
-export * from './customer.types';
-export * from './expense.types';
-export * from './ticket.types';
-export * from './sync.types';
-export * from './inventory.types';
-export type { LaundryOption, Ticket } from './ticket.types'; // Re-export as type to fix isolatedModules error
+// Re-export all types from their separate files
 
-// Add LaundryService type with optionType property
-export interface LaundryService {
-  id: string;
-  name: string;
-  optionType: string;
-  price?: number;
-}
+// Customer types
+export type { Customer } from './customer.types';
+export type { ClientVisit } from './customer.types';
+export { convertCustomerToClientVisit } from './customer.types';
 
-// Export metrics types
-export interface DailyMetrics {
-  salesByHour: Record<string, number>;
-  paymentMethods: Record<string, number>;
-  totalSales: number;
-  valetCount: number;
-  dryCleaningItems?: Record<string, number>;
-  totalTickets?: number;
-  paidTickets?: number;
-  totalRevenue?: number;
-}
+// Ticket types
+export type { Ticket } from './ticket.types';
+export type { LaundryService } from './ticket.types';
+export type { LaundryOption } from './ticket.types';
 
-export interface WeeklyMetrics {
-  salesByDay: Record<string, number>;
-  paymentMethods: Record<string, number>;
-  totalSales: number;
-  valetCount: number;
-  dryCleaningItems?: Record<string, number>;
-  totalTickets?: number;
-  paidTickets?: number;
-  totalRevenue?: number;
-}
+// Sync types
+export type { SyncableCustomerFeedback, SimpleSyncStatus } from './sync.types';
+export type { SyncableExpense } from './expense.types';
 
-export interface MonthlyMetrics {
-  salesByDay: Record<string, number>;
-  salesByWeek?: Record<string, number>;
-  paymentMethods: Record<string, number>;
-  totalSales: number;
-  valetCount: number;
-  dryCleaningItems?: Record<string, number>;
-  totalTickets?: number;
-  paidTickets?: number;
-  totalRevenue?: number;
-}
+// Metrics types
+export type { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from './metrics.types';
 
-// Export error types
-export enum ErrorLevel {
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error',
-  CRITICAL = 'critical',
-}
+// Error types
+export { ErrorLevel, ErrorContext } from './error.types';
 
-export enum ErrorContext {
-  UI = 'ui',
-  API = 'api',
-  DATABASE = 'database',
-  AUTHENTICATION = 'authentication',
-  NETWORK = 'network',
-  OTHER = 'other',
-}
-
-// Menu types
-export interface MenuOption {
-  id: string;
-  label: string;
-  path: string;
-  icon?: string;
-}
-
-export interface MenuContext {
-  expanded: boolean;
-  toggleMenu: () => void;
-}
-
-// Export expense category
-export enum ExpenseTypeCategory {
-  SUPPLIES = 'supplies',
-  UTILITIES = 'utilities',
-  RENT = 'rent',
-  SALARIES = 'salaries',
-  MARKETING = 'marketing',
-  MAINTENANCE = 'maintenance',
-  OTHER = 'other',
-}
-
-// Explicit re-export to avoid duplication
-export type { CustomerFeedback } from './customer.types';
+// User menu types
+export type { UserMenuItem } from './menu.types';

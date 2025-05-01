@@ -1,141 +1,176 @@
-// scripts/dbDiagnostic.ts
-import { createClient } from '@supabase/supabase-js';
-import * as dotenv from 'dotenv';
 
-dotenv.config();
+import { supabase } from '@/integrations/supabase/client';
+import { logError } from '@/lib/errorHandlingService';
+import { ErrorLevel, ErrorContext } from '@/lib/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase URL and key must be defined in .env');
-  process.exit(1);
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-async function checkDatabaseConnection() {
+export const checkTableExists = async (tableName: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.from('test_table').select('*').limit(1);
-
-    if (error) {
-      console.error('Error connecting to Supabase:', error.message);
-      return false;
-    }
-
-    console.log('Successfully connected to Supabase');
-    return true;
-  } catch (error: any) {
-    console.error('Error connecting to Supabase:', error.message);
+    const { data, error } = await supabase.rpc('get_column_exists', {
+      table_name: tableName,
+      column_name: 'id'
+    });
+    
+    if (error) throw error;
+    
+    return !!data;
+  } catch (error) {
+    console.error(`Error checking if table ${tableName} exists:`, error);
     return false;
   }
-}
+};
 
-async function listTables() {
+export const checkColumnExists = async (tableName: string, columnName: string): Promise<boolean> => {
   try {
-    const response = await supabase.from('pg_tables').select('*').eq('schemaname', 'public');
-
-    if (response.error) {
-      console.error('Error listing tables:', response.error.message);
-      return;
-    }
-
-    console.log('Tables in the public schema:');
-    response.data.forEach((table: any) => {
-      console.log(`- ${table.tablename}`);
+    const { data, error } = await supabase.rpc('get_column_exists', {
+      table_name: tableName,
+      column_name: columnName
     });
-  } catch (error: any) {
-    console.error('Error listing tables:', error.message);
-  }
-}
-
-async function checkTableExists(table: string) {
-  try {
-    const response = await supabase
-      .from('pg_tables')
-      .select('*')
-      .eq('schemaname', 'public')
-      .eq('tablename', table);
-
-    if (response.error) {
-      console.error(`Error checking if table ${table} exists:`, response.error.message);
-      return false;
-    }
-
-    return response.data.length > 0;
-  } catch (error: any) {
-    console.error(`Error checking if table ${table} exists:`, error.message);
+    
+    if (error) throw error;
+    
+    return !!data;
+  } catch (error) {
+    console.error(`Error checking if column ${columnName} exists in table ${tableName}:`, error);
     return false;
   }
-}
+};
 
-async function checkColumnsExist(table: string) {
+export const checkRelationExists = async (table: string, foreignTable: string): Promise<boolean> => {
   try {
-    const response = await supabase
-      .from('pg_attribute')
-      .select('attname')
-      .eq('attrelid', `"${table}"`)
-      .gt('attnum', 0)
-      .not('attisdropped', true);
-
-    if (response.error) {
-      console.error(`Error checking columns for table ${table}:`, response.error.message);
-      return;
-    }
-
-    console.log(`Columns in table ${table}:`);
-    response.data.forEach((column: any) => {
-      console.log(`- ${column.attname}`);
+    const { data, error } = await supabase.rpc('check_relation_exists', {
+      table_name: table,
+      foreign_table: foreignTable
     });
-  } catch (error: any) {
-    console.error(`Error checking columns for table ${table}:`, error.message);
+    
+    if (error) throw error;
+    
+    return !!data;
+  } catch (error) {
+    console.error(`Error checking relation between ${table} and ${foreignTable}:`, error);
+    return false;
   }
-}
+};
 
-async function analyzeTable(table: string) {
+export const checkFunctionExists = async (functionName: string): Promise<boolean> => {
   try {
-    const validTables = [
-      'expenses', 'tickets', 'customers', 'users', 'customer_feedback',
-      'customer_types', 'dashboard_stats', 'dry_cleaning_items', 'error_logs',
-      'inventory_items', 'system_version', 'test_table', 'ticket_laundry_options',
-      'ticket_sequence', 'ticket_sequence_resets'
-    ];
+    // This is a simple check, we try to call the function and see if it errors
+    const { error } = await supabase.rpc(functionName);
+    
+    // If the error message includes "function does not exist", then the function doesn't exist
+    return !error || !error.message.includes('function does not exist');
+  } catch (error) {
+    console.error(`Error checking if function ${functionName} exists:`, error);
+    return false;
+  }
+};
 
-    if (validTables.includes(table)) {
-      const { data, error } = await supabase.from(table).select('*').limit(1);
+export const runTableCheck = async (): Promise<{
+  customersTable: boolean;
+  ticketsTable: boolean;
+  relationExists: boolean;
+}> => {
+  const customersTable = await checkTableExists('customers');
+  const ticketsTable = await checkTableExists('tickets');
+  const relationExists = await checkRelationExists('tickets', 'customers');
+  
+  return {
+    customersTable,
+    ticketsTable,
+    relationExists
+  };
+};
 
-      if (error) {
-        console.error(`Error analyzing table ${table}:`, error.message);
-      } else {
-        console.log(`Analysis of table ${table}:`);
-        console.log(data);
-      }
-    } else {
-      console.warn(`Skipping analysis of table ${table} because it's not in the valid tables list.`);
+export const runColumnCheck = async (): Promise<{
+  ticketNumberColumn: boolean;
+  customerIdColumn: boolean;
+  deliveredDateColumn: boolean;
+}> => {
+  const ticketNumberColumn = await checkColumnExists('tickets', 'ticket_number');
+  const customerIdColumn = await checkColumnExists('tickets', 'customer_id');
+  const deliveredDateColumn = await checkColumnExists('tickets', 'delivered_date');
+  
+  return {
+    ticketNumberColumn,
+    customerIdColumn,
+    deliveredDateColumn
+  };
+};
+
+export const runFunctionCheck = async (): Promise<{
+  getNextTicketNumber: boolean;
+  recalculateCustomerVisits: boolean;
+}> => {
+  const getNextTicketNumber = await checkFunctionExists('get_next_ticket_number');
+  const recalculateCustomerVisits = await checkFunctionExists('recalculate_customer_visits');
+  
+  return {
+    getNextTicketNumber,
+    recalculateCustomerVisits
+  };
+};
+
+export const runDatabaseDiagnostics = async (): Promise<{
+  tables: ReturnType<typeof runTableCheck>;
+  columns: ReturnType<typeof runColumnCheck>;
+  functions: ReturnType<typeof runFunctionCheck>;
+  status: 'success' | 'warning' | 'error';
+  message: string;
+}> => {
+  try {
+    const tables = await runTableCheck();
+    const columns = await runColumnCheck();
+    const functions = await runFunctionCheck();
+    
+    // Determine status based on diagnostic results
+    let status: 'success' | 'warning' | 'error' = 'success';
+    let message = 'Database structure is valid';
+    
+    if (!tables.customersTable || !tables.ticketsTable) {
+      status = 'error';
+      message = 'Missing required tables';
+    } else if (!tables.relationExists) {
+      status = 'warning';
+      message = 'Missing relation between tickets and customers';
+    } else if (!columns.ticketNumberColumn || !columns.customerIdColumn) {
+      status = 'error';
+      message = 'Missing required columns';
+    } else if (!functions.getNextTicketNumber) {
+      status = 'warning';
+      message = 'Missing ticket number generation function';
     }
-  } catch (error: any) {
-    console.error(`Error analyzing table ${table}:`, error.message);
+    
+    return {
+      tables,
+      columns,
+      functions,
+      status,
+      message
+    };
+  } catch (error) {
+    logError(
+      'Failed to run database diagnostics',
+      ErrorLevel.ERROR,
+      ErrorContext.DATABASE,
+      error
+    );
+    
+    return {
+      tables: {
+        customersTable: false,
+        ticketsTable: false,
+        relationExists: false
+      },
+      columns: {
+        ticketNumberColumn: false,
+        customerIdColumn: false,
+        deliveredDateColumn: false
+      },
+      functions: {
+        getNextTicketNumber: false,
+        recalculateCustomerVisits: false
+      },
+      status: 'error',
+      message: 'Failed to run diagnostics'
+    };
   }
-}
-
-async function main() {
-  const isConnected = await checkDatabaseConnection();
-  if (!isConnected) {
-    console.error('Failed to connect to the database. Exiting.');
-    process.exit(1);
-  }
-
-  await listTables();
-
-  const tablesToCheck = ['expenses', 'tickets', 'customers'];
-  for (const table of tablesToCheck) {
-    const exists = await checkTableExists(table);
-    console.log(`Table ${table} exists: ${exists}`);
-    if (exists) {
-      await checkColumnsExist(table);
-      await analyzeTable(table);
-    }
-  }
-}
-
-main();
+};

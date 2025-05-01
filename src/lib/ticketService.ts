@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 import { toast } from '@/lib/toast';

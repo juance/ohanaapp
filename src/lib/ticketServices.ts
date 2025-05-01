@@ -25,3 +25,11 @@ export {
   buildTicketSelectQuery,
   mapTicketData
 } from './ticket/ticketQueryUtils';
+
+// Re-export status utilities
+export {
+  isInStatus,
+  getDatabaseStatuses,
+  getStatusDisplayName,
+  getStatusBadgeClass
+} from './ticket/ticketStatusService';

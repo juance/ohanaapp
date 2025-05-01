@@ -9,6 +9,7 @@ export interface SearchBarProps {
   setSearchQuery: (query: string) => void;
   searchFilter: 'name' | 'phone';
   setSearchFilter: (filter: 'name' | 'phone') => void;
+  placeholder?: string;
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
@@ -16,13 +17,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   setSearchQuery,
   searchFilter,
   setSearchFilter,
+  placeholder = "Buscar por nombre o teléfono..."
 }) => {
   return (
     <div className="space-y-4 mb-6">
       <div>
         <Input
           type="text"
-          placeholder="Buscar por nombre o teléfono..."
+          placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full"
@@ -49,3 +51,5 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     </div>
   );
 };
+
+export default SearchBar;

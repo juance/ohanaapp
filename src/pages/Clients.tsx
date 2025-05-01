@@ -234,6 +234,7 @@ const Clients = () => {
             onSelectClient={handleSelectClient}
             onEditNameChange={handleEditNameChange}
             onEditPhoneChange={handleEditPhoneChange}
+            isLoading={isLoading}
           />
         </div>
       </div>

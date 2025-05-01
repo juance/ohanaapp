@@ -18,13 +18,13 @@ const errorLog: ErrorData[] = [];
 export const logError = (
   message: string,
   level: ErrorLevel = ErrorLevel.ERROR,
-  context: ErrorContext | {} = {},
+  context: ErrorContext = ErrorContext.UNKNOWN,
   details?: any
 ): void => {
   // Create error data
   const errorData: ErrorData = {
     level,
-    context: context as ErrorContext,
+    context,
     message,
     details,
     timestamp: new Date().toISOString()
@@ -99,7 +99,7 @@ export const handleComponentError = (error: any, component: string): void => {
   logError(
     `Error in component: ${component}`,
     ErrorLevel.ERROR,
-    { component }, // Fix: Use properly typed context
+    ErrorContext.UI,
     error
   );
 };

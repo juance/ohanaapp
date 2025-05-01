@@ -76,8 +76,8 @@ export const useTicketSubmit = (
       // Adjust the valet quantity if using a free one
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
 
-      // Prepare ticket data
-      const ticketDataObj = {
+      // Store the ticket using a single object parameter
+      const success = await storeTicket({
         totalPrice: useFreeValet ? 0 : totalPrice,
         paymentMethod: paymentMethod as any,
         valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0,
@@ -88,36 +88,22 @@ export const useTicketSubmit = (
         deliveredDate: null,
         customDate: date,
         usesFreeValet: useFreeValet,
-        isPaidInAdvance: isPaidInAdvance || false
-      };
-
-      // Prepare customer data
-      const customerData = {
-        name: customerName,
-        phoneNumber,
-      };
-
-      // Prepare dry cleaning items
-      const dryCleaningItemsData = activeTab === 'tintoreria'
-        ? selectedDryCleaningItems.map(item => {
-            const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
-            return {
-              name: itemDetails?.name || '',
-              quantity: item.quantity,
-              price: (itemDetails?.price || 0) * item.quantity
-            };
-          })
-        : [];
-
-      // Collect laundry options
-      const laundryOptions = getSelectedLaundryOptions();
-
-      // Store the ticket using a single object parameter
-      const success = await storeTicket({
-        ticketData: ticketDataObj,
-        customerData,
-        dryCleaningItems: dryCleaningItemsData,
-        laundryOptions
+        isPaidInAdvance: isPaidInAdvance || false,
+        customerData: {
+          name: customerName,
+          phoneNumber,
+        },
+        dryCleaningItems: activeTab === 'tintoreria'
+          ? selectedDryCleaningItems.map(item => {
+              const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+              return {
+                name: itemDetails?.name || '',
+                quantity: item.quantity,
+                price: (itemDetails?.price || 0) * item.quantity
+              };
+            })
+          : [],
+        laundryOptions: getSelectedLaundryOptions()
       });
 
       if (success) {
@@ -127,7 +113,16 @@ export const useTicketSubmit = (
             ticketType: activeTab,
             isPaid: isPaidInAdvance || false,
             total: useFreeValet ? 0 : totalPrice,
-            items: dryCleaningItemsData,
+            items: activeTab === 'tintoreria' 
+              ? selectedDryCleaningItems.map(item => {
+                  const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+                  return {
+                    name: itemDetails?.name || '',
+                    quantity: item.quantity,
+                    price: (itemDetails?.price || 0) * item.quantity
+                  };
+                })
+              : [],
             valetQuantity: effectiveValetQuantity,
             usesFreeValet: useFreeValet
           });
@@ -157,13 +152,22 @@ export const useTicketSubmit = (
             totalPrice,
             paymentMethod,
             effectiveValetQuantity,
-            dryCleaningItemsData,
+            activeTab === 'tintoreria' 
+              ? selectedDryCleaningItems.map(item => {
+                  const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+                  return {
+                    name: itemDetails?.name || '',
+                    quantity: item.quantity,
+                    price: (itemDetails?.price || 0) * item.quantity
+                  };
+                })
+              : [],
             date,
             useFreeValet,
             isPaidInAdvance || false
           );
 
-          onTicketGenerated(ticketForPrint, laundryOptions);
+          onTicketGenerated(ticketForPrint, getSelectedLaundryOptions());
         }
 
         // Reset form

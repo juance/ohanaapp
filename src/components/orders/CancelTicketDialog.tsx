@@ -1,16 +1,15 @@
 
 import React from 'react';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 
 interface CancelTicketDialogProps {
   open: boolean;
@@ -27,54 +26,31 @@ const CancelTicketDialog: React.FC<CancelTicketDialogProps> = ({
   setCancelReason,
   handleCancelTicket
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleCancelTicket();
-  };
-
-  const isDisabled = !cancelReason || cancelReason.trim() === '';
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Cancelar Ticket</DialogTitle>
           <DialogDescription>
-            Ingrese el motivo por el que se cancela este ticket.
+            Ingrese el motivo por el cual desea cancelar este ticket.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="reason" className="text-left">
-                Motivo de cancelación
-              </Label>
-              <Textarea
-                id="reason"
-                placeholder="Ingrese el motivo de la cancelación..."
-                value={cancelReason || ''} // Handle null/undefined
-                onChange={(e) => setCancelReason(e.target.value)}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              type="submit" 
-              variant="destructive"
-              disabled={isDisabled}
-            >
-              Confirmar Cancelación
-            </Button>
-          </DialogFooter>
-        </form>
+        <div className="grid gap-4 py-4">
+          <Textarea
+            placeholder="Motivo de cancelación"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            className="min-h-[100px]"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
+          <Button variant="destructive" onClick={handleCancelTicket} disabled={!cancelReason.trim()}>
+            Confirmar Cancelación
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

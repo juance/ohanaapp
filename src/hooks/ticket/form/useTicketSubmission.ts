@@ -55,16 +55,14 @@ export const useTicketSubmission = (
 
       // Store the ticket using a single object parameter
       const success = await storeTicket({
-        ticketData: {
-          totalPrice: calculateTotal(),
-          paymentMethod,
-          valetQuantity: 1,
-          status: 'pending',
-          isPaid: false,
-          clientName,
-          phoneNumber,
-          deliveredDate: null
-        },
+        totalPrice: calculateTotal(),
+        paymentMethod,
+        valetQuantity: 1,
+        status: 'pending',
+        isPaid: false,
+        clientName,
+        phoneNumber,
+        deliveredDate: null,
         customerData: {
           name: clientName,
           phoneNumber

@@ -2,16 +2,17 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
+import { Ticket } from '@/lib/types';
 
 interface PickupActionButtonsProps {
-  tickets: any[];
+  tickets: Ticket[];
   selectedTicket: string | null;
-  handleMarkAsDelivered: (ticketId: string) => void;
+  handleMarkAsDelivered: (ticketId: string) => Promise<void>;
   handleOpenCancelDialog: () => void;
   handlePrintTicket: (ticketId: string) => void;
   handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => void;
-  handleNotifyClient?: (ticketId: string, phoneNumber?: string) => void;
-  handleOpenPaymentMethodDialog?: () => void;
+  handleNotifyClient: (ticketId: string, phoneNumber?: string) => void;
+  handleOpenPaymentMethodDialog: () => void;
 }
 
 const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
@@ -24,85 +25,81 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
   handleNotifyClient,
   handleOpenPaymentMethodDialog
 }) => {
-  const isButtonDisabled = !selectedTicket;
+  const getSelectedTicketPhone = () => {
+    if (!selectedTicket) return '';
+    const ticket = tickets.find(t => t.id === selectedTicket);
+    return ticket ? ticket.phoneNumber : '';
+  };
 
-  const selectedTicketObject = tickets.find((ticket) => ticket.id === selectedTicket);
+  const isTicketSelected = !!selectedTicket;
 
   return (
-    <div className="flex flex-wrap gap-2 mb-4">
+    <div className="flex flex-wrap gap-2 mb-6">
       <Button
         variant="default"
         size="sm"
-        className="gap-1"
-        disabled={isButtonDisabled}
+        className="flex items-center"
+        disabled={!isTicketSelected}
         onClick={() => selectedTicket && handleMarkAsDelivered(selectedTicket)}
       >
-        <Check className="h-4 w-4" />
-        Marcar como Entregado
+        <Check className="mr-1 h-4 w-4" />
+        <span>Entregar</span>
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center"
+        disabled={!isTicketSelected}
+        onClick={() => selectedTicket && handlePrintTicket(selectedTicket)}
+      >
+        <Printer className="mr-1 h-4 w-4" />
+        <span>Imprimir</span>
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center"
+        disabled={!isTicketSelected}
+        onClick={() => selectedTicket && handleShareWhatsApp(selectedTicket, getSelectedTicketPhone())}
+      >
+        <Share2 className="mr-1 h-4 w-4" />
+        <span>WhatsApp</span>
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center"
+        disabled={!isTicketSelected}
+        onClick={() => selectedTicket && handleNotifyClient(selectedTicket, getSelectedTicketPhone())}
+      >
+        <Bell className="mr-1 h-4 w-4" />
+        <span>Notificar</span>
+      </Button>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center"
+        disabled={!isTicketSelected}
+        onClick={handleOpenPaymentMethodDialog}
+      >
+        <CreditCard className="mr-1 h-4 w-4" />
+        <span>Método de pago</span>
       </Button>
 
       <Button
         variant="destructive"
         size="sm"
-        className="gap-1"
-        disabled={isButtonDisabled}
+        className="flex items-center"
+        disabled={!isTicketSelected}
         onClick={handleOpenCancelDialog}
       >
-        <X className="h-4 w-4" />
-        Cancelar Ticket
+        <X className="mr-1 h-4 w-4" />
+        <span>Cancelar</span>
       </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-1"
-        disabled={isButtonDisabled}
-        onClick={() => selectedTicket && handlePrintTicket(selectedTicket)}
-      >
-        <Printer className="h-4 w-4" />
-        Imprimir
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-1"
-        disabled={isButtonDisabled || !selectedTicketObject?.phoneNumber}
-        onClick={() => selectedTicket && selectedTicketObject &&
-          handleShareWhatsApp(selectedTicket, selectedTicketObject.phoneNumber)
-        }
-      >
-        <Share2 className="h-4 w-4" />
-        Compartir por WhatsApp
-      </Button>
-
-      {handleNotifyClient && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1"
-          disabled={isButtonDisabled || !selectedTicketObject?.phoneNumber}
-          onClick={() => selectedTicket && selectedTicketObject &&
-            handleNotifyClient(selectedTicket, selectedTicketObject.phoneNumber)
-          }
-        >
-          <Bell className="h-4 w-4" />
-          Avisar al Cliente
-        </Button>
-      )}
-
-      {handleOpenPaymentMethodDialog && (
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1"
-          disabled={isButtonDisabled}
-          onClick={handleOpenPaymentMethodDialog}
-        >
-          <CreditCard className="h-4 w-4" />
-          Cambiar Método de Pago
-        </Button>
-      )}
     </div>
   );
 };
