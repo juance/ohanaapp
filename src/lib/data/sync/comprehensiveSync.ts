@@ -57,7 +57,7 @@ export const syncAllData = async (): Promise<SimpleSyncStatus> => {
     }
     
     try {
-      syncedExpenses = await syncExpenses();
+      syncedExpenses = await syncExpenses([]);
       console.log(`Synced ${syncedExpenses} expenses`);
     } catch (error) {
       console.error('Error syncing expenses:', error);

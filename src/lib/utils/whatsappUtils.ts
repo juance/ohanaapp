@@ -1,66 +1,56 @@
 
 /**
- * Utilities for WhatsApp integration
+ * Opens WhatsApp with a predefined message for the given phone number
+ * 
+ * @param phoneNumber The phone number to send the message to
+ * @param message The message to send
  */
-
-/**
- * Creates a WhatsApp message link with prefilled text
- * @param phoneNumber Phone number without country code
- * @param message Optional prefilled message
- * @returns WhatsApp URL that can be used in href
- */
-export const createWhatsAppLink = (phoneNumber: string, message?: string): string => {
-  // Format phone number: remove spaces, dashes, and add country code if not present
-  const formattedPhone = formatPhoneNumber(phoneNumber);
+export const openWhatsApp = (phoneNumber: string, message: string): void => {
+  // Clean phone number (remove non-numeric characters)
+  const cleanPhoneNumber = phoneNumber.replace(/\D/g, '');
   
-  // Build the WhatsApp URL
-  let url = `https://wa.me/${formattedPhone}`;
-  
-  // Add message if provided
-  if (message && message.trim()) {
-    const encodedMessage = encodeURIComponent(message.trim());
-    url += `?text=${encodedMessage}`;
+  // Ensure phone number has country code (add Argentina +54 if not present)
+  let formattedPhone = cleanPhoneNumber;
+  if (!formattedPhone.startsWith('54') && !formattedPhone.startsWith('549')) {
+    formattedPhone = '549' + formattedPhone;
   }
   
-  return url;
+  // Encode the message for URL
+  const encodedMessage = encodeURIComponent(message);
+  
+  // Create the WhatsApp URL
+  const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMessage}`;
+  
+  // Open WhatsApp in new tab
+  window.open(whatsappUrl, '_blank');
 };
 
 /**
- * Format phone number for WhatsApp link
- * Adds Argentina country code (54) if not present
- * Removes spaces, dashes and other non-numeric characters
+ * Formats a phone number for display
+ * 
+ * @param phoneNumber The raw phone number
+ * @returns Formatted phone number
  */
 export const formatPhoneNumber = (phoneNumber: string): string => {
-  if (!phoneNumber) return '';
+  // Clean phone number
+  const cleaned = phoneNumber.replace(/\D/g, '');
   
-  // Remove non-numeric characters
-  let cleaned = phoneNumber.replace(/\D/g, '');
-  
-  // Add Argentina country code if not present
-  if (!cleaned.startsWith('54') && cleaned.length <= 10) {
-    cleaned = `54${cleaned}`;
+  // Format for Argentina standard (11 1234-5678)
+  if (cleaned.length === 10) {
+    return `${cleaned.substring(0, 2)} ${cleaned.substring(2, 6)}-${cleaned.substring(6)}`;
   }
   
-  return cleaned;
+  // Return original if can't format
+  return phoneNumber;
 };
 
 /**
- * Create a WhatsApp link with a ticket ready message
- * @param phoneNumber Customer phone number
- * @param ticketNumber The ticket number
- * @returns WhatsApp URL with prefilled message
+ * Checks if a phone number is valid (has minimum digits)
+ * 
+ * @param phoneNumber The phone number to validate
+ * @returns Boolean indicating if phone is valid
  */
-export const createTicketReadyMessage = (phoneNumber: string, ticketNumber: string): string => {
-  const message = `Hola! Tu ropa ya está lista para retirar. Ticket #${ticketNumber}. Gracias por confiar en nosotros!`;
-  return createWhatsAppLink(phoneNumber, message);
-};
-
-/**
- * Open WhatsApp with a prefilled message in a new tab
- * @param phoneNumber Customer phone number
- * @param message Message to send
- */
-export const openWhatsApp = (phoneNumber: string, message?: string): void => {
-  const url = createWhatsAppLink(phoneNumber, message);
-  window.open(url, '_blank');
+export const isValidPhone = (phoneNumber: string): boolean => {
+  const cleaned = phoneNumber.replace(/\D/g, '');
+  return cleaned.length >= 8;
 };

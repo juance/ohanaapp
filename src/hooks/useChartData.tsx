@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types';
 
@@ -117,4 +116,46 @@ export const useChartData = (
     lineData,
     pieData
   };
+};
+
+export const getMonthlyWeeklySalesData = (metrics: MonthlyMetrics) => {
+  if (!metrics || !metrics.salesByWeek) {
+    return [];
+  }
+
+  return Object.keys(metrics.salesByWeek).map(week => ({
+    name: `Semana ${week}`,
+    total: metrics.salesByWeek[week]
+  }));
+};
+
+export const getDryCleaningItemsData = (
+  metrics: DailyMetrics | WeeklyMetrics | MonthlyMetrics,
+  period: 'daily' | 'weekly' | 'monthly'
+) => {
+  // For daily metrics, we know they have dryCleaningItems
+  if (period === 'daily' && metrics.dryCleaningItems) {
+    return Object.keys(metrics.dryCleaningItems).map(item => ({
+      name: item,
+      value: metrics.dryCleaningItems[item]
+    }));
+  } 
+  
+  // For weekly metrics, they might not have dryCleaningItems
+  if (period === 'weekly' && (metrics as WeeklyMetrics).dryCleaningItems) {
+    return Object.keys((metrics as WeeklyMetrics).dryCleaningItems || {}).map(item => ({
+      name: item,
+      value: (metrics as WeeklyMetrics).dryCleaningItems?.[item] || 0
+    }));
+  }
+  
+  // For monthly metrics, they might not have dryCleaningItems
+  if (period === 'monthly' && (metrics as MonthlyMetrics).dryCleaningItems) {
+    return Object.keys((metrics as MonthlyMetrics).dryCleaningItems || {}).map(item => ({
+      name: item,
+      value: (metrics as MonthlyMetrics).dryCleaningItems?.[item] || 0
+    }));
+  }
+  
+  return [];
 };

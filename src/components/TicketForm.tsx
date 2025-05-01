@@ -42,7 +42,7 @@ const TicketForm = () => {
     { id: '1', value: 'cash', label: 'Efectivo' },
     { id: '2', value: 'debit', label: 'Débito' },
     { id: '3', value: 'mercadopago', label: 'Mercado Pago' },
-    { id: '4', value: 'cuentaDni', label: 'Cuenta DNI' }
+    { id: '4', value: 'cuenta_dni', label: 'Cuenta DNI' }
   ];
 
   // Add optionType to laundryServices for compatibility with the LaundryService type

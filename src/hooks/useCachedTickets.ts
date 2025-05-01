@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
+import { Ticket, PaymentMethod } from '@/lib/types';
 
 export const useCachedTickets = (status?: string, limit: number = 100) => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -34,7 +34,7 @@ export const useCachedTickets = (status?: string, limit: number = 100) => {
           clientName: ticket.customers?.name || 'Cliente',
           phoneNumber: ticket.customers?.phone || '',
           totalPrice: ticket.total || 0,
-          paymentMethod: ticket.payment_method || 'cash',
+          paymentMethod: (ticket.payment_method as PaymentMethod) || 'cash',
           status: ticket.status || 'pending',
           isPaid: ticket.is_paid || false,
           valetQuantity: ticket.valet_quantity || 0,

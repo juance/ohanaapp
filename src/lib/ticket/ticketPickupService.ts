@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket } from '@/lib/types';
+import { Ticket, PaymentMethod } from '@/lib/types';
 import { toast } from '@/lib/toast';
 
 /**
@@ -31,7 +31,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       clientName: item.customers?.name || 'Unknown',
       phoneNumber: item.customers?.phone || '',
       totalPrice: item.total || 0,
-      paymentMethod: item.payment_method || 'cash',
+      paymentMethod: item.payment_method as PaymentMethod || 'cash',
       status: item.status || 'pending',
       isPaid: item.is_paid || false,
       valetQuantity: item.valet_quantity || 0,
@@ -77,7 +77,7 @@ export const getUnretrievedTickets = async (daysThreshold = 7): Promise<Ticket[]
       clientName: item.customers?.name || 'Unknown',
       phoneNumber: item.customers?.phone || '',
       totalPrice: item.total || 0,
-      paymentMethod: item.payment_method || 'cash',
+      paymentMethod: item.payment_method as PaymentMethod || 'cash',
       status: item.status || 'pending',
       isPaid: item.is_paid || false,
       valetQuantity: item.valet_quantity || 0,

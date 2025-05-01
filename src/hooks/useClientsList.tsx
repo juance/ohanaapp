@@ -1,131 +1,57 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { ClientVisit, Customer } from '@/lib/types';
-import { useCachedClients } from './useCachedClients';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
-import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit } from '@/lib/types';
 
 export const useClientsList = () => {
-  // Get clients from the cached clients hook
-  const { clients, isLoading, error, refetch } = useCachedClients();
+  const [clients, setClients] = useState<ClientVisit[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  // State for client management
-  const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
-  const [isEditingClient, setIsEditingClient] = useState<string>('');
-  const [editClientName, setEditClientName] = useState('');
-  const [editClientPhone, setEditClientPhone] = useState('');
-  const [newClientName, setNewClientName] = useState('');
-  const [newClientPhone, setNewClientPhone] = useState('');
-  const [isAddingClient, setIsAddingClient] = useState(false);
-
-  // Function to handle client selection
-  const handleSelectClient = useCallback((client: ClientVisit) => {
-    setSelectedClient(client);
-  }, []);
-
-  // Function to start editing a client
-  const handleEditClient = useCallback((client: ClientVisit) => {
-    setIsEditingClient(client.id);
-    setEditClientName(client.clientName);
-    setEditClientPhone(client.phoneNumber);
-  }, []);
-
-  // Function to cancel editing
-  const handleCancelEdit = useCallback(() => {
-    setIsEditingClient('');
-    setEditClientName('');
-    setEditClientPhone('');
-  }, []);
-
-  // Function to save edited client
-  const handleSaveClient = useCallback(async () => {
-    if (!isEditingClient) return;
-
+  const fetchClients = useCallback(async () => {
     try {
-      // Update client in Supabase
-      const { error } = await supabase
-        .from('customers')
-        .update({
-          name: editClientName,
-          phone: editClientPhone
-        })
-        .eq('id', isEditingClient);
-
-      if (error) throw error;
-
-      // Refresh client list
-      await refetch();
-      toast.success('Cliente actualizado exitosamente');
-      setIsEditingClient('');
-    } catch (error) {
-      console.error('Error saving client:', error);
-      toast.error('Error al actualizar el cliente');
-    }
-  }, [isEditingClient, editClientName, editClientPhone, refetch]);
-
-  // Function to add a new client
-  const handleAddClient = useCallback(async () => {
-    if (!newClientName || !newClientPhone) {
-      toast.error('Por favor complete todos los campos');
-      return;
-    }
-
-    setIsAddingClient(true);
-
-    try {
-      // Add client to Supabase
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('customers')
-        .insert({
-          name: newClientName,
-          phone: newClientPhone,
-          valets_count: 0,
-          free_valets: 0,
-          loyalty_points: 0
-        })
-        .select();
+        .select('*')
+        .order('name');
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message);
+      }
 
-      // Refresh client list
-      await refetch();
-      toast.success('Cliente agregado exitosamente');
-      
-      // Clear form
-      setNewClientName('');
-      setNewClientPhone('');
-    } catch (error) {
-      console.error('Error adding client:', error);
-      toast.error('Error al agregar el cliente');
+      const mappedClients: ClientVisit[] = data.map(client => ({
+        id: client.id,
+        clientName: client.name,
+        phoneNumber: client.phone,
+        visitCount: client.valets_count || 0,
+        lastVisit: client.last_visit,
+        loyaltyPoints: client.loyalty_points || 0,
+        freeValets: client.free_valets || 0,
+        valetsCount: client.valets_count || 0
+      }));
+
+      setClients(mappedClients);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching clients:', err);
+      setError(err instanceof Error ? err : new Error('Error fetching clients'));
     } finally {
-      setIsAddingClient(false);
+      setIsLoading(false);
     }
-  }, [newClientName, newClientPhone, refetch]);
+  }, []);
 
-  // Map to expose the necessary properties and functions that match what's used in pages/Clients.tsx
-  return {
-    clients,
-    frequentClients: clients,
-    isLoading,
-    loading: isLoading,
-    error: error || '',
-    selectedClient: selectedClient || {} as ClientVisit,
-    isEditingClient,
-    editClientName,
-    editClientPhone,
-    newClientName,
-    newClientPhone,
-    isAddingClient,
-    handleSelectClient,
-    handleEditClient,
-    handleSaveClient,
-    handleCancelEdit,
-    handleAddClient,
-    setNewClientName,
-    setNewClientPhone,
-    setEditClientName,
-    setEditClientPhone,
-    refreshData: refetch
-  };
+  // Load clients on initial mount
+  useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
+  const refreshClients = useCallback(async () => {
+    await fetchClients();
+  }, [fetchClients]);
+
+  // Add refetch as an alias for refreshClients for compatibility
+  const refetch = refreshClients;
+
+  return { clients, isLoading, error, refreshClients, refetch };
 };

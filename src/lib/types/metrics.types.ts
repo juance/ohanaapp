@@ -14,6 +14,7 @@ export interface DailyMetrics {
   valetCount: number;
   paidTickets?: number;
   totalRevenue?: number;
+  totalTickets?: number;
 }
 
 export interface WeeklyMetrics {
@@ -28,10 +29,13 @@ export interface WeeklyMetrics {
   valetCount: number;
   paidTickets?: number;
   totalRevenue?: number;
+  totalTickets?: number;
+  dryCleaningItems?: Record<string, number>;
 }
 
 export interface MonthlyMetrics {
   salesByDay: Record<string, number>;
+  salesByWeek: Record<string, number>;
   paymentMethods: {
     cash: number;
     debit: number;
@@ -42,4 +46,6 @@ export interface MonthlyMetrics {
   valetCount: number;
   paidTickets?: number;
   totalRevenue?: number;
+  totalTickets?: number;
+  dryCleaningItems?: Record<string, number>;
 }

@@ -1,208 +1,95 @@
+
+import { Ticket, DryCleaningItem, LaundryOption, PaymentMethod } from '@/lib/types';
+import { formatDate } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, TicketService } from '@/lib/types';
 
 /**
- * Get all tickets from a specific customer
- * @param customerId Customer ID
- * @returns Array of tickets
- */
-export const getTicketsByCustomer = async (customerId: string): Promise<Ticket[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .select('*')
-      .eq('customer_id', customerId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    return data.map((ticket: any) => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      clientName: '', // Will be populated by caller if needed
-      phoneNumber: '', // Will be populated by caller if needed
-      totalPrice: Number(ticket.total),
-      paymentMethod: ticket.payment_method,
-      status: ticket.status,
-      isPaid: ticket.is_paid,
-      valetQuantity: ticket.valet_quantity,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date,
-      customerId: ticket.customer_id
-    }));
-  } catch (error) {
-    console.error('Error getting tickets by customer:', error);
-    throw error;
-  }
-};
-
-/**
- * Get a single ticket by its ID with all associated services
- * @param ticketId Ticket ID
- * @returns The ticket with its services
- */
-export const getTicketWithServices = async (ticketId: string): Promise<Ticket> => {
-  try {
-    // Get the ticket
-    const { data: ticketData, error: ticketError } = await supabase
-      .from('tickets')
-      .select('*')
-      .eq('id', ticketId)
-      .single();
-      
-    if (ticketError) throw ticketError;
-    
-    // Get the dry cleaning items
-    const { data: dryCleaningItems, error: dryCleaningError } = await supabase
-      .from('dry_cleaning_items')
-      .select('*')
-      .eq('ticket_id', ticketId);
-      
-    if (dryCleaningError) throw dryCleaningError;
-    
-    // Get laundry options
-    const { data: laundryOptions, error: laundryOptionsError } = await supabase
-      .from('ticket_laundry_options')
-      .select('*')
-      .eq('ticket_id', ticketId);
-      
-    if (laundryOptionsError) throw laundryOptionsError;
-    
-    // Build the ticket object with its services
-    const ticket: Ticket = {
-      id: ticketData.id,
-      ticketNumber: ticketData.ticket_number,
-      clientName: '', // Will be populated by caller if needed
-      phoneNumber: '', // Will be populated by caller if needed
-      totalPrice: Number(ticketData.total),
-      paymentMethod: ticketData.payment_method,
-      status: ticketData.status,
-      isPaid: ticketData.is_paid,
-      valetQuantity: ticketData.valet_quantity,
-      createdAt: ticketData.created_at,
-      deliveredDate: ticketData.delivered_date,
-      dryCleaningItems: dryCleaningItems || [],
-      laundryOptions: laundryOptions || [],
-      customerId: ticketData.customer_id
-    };
-    
-    return ticket;
-  } catch (error) {
-    console.error('Error getting ticket with services:', error);
-    throw error;
-  }
-};
-
-/**
- * Checks if the delivered_date column exists in the tickets table.
- * @returns {Promise<boolean>} A promise that resolves to true if the column exists, false otherwise.
+ * Check if the delivered_date column exists in the tickets table
  */
 export const checkDeliveredDateColumnExists = async (): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('get_column_exists', {
-      table_name: 'tickets',
-      column_name: 'delivered_date'
-    });
-
-    if (error) {
-      console.error('Error checking column exists:', error);
-      return false;
-    }
-
-    return !!data;
+    // Just attempt a query that uses the delivered_date column
+    await supabase
+      .from('tickets')
+      .select('delivered_date')
+      .limit(1);
+    
+    return true;
   } catch (error) {
-    console.error('Unexpected error checking column exists:', error);
+    console.error('Error checking delivered_date column:', error);
     return false;
   }
 };
 
 /**
- * Checks if the customers relation exists for tickets table.
- * @returns {Promise<boolean>} A promise that resolves to true if the relation exists, false otherwise.
+ * Builds a select query for tickets based on status and other filters
  */
-export const checkTicketsCustomersRelationExists = async (): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase.rpc('check_relation_exists', {
-      table_name: 'tickets',
-      foreign_table: 'customers'
-    });
-
-    if (error) {
-      console.error('Error checking relation exists:', error);
-      return false;
-    }
-
-    return !!data;
-  } catch (error) {
-    console.error('Unexpected error checking relation exists:', error);
-    return false;
-  }
-};
-
-/**
- * Builds a query to select tickets based on a status filter.
- * @param {string} statusFilter The status to filter tickets by.
- * @returns {PostgrestFilterBuilder} A Supabase query builder.
- */
-export const buildTicketSelectQuery = (statusFilter?: string) => {
+export const buildTicketSelectQuery = (status?: string | string[], limit?: number) => {
   let query = supabase
     .from('tickets')
     .select(`
-      id,
-      ticket_number,
-      total,
-      payment_method,
-      status,
-      is_paid,
-      created_at,
-      updated_at,
-      delivered_date,
-      valet_quantity,
-      customers (
-        id, name, phone
-      ),
-      dry_cleaning_items (
-        id, name, quantity, price
-      ),
-      ticket_laundry_options (
-        id, option_type
-      )
-    `);
-
-  if (statusFilter) {
-    query = query.eq('status', statusFilter);
+      *,
+      customers (id, name, phone),
+      dry_cleaning_items (id, name, quantity, price),
+      ticket_laundry_options (id, option_type)
+    `)
+    .order('created_at', { ascending: false });
+    
+  if (status) {
+    if (Array.isArray(status)) {
+      query = query.in('status', status);
+    } else {
+      query = query.eq('status', status);
+    }
   }
-
-  return query.order('created_at', { ascending: false });
+  
+  if (limit) {
+    query = query.limit(limit);
+  }
+  
+  return query;
 };
 
 /**
- * Maps raw ticket data from the database to the Ticket type.
- * @param {any} ticket The raw ticket data from the database.
- * @returns {Ticket | null} A mapped Ticket object or null if mapping fails.
+ * Maps database ticket data to the Ticket interface
  */
-export const mapTicketData = (ticket: any): Ticket | null => {
-  if (!ticket) return null;
-  
-  return {
-    id: ticket.id,
-    ticketNumber: ticket.ticket_number,
-    basketTicketNumber: ticket.basket_ticket_number,
-    clientName: ticket.customers?.name || '',
-    phoneNumber: ticket.customers?.phone || '',
-    totalPrice: ticket.total || 0,
-    paymentMethod: ticket.payment_method || 'cash',
-    status: ticket.status || 'pending',
-    isPaid: ticket.is_paid || false,
-    valetQuantity: ticket.valet_quantity || 0,
-    createdAt: ticket.created_at,
-    deliveredDate: ticket.delivered_date || null,
-    customerId: ticket.customer_id,
-    services: ticket.dry_cleaning_items?.map((item: any) => ({
+export const mapTicketData = (data: any): Ticket => {
+  // Extract dry cleaning items
+  const dryCleaningItems: DryCleaningItem[] = data.dry_cleaning_items ? 
+    data.dry_cleaning_items.map((item: any) => ({
       id: item.id,
       name: item.name,
       quantity: item.quantity || 1,
-      price: item.price || 0
-    })) || []
+      price: item.price || 0,
+      ticketId: data.id
+    })) : [];
+  
+  // Extract laundry options
+  const laundryOptions: LaundryOption[] = data.ticket_laundry_options ?
+    data.ticket_laundry_options.map((option: any) => ({
+      id: option.id,
+      name: option.option_type, // Map option_type to name
+      optionType: option.option_type,
+      ticketId: data.id,
+      createdAt: option.created_at
+    })) : [];
+  
+  // Map the ticket data
+  return {
+    id: data.id,
+    ticketNumber: data.ticket_number || '',
+    clientName: data.customers?.name || 'Cliente',
+    phoneNumber: data.customers?.phone || '',
+    totalPrice: data.total || 0,
+    paymentMethod: (data.payment_method as PaymentMethod) || 'cash',
+    status: data.status || 'pending',
+    isPaid: data.is_paid || false,
+    valetQuantity: data.valet_quantity || 0,
+    createdAt: data.created_at || '',
+    deliveredDate: data.delivered_date,
+    customerId: data.customer_id,
+    basketTicketNumber: data.basket_ticket_number,
+    dryCleaningItems,
+    laundryOptions
   };
 };

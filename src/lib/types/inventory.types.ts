@@ -9,4 +9,5 @@ export interface InventoryItem {
   unit?: string;
   notes?: string;
   createdAt?: string;
+  lastUpdated?: string;
 }

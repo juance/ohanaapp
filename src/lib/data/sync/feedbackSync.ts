@@ -44,10 +44,10 @@ export const syncFeedback = async (feedbackItems: SyncableCustomerFeedback[] = [
           .from('customer_feedback')
           .insert({
             id: item.id,
-            customer_name: item.customerName, // Use customerName instead of customer_name
+            customer_name: item.customerName, 
             rating: item.rating,
             comment: item.comment,
-            created_at: item.createdAt, // Use createdAt instead of created_at
+            created_at: item.createdAt,
             source: item.source || 'app'
           });
           

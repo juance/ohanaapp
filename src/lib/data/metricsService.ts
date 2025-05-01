@@ -3,37 +3,37 @@ import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
 
 // Initialize metrics with the correct properties
 let dailyMetrics: DailyMetrics = {
-  totalTickets: 0,
-  paidTickets: 0,
-  totalRevenue: 0,
   salesByHour: {},
   dryCleaningItems: {},
   totalSales: 0,
   valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  paidTickets: 0,
+  totalRevenue: 0,
+  totalTickets: 0
 };
 
 let weeklyMetrics: WeeklyMetrics = {
-  totalTickets: 0,
-  paidTickets: 0,
-  totalRevenue: 0,
   salesByDay: {},
-  dryCleaningItems: {},
   totalSales: 0,
   valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  paidTickets: 0,
+  totalRevenue: 0,
+  totalTickets: 0,
+  dryCleaningItems: {}
 };
 
 let monthlyMetrics: MonthlyMetrics = {
-  totalTickets: 0,
-  paidTickets: 0,
-  totalRevenue: 0,
-  salesByWeek: {},
   salesByDay: {},
-  dryCleaningItems: {},
+  salesByWeek: {},
   totalSales: 0,
   valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+  paidTickets: 0,
+  totalRevenue: 0,
+  totalTickets: 0,
+  dryCleaningItems: {}
 };
 
 // Initialize metrics
@@ -42,39 +42,39 @@ export const initializeMetrics = () => {
   
   // Initialize daily metrics
   dailyMetrics = {
-    totalTickets: 0,
-    paidTickets: 0,
-    totalRevenue: 0,
     salesByHour: {},
     dryCleaningItems: {},
     totalSales: 0,
     valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0
   };
   
   // Initialize weekly metrics
   weeklyMetrics = {
-    totalTickets: 0,
-    paidTickets: 0,
-    totalRevenue: 0,
     salesByDay: {},
-    dryCleaningItems: {},
     totalSales: 0,
     valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
   };
   
   // Initialize monthly metrics
   monthlyMetrics = {
-    totalTickets: 0,
-    paidTickets: 0,
-    totalRevenue: 0,
-    salesByWeek: {},
     salesByDay: {},
-    dryCleaningItems: {},
+    salesByWeek: {},
     totalSales: 0,
     valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 }
+    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
   };
 };
 
