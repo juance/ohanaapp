@@ -1,106 +1,82 @@
 
+import { syncTickets } from './ticketsSync';
+import { syncExpenses } from './expensesSync';
 import { syncFeedback } from './feedbackSync';
 import { syncClients } from './clientsSync';
-import { syncExpenses } from './expensesSync';
-import { syncTickets } from './ticketsSync';
-import { SimpleSyncStatus } from '@/lib/types';
-import { toast } from '@/lib/toast';
-
-// LocalStorage key for storing last sync timestamp
-const LAST_SYNC_KEY = 'lastSyncTimestamp';
+import { updateSyncStatus } from './syncStatusService';
 
 /**
- * Get the timestamp of the last successful sync
+ * Interface for comprehensive sync result
  */
-export const getLastSyncTimestamp = (): Date | null => {
-  const timestamp = localStorage.getItem(LAST_SYNC_KEY);
-  if (!timestamp) return null;
+interface SyncResult {
+  tickets: number;
+  expenses: number;
+  feedback: number;
+  clients: number;
+  timestamp: Date;
+}
+
+/**
+ * Synchronized all data with the server: tickets, expenses, feedback, and clients
+ * @returns A SyncResult object with counts of each item type synced
+ */
+export const syncAllData = async (): Promise<SyncResult> => {
+  const result: SyncResult = {
+    tickets: 0,
+    expenses: 0,
+    feedback: 0,
+    clients: 0,
+    timestamp: new Date()
+  };
   
   try {
-    return new Date(JSON.parse(timestamp));
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Set the timestamp of a successful sync
- */
-export const setLastSyncTimestamp = (date: Date = new Date()): void => {
-  localStorage.setItem(LAST_SYNC_KEY, JSON.stringify(date.toISOString()));
-};
-
-/**
- * Run a comprehensive sync of all data types
- */
-export const syncAllData = async (): Promise<SimpleSyncStatus> => {
-  try {
-    // Start with empty counts
-    let syncedClients = 0;
-    let syncedFeedback = 0;
-    let syncedExpenses = 0;
-    let syncedTickets = 0;
-    
-    // Run all sync operations
+    // Sync tickets
     try {
-      syncedClients = await syncClients();
-      console.log(`Synced ${syncedClients} clients`);
-    } catch (error) {
-      console.error('Error syncing clients:', error);
-    }
-    
-    try {
-      syncedFeedback = await syncFeedback();
-      console.log(`Synced ${syncedFeedback} feedback items`);
-    } catch (error) {
-      console.error('Error syncing feedback:', error);
-    }
-    
-    try {
-      syncedExpenses = await syncExpenses([]);
-      console.log(`Synced ${syncedExpenses} expenses`);
-    } catch (error) {
-      console.error('Error syncing expenses:', error);
-    }
-    
-    try {
-      syncedTickets = await syncTickets();
-      console.log(`Synced ${syncedTickets} tickets`);
+      result.tickets = await syncTickets();
     } catch (error) {
       console.error('Error syncing tickets:', error);
     }
     
-    // Create sync status summary
-    const syncStatus: SimpleSyncStatus = {
-      clients: syncedClients,
-      feedback: syncedFeedback,
-      expenses: syncedExpenses,
-      tickets: syncedTickets,
-      lastSync: new Date()
-    };
-    
-    // Update last sync timestamp if anything was synced
-    const totalSynced = syncedClients + syncedFeedback + syncedExpenses + syncedTickets;
-    if (totalSynced > 0) {
-      setLastSyncTimestamp();
-      toast.success(`Sincronización completa: ${totalSynced} elementos`);
-    } else {
-      toast.success('Todo está sincronizado');
+    // Sync expenses
+    try {
+      const expensesFromStorage = localStorage.getItem('expenses');
+      let expenses = [];
+      
+      if (expensesFromStorage) {
+        expenses = JSON.parse(expensesFromStorage);
+      }
+      
+      result.expenses = await syncExpenses(expenses);
+    } catch (error) {
+      console.error('Error syncing expenses:', error);
     }
     
-    return syncStatus;
+    // Sync feedback
+    try {
+      result.feedback = await syncFeedback();
+    } catch (error) {
+      console.error('Error syncing feedback:', error);
+    }
+    
+    // Sync clients
+    try {
+      result.clients = await syncClients();
+    } catch (error) {
+      console.error('Error syncing clients:', error);
+    }
+    
+    // Update sync status
+    updateSyncStatus({
+      lastSync: new Date(),
+      ticketsCount: result.tickets,
+      expensesCount: result.expenses,
+      feedbackCount: result.feedback,
+      clientsCount: result.clients
+    });
+    
+    return result;
   } catch (error) {
-    console.error('Error in comprehensive sync:', error);
-    toast.error('Error durante la sincronización');
-    throw error;
+    console.error('Error during comprehensive sync:', error);
+    return result;
   }
-};
-
-/**
- * Calculate total pending sync items count
- */
-export const getPendingSyncCount = async (): Promise<number> => {
-  // This is a placeholder; in a real implementation, you would
-  // count the pending items from each module
-  return 0;
 };

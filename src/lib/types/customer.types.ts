@@ -30,12 +30,9 @@ export interface ClientVisit {
   clientName: string;
   phoneNumber: string;
   visitCount: number;
-  lastVisitDate?: string;
   lastVisit?: string;
   loyaltyPoints: number;
   freeValets: number;
-  valetsCount?: number;
-  visitFrequency?: string;
 }
 
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
@@ -44,10 +41,8 @@ export const convertCustomerToClientVisit = (customer: Customer): ClientVisit =>
     clientName: customer.name,
     phoneNumber: customer.phone,
     visitCount: customer.valetsCount || 0,
-    lastVisitDate: customer.lastVisit,
     lastVisit: customer.lastVisit,
     loyaltyPoints: customer.loyaltyPoints || 0,
-    freeValets: customer.freeValets || 0,
-    valetsCount: customer.valetsCount || 0
+    freeValets: customer.freeValets || 0
   };
 };

@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, TicketService } from '@/lib/types';
+import { Ticket, TicketService, PaymentMethod } from '@/lib/types';
 import { toast } from '@/lib/toast';
 
 // Tipos para el hook
@@ -112,6 +112,19 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
     toast.error(`Error: ${err.message || 'Ha ocurrido un error inesperado'}`);
   }, []);
 
+  // Helper function to map payment method string to PaymentMethod type
+  function mapPaymentMethod(method: string | null): PaymentMethod {
+    if (!method) return 'cash';
+    
+    switch (method) {
+      case 'cash': return 'cash';
+      case 'debit': return 'debit';
+      case 'mercadopago': return 'mercadopago';
+      case 'cuenta_dni': return 'cuenta_dni';
+      default: return 'cash';
+    }
+  }
+
   // =========================================================================
   // Consultas a la base de datos
   // =========================================================================
@@ -143,7 +156,7 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
         clientName: ticket.customers?.name || 'Cliente',
         phoneNumber: ticket.customers?.phone || '',
         totalPrice: ticket.total || 0,
-        paymentMethod: ticket.payment_method || 'cash',
+        paymentMethod: mapPaymentMethod(ticket.payment_method),
         status: ticket.status || 'pending',
         isPaid: ticket.is_paid || false,
         valetQuantity: ticket.valet_quantity || 0,

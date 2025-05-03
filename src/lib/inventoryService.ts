@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { InventoryItem } from '@/lib/types';
@@ -6,7 +7,7 @@ import { InventoryItem } from '@/lib/types';
 export const getInventoryItems = async (): Promise<InventoryItem[]> => {
   try {
     const { data, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .select('*')
       .order('name');
     
@@ -41,62 +42,35 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
 };
 
 // Add a new inventory item
-export const addInventoryItem = async (
-  name: string, 
-  quantity: number, 
-  threshold?: number,
-  unit?: string,
-  notes?: string
+export const createInventoryItem = async (
+  item: Omit<InventoryItem, 'id' | 'createdAt'>
 ): Promise<InventoryItem | null> => {
   try {
-    const newItem = {
-      id: uuidv4(), // Generate a UUID for the new item
-      name,
-      quantity,
-      threshold,
-      unit,
-      notes
-    };
-    
-    // Try to insert into database first
     const { data, error } = await supabase
-      .from('inventory')
+      .from('inventory_items')
       .insert({
-        name: newItem.name,
-        quantity: newItem.quantity,
-        threshold: newItem.threshold,
-        unit: newItem.unit,
-        notes: newItem.notes
+        name: item.name,
+        quantity: item.quantity,
+        threshold: item.threshold,
+        unit: item.unit,
+        notes: item.notes
       })
-      .select();
-    
+      .select()
+      .single();
+
     if (error) throw error;
-    
-    if (data && data[0]) {
-      return {
-        id: data[0].id,
-        name: data[0].name,
-        quantity: data[0].quantity,
-        threshold: data[0].threshold,
-        unit: data[0].unit,
-        notes: data[0].notes,
-        createdAt: data[0].created_at,
-        lastUpdated: new Date().toISOString()
-      };
-    }
-    
-    // If database insert failed, add to local storage
-    try {
-      const items = await getInventoryItems();
-      const updatedItems = [...items, newItem];
-      localStorage.setItem('inventoryItems', JSON.stringify(updatedItems));
-      return newItem;
-    } catch (localError) {
-      console.error('Error storing in local storage:', localError);
-      return null;
-    }
+
+    return {
+      id: data.id,
+      name: data.name,
+      quantity: data.quantity,
+      threshold: data.threshold,
+      unit: data.unit,
+      notes: data.notes,
+      createdAt: data.created_at
+    };
   } catch (error) {
-    console.error('Error adding inventory item:', error);
+    console.error('Error creating inventory item:', error);
     return null;
   }
 };
@@ -121,35 +95,6 @@ export const updateInventoryItem = async (item: InventoryItem): Promise<boolean>
   }
 };
 
-export const createInventoryItem = async (item: Omit<InventoryItem, 'id' | 'lastUpdated'>): Promise<InventoryItem | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('inventory_items')
-      .insert({
-        name: item.name,
-        quantity: item.quantity,
-        threshold: item.threshold,
-        unit: item.unit
-      })
-      .select('*')
-      .single();
-
-    if (error) throw error;
-
-    return {
-      id: data.id,
-      name: data.name,
-      quantity: data.quantity,
-      threshold: data.threshold,
-      unit: data.unit,
-      lastUpdated: data.created_at || new Date().toISOString()
-    };
-  } catch (error) {
-    console.error('Error creating inventory item:', error);
-    return null;
-  }
-};
-
 export const deleteInventoryItem = async (itemId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -165,5 +110,19 @@ export const deleteInventoryItem = async (itemId: string): Promise<boolean> => {
   }
 };
 
-// Añadimos esta función para hacerlo compatible con el componente InventoryList
-export const addInventoryItem = createInventoryItem;
+// Add a new inventory item (alias to maintain compatibility)
+export const addInventoryItem = async (
+  name: string, 
+  quantity: number, 
+  threshold?: number,
+  unit?: string,
+  notes?: string
+): Promise<InventoryItem | null> => {
+  return createInventoryItem({
+    name,
+    quantity,
+    threshold,
+    unit,
+    notes
+  });
+};

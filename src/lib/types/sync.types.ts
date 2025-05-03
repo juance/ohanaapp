@@ -41,8 +41,8 @@ export interface LocalClient {
   clientId: string;
   clientName: string;
   phoneNumber: string;
-  name: string;
   phone: string;
+  name: string;
   loyaltyPoints?: number;
   freeValets?: number;
   valetsCount?: number;

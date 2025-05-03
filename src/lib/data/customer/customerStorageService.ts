@@ -1,168 +1,94 @@
+
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '@/integrations/supabase/client';
 import { Customer } from '@/lib/types';
 
-// Get all customers
-export const getCustomers = async (): Promise<Customer[]> => {
+// Store a customer in localStorage
+export const storeCustomerInLocalStorage = (name: string, phoneNumber: string): Customer => {
   try {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
-
-    return data.map(customer => ({
-      id: customer.id,
-      name: customer.name,
-      phoneNumber: customer.phone,
-      phone: customer.phone,
-      lastVisit: customer.last_visit,
-      valetsCount: customer.valets_count || 0,
-      freeValets: customer.free_valets || 0,
-      loyaltyPoints: customer.loyalty_points || 0,
-      createdAt: customer.created_at,
-      valetsRedeemed: customer.valets_redeemed || 0
-    }));
-  } catch (error) {
-    console.error('Error fetching customers:', error);
-    return [];
-  }
-};
-
-// Get customer by phone number
-export const getCustomerByPhone = async (phone: string): Promise<Customer | null> => {
-  try {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('phone', phone)
-      .single();
-
-    if (error || !data) return null;
-
-    return {
-      id: data.id,
-      name: data.name,
-      phoneNumber: data.phone,
-      phone: data.phone,
-      valetsCount: data.valets_count || 0,
-      freeValets: data.free_valets || 0,
-      lastVisit: data.last_visit,
-      loyaltyPoints: data.loyalty_points || 0,
-      createdAt: data.created_at,
-      valetsRedeemed: data.valets_redeemed || 0
+    // Check if customer already exists by phone number
+    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
+    const existingCustomer = existingCustomers.find(c => c.phone === phoneNumber);
+    
+    if (existingCustomer) {
+      // Update last visit
+      existingCustomer.lastVisit = new Date().toISOString();
+      localStorage.setItem('customers', JSON.stringify(existingCustomers));
+      return existingCustomer;
+    }
+    
+    // Create new customer
+    const newCustomer: Customer = {
+      id: uuidv4(),
+      name,
+      phone: phoneNumber,
+      phoneNumber,
+      lastVisit: new Date().toISOString(),
+      valetsCount: 0,
+      freeValets: 0,
+      loyaltyPoints: 0,
+      valetsRedeemed: 0,
+      createdAt: new Date().toISOString()
     };
+    
+    // Add to customer list
+    existingCustomers.push(newCustomer);
+    localStorage.setItem('customers', JSON.stringify(existingCustomers));
+    
+    return newCustomer;
   } catch (error) {
-    console.error('Error fetching customer by phone:', error);
-    return null;
+    console.error('Error storing customer:', error);
+    throw new Error('Failed to store customer');
   }
 };
 
-// Add a new customer
-export const addCustomer = async (
-  name: string,
-  phoneNumber: string,
-  loyaltyPoints: number = 0,
-  valetsCount: number = 0,
-  freeValets: number = 0,
-  lastVisit: string = new Date().toISOString()
-): Promise<Customer | null> => {
+// Update a customer's last visit
+export const updateCustomerLastVisitInLocalStorage = (phoneNumber: string): Customer | null => {
   try {
-    const { data, error } = await supabase
-      .from('customers')
-      .insert([
-        {
-          id: uuidv4(),
-          name,
-          phone: phoneNumber,
-          loyalty_points: loyaltyPoints,
-          valets_count: valetsCount,
-          free_valets: freeValets,
-          created_at: new Date().toISOString(),
-          last_visit: lastVisit
-        }
-      ])
-      .select();
-
-    if (error) throw error;
-
-    if (data && data[0]) {
-      return mapCustomerFromDb(data[0]);
+    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
+    const customerIndex = existingCustomers.findIndex(c => c.phone === phoneNumber);
+    
+    if (customerIndex < 0) {
+      return null;
     }
-
-    return null;
+    
+    existingCustomers[customerIndex].lastVisit = new Date().toISOString();
+    localStorage.setItem('customers', JSON.stringify(existingCustomers));
+    
+    return existingCustomers[customerIndex];
   } catch (error) {
-    console.error('Error adding customer:', error);
-    return null;
+    console.error('Error updating customer visit:', error);
+    throw new Error('Failed to update customer visit');
   }
 };
 
-// Update an existing customer
-export const updateCustomer = async (
-  id: string,
-  name: string,
-  phoneNumber: string,
-  loyaltyPoints: number,
-  valetsCount: number,
-  freeValets: number,
-  lastVisit: string
-): Promise<Customer | null> => {
+// Compatibility exports
+export const storeCustomer = storeCustomerInLocalStorage;
+export const updateCustomerLastVisit = updateCustomerLastVisitInLocalStorage;
+
+// Get customer from localStorage by phone number
+export const getCustomerByPhoneFromLocalStorage = (phoneNumber: string): Customer | null => {
   try {
-    const { data, error } = await supabase
-      .from('customers')
-      .update({
-        name,
-        phone: phoneNumber,
-        loyalty_points: loyaltyPoints,
-        valets_count: valetsCount,
-        free_valets: freeValets,
-        last_visit: lastVisit
-      })
-      .eq('id', id)
-      .select();
-
-    if (error) throw error;
-
-    if (data && data[0]) {
-      return mapCustomerFromDb(data[0]);
-    }
-
-    return null;
+    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
+    const customer = existingCustomers.find(c => c.phone === phoneNumber);
+    return customer || null;
   } catch (error) {
-    console.error('Error updating customer:', error);
+    console.error('Error getting customer:', error);
     return null;
   }
 };
 
-// Delete a customer
-export const deleteCustomer = async (id: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('customers')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
-
-    return true;
-  } catch (error) {
-    console.error('Error deleting customer:', error);
-    return false;
-  }
-};
-
-export const mapCustomerFromDb = (data: any): Customer => {
+// Map database customer to client model
+export const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
   return {
-    id: data.id,
-    name: data.name,
-    phoneNumber: data.phone,
-    phone: data.phone,
-    loyaltyPoints: data.loyalty_points,
-    valetsCount: data.valets_count,
-    freeValets: data.free_valets,
-    createdAt: data.created_at,
-    lastVisit: data.last_visit,
-    valetsRedeemed: data.valets_redeemed || 0
+    id: dbCustomer.id,
+    name: dbCustomer.name,
+    phoneNumber: dbCustomer.phone,
+    phone: dbCustomer.phone,
+    loyaltyPoints: dbCustomer.loyalty_points || 0,
+    valetsCount: dbCustomer.valets_count || 0,
+    freeValets: dbCustomer.free_valets || 0,
+    createdAt: dbCustomer.created_at,
+    lastVisit: dbCustomer.last_visit,
+    valetsRedeemed: dbCustomer.valets_redeemed || 0
   };
 };

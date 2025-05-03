@@ -1,111 +1,132 @@
 
 import React from 'react';
-import { Ticket } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getStatusBadgeClass } from '@/lib/ticket/ticketStatusService';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { Eye, Printer, Send, Check } from 'lucide-react';
 
 interface OrderCardProps {
-  ticket: Ticket;
-  onStatusChange: () => void;
-  onCancel: () => void;
-  onPaymentMethodChange: () => void;
-  actionIcon?: React.ReactNode;
-  actionLabel: string;
-  secondaryAction?: () => void;
-  secondaryIcon?: React.ReactNode;
-  secondaryLabel?: string;
+  id: string;
+  ticketNumber: string;
+  clientName: string;
+  phoneNumber?: string;
+  status: string;
+  createdDate: string;
+  totalPrice: number;
+  isPaid: boolean;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onMarkAsDelivered?: (id: string) => void;
+  onPrint?: (id: string) => void;
+  onNotify?: (id: string, phoneNumber?: string) => void;
 }
 
-const OrderCard: React.FC<OrderCardProps> = ({
-  ticket,
-  onStatusChange,
-  onCancel,
-  onPaymentMethodChange,
-  actionIcon,
-  actionLabel,
-  secondaryAction,
-  secondaryIcon,
-  secondaryLabel
+export const OrderCard: React.FC<OrderCardProps> = ({
+  id,
+  ticketNumber,
+  clientName,
+  phoneNumber,
+  status,
+  createdDate,
+  totalPrice,
+  isPaid,
+  isSelected,
+  onSelect,
+  onMarkAsDelivered,
+  onPrint,
+  onNotify
 }) => {
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), 'dd/MM/yyyy HH:mm', { locale: es });
-    } catch (error) {
-      return dateString;
+  // Format the date for display
+  const formattedDate = new Date(createdDate).toLocaleDateString('es-ES');
+  
+  // Determine badge color based on status
+  const getBadgeVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'ready':
+        return 'success';
+      case 'processing':
+        return 'warning';
+      case 'pending':
+        return 'secondary';
+      default:
+        return 'default';
     }
   };
 
-  const badgeClass = getStatusBadgeClass(ticket.status);
+  // Translate status to Spanish
+  const translateStatus = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'ready':
+        return 'Listo';
+      case 'processing':
+        return 'En proceso';
+      case 'pending':
+        return 'Pendiente';
+      case 'delivered':
+        return 'Entregado';
+      case 'cancelled':
+        return 'Cancelado';
+      default:
+        return status;
+    }
+  };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="bg-muted/50 p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-base font-medium">
-              #{ticket.ticketNumber} - {ticket.clientName}
-            </CardTitle>
-            <p className="text-sm text-gray-500">{ticket.phoneNumber}</p>
-          </div>
-          <Badge className={badgeClass}>{ticket.status}</Badge>
+    <Card 
+      className={`mb-2 cursor-pointer transition-colors ${isSelected ? 'border-primary' : ''}`}
+      onClick={() => onSelect(id)}
+    >
+      <CardHeader className="py-3 px-4 flex flex-row justify-between items-center">
+        <div className="flex flex-col">
+          <div className="font-semibold">{clientName}</div>
+          <div className="text-sm text-muted-foreground">#{ticketNumber}</div>
+        </div>
+        <div className="flex flex-col items-end">
+          <Badge variant={getBadgeVariant(status) as any}>
+            {translateStatus(status)}
+          </Badge>
+          <span className="text-xs text-muted-foreground mt-1">{formattedDate}</span>
         </div>
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="text-gray-500">Fecha:</div>
-          <div className="text-right">{formatDate(ticket.createdAt)}</div>
-          <div className="text-gray-500">Total:</div>
-          <div className="text-right font-medium">${ticket.totalPrice}</div>
-          <div className="text-gray-500">Pago:</div>
-          <div className="text-right">{ticket.paymentMethod}</div>
-          <div className="text-gray-500">Estado Pago:</div>
-          <div className="text-right">{ticket.isPaid ? 'Pagado' : 'Pendiente'}</div>
+      <CardContent className="py-2 px-4 pt-0 flex justify-between items-center">
+        <div>
+          <span className="font-medium text-lg">${totalPrice.toFixed(2)}</span>
+          {isPaid ? (
+            <Badge variant="outline" className="ml-2 text-xs">Pagado</Badge>
+          ) : (
+            <Badge variant="outline" className="ml-2 text-xs bg-amber-50 text-amber-700 border-amber-200">Pago pendiente</Badge>
+          )}
+        </div>
+        
+        <div className="flex gap-1">
+          <Button size="icon" variant="ghost" onClick={(e) => {
+            e.stopPropagation();
+            if (onPrint) onPrint(id);
+          }}>
+            <Printer className="h-4 w-4" />
+          </Button>
+          
+          <Button size="icon" variant="ghost" onClick={(e) => {
+            e.stopPropagation();
+            if (onNotify) onNotify(id, phoneNumber);
+          }}>
+            <Send className="h-4 w-4" />
+          </Button>
+          
+          {onMarkAsDelivered && status.toLowerCase() === 'ready' && (
+            <Button size="icon" variant="ghost" onClick={(e) => {
+              e.stopPropagation();
+              if (onMarkAsDelivered) onMarkAsDelivered(id);
+            }}>
+              <Check className="h-4 w-4" />
+            </Button>
+          )}
+          
+          <Button size="icon" variant="outline" onClick={() => onSelect(id)}>
+            <Eye className="h-4 w-4" />
+          </Button>
         </div>
       </CardContent>
-      <CardFooter className="bg-muted/30 p-2 flex-wrap gap-2">
-        <Button 
-          size="sm" 
-          onClick={onStatusChange}
-          className="flex items-center"
-        >
-          {actionIcon}
-          {actionLabel}
-        </Button>
-        
-        {secondaryAction && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={secondaryAction}
-            className="flex items-center"
-          >
-            {secondaryIcon}
-            {secondaryLabel}
-          </Button>
-        )}
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onPaymentMethodChange}
-          className="ml-auto"
-        >
-          Método de pago
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="sm"
-          onClick={onCancel}
-          className="text-red-500 hover:text-red-700"
-        >
-          Cancelar
-        </Button>
-      </CardFooter>
     </Card>
   );
 };

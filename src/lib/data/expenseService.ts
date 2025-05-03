@@ -1,7 +1,7 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { SyncableExpense } from '@/lib/types/expense.types';
+import { SyncableExpense } from '@/lib/types/sync.types';
 
 // Get expenses from localStorage
 export const getExpenses = (): SyncableExpense[] => {
@@ -16,6 +16,9 @@ export const getExpenses = (): SyncableExpense[] => {
     return [];
   }
 };
+
+// For compatibility with the Expenses component
+export const getStoredExpenses = getExpenses;
 
 // Add a new expense
 export const addExpense = (description: string, amount: number, date: string, category: string): SyncableExpense => {
@@ -38,6 +41,17 @@ export const addExpense = (description: string, amount: number, date: string, ca
   } catch (e) {
     console.error('Error adding expense', e);
     throw new Error('Failed to add expense');
+  }
+};
+
+// For compatibility with the Expenses component
+export const storeExpense = (expenseData: { description: string; amount: number; date: string; category: string }): Promise<boolean> => {
+  try {
+    addExpense(expenseData.description, expenseData.amount, expenseData.date, expenseData.category);
+    return Promise.resolve(true);
+  } catch (e) {
+    console.error('Error storing expense', e);
+    return Promise.resolve(false);
   }
 };
 
@@ -69,7 +83,7 @@ export const fetchServerExpenses = async (): Promise<SyncableExpense[]> => {
       description: item.description,
       amount: item.amount,
       date: item.date,
-      category: item.category || 'other', // Provide default category
+      category: 'other', // Provide default category since it's missing in the DB
       pendingSync: false, // Already synced since coming from server
       synced: true
     }));
@@ -94,8 +108,8 @@ export const syncExpenses = async (): Promise<number> => {
             id: expense.id,
             description: expense.description,
             amount: expense.amount,
-            date: expense.date,
-            category: expense.category
+            date: expense.date
+            // Note: category is not in the database schema
           });
         
         if (error) throw error;
