@@ -34,7 +34,7 @@ export const useCachedTickets = (status?: string, limit: number = 100) => {
           clientName: ticket.customers?.name || 'Cliente',
           phoneNumber: ticket.customers?.phone || '',
           totalPrice: ticket.total || 0,
-          paymentMethod: (ticket.payment_method as PaymentMethod) || 'cash',
+          paymentMethod: mapPaymentMethod(ticket.payment_method),
           status: ticket.status || 'pending',
           isPaid: ticket.is_paid || false,
           valetQuantity: ticket.valet_quantity || 0,
@@ -58,3 +58,16 @@ export const useCachedTickets = (status?: string, limit: number = 100) => {
   
   return { tickets, loading, error };
 };
+
+// Helper function to map payment method strings to the PaymentMethod type
+function mapPaymentMethod(method: string | null): PaymentMethod {
+  if (!method) return 'cash';
+  
+  switch(method) {
+    case 'cash': return 'cash';
+    case 'debit': return 'debit';
+    case 'mercadopago': return 'mercadopago';
+    case 'cuenta_dni': return 'cuenta_dni';
+    default: return 'cash';
+  }
+}

@@ -68,8 +68,12 @@ export const syncAllData = async (): Promise<SyncResult> => {
     // Update sync status
     updateSyncStatus({
       lastSync: new Date(),
+      tickets: result.tickets,
+      expenses: result.expenses,
+      feedback: result.feedback,
+      clients: result.clients,
       ticketsCount: result.tickets,
-      expensesCount: result.expenses,
+      expensesCount: result.expenses, 
       feedbackCount: result.feedback,
       clientsCount: result.clients
     });

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePendingOrdersLogic } from '@/hooks/usePendingOrdersLogic';
-import OrderCard from '@/components/orders/OrderCard';
 import { Badge } from '@/components/ui/badge';
 import { Phone, ArrowLeft, ArrowRight, WheatIcon } from 'lucide-react';
 import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
@@ -12,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Ticket } from '@/lib/types';
 import SearchBar from '@/components/ui/search-bar';
 import { openWhatsApp } from '@/lib/utils/whatsappUtils';
+import OrderCard from '@/components/orders/OrderCard';
 
 const PendingOrders = () => {
   const {
@@ -30,7 +30,7 @@ const PendingOrders = () => {
   const [ticketToChangePayment, setTicketToChangePayment] = useState<Ticket | null>(null);
   
   // Filter tickets based on search query
-  const filteredPendingTickets = pendingTickets.filter(ticket => {
+  const filteredPendingTickets = pendingTickets?.filter(ticket => {
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
@@ -39,9 +39,9 @@ const PendingOrders = () => {
     } else {
       return ticket.phoneNumber.toLowerCase().includes(query);
     }
-  });
+  }) || [];
   
-  const filteredReadyTickets = readyTickets.filter(ticket => {
+  const filteredReadyTickets = readyTickets?.filter(ticket => {
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
@@ -50,7 +50,7 @@ const PendingOrders = () => {
     } else {
       return ticket.phoneNumber.toLowerCase().includes(query);
     }
-  });
+  }) || [];
   
   const handleCancelTicket = (ticketId: string) => {
     setTicketToCancelId(ticketId);
@@ -64,6 +64,25 @@ const PendingOrders = () => {
     const message = `Hola! Tu ropa ya está lista para retirar. Ticket #${ticket.ticketNumber}. Gracias por confiar en nosotros!`;
     openWhatsApp(ticket.phoneNumber, message);
   };
+
+  const renderOrderCard = (ticket: Ticket) => (
+    <OrderCard
+      key={ticket.id}
+      id={ticket.id}
+      ticketNumber={ticket.ticketNumber}
+      clientName={ticket.clientName}
+      phoneNumber={ticket.phoneNumber}
+      status={ticket.status}
+      createdDate={ticket.createdAt}
+      totalPrice={ticket.totalPrice}
+      isPaid={ticket.isPaid}
+      isSelected={false}
+      onSelect={() => {}}
+      onMarkAsDelivered={ticket.status === 'ready' ? () => handleTicketDelivered(ticket.id) : undefined}
+      onPrint={() => {}}
+      onNotify={() => handleSendWhatsAppReminder(ticket)}
+    />
+  );
   
   return (
     <div className="container mx-auto py-6">
@@ -80,7 +99,7 @@ const PendingOrders = () => {
               searchQuery={searchQuery}
               setSearchQuery={setSearchQuery}
               searchFilter={searchFilter}
-              setSearchFilter={setSearchFilter}
+              setSearchFilter={(filter) => setSearchFilter(filter as 'name' | 'phone')}
               placeholder="Buscar por nombre o teléfono..."
             />
           </div>
@@ -102,17 +121,7 @@ const PendingOrders = () => {
                 </div>
               ) : filteredPendingTickets.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredPendingTickets.map(ticket => (
-                    <OrderCard
-                      key={ticket.id}
-                      ticket={ticket}
-                      onStatusChange={() => handleTicketStatusChange(ticket.id, ticket.status)}
-                      onCancel={() => handleCancelTicket(ticket.id)}
-                      onPaymentMethodChange={() => handleChangePaymentMethod(ticket)}
-                      actionIcon={<ArrowRight className="h-4 w-4 mr-2" />}
-                      actionLabel="Marcar Listo"
-                    />
-                  ))}
+                  {filteredPendingTickets.map(ticket => renderOrderCard(ticket))}
                 </div>
               ) : (
                 <div className="text-center py-8">
@@ -130,20 +139,7 @@ const PendingOrders = () => {
                 </div>
               ) : filteredReadyTickets.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredReadyTickets.map(ticket => (
-                    <OrderCard
-                      key={ticket.id}
-                      ticket={ticket}
-                      onStatusChange={() => handleTicketDelivered(ticket.id)}
-                      onCancel={() => handleCancelTicket(ticket.id)}
-                      onPaymentMethodChange={() => handleChangePaymentMethod(ticket)}
-                      actionIcon={<ArrowRight className="h-4 w-4 mr-2" />}
-                      actionLabel="Entregar"
-                      secondaryAction={() => handleSendWhatsAppReminder(ticket)}
-                      secondaryIcon={<Phone className="h-4 w-4 mr-2" />}
-                      secondaryLabel="Avisar"
-                    />
-                  ))}
+                  {filteredReadyTickets.map(ticket => renderOrderCard(ticket))}
                 </div>
               ) : (
                 <div className="text-center py-8">

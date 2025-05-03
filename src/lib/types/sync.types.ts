@@ -56,4 +56,8 @@ export interface SimpleSyncStatus {
   feedback: number;
   expenses: number;
   lastSync: Date | null;
+  ticketsCount?: number;
+  expensesCount?: number;
+  feedbackCount?: number;
+  clientsCount?: number;
 }

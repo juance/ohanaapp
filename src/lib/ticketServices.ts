@@ -24,11 +24,8 @@ export {
 // Export functions from ticketPickupService
 export {
   getPickupTickets,
-  markTicketAsDelivered,
-  markTicketAsPending,
-  getUnretrievedTickets,
-  cancelTicket as cancelPickupTicket
-} from './ticket/ticketStatusTransitionService';
+  getUnretrievedTickets
+} from './ticket/ticketPickupService';
 
 // Re-export query utilities for other modules to use
 export {

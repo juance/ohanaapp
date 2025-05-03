@@ -1,94 +1,124 @@
 
-import { v4 as uuidv4 } from 'uuid';
-import { Customer } from '@/lib/types';
+import { Customer, ClientVisit } from '@/lib/types';
+import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
-// Store a customer in localStorage
-export const storeCustomerInLocalStorage = (name: string, phoneNumber: string): Customer => {
+export function storeCustomer(customer: Customer): void {
   try {
-    // Check if customer already exists by phone number
-    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
-    const existingCustomer = existingCustomers.find(c => c.phone === phoneNumber);
+    // Get existing customers
+    const existingCustomers = getStoredCustomers();
     
-    if (existingCustomer) {
-      // Update last visit
-      existingCustomer.lastVisit = new Date().toISOString();
-      localStorage.setItem('customers', JSON.stringify(existingCustomers));
-      return existingCustomer;
+    // Check if customer already exists
+    const customerIndex = existingCustomers.findIndex(c => c.id === customer.id);
+    
+    if (customerIndex >= 0) {
+      // Update existing customer
+      existingCustomers[customerIndex] = customer;
+    } else {
+      // Add new customer
+      existingCustomers.push(customer);
     }
     
-    // Create new customer
-    const newCustomer: Customer = {
-      id: uuidv4(),
-      name,
-      phone: phoneNumber,
-      phoneNumber,
-      lastVisit: new Date().toISOString(),
-      valetsCount: 0,
-      freeValets: 0,
-      loyaltyPoints: 0,
-      valetsRedeemed: 0,
-      createdAt: new Date().toISOString()
-    };
-    
-    // Add to customer list
-    existingCustomers.push(newCustomer);
-    localStorage.setItem('customers', JSON.stringify(existingCustomers));
-    
-    return newCustomer;
+    // Save to local storage
+    localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(existingCustomers));
   } catch (error) {
     console.error('Error storing customer:', error);
-    throw new Error('Failed to store customer');
   }
-};
+}
 
-// Update a customer's last visit
-export const updateCustomerLastVisitInLocalStorage = (phoneNumber: string): Customer | null => {
+export function getStoredCustomers(): Customer[] {
   try {
-    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
-    const customerIndex = existingCustomers.findIndex(c => c.phone === phoneNumber);
+    const customersJson = localStorage.getItem(CUSTOMERS_STORAGE_KEY);
+    if (!customersJson) return [];
     
-    if (customerIndex < 0) {
-      return null;
-    }
-    
-    existingCustomers[customerIndex].lastVisit = new Date().toISOString();
-    localStorage.setItem('customers', JSON.stringify(existingCustomers));
-    
-    return existingCustomers[customerIndex];
+    const customers = JSON.parse(customersJson);
+    return customers.map((customer: any) => ({
+      id: customer.id,
+      name: customer.name,
+      phoneNumber: customer.phoneNumber,
+      phone: customer.phone || customer.phoneNumber, // Ensure phone is always set
+      valetsCount: customer.valetsCount || 0,
+      freeValets: customer.freeValets || 0,
+      lastVisit: customer.lastVisit,
+      loyaltyPoints: customer.loyaltyPoints || 0,
+      createdAt: customer.createdAt || new Date().toISOString(),
+      valetsRedeemed: customer.valetsRedeemed || 0
+    }));
   } catch (error) {
-    console.error('Error updating customer visit:', error);
-    throw new Error('Failed to update customer visit');
+    console.error('Error getting stored customers:', error);
+    return [];
   }
-};
+}
 
-// Compatibility exports
-export const storeCustomer = storeCustomerInLocalStorage;
-export const updateCustomerLastVisit = updateCustomerLastVisitInLocalStorage;
-
-// Get customer from localStorage by phone number
-export const getCustomerByPhoneFromLocalStorage = (phoneNumber: string): Customer | null => {
+export function getCustomerByPhone(phoneNumber: string): Customer | null {
   try {
-    const existingCustomers: Customer[] = JSON.parse(localStorage.getItem('customers') || '[]');
-    const customer = existingCustomers.find(c => c.phone === phoneNumber);
+    const customers = getStoredCustomers();
+    const customer = customers.find(c => 
+      c.phone === phoneNumber || c.phoneNumber === phoneNumber
+    );
     return customer || null;
   } catch (error) {
-    console.error('Error getting customer:', error);
+    console.error('Error finding customer by phone:', error);
     return null;
   }
-};
+}
 
-// Map database customer to client model
-export const mapDatabaseCustomerToModel = (dbCustomer: any): Customer => {
-  return {
-    id: dbCustomer.id,
-    name: dbCustomer.name,
-    phoneNumber: dbCustomer.phone,
-    phone: dbCustomer.phone,
-    loyaltyPoints: dbCustomer.loyalty_points || 0,
-    valetsCount: dbCustomer.valets_count || 0,
-    freeValets: dbCustomer.free_valets || 0,
-    createdAt: dbCustomer.created_at,
-    lastVisit: dbCustomer.last_visit,
-    valetsRedeemed: dbCustomer.valets_redeemed || 0
+export function updateCustomer(customer: Customer): boolean {
+  try {
+    const customers = getStoredCustomers();
+    const index = customers.findIndex(c => c.id === customer.id);
+    
+    if (index === -1) return false;
+    
+    customers[index] = {
+      id: customer.id,
+      name: customer.name,
+      phoneNumber: customer.phoneNumber,
+      phone: customer.phone,
+      loyaltyPoints: customer.loyaltyPoints,
+      valetsCount: customer.valetsCount,
+      freeValets: customer.freeValets,
+      createdAt: customer.createdAt,
+      lastVisit: customer.lastVisit,
+      valetsRedeemed: customer.valetsRedeemed
+    };
+    
+    localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
+    return true;
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    return false;
+  }
+}
+
+export function storeOrUpdateCustomer(customer: Partial<Customer>): Customer {
+  const customers = getStoredCustomers();
+  const existingCustomer = customers.find(
+    c => c.phone === customer.phone || c.phoneNumber === customer.phoneNumber
+  );
+  
+  if (existingCustomer) {
+    const updatedCustomer = {
+      ...existingCustomer,
+      ...customer,
+      lastVisit: new Date().toISOString()
+    };
+    updateCustomer(updatedCustomer);
+    return updatedCustomer;
+  }
+  
+  const newCustomer: Customer = {
+    id: crypto.randomUUID(),
+    name: customer.name || '',
+    phoneNumber: customer.phoneNumber || '',
+    phone: customer.phone || customer.phoneNumber || '',
+    loyaltyPoints: customer.loyaltyPoints || 0,
+    valetsCount: customer.valetsCount || 0,
+    freeValets: customer.freeValets || 0,
+    createdAt: new Date().toISOString(),
+    lastVisit: customer.lastVisit || new Date().toISOString(),
+    valetsRedeemed: customer.valetsRedeemed || 0
   };
-};
+  
+  storeCustomer(newCustomer);
+  return newCustomer;
+}

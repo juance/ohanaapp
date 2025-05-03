@@ -11,9 +11,9 @@ interface LoyaltyProgramProps {
 }
 
 const LoyaltyProgram: React.FC<LoyaltyProgramProps> = ({ client, onRedeemValet }) => {
-  // Calculate progress based on visitCount or valetsCount
-  const valetsCount = client.valetsCount ?? client.visitCount ?? 0;
-  const progress = valetsCount % 9; // 9 visits for a free valet
+  // Calculate progress based on visitCount
+  const valetCount = client.visitCount || 0;
+  const progress = valetCount % 9; // 9 visits for a free valet
   const progressPercentage = (progress / 9) * 100;
   
   return (
@@ -46,7 +46,7 @@ const LoyaltyProgram: React.FC<LoyaltyProgramProps> = ({ client, onRedeemValet }
         <div className="flex justify-between items-start">
           <div>
             <div className="text-sm text-gray-500">Total de visitas</div>
-            <div className="text-xl font-bold">{valetsCount}</div>
+            <div className="text-xl font-bold">{valetCount}</div>
           </div>
           
           {onRedeemValet && client.freeValets > 0 && (

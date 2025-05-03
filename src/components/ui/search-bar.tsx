@@ -1,16 +1,23 @@
 
 import React from 'react';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-export interface SearchBarProps {
+interface SearchBarProps {
   searchQuery: string;
-  setSearchQuery: (query: string) => void;
+  setSearchQuery: (value: string) => void;
   searchFilter: string;
-  setSearchFilter: (filter: string) => void;
+  setSearchFilter: (filter: any) => void;
   placeholder?: string;
+  onSearch?: () => void;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({
@@ -18,21 +25,29 @@ const SearchBar: React.FC<SearchBarProps> = ({
   setSearchQuery,
   searchFilter,
   setSearchFilter,
-  placeholder = "Buscar..."
+  placeholder = 'Buscar...',
+  onSearch
 }) => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onSearch) {
+      onSearch();
+    }
+  };
+
   return (
-    <div className="flex gap-2 items-center">
-      <div className="relative flex-grow">
+    <div className="flex items-center gap-2 w-full">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
           type="text"
-          placeholder={placeholder}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pr-10"
+          placeholder={placeholder}
+          className="pl-9 w-full"
+          onKeyDown={handleKeyPress}
         />
-        <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500" />
       </div>
-      
+
       <Select value={searchFilter} onValueChange={setSearchFilter}>
         <SelectTrigger className="w-[120px]">
           <SelectValue placeholder="Filtrar por" />
@@ -42,6 +57,12 @@ const SearchBar: React.FC<SearchBarProps> = ({
           <SelectItem value="phone">Teléfono</SelectItem>
         </SelectContent>
       </Select>
+
+      {onSearch && (
+        <Button onClick={onSearch} type="button">
+          Buscar
+        </Button>
+      )}
     </div>
   );
 };

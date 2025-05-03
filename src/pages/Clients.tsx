@@ -5,11 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
 import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
-import { DataTable } from '@/components/ui/data-table';
-import { ColumnDef } from '@tanstack/react-table';
 import ClientListItem from '@/components/clients/ClientListItem';
 import { getAllClients } from '@/lib/dataService';
 import { Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Clients = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
@@ -105,7 +104,7 @@ const Clients = () => {
   const handleSaveClient = async (clientId: string) => {
     try {
       // Update client in database
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('customers')
         .update({
           name: editClientName,

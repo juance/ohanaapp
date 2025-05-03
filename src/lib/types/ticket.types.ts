@@ -13,6 +13,11 @@ export interface Ticket {
   valetQuantity: number;
   createdAt: string;
   deliveredDate?: string;
+  basketTicketNumber?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customerId?: string;
+  services?: TicketService[];
 }
 
 export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';

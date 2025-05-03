@@ -1,127 +1,195 @@
 
 import { Customer } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
-import { getCustomerByPhone as getCustomerByPhoneStorage } from './customer/customerStorageService';
-import { addLoyaltyPoints as addLoyaltyPointsDB, redeemLoyaltyPoints as redeemLoyaltyPointsDB } from './customer/loyaltyService';
+import { storeOrUpdateCustomer, getStoredCustomers } from '@/lib/data/customer/customerStorageService';
 
-/**
- * Get a customer by phone number
- * @param phone Phone number to search for
- */
-export const getCustomerByPhone = async (phone: string): Promise<Customer | null> => {
+export async function getCustomerByPhone(phoneNumber: string): Promise<Customer | null> {
   try {
-    return await getCustomerByPhoneStorage(phone);
-  } catch (error) {
-    console.error('Error getting customer by phone:', error);
-    throw error;
-  }
-};
-
-/**
- * Add loyalty points to a customer
- * @param customerId Customer ID
- * @param points Points to add
- */
-export const addLoyaltyPoints = async (customerId: string, points: number): Promise<number> => {
-  try {
-    return await addLoyaltyPointsDB(customerId, points);
-  } catch (error) {
-    console.error('Error adding loyalty points:', error);
-    throw error;
-  }
-};
-
-/**
- * Redeem loyalty points for free valets
- * @param customerId Customer ID
- * @param points Points to redeem
- */
-export const redeemLoyaltyPoints = async (
-  customerId: string, 
-  points: number
-): Promise<{ remainingPoints: number, freeValets: number }> => {
-  try {
-    // Get current loyalty points and free valets
+    // First try to get from database
     const { data, error } = await supabase
       .from('customers')
-      .select('loyalty_points, free_valets')
-      .eq('id', customerId)
+      .select('*')
+      .eq('phone', phoneNumber)
       .single();
-    
-    if (error) throw error;
-    
-    const currentPoints = data?.loyalty_points || 0;
-    
-    if (currentPoints < points) {
-      throw new Error('Not enough loyalty points');
-    }
-    
-    const newPoints = currentPoints - points;
-    const newFreeValets = (data?.free_valets || 0) + 1;
-    
-    // Update the customer record
-    const { error: updateError } = await supabase
-      .from('customers')
-      .update({
-        loyalty_points: newPoints,
-        free_valets: newFreeValets
-      })
-      .eq('id', customerId);
-    
-    if (updateError) throw updateError;
-    
-    return {
-      remainingPoints: newPoints,
-      freeValets: newFreeValets
-    };
-  } catch (error) {
-    console.error('Error redeeming loyalty points:', error);
-    throw error;
-  }
-};
 
-/**
- * Update customer valets count when creating a new ticket
- * @param customerId Customer ID
- * @param valetQuantity Number of valets to add
- */
-export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
+    if (error) {
+      console.error('Error fetching customer from database:', error);
+      // If there was an error, check local storage as fallback
+      const localCustomers = getStoredCustomers();
+      const localCustomer = localCustomers.find(c => 
+        c.phone === phoneNumber || c.phoneNumber === phoneNumber
+      );
+      return localCustomer || null;
+    }
+
+    if (data) {
+      // Also store in local storage for offline access
+      const customer: Customer = {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        phoneNumber: data.phone,
+        loyaltyPoints: data.loyalty_points || 0,
+        valetsCount: data.valets_count || 0,
+        freeValets: data.free_valets || 0,
+        lastVisit: data.last_visit,
+        valetsRedeemed: data.valets_redeemed || 0,
+        createdAt: data.created_at
+      };
+
+      storeOrUpdateCustomer(customer);
+      return customer;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error in getCustomerByPhone:', error);
+    return null;
+  }
+}
+
+export async function getAllCustomers(): Promise<Customer[]> {
   try {
-    if (!customerId || valetQuantity <= 0) {
-      return false;
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching customers from database:', error);
+      // Return local storage data as fallback
+      return getStoredCustomers();
     }
 
-    // Direct update instead of using rpc increment which doesn't exist
-    const { data: customer, error: getError } = await supabase
-      .from('customers')
-      .select('valets_count')
-      .eq('id', customerId)
-      .single();
-      
-    if (getError) throw getError;
-    
-    const currentCount = customer?.valets_count || 0;
-    const newCount = currentCount + valetQuantity;
-    
-    const { error } = await supabase
-      .from('customers')
-      .update({
-        valets_count: newCount,
-        last_visit: new Date().toISOString()
-      })
-      .eq('id', customerId);
+    const customers: Customer[] = data.map(item => ({
+      id: item.id,
+      name: item.name,
+      phone: item.phone,
+      phoneNumber: item.phone,
+      loyaltyPoints: item.loyalty_points || 0,
+      valetsCount: item.valets_count || 0,
+      freeValets: item.free_valets || 0,
+      lastVisit: item.last_visit,
+      valetsRedeemed: item.valets_redeemed || 0,
+      createdAt: item.created_at
+    }));
 
-    if (error) throw error;
-    return true;
+    // Update local storage
+    customers.forEach(customer => {
+      storeOrUpdateCustomer(customer);
+    });
+
+    return customers;
   } catch (error) {
-    console.error('Error updating customer valets count:', error);
-    toast.error('Error al actualizar conteo de valets');
-    return false;
+    console.error('Error in getAllCustomers:', error);
+    return getStoredCustomers();
   }
-};
+}
 
-// Export functions for use in the application
-export {
-  // Additional exports can go here
-};
+export async function createOrUpdateCustomer(customer: Partial<Customer>): Promise<Customer | null> {
+  try {
+    if (!customer.phone && !customer.phoneNumber) {
+      throw new Error('Phone number is required');
+    }
+
+    const phoneToUse = customer.phone || customer.phoneNumber || '';
+
+    // Check if customer exists
+    const { data: existingCustomer, error: fetchError } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', phoneToUse)
+      .maybeSingle();
+
+    if (fetchError && fetchError.code !== 'PGRST116') {
+      console.error('Error checking if customer exists:', fetchError);
+      // Use local storage as fallback
+      return storeOrUpdateCustomer(customer);
+    }
+
+    if (existingCustomer) {
+      // Update existing customer
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          name: customer.name || existingCustomer.name,
+          loyalty_points: customer.loyaltyPoints ?? existingCustomer.loyalty_points,
+          valets_count: customer.valetsCount ?? existingCustomer.valets_count,
+          free_valets: customer.freeValets ?? existingCustomer.free_valets,
+          last_visit: customer.lastVisit || new Date().toISOString(),
+          valets_redeemed: customer.valetsRedeemed ?? existingCustomer.valets_redeemed
+        })
+        .eq('id', existingCustomer.id);
+
+      if (updateError) {
+        console.error('Error updating customer in database:', updateError);
+        // Use local storage as fallback
+        return storeOrUpdateCustomer({
+          ...customer,
+          id: existingCustomer.id
+        });
+      }
+
+      const updatedCustomer: Customer = {
+        id: existingCustomer.id,
+        name: customer.name || existingCustomer.name || '',
+        phone: phoneToUse,
+        phoneNumber: phoneToUse,
+        loyaltyPoints: customer.loyaltyPoints ?? existingCustomer.loyalty_points ?? 0,
+        valetsCount: customer.valetsCount ?? existingCustomer.valets_count ?? 0,
+        freeValets: customer.freeValets ?? existingCustomer.free_valets ?? 0,
+        lastVisit: customer.lastVisit || existingCustomer.last_visit,
+        valetsRedeemed: customer.valetsRedeemed ?? existingCustomer.valets_redeemed ?? 0,
+        createdAt: existingCustomer.created_at
+      };
+
+      // Update local storage
+      storeOrUpdateCustomer(updatedCustomer);
+      return updatedCustomer;
+    } else {
+      // Create new customer
+      const newCustomer = {
+        name: customer.name || '',
+        phone: phoneToUse,
+        loyalty_points: customer.loyaltyPoints || 0,
+        valets_count: customer.valetsCount || 0,
+        free_valets: customer.freeValets || 0,
+        valets_redeemed: customer.valetsRedeemed || 0,
+        last_visit: customer.lastVisit || new Date().toISOString()
+      };
+
+      const { data: insertedCustomer, error: insertError } = await supabase
+        .from('customers')
+        .insert(newCustomer)
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error('Error creating customer in database:', insertError);
+        // Use local storage as fallback
+        return storeOrUpdateCustomer(customer);
+      }
+
+      const createdCustomer: Customer = {
+        id: insertedCustomer.id,
+        name: insertedCustomer.name,
+        phone: insertedCustomer.phone,
+        phoneNumber: insertedCustomer.phone,
+        loyaltyPoints: insertedCustomer.loyalty_points || 0,
+        valetsCount: insertedCustomer.valets_count || 0,
+        freeValets: insertedCustomer.free_valets || 0,
+        lastVisit: insertedCustomer.last_visit,
+        valetsRedeemed: insertedCustomer.valets_redeemed || 0,
+        createdAt: insertedCustomer.created_at
+      };
+
+      // Update local storage
+      storeOrUpdateCustomer(createdCustomer);
+      return createdCustomer;
+    }
+  } catch (error) {
+    console.error('Error in createOrUpdateCustomer:', error);
+    // Use local storage as fallback
+    return storeOrUpdateCustomer(customer);
+  }
+}

@@ -18,8 +18,8 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
       </div>
       
       <div className="mb-4">
-        <p><strong>Cliente:</strong> {ticket.clientName || ticket.customerName}</p>
-        <p><strong>Teléfono:</strong> {ticket.phoneNumber || ticket.customerPhone}</p>
+        <p><strong>Cliente:</strong> {ticket.clientName}</p>
+        <p><strong>Teléfono:</strong> {ticket.phoneNumber}</p>
       </div>
       
       {ticket.services && ticket.services.length > 0 && (
@@ -28,8 +28,8 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           <ul>
             {ticket.services.map((service) => (
               <li key={service.id} className="flex justify-between">
-                <span>{service.name} x {service.quantity}</span>
-                <span>${service.price.toLocaleString()}</span>
+                <span>{service.name} x {service.quantity || 1}</span>
+                <span>${service.price ? service.price.toLocaleString() : '0'}</span>
               </li>
             ))}
           </ul>
