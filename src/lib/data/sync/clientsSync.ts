@@ -21,7 +21,7 @@ export const syncClients = async (): Promise<number> => {
       const { data: existingClient } = await supabase
         .from('customers')
         .select('*')
-        .eq('phone', client.phone || client.phoneNumber)
+        .eq('phone', client.phone || client.phoneNumber || '')
         .single();
 
       if (existingClient) {
@@ -29,7 +29,7 @@ export const syncClients = async (): Promise<number> => {
         await supabase
           .from('customers')
           .update({
-            name: client.name || client.clientName,
+            name: client.name || client.clientName || '',
             loyalty_points: client.loyaltyPoints || 0,
             free_valets: client.freeValets || 0,
             valets_count: client.valetsCount || 0,
@@ -42,8 +42,8 @@ export const syncClients = async (): Promise<number> => {
         await supabase
           .from('customers')
           .insert({
-            name: client.name || client.clientName,
-            phone: client.phone || client.phoneNumber,
+            name: client.name || client.clientName || '',
+            phone: client.phone || client.phoneNumber || '',
             loyalty_points: client.loyaltyPoints || 0,
             free_valets: client.freeValets || 0,
             valets_count: client.valetsCount || 0,

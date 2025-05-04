@@ -9,11 +9,9 @@ import { SimpleSyncStatus } from '@/lib/types/sync.types';
 export const SyncDataButton = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SimpleSyncStatus>({
-    tickets: 0,
-    expenses: 0,
-    clients: 0,
-    feedback: 0,
-    lastSync: null
+    lastSync: null,
+    syncInProgress: false,
+    syncError: null
   });
 
   const handleSync = async () => {
@@ -28,25 +26,27 @@ export const SyncDataButton = () => {
       
       // Create a SyncStatus object from the result
       const mappedResult: SimpleSyncStatus = {
+        lastSync: new Date().toISOString(),
+        syncInProgress: false,
+        syncError: null,
         tickets: result.tickets,
         expenses: result.expenses,
         clients: result.clients,
-        feedback: result.feedback,
-        lastSync: new Date()
+        feedback: result.feedback
       };
       
       setSyncStatus(mappedResult);
       
       const totalSynced = 
-        mappedResult.tickets + 
-        mappedResult.expenses + 
-        mappedResult.clients + 
-        mappedResult.feedback;
+        (mappedResult.tickets || 0) + 
+        (mappedResult.expenses || 0) + 
+        (mappedResult.clients || 0) + 
+        (mappedResult.feedback || 0);
       
       if (totalSynced > 0) {
         toast({
           title: `Sincronización completa: ${totalSynced} elementos sincronizados`,
-          description: `Tickets: ${mappedResult.tickets}, Clientes: ${mappedResult.clients}, Gastos: ${mappedResult.expenses}, Feedback: ${mappedResult.feedback}`
+          description: `Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`
         });
       } else {
         toast({

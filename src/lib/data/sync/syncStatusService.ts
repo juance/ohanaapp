@@ -3,7 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
 // Update the sync status in local storage and on the server if available
-export const updateSyncStatus = async (syncData: SimpleSyncStatus): Promise<boolean> => {
+export const updateSyncStatus = async (syncData: {
+  lastSync: Date;
+  tickets: number;
+  expenses: number;
+  clients: number;
+  feedback: number;
+}): Promise<boolean> => {
   try {
     // Get existing status or create new one
     let existingStatus = localStorage.getItem('syncStatus');
@@ -20,7 +26,7 @@ export const updateSyncStatus = async (syncData: SimpleSyncStatus): Promise<bool
     parsedStatus.expenses += syncData.expenses;
     parsedStatus.clients += syncData.clients;
     parsedStatus.feedback += syncData.feedback;
-    parsedStatus.lastSync = new Date().toISOString();
+    parsedStatus.lastSync = syncData.lastSync.toISOString();
     
     // Save back to local storage
     localStorage.setItem('syncStatus', JSON.stringify(parsedStatus));

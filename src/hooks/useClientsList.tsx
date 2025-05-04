@@ -27,7 +27,8 @@ export const useClientsList = () => {
         visitCount: client.valets_count || 0,
         lastVisit: client.last_visit,
         loyaltyPoints: client.loyalty_points || 0,
-        freeValets: client.free_valets || 0
+        freeValets: client.free_valets || 0,
+        valetsCount: client.valets_count || 0
       }));
 
       setClients(mappedClients);

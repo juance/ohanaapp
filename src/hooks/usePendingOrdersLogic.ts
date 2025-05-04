@@ -1,122 +1,106 @@
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Ticket } from '@/lib/types';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getTicketServices } from '@/lib/ticketService';
-import { getProcessingTickets, getPendingTickets, getReadyTickets } from '@/lib/ticket/ticketPendingService';
+import { getPendingTickets, getReadyTickets } from '@/lib/ticket/ticketPendingService';
 import { markTicketAsReady, markTicketAsDelivered } from '@/lib/ticket/ticketStatusTransitionService';
 import { toast } from '@/lib/toast';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-
-interface TicketService {
-  name: string;
-  quantity?: number;
-}
 
 export const usePendingOrdersLogic = () => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
-  const [ticketServices, setTicketServices] = useState<TicketService[]>([]);
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const ticketDetailRef = useRef<HTMLDivElement>(null);
+  const [showDetails, setShowDetails] = useState<boolean>(false);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [isStatusChanging, setIsStatusChanging] = useState(false);
 
-  const { data: processingTickets = [], isLoading: processingLoading, refetch: refetchProcessing } = useQuery({
-    queryKey: ['processingTickets'],
-    queryFn: () => getProcessingTickets(),
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: true
-  });
-
-  const { data: pendingTickets = [], isLoading: pendingLoading, refetch: refetchPending } = useQuery({
+  // Query for pending tickets
+  const { 
+    data: pendingTickets = [],
+    isLoading: isLoadingPending,
+    refetch: refetchPendingTickets
+  } = useQuery({
     queryKey: ['pendingTickets'],
-    queryFn: () => getPendingTickets(),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true
+    queryFn: getPendingTickets
   });
 
-  const { data: readyTickets = [], isLoading: readyLoading, refetch: refetchReady } = useQuery({
+  // Query for ready tickets
+  const { 
+    data: readyTickets = [],
+    isLoading: isLoadingReady,
+    refetch: refetchReadyTickets
+  } = useQuery({
     queryKey: ['readyTickets'],
-    queryFn: () => getReadyTickets(),
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: true
+    queryFn: getReadyTickets
   });
 
-  const isLoading = processingLoading || pendingLoading || readyLoading;
-
-  const loadTicketServices = async (ticketId: string) => {
-    const services = await getTicketServices(ticketId);
-    setTicketServices(services || []);
+  const refetchAllTickets = () => {
+    refetchPendingTickets();
+    refetchReadyTickets();
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
   };
 
-  const handleTicketStatusChange = async (ticketId: string, status: string) => {
-    if (status === 'pending' || status === 'processing') {
-      const success = await markTicketAsReady(ticketId);
-      if (success) {
-        refreshTickets();
-        toast.success('Ticket marcado como listo para retirar');
-      }
-    }
+  const handleViewDetails = (ticket: Ticket) => {
+    setSelectedTicket(ticket);
+    setShowDetails(true);
   };
 
-  const handleTicketDelivered = async (ticketId: string) => {
-    const success = await markTicketAsDelivered(ticketId);
-    if (success) {
-      refreshTickets();
-      toast.success('Ticket marcado como entregado');
-    }
-  };
-
-  const refreshTickets = () => {
-    refetchProcessing();
-    refetchPending();
-    refetchReady();
-    queryClient.invalidateQueries({ queryKey: ['pickupTickets'] });
+  const handleCloseDetails = () => {
+    setShowDetails(false);
     setSelectedTicket(null);
   };
 
-  // Filter tickets based on search query
-  const filteredTickets = processingTickets.filter(ticket => {
-    if (!searchQuery) return true;
+  const handleMarkAsReady = async (ticketId: string) => {
+    if (isStatusChanging) return;
     
-    const searchLower = searchQuery.toLowerCase();
-    
-    if (searchFilter === 'name') {
-      return ticket.clientName?.toLowerCase().includes(searchLower) || false;
-    } else {
-      return ticket.phoneNumber?.includes(searchQuery) || false;
-    }
-  });
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
+    setIsStatusChanging(true);
     try {
-      return format(new Date(dateString), 'dd MMM yyyy, HH:mm', { locale: es });
+      await markTicketAsReady(ticketId);
+      toast.success('Ticket marcado como listo para entregar');
+      refetchAllTickets();
     } catch (error) {
-      return 'Fecha inválida';
+      toast.error('Error al cambiar el estado del ticket');
+      console.error('Error marking ticket as ready:', error);
+    } finally {
+      setIsStatusChanging(false);
     }
   };
 
+  const handleMarkAsDelivered = async (ticketId: string) => {
+    if (isStatusChanging) return;
+    
+    setIsStatusChanging(true);
+    try {
+      await markTicketAsDelivered(ticketId);
+      toast.success('Ticket marcado como entregado');
+      refetchAllTickets();
+    } catch (error) {
+      toast.error('Error al marcar el ticket como entregado');
+      console.error('Error marking ticket as delivered:', error);
+    } finally {
+      setIsStatusChanging(false);
+    }
+  };
+
+  const handleEditTicket = (ticketId: string) => {
+    navigate(`/tickets/edit/${ticketId}`);
+  };
+
+  const isLoading = isLoadingPending || isLoadingReady;
+
   return {
-    tickets: processingTickets,
-    filteredTickets,
     pendingTickets,
     readyTickets,
-    selectedTicket,
-    setSelectedTicket,
-    searchQuery,
-    setSearchQuery,
-    searchFilter,
-    setSearchFilter,
-    ticketServices,
-    ticketDetailRef,
     isLoading,
-    refetch: refreshTickets,
-    loadTicketServices,
-    handleTicketStatusChange,
-    handleTicketDelivered,
-    refreshTickets,
-    formatDate
+    showDetails,
+    selectedTicket,
+    isStatusChanging,
+    handleViewDetails,
+    handleCloseDetails,
+    handleMarkAsReady,
+    handleMarkAsDelivered,
+    handleEditTicket,
+    refetchAllTickets
   };
 };

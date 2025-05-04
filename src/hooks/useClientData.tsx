@@ -11,6 +11,7 @@ const mapToClientVisit = (customer: any): ClientVisit => {
     visitCount: customer.valets_count || 0,
     lastVisit: customer.last_visit,
     loyaltyPoints: customer.loyalty_points || 0,
-    freeValets: customer.free_valets || 0
+    freeValets: customer.free_valets || 0,
+    valetsCount: customer.valets_count || 0
   };
 };

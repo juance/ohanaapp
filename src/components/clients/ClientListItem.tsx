@@ -1,22 +1,26 @@
 
 import React from 'react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { ClientVisit } from '@/lib/types/customer.types';
 import { Button } from '@/components/ui/button';
-import { ClientVisit } from '@/lib/types';
 import { Input } from '@/components/ui/input';
-import { PencilIcon, CheckIcon, XIcon } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
-export interface ClientListItemProps {
+interface ClientListItemProps {
   client: ClientVisit;
   isEditing: boolean;
-  editName: string;
-  setEditName: (name: string) => void;
-  editPhone: string;
-  setEditPhone: (phone: string) => void;
+  editName?: string;
+  setEditName?: (value: string) => void;
+  editPhone?: string;
+  setEditPhone?: (value: string) => void;
+  selectedClient: ClientVisit | null;
+  onEdit: () => void;
   onSave: () => void;
   onCancel: () => void;
-  onEdit: () => void;
+  onSelect: () => void;
+  editClientName?: string; // For compatibility
+  editClientPhone?: string; // For compatibility
+  onEditNameChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onEditPhoneChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ClientListItem: React.FC<ClientListItemProps> = ({
@@ -26,79 +30,80 @@ const ClientListItem: React.FC<ClientListItemProps> = ({
   setEditName,
   editPhone,
   setEditPhone,
+  selectedClient,
+  onEdit,
   onSave,
   onCancel,
-  onEdit
+  onSelect,
+  editClientName,
+  editClientPhone,
+  onEditNameChange,
+  onEditPhoneChange
 }) => {
-  const formatLastVisit = (dateStr?: string) => {
-    if (!dateStr) return 'Nunca';
-    try {
-      return format(new Date(dateStr), 'dd/MM/yyyy', { locale: es });
-    } catch {
-      return 'Fecha inválida';
+  // Use either edit props mechanism
+  const currentEditName = editName || editClientName || '';
+  const currentEditPhone = editPhone || editClientPhone || '';
+  
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (setEditName) {
+      setEditName(e.target.value);
+    } else if (onEditNameChange) {
+      onEditNameChange(e);
+    }
+  };
+  
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (setEditPhone) {
+      setEditPhone(e.target.value);
+    } else if (onEditPhoneChange) {
+      onEditPhoneChange(e);
     }
   };
 
-  if (isEditing) {
-    return (
-      <tr className="border-b bg-blue-50">
-        <td className="py-2 px-3">
-          <Input
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            className="w-full"
-          />
-        </td>
-        <td className="py-2 px-3">
-          <Input
-            type="text"
-            value={editPhone}
-            onChange={(e) => setEditPhone(e.target.value)}
-            className="w-full"
-          />
-        </td>
-        <td className="py-2 px-3">
-          {client.visitCount}
-        </td>
-        <td className="py-2 px-3">
-          {formatLastVisit(client.lastVisit)}
-        </td>
-        <td className="text-right py-2 px-3">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mr-2" 
-            onClick={onSave}
-          >
-            <CheckIcon className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={onCancel}
-          >
-            <XIcon className="h-4 w-4" />
-          </Button>
-        </td>
-      </tr>
-    );
-  }
+  const isSelected = selectedClient && selectedClient.id === client.id;
 
   return (
-    <tr className="border-b hover:bg-gray-50">
-      <td className="py-2 px-3">{client.clientName}</td>
-      <td className="py-2 px-3">{client.phoneNumber}</td>
-      <td className="py-2 px-3">{client.visitCount}</td>
-      <td className="py-2 px-3">{formatLastVisit(client.lastVisit)}</td>
-      <td className="text-right py-2 px-3">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={onEdit}
-        >
-          <PencilIcon className="h-4 w-4" />
-        </Button>
+    <tr className={isSelected ? 'bg-blue-50' : ''}>
+      <td className="py-2 px-3">
+        {isEditing ? (
+          <Input
+            type="text"
+            value={currentEditName}
+            onChange={handleNameChange}
+            className="h-8"
+          />
+        ) : (
+          client.clientName
+        )}
+      </td>
+      <td className="py-2 px-3">
+        {isEditing ? (
+          <Input
+            type="tel"
+            value={currentEditPhone}
+            onChange={handlePhoneChange}
+            className="h-8"
+          />
+        ) : (
+          client.phoneNumber
+        )}
+      </td>
+      <td className="py-2 px-3">{client.visitCount || client.valetsCount}</td>
+      <td className="py-2 px-3">
+        {client.lastVisit ? formatDate(client.lastVisit) : 'N/A'}
+      </td>
+      <td className="py-2 px-3 text-right space-x-2">
+        {isEditing ? (
+          <>
+            <Button size="sm" variant="outline" onClick={onSave}>Guardar</Button>
+            <Button size="sm" variant="ghost" onClick={onCancel}>Cancelar</Button>
+          </>
+        ) : (
+          <>
+            <Button size="sm" variant="ghost" onClick={onEdit}>Editar</Button>
+            <Button size="sm" variant="outline" onClick={onSelect}>Seleccionar</Button>
+          </>
+        )}
       </td>
     </tr>
   );
