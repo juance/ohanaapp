@@ -47,13 +47,15 @@ export const createTicketForPreview = async (
     basketTicketNumber: basketNumber.toString(),
     clientName: customerName,
     phoneNumber,
+    total: useFreeValet ? 0 : totalPrice, // Add required total field
     services,
     paymentMethod: paymentMethod as any,
-    totalPrice: useFreeValet ? 0 : totalPrice, // If it's a free valet, set price to 0
+    totalPrice: useFreeValet ? 0 : totalPrice,
     status: TICKET_STATUS.READY,
+    date: date.toISOString(), // Add required date field
     createdAt: date.toISOString(),
-    isPaid: isPaidInAdvance, // Add the paid status
-    deliveredDate: null, // Add required deliveredDate field
+    isPaid: isPaidInAdvance,
+    deliveredDate: null,
     valetQuantity: effectiveValetQuantity
   };
 };

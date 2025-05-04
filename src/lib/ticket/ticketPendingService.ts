@@ -10,11 +10,11 @@ import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 export async function getPendingTickets(): Promise<Ticket[]> {
   try {
     // Get tickets with pending status
-    const { data: pendingTickets, error } = await supabase
-      .from('tickets')
-      .select(buildTicketSelectQuery())
+    const query = buildTicketSelectQuery()
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
+
+    const { data: pendingTickets, error } = await query;
 
     if (error) {
       console.error('Error fetching pending tickets:', error);
@@ -35,11 +35,11 @@ export async function getPendingTickets(): Promise<Ticket[]> {
 export async function getReadyTickets(): Promise<Ticket[]> {
   try {
     // Get tickets with ready status
-    const { data: readyTickets, error } = await supabase
-      .from('tickets')
-      .select(buildTicketSelectQuery())
+    const query = buildTicketSelectQuery()
       .eq('status', 'ready')
       .order('created_at', { ascending: false });
+
+    const { data: readyTickets, error } = await query;
 
     if (error) {
       console.error('Error fetching ready tickets:', error);

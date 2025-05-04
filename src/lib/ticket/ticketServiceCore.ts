@@ -1,7 +1,8 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Ticket, LaundryOption } from '@/lib/types';
+import { Ticket, LaundryOption, DryCleaningItem } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { getNextTicketNumber } from '@/lib/dataService';
+import { mapTicketData } from './ticketQueryUtils';
 
 /**
  * Create a new ticket with complete details
@@ -150,9 +151,10 @@ export const getTicketOptions = async (ticketId: string): Promise<LaundryOption[
     return data.map(option => ({
       id: option.id,
       name: option.option_type, // Use option_type as name
+      optionType: option.option_type,
+      type: option.option_type, // For backwards compatibility
       price: 0, // Laundry options don't have a price in our system
       ticketId: option.ticket_id,
-      optionType: option.option_type,
       createdAt: option.created_at
     }));
   } catch (error) {
@@ -201,38 +203,34 @@ export const getFullTicket = async (ticketId: string): Promise<Ticket | null> =>
       console.error('Error getting laundry options:', laundryError);
     }
     
-    // Format the ticket object
-    const formattedTicket: Ticket = {
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number,
-      customerId: ticket.customer_id,
-      clientName: ticket.customers?.name || 'Unknown',
-      phoneNumber: ticket.customers?.phone || 'N/A',
-      totalPrice: ticket.total || 0,
-      paymentMethod: ticket.payment_method || 'cash',
-      status: ticket.status || 'pending',
-      isPaid: ticket.is_paid || false,
-      valetQuantity: ticket.valet_quantity || 0,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date,
-      dryCleaningItems: dryCleaningItems?.map(item => ({
-        id: item.id,
-        name: item.name,
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-        ticketId: item.ticket_id
-      })) || [],
-      laundryOptions: laundryOptions?.map(option => ({
-        id: option.id,
-        name: option.option_type, // Use option_type as name
-        price: 0, // Laundry options don't have a price
-        ticketId: option.ticket_id,
-        optionType: option.option_type, 
-        createdAt: option.created_at
-      })) || []
-    };
+    // Create a base ticket object
+    const baseTicket = mapTicketData(ticket);
     
-    return formattedTicket;
+    // Add the items and options
+    const formattedItems: DryCleaningItem[] = dryCleaningItems?.map(item => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity || 1,
+      price: item.price || 0,
+      ticketId: item.ticket_id
+    })) || [];
+    
+    const formattedOptions: LaundryOption[] = laundryOptions?.map(option => ({
+      id: option.id,
+      name: option.option_type, // Use option_type as name
+      optionType: option.option_type,
+      type: option.option_type, // For backwards compatibility
+      price: 0, // Laundry options don't have a price
+      ticketId: option.ticket_id,
+      createdAt: option.created_at
+    })) || [];
+    
+    // Return the complete ticket with all data
+    return {
+      ...baseTicket,
+      dryCleaningItems: formattedItems,
+      laundryOptions: formattedOptions
+    };
   } catch (error) {
     console.error('Error in getFullTicket:', error);
     return null;

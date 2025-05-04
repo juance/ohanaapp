@@ -1,7 +1,7 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, PaymentMethod } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { mapTicketData } from './ticketQueryUtils';
 
 /**
  * Get all tickets that are ready for pickup (not delivered or canceled)
@@ -25,19 +25,7 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    return data.map(item => ({
-      id: item.id,
-      ticketNumber: item.ticket_number,
-      clientName: item.customers?.name || 'Unknown',
-      phoneNumber: item.customers?.phone || '',
-      totalPrice: item.total || 0,
-      paymentMethod: item.payment_method as PaymentMethod || 'cash',
-      status: item.status || 'pending',
-      isPaid: item.is_paid || false,
-      valetQuantity: item.valet_quantity || 0,
-      createdAt: item.created_at,
-      deliveredDate: item.delivered_date
-    }));
+    return data.map(mapTicketData);
   } catch (error) {
     console.error('Error in getPickupTickets:', error);
     return [];
@@ -71,19 +59,7 @@ export const getUnretrievedTickets = async (daysThreshold = 7): Promise<Ticket[]
       return [];
     }
 
-    return data.map(item => ({
-      id: item.id,
-      ticketNumber: item.ticket_number,
-      clientName: item.customers?.name || 'Unknown',
-      phoneNumber: item.customers?.phone || '',
-      totalPrice: item.total || 0,
-      paymentMethod: item.payment_method as PaymentMethod || 'cash',
-      status: item.status || 'pending',
-      isPaid: item.is_paid || false,
-      valetQuantity: item.valet_quantity || 0,
-      createdAt: item.created_at,
-      deliveredDate: item.delivered_date
-    }));
+    return data.map(mapTicketData);
   } catch (error) {
     console.error('Error in getUnretrievedTickets:', error);
     return [];

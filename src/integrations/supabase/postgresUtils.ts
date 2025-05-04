@@ -10,10 +10,11 @@ import { supabase } from './client';
  */
 export async function executeRawQuery(query: string, params?: any) {
   try {
-    // Use the special rpc function that allows executing raw SQL
-    const { data, error } = await supabase.rpc('pg_query', { 
-      query: query 
-    } as any);
+    // Use a direct SQL query instead of rpc
+    const { data, error } = await supabase
+      .from('_sql')
+      .select('*')
+      .or(`query.eq.${encodeURIComponent(query)}`) as any;
     
     if (error) {
       console.error('Error executing SQL query:', error);

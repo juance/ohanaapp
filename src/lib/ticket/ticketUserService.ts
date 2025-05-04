@@ -24,14 +24,14 @@ export const getTicketsByPhoneNumber = async (phoneNumber: string): Promise<Tick
       return [];
     }
 
-    // Build select query based on available columns
-    const selectQuery = buildTicketSelectQuery();
-
-    // Get tickets for this customer, both ready/pending and delivered
-    const { data: ticketsData, error: ticketsError } = await selectQuery
+    // Build the query
+    const query = buildTicketSelectQuery()
       .eq('customer_id', customer.id)
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
+
+    // Execute the query
+    const { data: ticketsData, error: ticketsError } = await query;
 
     if (ticketsError) {
       console.error('Error retrieving customer tickets:', ticketsError);

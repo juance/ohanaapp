@@ -27,7 +27,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'Separar por color',
-        optionType: 'preference'
+        optionType: 'preference',
+        type: 'preference' // Added for backward compatibility
       });
     }
     
@@ -35,7 +36,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'Secado delicado',
-        optionType: 'drying'
+        optionType: 'drying',
+        type: 'drying' // Added for backward compatibility
       });
     }
     
@@ -43,7 +45,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'Quitar manchas',
-        optionType: 'cleaning'
+        optionType: 'cleaning',
+        type: 'cleaning' // Added for backward compatibility
       });
     }
     
@@ -51,7 +54,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'Usar lavandina',
-        optionType: 'cleaning'
+        optionType: 'cleaning',
+        type: 'cleaning' // Added for backward compatibility
       });
     }
     
@@ -59,7 +63,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'Sin fragancia',
-        optionType: 'preference'
+        optionType: 'preference',
+        type: 'preference' // Added for backward compatibility
       });
     }
     
@@ -67,7 +72,8 @@ export const useValetForm = () => {
       options.push({
         id: Math.random().toString(36).substring(2, 9),
         name: 'No secar',
-        optionType: 'drying'
+        optionType: 'drying',
+        type: 'drying' // Added for backward compatibility
       });
     }
     

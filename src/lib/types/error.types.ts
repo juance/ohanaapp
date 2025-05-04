@@ -1,36 +1,31 @@
 
-// Error-related types
-
 export enum ErrorLevel {
-  INFO = 'info',
-  WARNING = 'warning',
-  ERROR = 'error',
-  CRITICAL = 'critical'
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'ERROR',
+  CRITICAL = 'CRITICAL'
 }
 
-export interface ErrorDetails {
-  level: ErrorLevel;
-  message: string;
-  source: string;
-  timestamp: string;
-  stackTrace?: string;
-  errorCode?: string;
-  userId?: string;
-  metadata?: Record<string, any>;
+export enum ErrorContext {
+  UI = 'UI',
+  API = 'API',
+  DATABASE = 'DATABASE',
+  NETWORK = 'NETWORK',
+  AUTH = 'AUTH',
+  STORAGE = 'STORAGE',
+  BUSINESS_LOGIC = 'BUSINESS_LOGIC',
+  UNKNOWN = 'UNKNOWN'
 }
 
-export interface ValidationError {
-  field: string;
-  message: string;
-  type: string;
-}
-
-// Mock expense category for compatibility
-export enum ExpenseCategory {
-  SUPPLIES = 'supplies',
-  UTILITIES = 'utilities',
-  RENT = 'rent',
-  PAYROLL = 'payroll',
-  MAINTENANCE = 'maintenance',
-  OTHER = 'other'
+export interface SystemError {
+  id: string;
+  error_message: string;
+  error_stack?: string;
+  timestamp: Date;
+  error_context?: Record<string, any>;
+  resolved: boolean;
+  component?: string;
+  user_id?: string;
+  browser_info?: Record<string, any>;
+  message?: string; // For compatibility
 }

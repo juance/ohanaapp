@@ -13,9 +13,11 @@ export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Pro
     const hasDeliveredDate = await checkDeliveredDateColumnExists();
 
     // Build query with proper status filter
-    let query = buildTicketSelectQuery()
-      .eq('status', TICKET_STATUS.DELIVERED)
-      .order('updated_at', { ascending: false });
+    let query = buildTicketSelectQuery();
+    
+    // Apply filters
+    query = query.eq('status', TICKET_STATUS.DELIVERED);
+    query = query.order('updated_at', { ascending: false });
 
     // Add date filters if provided
     if (startDate) {

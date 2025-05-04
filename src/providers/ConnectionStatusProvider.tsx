@@ -1,143 +1,108 @@
-// Connection Status Provider
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useContext,
-  ReactNode
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
-import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
-interface ConnectionStatusContextProps {
-  isConnected: boolean;
-  isSyncing: boolean;
-  lastSync: string | null;
-  syncError: string | null;
-  tickets?: number;
-  expenses?: number;
-  clients?: number;
-  feedback?: number;
-  sync: () => Promise<void>;
+import React, { createContext, useContext, useState, useEffect } from 'react';
+
+type ConnectionStatus = 'online' | 'offline';
+type SyncStatus = 'synchronized' | 'syncing' | 'error' | 'pending';
+
+interface ConnectionContextType {
+  connectionStatus: ConnectionStatus;
+  syncStatus: SyncStatus;
+  pendingSyncCount: number;
+  lastSyncedAt: Date | null;
+  syncData: () => Promise<void>;
 }
 
-const ConnectionStatusContext = createContext<ConnectionStatusContextProps>({
-  isConnected: navigator.onLine,
-  isSyncing: false,
-  lastSync: null,
-  syncError: null,
-  tickets: 0,
-  expenses: 0,
-  clients: 0,
-  feedback: 0,
-  sync: async () => {}
+const ConnectionContext = createContext<ConnectionContextType>({
+  connectionStatus: 'online',
+  syncStatus: 'synchronized',
+  pendingSyncCount: 0,
+  lastSyncedAt: null,
+  syncData: async () => {}
 });
 
-interface ConnectionStatusProviderProps {
-  children: ReactNode;
-}
+export const useConnection = () => useContext(ConnectionContext);
 
-const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({
-  children
-}) => {
-  const [isConnected, setIsConnected] = useState(navigator.onLine);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSync, setLastSync] = useState<string | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
-  const [tickets, setTickets] = useState<number | undefined>(0);
-  const [expenses, setExpenses] = useState<number | undefined>(0);
-  const [clients, setClients] = useState<number | undefined>(0);
-  const [feedback, setFeedback] = useState<number | undefined>(0);
-  const navigate = useNavigate();
+export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online');
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('synchronized');
+  const [pendingSyncCount, setPendingSyncCount] = useState<number>(0);
+  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
 
+  // Check connection status when the component mounts
   useEffect(() => {
-    const handleOnline = () => setIsConnected(true);
-    const handleOffline = () => setIsConnected(false);
+    const handleOnline = () => setConnectionStatus('online');
+    const handleOffline = () => setConnectionStatus('offline');
 
+    // Set initial status
+    setConnectionStatus(navigator.onLine ? 'online' : 'offline');
+
+    // Add event listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Check for pending sync items in local storage
+    const checkPendingItems = () => {
+      try {
+        const syncStatus = localStorage.getItem('syncStatus');
+        if (syncStatus) {
+          const syncData = JSON.parse(syncStatus);
+          setPendingSyncCount(
+            (syncData.pendingTickets?.length || 0) +
+            (syncData.pendingExpenses?.length || 0) +
+            (syncData.pendingFeedback?.length || 0)
+          );
+          setLastSyncedAt(syncData.lastSynced ? new Date(syncData.lastSynced) : null);
+        }
+      } catch (error) {
+        console.error('Error checking pending sync items:', error);
+      }
+    };
+
+    // Initial check and periodic checks
+    checkPendingItems();
+    const intervalId = setInterval(checkPendingItems, 60000); // Check every minute
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(intervalId);
     };
   }, []);
 
-  useEffect(() => {
-    const initialSyncStatus = getSyncStatus();
-    setLastSync(initialSyncStatus.lastSync || null);
-    setTickets(initialSyncStatus.tickets);
-    setExpenses(initialSyncStatus.expenses);
-    setClients(initialSyncStatus.clients);
-    setFeedback(initialSyncStatus.feedback);
-  }, []);
+  // Function to sync data with the server
+  const syncData = async () => {
+    if (connectionStatus === 'offline' || syncStatus === 'syncing') {
+      return;
+    }
 
-  const sync = async () => {
-    setIsSyncing(true);
-    setSyncError(null);
     try {
-      const result = await syncAllData();
-      const syncStatus = handleSyncComplete(result);
-      setLastSync(syncStatus.lastSync);
-      setTickets(syncStatus.tickets);
-      setExpenses(syncStatus.expenses);
-      setClients(syncStatus.clients);
-      setFeedback(syncStatus.feedback);
-      navigate('/');
-    } catch (error: any) {
-      console.error('Sync error:', error);
-      setSyncError(error.message || 'Sync failed');
-    } finally {
-      setIsSyncing(false);
+      setSyncStatus('syncing');
+      
+      // Import sync functions dynamically to avoid circular dependencies
+      const { syncAllData } = await import('@/lib/data/syncService');
+      
+      await syncAllData();
+      
+      setSyncStatus('synchronized');
+      setLastSyncedAt(new Date());
+      setPendingSyncCount(0);
+    } catch (error) {
+      console.error('Error syncing data:', error);
+      setSyncStatus('error');
     }
   };
 
-  const handleSyncComplete = (result: {
-    tickets: number;
-    expenses: number;
-    feedback: number;
-    clients: number;
-    timestamp: Date;
-  }) => {
-    const syncStatus: SimpleSyncStatus = {
-      lastSync: result.timestamp.toISOString(),
-      syncInProgress: false,
-      syncError: null,
-      tickets: result.tickets,
-      expenses: result.expenses,
-      clients: result.clients,
-      feedback: result.feedback
-    };
-    
-    // Update sync status
-    localStorage.setItem('syncStatus', JSON.stringify(syncStatus));
-    
-    return syncStatus;
-  };
-
   return (
-    <ConnectionStatusContext.Provider
+    <ConnectionContext.Provider
       value={{
-        isConnected,
-        isSyncing,
-        lastSync,
-        syncError,
-        tickets,
-        expenses,
-        clients,
-        feedback,
-        sync
+        connectionStatus,
+        syncStatus,
+        pendingSyncCount,
+        lastSyncedAt,
+        syncData
       }}
     >
       {children}
-    </ConnectionStatusContext.Provider>
+    </ConnectionContext.Provider>
   );
 };
-
-const useConnectionStatus = () => {
-  return useContext(ConnectionStatusContext);
-};
-
-export { ConnectionStatusProvider, useConnectionStatus };

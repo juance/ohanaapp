@@ -21,6 +21,8 @@ export interface Ticket {
   deliveredDate?: string;
   basketTicketNumber?: string;
   services?: TicketService[];
+  laundryOptions?: LaundryOption[];
+  dryCleaningItems?: DryCleaningItem[];
 }
 
 export interface DryCleaningItem {
@@ -28,13 +30,17 @@ export interface DryCleaningItem {
   name: string;
   price: number;
   quantity: number;
+  ticketId?: string;
 }
 
 export interface LaundryOption {
-  id: string;
-  type: string;
-  name?: string;
-  optionType?: string;
+  id?: string;
+  name: string;
+  optionType: string;
+  type?: string; // For backwards compatibility
+  price?: number;
+  ticketId?: string;
+  createdAt?: string;
 }
 
 export interface LaundryService {

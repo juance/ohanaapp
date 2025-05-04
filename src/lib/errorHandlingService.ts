@@ -1,5 +1,5 @@
 
-import { ErrorLevel, ErrorContext } from './types';
+import { ErrorLevel, ErrorContext } from './types/error.types';
 
 interface ErrorData {
   level: ErrorLevel;

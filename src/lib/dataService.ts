@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -263,6 +264,7 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
         created_at,
         delivered_date,
         customer_id,
+        date,
         customers (name, phone)
       `)
       .in('status', ['ready'])
@@ -277,9 +279,11 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       ticketNumber: ticket.ticket_number,
       clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
+      total: Number(ticket.total),
       totalPrice: Number(ticket.total),
       paymentMethod: ticket.payment_method,
       status: ticket.status,
+      date: ticket.date || ticket.created_at, // Ensure date is always set
       isPaid: ticket.is_paid,
       valetQuantity: ticket.valet_quantity,
       createdAt: ticket.created_at,

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, TicketService, PaymentMethod } from '@/lib/types';
 import { toast } from '@/lib/toast';
+import { mapTicketData } from '@/lib/ticket/ticketQueryUtils';
 
 // Tipos para el hook
 interface TicketServiceWithDetails extends TicketService {
@@ -149,20 +150,8 @@ export const usePickupOrdersLogic = (): UsePickupOrdersLogicReturn => {
 
       if (error) throw error;
 
-      // Mapear los registros de la base de datos al modelo Ticket
-      return data.map(ticket => ({
-        id: ticket.id,
-        ticketNumber: ticket.ticket_number,
-        clientName: ticket.customers?.name || 'Cliente',
-        phoneNumber: ticket.customers?.phone || '',
-        totalPrice: ticket.total || 0,
-        paymentMethod: mapPaymentMethod(ticket.payment_method),
-        status: ticket.status || 'pending',
-        isPaid: ticket.is_paid || false,
-        valetQuantity: ticket.valet_quantity || 0,
-        createdAt: ticket.created_at,
-        deliveredDate: ticket.delivered_date
-      }));
+      // Map the database records to the Ticket model
+      return data.map(mapTicketData);
     },
     meta: {
       onError: (error: Error) => {

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { SystemError } from './types/error.types';
 import { v4 as uuidv4 } from 'uuid';

@@ -33,9 +33,11 @@ export const useCachedTickets = (status?: string, limit: number = 100) => {
           ticketNumber: ticket.ticket_number || '000',
           clientName: ticket.customers?.name || 'Cliente',
           phoneNumber: ticket.customers?.phone || '',
+          total: ticket.total || 0, // Added to match Ticket interface
           totalPrice: ticket.total || 0,
           paymentMethod: mapPaymentMethod(ticket.payment_method),
           status: ticket.status || 'pending',
+          date: ticket.date || ticket.created_at, // Added to match Ticket interface
           isPaid: ticket.is_paid || false,
           valetQuantity: ticket.valet_quantity || 0,
           createdAt: ticket.created_at,
