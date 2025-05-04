@@ -39,5 +39,9 @@ export {
   isInStatus,
   getDatabaseStatuses,
   getStatusDisplayName,
-  getStatusBadgeClass
+  getStatusBadgeClass,
+  mapToSimplifiedStatus,
+  mapToDatabaseStatus,
+  moveToNextStatus as moveToNextStatusInMemory,
+  getNextStatus as getNextTicketStatus
 } from './ticket/ticketStatusService';

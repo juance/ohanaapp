@@ -3,4 +3,8 @@
 export { TICKET_STATUS } from '@/lib/constants/appConstants';
 
 // Si hay otras exportaciones importantes para tests, incluirlas aquí
-export { mapToSimplifiedStatus, mapToDatabaseStatus, moveToNextStatus } from '@/lib/ticket/ticketStatusService';
+export { 
+  mapToSimplifiedStatus, 
+  mapToDatabaseStatus, 
+  moveToNextStatus 
+} from '@/lib/ticket/ticketStatusService';

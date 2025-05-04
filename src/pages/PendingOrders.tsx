@@ -18,9 +18,9 @@ const PendingOrders = () => {
     pendingTickets,
     readyTickets,
     isLoading,
-    handleTicketStatusChange,
+    handleMarkAsReady,
     handleTicketDelivered,
-    refreshTickets
+    refetchAllTickets
   } = usePendingOrdersLogic();
   
   const [activeTab, setActiveTab] = useState('pending');
@@ -63,6 +63,16 @@ const PendingOrders = () => {
   const handleSendWhatsAppReminder = (ticket: Ticket) => {
     const message = `Hola! Tu ropa ya está lista para retirar. Ticket #${ticket.ticketNumber}. Gracias por confiar en nosotros!`;
     openWhatsApp(ticket.phoneNumber, message);
+  };
+
+  const refreshTickets = refetchAllTickets;
+  
+  const handleTicketStatusChange = async (ticketId: string, newStatus: string) => {
+    if (newStatus === 'ready') {
+      await handleMarkAsReady(ticketId);
+    } else if (newStatus === 'delivered') {
+      await handleTicketDelivered(ticketId);
+    }
   };
 
   const renderOrderCard = (ticket: Ticket) => (

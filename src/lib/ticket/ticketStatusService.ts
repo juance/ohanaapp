@@ -88,3 +88,85 @@ export const getDatabaseStatuses = (): string[] => {
     TICKET_STATUS.CANCELLED
   ];
 };
+
+/**
+ * Map ticket status to simplified status
+ * @param status The database status
+ * @returns Simplified status (PENDING, READY, DELIVERED)
+ */
+export const mapToSimplifiedStatus = (status: string): string => {
+  switch (status.toLowerCase()) {
+    case TICKET_STATUS.PENDING:
+    case TICKET_STATUS.PROCESSING:
+      return 'PENDING';
+    case TICKET_STATUS.READY:
+      return 'READY';
+    case TICKET_STATUS.DELIVERED:
+      return 'DELIVERED';
+    case TICKET_STATUS.CANCELLED:
+      return 'CANCELLED';
+    default:
+      return 'PENDING';
+  }
+};
+
+/**
+ * Map simplified status to database status
+ * @param simplifiedStatus The simplified status
+ * @param currentStatus The current status (for preserving specific pending state)
+ * @returns The database status
+ */
+export const mapToDatabaseStatus = (simplifiedStatus: string, currentStatus?: string): string => {
+  switch (simplifiedStatus) {
+    case 'PENDING':
+      // If we have a specific pending status (like 'processing'), preserve it
+      if (currentStatus && (currentStatus === 'pending' || currentStatus === 'processing')) {
+        return currentStatus;
+      }
+      return 'ready';
+    case 'DELIVERED':
+      return 'delivered';
+    case 'CANCELLED':
+      return 'canceled';
+    default:
+      return 'ready';
+  }
+};
+
+/**
+ * Move a ticket to the next status in the workflow
+ * @param ticket Ticket to update
+ * @returns Updated ticket with new status
+ */
+export const moveToNextStatus = (ticket: { id: string, status: string }): { id: string, status: string } => {
+  const currentStatus = ticket.status.toLowerCase();
+  
+  switch (currentStatus) {
+    case TICKET_STATUS.PENDING:
+      return { ...ticket, status: TICKET_STATUS.PROCESSING };
+    case TICKET_STATUS.PROCESSING:
+      return { ...ticket, status: TICKET_STATUS.READY };
+    case TICKET_STATUS.READY:
+      return { ...ticket, status: TICKET_STATUS.DELIVERED };
+    default:
+      return ticket; // No change for delivered tickets
+  }
+};
+
+/**
+ * Get the next status in the workflow
+ * @param currentStatus Current ticket status
+ * @returns Next status in the workflow
+ */
+export const getNextStatus = (currentStatus: string): string => {
+  switch (currentStatus.toLowerCase()) {
+    case TICKET_STATUS.PENDING:
+      return TICKET_STATUS.PROCESSING;
+    case TICKET_STATUS.PROCESSING:
+      return TICKET_STATUS.READY;
+    case TICKET_STATUS.READY:
+      return TICKET_STATUS.DELIVERED;
+    default:
+      return currentStatus; // No change for delivered tickets
+  }
+};

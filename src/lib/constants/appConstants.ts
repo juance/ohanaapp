@@ -29,3 +29,17 @@ export const TICKET_TYPE = {
   DRY_CLEANING: 'tintoreria',
   VALET: 'valet'
 };
+
+/**
+ * Constants for storage keys
+ */
+export const STORAGE_KEYS = {
+  TICKETS: 'tickets',
+  CLIENTS: 'clients',
+  EXPENSES: 'expenses',
+  FEEDBACK: 'feedback',
+  METRICS: 'metrics',
+  SYNC_STATUS: 'syncStatus',
+  USER_PREFERENCES: 'userPreferences',
+  SYSTEM_VERSION: 'systemVersion'
+};
