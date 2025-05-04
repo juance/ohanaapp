@@ -5,13 +5,24 @@
 export * from './auth.types';
 
 // Ticket types
-export type { Ticket, PaymentMethod, LaundryService, LaundryOption, DryCleaningItem, TicketService } from './ticket.types';
+export type { 
+  Ticket, 
+  PaymentMethod, 
+  LaundryService, 
+  LaundryOption, 
+  DryCleaningItem, 
+  TicketService 
+} from './ticket.types';
 
 // Customer types
 export * from './customer.types';
 
 // Error types
-export * from './error.types';
+export type { 
+  ErrorLevel,
+  ErrorContext,
+  SystemError
+} from './error.types';
 
 // Sync types
 export * from './sync.types';
@@ -28,5 +39,8 @@ export * from './menu.types';
 // Feedback types
 export type { CustomerFeedback } from './feedback.types';
 
-// Expense types
-export * from './expense.types';
+// Expense types - avoiding duplicate export
+export type { 
+  Expense,
+  // Exclude ExpenseCategory as it's already exported from error.types
+} from './expense.types';

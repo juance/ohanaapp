@@ -1,7 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
-import { getNextStatus } from './ticketStatusService';
+import { getNextStatus as getNextTicketStatus } from './ticketStatusService';
 
 /**
  * Mark a ticket as ready for pickup
@@ -148,10 +147,17 @@ export const cancelTicket = async (ticketId: string, cancelReason: string): Prom
 };
 
 /**
+ * Get the next status in the workflow
+ * @param currentStatus Current ticket status
+ * @returns Next status in the workflow
+ */
+export const getNextStatus = getNextTicketStatus;
+
+/**
  * Move ticket to next status
  */
 export const moveToNextStatus = async (ticketId: string, currentStatus: string): Promise<boolean> => {
-  const nextStatus = getNextStatus(currentStatus);
+  const nextStatus = getNextTicketStatus(currentStatus);
   
   // If there's no state change, don't do anything
   if (nextStatus === currentStatus) {

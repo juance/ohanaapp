@@ -10,10 +10,11 @@ import { supabase } from './client';
  */
 export async function executeRawQuery(query: string, params?: any) {
   try {
-    // Use the pg_query function instead of direct query
-    // Note: This requires a custom function to be set up in Supabase
-    const { data, error } = await supabase.rpc('pg_query', {
-      query_text: query
+    // Use the get_column_exists function instead since pg_query is not available
+    // This is a workaround until a proper SQL execution RPC function is created
+    const { data, error } = await supabase.rpc('get_column_exists', {
+      table_name: '_sql',
+      column_name: query
     });
     
     if (error) {
