@@ -1,11 +1,19 @@
 
-// Storage keys for localStorage
-export const TICKETS_STORAGE_KEY = 'laundry_tickets';
-export const EXPENSES_STORAGE_KEY = 'laundry_expenses';
-export const CUSTOMERS_STORAGE_KEY = 'laundry_customers';
-export const FEEDBACK_STORAGE_KEY = 'customer_feedback';
-export const INVENTORY_STORAGE_KEY = 'inventory_items';
-export const METRICS_STORAGE_KEY = 'dashboard_metrics';
-export const SYNC_STATUS_KEY = 'sync_status';
-export const USER_STORAGE_KEY = 'user';
-export const USER_EXPIRY_KEY = 'user_expiry';
+/**
+ * Constants for local storage keys
+ */
+
+export const STORAGE_KEYS = {
+  TICKETS: 'tickets',
+  CLIENTS: 'clients',
+  EXPENSES: 'expenses',
+  FEEDBACK: 'feedback',
+  METRICS: 'metrics',
+  SYNC_STATUS: 'syncStatus',
+  USER_PREFERENCES: 'userPreferences',
+  SYSTEM_VERSION: 'systemVersion'
+};
+
+export const TICKETS_STORAGE_KEY = STORAGE_KEYS.TICKETS;
+export const EXPENSES_STORAGE_KEY = STORAGE_KEYS.EXPENSES;
+export const FEEDBACK_STORAGE_KEY = STORAGE_KEYS.FEEDBACK;

@@ -36,6 +36,7 @@ export interface WeeklyMetrics {
 
 export interface MonthlyMetrics {
   salesByDay: Record<string, number>;
+  salesByWeek?: Record<string, number>;
   totalSales: number;
   valetCount: number;
   paymentMethods: {

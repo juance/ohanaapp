@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
-import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
+import { ClientVisit, Customer } from '@/lib/types';
 import ClientListItem from '@/components/clients/ClientListItem';
-import { getAllClients } from '@/lib/dataService';
-import { Search } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { Search } from 'lucide-react';
+import AddClientForm from '@/components/clients/AddClientForm';
+import { getAllClients } from '@/lib/dataService';
+import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
 
 const Clients = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
@@ -21,6 +23,9 @@ const Clients = () => {
   const [editClientName, setEditClientName] = useState('');
   const [editClientPhone, setEditClientPhone] = useState('');
   const [selectedClient, setSelectedClient] = useState<ClientVisit | null>(null);
+  const [isAddingClient, setIsAddingClient] = useState(false);
+  const [newClientName, setNewClientName] = useState('');
+  const [newClientPhone, setNewClientPhone] = useState('');
 
   // Function to refresh clients data
   const refreshClients = async () => {
@@ -144,6 +149,54 @@ const Clients = () => {
     setSelectedClient(selectedClient?.id === client.id ? null : client);
   };
 
+  const handleAddClient = async () => {
+    if (!newClientName || !newClientPhone) {
+      toast.error('Nombre y teléfono son requeridos');
+      return;
+    }
+
+    setIsAddingClient(true);
+    try {
+      // Insert client to database
+      const { data, error } = await supabase
+        .from('customers')
+        .insert({
+          name: newClientName,
+          phone: newClientPhone
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Create a ClientVisit object from the new customer
+      const newClient: ClientVisit = {
+        id: data.id,
+        clientName: data.name,
+        phoneNumber: data.phone,
+        visitCount: 0,
+        lastVisit: data.created_at,
+        loyaltyPoints: 0,
+        freeValets: 0,
+        valetsCount: 0
+      };
+
+      // Add to client list
+      setClients([newClient, ...clients]);
+      setFilteredClients([newClient, ...filteredClients]);
+      
+      // Reset form
+      setNewClientName('');
+      setNewClientPhone('');
+      toast.success('Cliente agregado correctamente');
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast.error('Error al agregar el cliente');
+    } finally {
+      setIsAddingClient(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -156,7 +209,16 @@ const Clients = () => {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 space-y-6">
+      <AddClientForm
+        newClientName={newClientName}
+        newClientPhone={newClientPhone}
+        isAddingClient={isAddingClient}
+        onNameChange={(e) => setNewClientName(e.target.value)}
+        onPhoneChange={(e) => setNewClientPhone(e.target.value)}
+        onAddClient={handleAddClient}
+      />
+      
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">

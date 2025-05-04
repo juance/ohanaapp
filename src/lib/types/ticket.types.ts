@@ -18,6 +18,9 @@ export interface Ticket {
   customerId?: string;
   items?: DryCleaningItem[];
   valetQuantity?: number;
+  deliveredDate?: string;
+  basketTicketNumber?: string;
+  services?: TicketService[];
 }
 
 export interface DryCleaningItem {
@@ -30,6 +33,8 @@ export interface DryCleaningItem {
 export interface LaundryOption {
   id: string;
   type: string;
+  name?: string;
+  optionType?: string;
 }
 
 export interface LaundryService {
@@ -39,6 +44,7 @@ export interface LaundryService {
 }
 
 export interface TicketService {
+  id?: string;
   name: string;
   price: number;
   quantity: number;

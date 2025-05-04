@@ -2,6 +2,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { calculateVisitFrequency } from '@/lib/customer/frequencyUtils';
 
 /**
  * Get the next ticket number from the sequence
@@ -203,7 +204,8 @@ export const getClientVisits = async (): Promise<ClientVisit[]> => {
       lastVisitDate: customer.last_visit,
       lastVisit: customer.last_visit,
       loyaltyPoints: customer.loyalty_points || 0,
-      freeValets: customer.free_valets || 0
+      freeValets: customer.free_valets || 0,
+      valetsCount: customer.valets_count || 0
     }));
   } catch (error) {
     console.error('Error fetching client visits:', error);

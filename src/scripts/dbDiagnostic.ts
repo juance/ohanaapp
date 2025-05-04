@@ -36,7 +36,7 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
       result.missingTables.push('tickets');
     } else {
       // Check if there are any tickets in the system
-      result.ticketsExist = ticketData.count > 0;
+      result.ticketsExist = ticketData && ticketData.count > 0;
     }
 
     // Check customers
@@ -79,18 +79,19 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
     if (!result.missingTables.includes('tickets')) {
       const requiredTicketColumns = [
         'id', 'ticket_number', 'customer_id', 'total', 'payment_method', 'status', 
-        'date', 'is_paid', 'is_canceled', 'created_at'
+        'date', 'is_paid', 'is_canceled', 'created_at', 'delivered_date'
       ];
 
       for (const column of requiredTicketColumns) {
         try {
-          // Try to select this column - if it doesn't exist, will throw an error
-          const { error } = await supabase
-            .from('tickets')
-            .select(column)
-            .limit(1);
+          // Use get_column_exists RPC function
+          const { data, error } = await supabase
+            .rpc('get_column_exists', {
+              table_name: 'tickets',
+              column_name: column
+            });
 
-          if (error && error.message.includes(`column "${column}" does not exist`)) {
+          if (error || !data) {
             result.missingColumns.push({ table: 'tickets', column });
             result.structureOk = false;
           }

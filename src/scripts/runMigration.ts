@@ -7,6 +7,7 @@
  */
 
 import { supabase } from '@/integrations/supabase/client';
+import { executeRawQuery } from '@/integrations/supabase/postgresUtils';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,7 +31,7 @@ export const runMigration = async (migrationPath: string): Promise<{
     
     for (const statement of statements) {
       console.log(`Executing statement: ${statement.substring(0, 50)}...`);
-      const { error } = await supabase.rpc('pg_query', { query: statement });
+      const { error } = await executeRawQuery(statement);
 
       if (error) {
         console.error('Error executing statement:', error);
@@ -136,7 +137,7 @@ export const createDatabaseTables = async (): Promise<{
 
     for (const statement of statements) {
       console.log(`Executing statement: ${statement.substring(0, 50)}...`);
-      const { error } = await supabase.rpc('pg_query', { query: statement });
+      const { error } = await executeRawQuery(statement);
 
       if (error) {
         console.error('Error executing statement:', error);
@@ -183,7 +184,7 @@ export const createTablesDirectly = async (): Promise<{
       )
     `;
 
-    const { error: createCustomersError } = await supabase.rpc('pg_query', { query: customersSQL });
+    const { error: createCustomersError } = await executeRawQuery(customersSQL);
 
     if (createCustomersError) {
       console.error('Error creating customers table:', createCustomersError);
@@ -202,7 +203,7 @@ export const createTablesDirectly = async (): Promise<{
       )
     `;
 
-    const { error: createSequenceError } = await supabase.rpc('pg_query', { query: sequenceSQL });
+    const { error: createSequenceError } = await executeRawQuery(sequenceSQL);
 
     if (createSequenceError) {
       console.error('Error creating ticket_sequence table:', createSequenceError);
@@ -220,7 +221,7 @@ export const createTablesDirectly = async (): Promise<{
       ON CONFLICT (id) DO NOTHING
     `;
 
-    const { error: insertSequenceError } = await supabase.rpc('pg_query', { query: insertSequenceSQL });
+    const { error: insertSequenceError } = await executeRawQuery(insertSequenceSQL);
 
     if (insertSequenceError) {
       console.error('Error inserting initial sequence value:', insertSequenceError);
@@ -251,7 +252,7 @@ export const createTablesDirectly = async (): Promise<{
       )
     `;
 
-    const { error: createTicketsError } = await supabase.rpc('pg_query', { query: ticketsSQL });
+    const { error: createTicketsError } = await executeRawQuery(ticketsSQL);
 
     if (createTicketsError) {
       console.error('Error creating tickets table:', createTicketsError);
@@ -274,7 +275,7 @@ export const createTablesDirectly = async (): Promise<{
       )
     `;
 
-    const { error: createItemsError } = await supabase.rpc('pg_query', { query: itemsSQL });
+    const { error: createItemsError } = await executeRawQuery(itemsSQL);
 
     if (createItemsError) {
       console.error('Error creating dry_cleaning_items table:', createItemsError);
@@ -295,7 +296,7 @@ export const createTablesDirectly = async (): Promise<{
       )
     `;
 
-    const { error: createOptionsError } = await supabase.rpc('pg_query', { query: optionsSQL });
+    const { error: createOptionsError } = await executeRawQuery(optionsSQL);
 
     if (createOptionsError) {
       console.error('Error creating ticket_laundry_options table:', createOptionsError);
