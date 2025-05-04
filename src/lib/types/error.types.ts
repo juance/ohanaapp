@@ -29,3 +29,12 @@ export interface SystemError {
   browser_info?: Record<string, any>;
   message?: string; // For compatibility
 }
+
+export enum ExpenseCategory {
+  SUPPLIES = 'supplies',
+  MAINTENANCE = 'maintenance',
+  UTILITIES = 'utilities',
+  SALARY = 'salary',
+  RENT = 'rent',
+  OTHER = 'other'
+}

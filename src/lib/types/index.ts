@@ -5,7 +5,7 @@
 export * from './auth.types';
 
 // Ticket types
-export { Ticket, PaymentMethod, LaundryService, LaundryOption, DryCleaningItem, TicketService } from './ticket.types';
+export type { Ticket, PaymentMethod, LaundryService, LaundryOption, DryCleaningItem, TicketService } from './ticket.types';
 
 // Customer types
 export * from './customer.types';
@@ -26,7 +26,7 @@ export * from './metrics.types';
 export * from './menu.types';
 
 // Feedback types
-export * from './feedback.types';
+export type { CustomerFeedback } from './feedback.types';
 
 // Expense types
 export * from './expense.types';

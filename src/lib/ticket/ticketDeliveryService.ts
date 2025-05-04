@@ -15,20 +15,22 @@ export const getDeliveredTickets = async (startDate?: Date, endDate?: Date): Pro
     // Build query with proper status filter
     let query = buildTicketSelectQuery();
     
-    // Apply filters
-    query = query.eq('status', TICKET_STATUS.DELIVERED);
-    query = query.order('updated_at', { ascending: false });
-
+    // Execute the query with delivered status
+    let dbQuery = query.eq('status', TICKET_STATUS.DELIVERED);
+    
     // Add date filters if provided
     if (startDate) {
-      query = query.gte('date', startDate.toISOString());
+      dbQuery = dbQuery.gte('date', startDate.toISOString());
     }
 
     if (endDate) {
-      query = query.lte('date', endDate.toISOString());
+      dbQuery = dbQuery.lte('date', endDate.toISOString());
     }
+    
+    // Order by updated_at descending
+    dbQuery = dbQuery.order('updated_at', { ascending: false });
 
-    const { data, error } = await query;
+    const { data, error } = await dbQuery;
 
     if (error) throw error;
 

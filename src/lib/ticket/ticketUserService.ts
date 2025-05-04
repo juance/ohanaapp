@@ -25,13 +25,13 @@ export const getTicketsByPhoneNumber = async (phoneNumber: string): Promise<Tick
     }
 
     // Build the query
-    const query = buildTicketSelectQuery()
+    const query = buildTicketSelectQuery();
+    
+    // Execute the query with customer_id and not canceled
+    const { data: ticketsData, error: ticketsError } = await query
       .eq('customer_id', customer.id)
       .eq('is_canceled', false)
       .order('created_at', { ascending: false });
-
-    // Execute the query
-    const { data: ticketsData, error: ticketsError } = await query;
 
     if (ticketsError) {
       console.error('Error retrieving customer tickets:', ticketsError);

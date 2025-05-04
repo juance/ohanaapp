@@ -51,36 +51,32 @@ export const usePendingOrdersLogic = () => {
     setSelectedTicket(null);
   };
 
-  const handleMarkAsReady = async (ticketId: string) => {
+  const handleTicketStatusChange = async (ticketId: string, newStatus: string) => {
     if (isStatusChanging) return;
     
     setIsStatusChanging(true);
     try {
-      await markTicketAsReady(ticketId);
-      toast.success('Ticket marcado como listo para entregar');
+      if (newStatus === 'ready') {
+        await markTicketAsReady(ticketId);
+      } else if (newStatus === 'delivered') {
+        await markTicketAsDelivered(ticketId);
+      }
+      toast.success(`Ticket marcado como ${newStatus}`);
       refetchAllTickets();
     } catch (error) {
-      toast.error('Error al cambiar el estado del ticket');
-      console.error('Error marking ticket as ready:', error);
+      toast.error(`Error al cambiar el estado del ticket a ${newStatus}`);
+      console.error(`Error marking ticket as ${newStatus}:`, error);
     } finally {
       setIsStatusChanging(false);
     }
   };
 
-  const handleMarkAsDelivered = async (ticketId: string) => {
-    if (isStatusChanging) return;
-    
-    setIsStatusChanging(true);
-    try {
-      await markTicketAsDelivered(ticketId);
-      toast.success('Ticket marcado como entregado');
-      refetchAllTickets();
-    } catch (error) {
-      toast.error('Error al marcar el ticket como entregado');
-      console.error('Error marking ticket as delivered:', error);
-    } finally {
-      setIsStatusChanging(false);
-    }
+  const handleMarkAsReady = async (ticketId: string) => {
+    return handleTicketStatusChange(ticketId, 'ready');
+  };
+
+  const handleTicketDelivered = async (ticketId: string) => {
+    return handleTicketStatusChange(ticketId, 'delivered');
   };
 
   const handleEditTicket = (ticketId: string) => {
@@ -88,6 +84,8 @@ export const usePendingOrdersLogic = () => {
   };
 
   const isLoading = isLoadingPending || isLoadingReady;
+  
+  const refreshTickets = refetchAllTickets;
 
   return {
     pendingTickets,
@@ -98,9 +96,11 @@ export const usePendingOrdersLogic = () => {
     isStatusChanging,
     handleViewDetails,
     handleCloseDetails,
+    handleTicketStatusChange,
     handleMarkAsReady,
-    handleMarkAsDelivered,
+    handleTicketDelivered,
     handleEditTicket,
-    refetchAllTickets
+    refetchAllTickets,
+    refreshTickets
   };
 };

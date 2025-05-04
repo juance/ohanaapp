@@ -1,116 +1,50 @@
 
-import { toast } from '@/lib/toast';
-import { logError } from '@/lib/errorHandlingService';
+import { ErrorLevel } from './types/error.types';
+import { toast } from './toast';
 
 /**
- * Handle validation errors during form validation
+ * Validates a form field and shows a toast message if invalid
+ * @param field Field name
+ * @param value Field value
+ * @param type Validation type (e.g. 'required', 'email', 'phone', etc.)
+ * @returns Whether the field is valid
  */
-export const handleValidationError = (
-  message: string,
-  field?: string,
-  value?: any
-): void => {
-  logError(
-    `Validation error: ${message}`,
-    { field, value, type: 'validation' }
-  );
-
-  toast.error(message);
-};
-
-/**
- * Validate customer information
- * @param name Customer name
- * @param phone Phone number
- * @returns true if valid, false otherwise
- */
-export const validateCustomer = (name: string, phone: string): boolean => {
-  if (!name.trim()) {
-    handleValidationError('El nombre del cliente es requerido', 'name', name);
+export function validateField(field: string, value: any, type: string): boolean {
+  const errorLevel: ErrorLevel = ErrorLevel.WARNING;
+  
+  if (type === 'required' && (!value || value === '')) {
+    toast.error(`El campo ${field} es obligatorio`);
     return false;
   }
 
-  if (!phone.trim()) {
-    handleValidationError('El teléfono del cliente es requerido', 'phone', phone);
+  if (type === 'email' && value && !/\S+@\S+\.\S+/.test(value)) {
+    toast.error(`El correo electrónico no es válido`);
+    return false;
+  }
+
+  if (type === 'phone' && value && !/^\+?[0-9]{8,15}$/.test(value.replace(/\D/g, ''))) {
+    toast.error(`El número de teléfono no es válido`);
     return false;
   }
 
   return true;
-};
+}
 
 /**
- * Validate ticket information
- * @param ticketData Ticket data object
- * @returns true if valid, false otherwise
+ * Validates a form and shows toast messages for invalid fields
+ * @param form Form data object
+ * @param validations Validation rules
+ * @returns Whether the form is valid
  */
-export const validateTicket = (ticketData: any): boolean => {
-  if (!ticketData.clientName?.trim()) {
-    handleValidationError('El nombre del cliente es requerido', 'clientName', ticketData.clientName);
-    return false;
+export function validateForm(form: Record<string, any>, validations: Record<string, string>): boolean {
+  let isValid = true;
+
+  for (const [field, rule] of Object.entries(validations)) {
+    const isFieldValid = validateField(field, form[field], rule);
+    if (!isFieldValid) {
+      isValid = false;
+    }
   }
 
-  if (!ticketData.phoneNumber?.trim()) {
-    handleValidationError('El teléfono del cliente es requerido', 'phoneNumber', ticketData.phoneNumber);
-    return false;
-  }
-
-  if (ticketData.totalPrice === undefined || ticketData.totalPrice < 0) {
-    handleValidationError('El precio total debe ser un número positivo', 'totalPrice', ticketData.totalPrice);
-    return false;
-  }
-
-  if (!ticketData.paymentMethod) {
-    handleValidationError('El método de pago es requerido', 'paymentMethod', ticketData.paymentMethod);
-    return false;
-  }
-
-  return true;
-};
-
-/**
- * Validate expense information
- * @param expenseData Expense data object
- * @returns true if valid, false otherwise
- */
-export const validateExpense = (expenseData: any): boolean => {
-  if (!expenseData.description?.trim()) {
-    handleValidationError('La descripción del gasto es requerida', 'description', expenseData.description);
-    return false;
-  }
-
-  if (expenseData.amount === undefined || expenseData.amount <= 0) {
-    handleValidationError('El monto debe ser mayor que cero', 'amount', expenseData.amount);
-    return false;
-  }
-
-  if (!expenseData.category?.trim()) {
-    handleValidationError('La categoría es requerida', 'category', expenseData.category);
-    return false;
-  }
-
-  return true;
-};
-
-/**
- * Validate feedback information
- * @param feedbackData Feedback data object
- * @returns true if valid, false otherwise
- */
-export const validateFeedback = (feedbackData: any): boolean => {
-  if (!feedbackData.customerName?.trim()) {
-    handleValidationError('El nombre del cliente es requerido', 'customerName', feedbackData.customerName);
-    return false;
-  }
-
-  if (feedbackData.rating === undefined || feedbackData.rating < 1 || feedbackData.rating > 5) {
-    handleValidationError('La calificación debe estar entre 1 y 5', 'rating', feedbackData.rating);
-    return false;
-  }
-
-  if (!feedbackData.comment?.trim()) {
-    handleValidationError('El comentario es requerido', 'comment', feedbackData.comment);
-    return false;
-  }
-
-  return true;
-};
+  return isValid;
+}

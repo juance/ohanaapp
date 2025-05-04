@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, PaymentMethod } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -25,7 +26,8 @@ export const getPickupTickets = async (): Promise<Ticket[]> => {
       return [];
     }
 
-    return data.map(mapTicketData);
+    const tickets = data.map(mapTicketData).filter(ticket => ticket !== null) as Ticket[];
+    return tickets;
   } catch (error) {
     console.error('Error in getPickupTickets:', error);
     return [];
@@ -59,7 +61,8 @@ export const getUnretrievedTickets = async (daysThreshold = 7): Promise<Ticket[]
       return [];
     }
 
-    return data.map(mapTicketData);
+    const tickets = data.map(mapTicketData).filter(ticket => ticket !== null) as Ticket[];
+    return tickets;
   } catch (error) {
     console.error('Error in getUnretrievedTickets:', error);
     return [];

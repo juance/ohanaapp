@@ -27,8 +27,7 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
     // Check tickets
     const { data: ticketData, error: ticketError } = await supabase
       .from('tickets')
-      .select('count(*)')
-      .single();
+      .select('count');
 
     if (ticketError) {
       console.error('Error checking tickets table:', ticketError);
@@ -36,13 +35,13 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
       result.missingTables.push('tickets');
     } else {
       // Check if there are any tickets in the system
-      result.ticketsExist = ticketData && ticketData.count > 0;
+      result.ticketsExist = ticketData && ticketData.length > 0 && parseInt(ticketData[0]?.count as any || '0') > 0;
     }
 
     // Check customers
     const { error: customerError } = await supabase
       .from('customers')
-      .select('count(*)')
+      .select('count')
       .limit(1);
 
     if (customerError) {
@@ -54,7 +53,7 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
     // Check dry_cleaning_items
     const { error: itemsError } = await supabase
       .from('dry_cleaning_items')
-      .select('count(*)')
+      .select('count')
       .limit(1);
 
     if (itemsError) {
@@ -66,7 +65,7 @@ export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
     // Check ticket_sequence
     const { error: sequenceError } = await supabase
       .from('ticket_sequence')
-      .select('count(*)')
+      .select('count')
       .limit(1);
 
     if (sequenceError) {

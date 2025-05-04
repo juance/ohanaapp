@@ -228,7 +228,7 @@ export const getFullTicket = async (ticketId: string): Promise<Ticket | null> =>
     // Return the complete ticket with all data
     return {
       ...baseTicket,
-      dryCleaningItems: formattedItems,
+      items: formattedItems,
       laundryOptions: formattedOptions
     };
   } catch (error) {

@@ -2,7 +2,7 @@
 import { supabase } from './client';
 
 /**
- * Execute a raw SQL query safely
+ * Execute a raw SQL query safely using rpc
  * This bypasses the type checking for direct SQL execution
  * @param query SQL query string
  * @param params Optional query parameters
@@ -10,11 +10,10 @@ import { supabase } from './client';
  */
 export async function executeRawQuery(query: string, params?: any) {
   try {
-    // Use a direct SQL query instead of rpc
-    const { data, error } = await supabase
-      .from('_sql')
-      .select('*')
-      .or(`query.eq.${encodeURIComponent(query)}`) as any;
+    // Use the rpc function instead of direct query
+    const { data, error } = await supabase.rpc('exec_sql', {
+      query_text: query
+    });
     
     if (error) {
       console.error('Error executing SQL query:', error);
