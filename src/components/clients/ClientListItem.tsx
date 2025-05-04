@@ -3,7 +3,7 @@ import React from 'react';
 import { ClientVisit } from '@/lib/types/customer.types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/lib/utils/index';
 
 interface ClientListItemProps {
   client: ClientVisit;

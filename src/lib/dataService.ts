@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -287,6 +286,39 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
     }));
   } catch (error) {
     console.error('Error fetching unretrieved tickets:', error);
+    return [];
+  }
+};
+
+/**
+ * Function for client frequency analysis
+ */
+export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*');
+
+    if (error) {
+      throw error;
+    }
+
+    // Convert local tickets to client visits if API fails
+    const result: ClientVisit[] = data.map(customer => ({
+      id: customer.id,
+      clientName: customer.name,
+      phoneNumber: customer.phone,
+      visitCount: customer.valets_count || 0,
+      lastVisit: customer.last_visit || '',
+      loyaltyPoints: customer.loyalty_points || 0,
+      freeValets: customer.free_valets || 0,
+      valetsCount: customer.valets_count || 0,
+      visitFrequency: calculateVisitFrequency(customer.last_visit)
+    }));
+
+    return result;
+  } catch (error) {
+    console.error('Error retrieving client visit frequency:', error);
     return [];
   }
 };

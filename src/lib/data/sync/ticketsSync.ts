@@ -41,7 +41,7 @@ export const syncTickets = async (): Promise<number> => {
           .from('tickets')
           .insert({
             ticket_number: ticket.ticketNumber,
-            total: ticket.totalPrice,
+            total: ticket.total || ticket.totalPrice || 0,
             payment_method: ticket.paymentMethod,
             status: ticket.status,
             is_paid: ticket.isPaid,
@@ -53,9 +53,12 @@ export const syncTickets = async (): Promise<number> => {
         if (error) throw error;
         
         // Mark this ticket as synced in local storage
-        const updatedLocalTickets = localTickets.map(t => 
-          t.id === ticket.id ? { ...t, pendingSync: false } : t
-        );
+        const updatedLocalTickets = localTickets.map(t => {
+          if (t.id === ticket.id) {
+            return { ...t, pendingSync: false };
+          }
+          return t;
+        });
         
         saveLocalTickets(updatedLocalTickets);
         

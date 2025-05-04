@@ -1,76 +1,18 @@
+// Import necessary types
+import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types/metrics.types';
 
-import { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '../types';
-
-// Initialize metrics with the correct properties
-let dailyMetrics: DailyMetrics = {
-  salesByHour: {},
-  dryCleaningItems: {},
-  totalSales: 0,
-  valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-  paidTickets: 0,
-  totalRevenue: 0,
-  totalTickets: 0
-};
-
-let weeklyMetrics: WeeklyMetrics = {
-  salesByDay: {},
-  totalSales: 0,
-  valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-  paidTickets: 0,
-  totalRevenue: 0,
-  totalTickets: 0,
-  dryCleaningItems: {}
-};
-
-let monthlyMetrics: MonthlyMetrics = {
-  salesByDay: {},
-  salesByWeek: {},
-  totalSales: 0,
-  valetCount: 0,
-  paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-  paidTickets: 0,
-  totalRevenue: 0,
-  totalTickets: 0,
-  dryCleaningItems: {}
-};
-
-// Initialize metrics
-export const initializeMetrics = () => {
-  console.log('Initializing metrics...');
-  
-  // Initialize daily metrics
-  dailyMetrics = {
-    salesByHour: {},
-    dryCleaningItems: {},
-    totalSales: 0,
-    valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-    paidTickets: 0,
-    totalRevenue: 0,
-    totalTickets: 0
-  };
-  
-  // Initialize weekly metrics
-  weeklyMetrics = {
-    salesByDay: {},
-    totalSales: 0,
-    valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
-    paidTickets: 0,
-    totalRevenue: 0,
-    totalTickets: 0,
-    dryCleaningItems: {}
-  };
-  
-  // Initialize monthly metrics
-  monthlyMetrics = {
+export const getDefaultWeeklyMetrics = (): WeeklyMetrics => {
+  return {
     salesByDay: {},
     salesByWeek: {},
     totalSales: 0,
     valetCount: 0,
-    paymentMethods: { cash: 0, debit: 0, mercadopago: 0, cuentaDni: 0 },
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
     paidTickets: 0,
     totalRevenue: 0,
     totalTickets: 0,
@@ -78,93 +20,138 @@ export const initializeMetrics = () => {
   };
 };
 
-// Update metrics when a new ticket is created
-export const updateMetrics = (type: string, data: any) => {
-  const now = new Date();
-  const hour = now.getHours();
-  const day = now.getDate();
-  const week = Math.ceil(day / 7);
-  
-  // Update daily metrics
-  if (!dailyMetrics.salesByHour[hour]) {
-    dailyMetrics.salesByHour[hour] = 0;
-  }
-  dailyMetrics.salesByHour[hour] += data.amount || 0;
-  dailyMetrics.totalSales += data.amount || 0;
-  if (type === 'valet') {
-    dailyMetrics.valetCount += data.quantity || 1;
-  }
-  
-  // Update payment method counts
-  if (data.paymentMethod && dailyMetrics.paymentMethods) {
-    dailyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
-  }
-  
-  // Update weekly metrics
-  if (!weeklyMetrics.salesByDay[day]) {
-    weeklyMetrics.salesByDay[day] = 0;
-  }
-  weeklyMetrics.salesByDay[day] += data.amount || 0;
-  
-  weeklyMetrics.totalSales += data.amount || 0;
-  weeklyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
-  
-  if (data.paymentMethod && weeklyMetrics.paymentMethods) {
-    weeklyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
-  }
-  
-  // Update monthly metrics
-  if (!monthlyMetrics.salesByDay[day]) {
-    monthlyMetrics.salesByDay[day] = 0;
-  }
-  monthlyMetrics.salesByDay[day] += data.amount || 0;
-  
-  if (!monthlyMetrics.salesByWeek[week]) {
-    monthlyMetrics.salesByWeek[week] = 0;
-  }
-  monthlyMetrics.salesByWeek[week] += data.amount || 0;
-  
-  monthlyMetrics.totalSales += data.amount || 0;
-  monthlyMetrics.valetCount += type === 'valet' ? (data.quantity || 1) : 0;
-  
-  if (data.paymentMethod && monthlyMetrics.paymentMethods) {
-    monthlyMetrics.paymentMethods[data.paymentMethod] += data.amount || 0;
-  }
-};
-
-// Get the current metrics
-export const getMetrics = () => {
+export const getDefaultDailyMetrics = (): DailyMetrics => {
   return {
-    daily: dailyMetrics,
-    weekly: weeklyMetrics,
-    monthly: monthlyMetrics
+    salesByHour: {},
+    totalSales: 0,
+    valetCount: 0,
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
   };
 };
 
-// Reset all metrics
-export const resetMetrics = () => {
-  initializeMetrics();
+export const getDefaultMonthlyMetrics = (): MonthlyMetrics => {
+  return {
+    salesByDay: {},
+    totalSales: 0,
+    valetCount: 0,
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
+  };
 };
 
-// Update dashboard metrics when a new ticket is created
-export const updateDashboardMetrics = (data: any) => {
-  try {
-    const ticketType = data.ticketType || 'valet';
-    const total = data.total || 0;
-    
-    // Update metrics for the new ticket
-    updateMetrics(ticketType, {
-      amount: total,
-      paymentMethod: data.paymentMethod || 'cash',
-      quantity: data.valetQuantity || 1
-    });
-    
-    return true;
-  } catch (error) {
-    console.error('Error updating dashboard metrics:', error);
-    return false;
-  }
+export const calculateDailyMetrics = (tickets: any[]): DailyMetrics => {
+  const metrics: DailyMetrics = {
+    salesByHour: {},
+    totalSales: 0,
+    valetCount: 0,
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
+  };
+
+  tickets.forEach(ticket => {
+    const hour = new Date(ticket.date).getHours();
+    const paymentMethod = ticket.paymentMethod;
+
+    metrics.salesByHour[hour] = (metrics.salesByHour[hour] || 0) + ticket.total;
+    metrics.totalSales += ticket.total;
+    metrics.valetCount += ticket.valetQuantity || 0;
+
+    metrics.paymentMethods[paymentMethod] = (metrics.paymentMethods[paymentMethod] || 0) + ticket.total;
+    metrics.totalRevenue += ticket.total;
+    metrics.totalTickets++;
+  });
+
+  return metrics;
 };
 
-// Initialize metrics on app start
-initializeMetrics();
+export const calculateWeeklyMetrics = (tickets: any[]): WeeklyMetrics => {
+  const metrics: WeeklyMetrics = {
+    salesByDay: {},
+    salesByWeek: {},
+    totalSales: 0,
+    valetCount: 0,
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
+  };
+
+  tickets.forEach(ticket => {
+    const day = new Date(ticket.date).toLocaleDateString('es-AR', { weekday: 'short' });
+    const paymentMethod = ticket.paymentMethod;
+
+    metrics.salesByDay[day] = (metrics.salesByDay[day] || 0) + ticket.total;
+    metrics.totalSales += ticket.total;
+    metrics.valetCount += ticket.valetQuantity || 0;
+
+    metrics.paymentMethods[paymentMethod] = (metrics.paymentMethods[paymentMethod] || 0) + ticket.total;
+    metrics.totalRevenue += ticket.total;
+    metrics.totalTickets++;
+  });
+
+  return metrics;
+};
+
+export const calculateMonthlyMetrics = (tickets: any[]): MonthlyMetrics => {
+  const metrics: MonthlyMetrics = {
+    salesByDay: {},
+    totalSales: 0,
+    valetCount: 0,
+    paymentMethods: {
+      cash: 0,
+      debit: 0,
+      mercadopago: 0,
+      cuentaDni: 0
+    },
+    paidTickets: 0,
+    totalRevenue: 0,
+    totalTickets: 0,
+    dryCleaningItems: {}
+  };
+
+  tickets.forEach(ticket => {
+    const day = new Date(ticket.date).toLocaleDateString('es-AR', { day: 'numeric' });
+    const paymentMethod = ticket.paymentMethod;
+
+    metrics.salesByDay[day] = (metrics.salesByDay[day] || 0) + ticket.total;
+    metrics.totalSales += ticket.total;
+    metrics.valetCount += ticket.valetQuantity || 0;
+
+    metrics.paymentMethods[paymentMethod] = (metrics.paymentMethods[paymentMethod] || 0) + ticket.total;
+    metrics.totalRevenue += ticket.total;
+    metrics.totalTickets++;
+  });
+
+  return metrics;
+};

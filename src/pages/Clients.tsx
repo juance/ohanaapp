@@ -140,6 +140,10 @@ const Clients = () => {
     setIsEditingClient('');
   };
 
+  const handleSelectClient = (client: ClientVisit) => {
+    setSelectedClient(selectedClient?.id === client.id ? null : client);
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -213,9 +217,11 @@ const Clients = () => {
                     setEditName={setEditClientName}
                     editPhone={editClientPhone}
                     setEditPhone={setEditClientPhone}
+                    selectedClient={selectedClient}
                     onSave={() => handleSaveClient(client.id)}
                     onCancel={handleCancelEdit}
                     onEdit={() => handleEditClient(client)}
+                    onSelect={() => handleSelectClient(client)}
                   />
                 ))}
                 {filteredClients.length === 0 && (

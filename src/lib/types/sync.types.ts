@@ -1,6 +1,7 @@
 
 // Sync-related types
-import { Customer, CustomerFeedback, Ticket } from '@/lib/types';
+import { Customer, CustomerFeedback } from '@/lib/types';
+import { Ticket } from '@/lib/types/ticket.types';
 
 export interface SyncableTicket extends Ticket {
   pendingSync?: boolean;

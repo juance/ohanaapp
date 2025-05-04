@@ -1,108 +1,143 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { toast } from '@/lib/toast';
-// Fix import for SyncStatus
+// Connection Status Provider
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  ReactNode
+} from 'react';
+import { useNavigate } from 'react-router-dom';
+import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
+import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
-// Define connection status type
-type ConnectionStatus = "online" | "offline";
-
-// Define context type
-interface ConnectionContextType {
-  connectionStatus: ConnectionStatus;
-  syncStatus: 'idle' | 'syncing' | 'success' | 'error';
-  syncData: () => Promise<void>;
-  pendingSyncCount: number;
-  lastSyncedAt: Date | null;
+interface ConnectionStatusContextProps {
+  isConnected: boolean;
+  isSyncing: boolean;
+  lastSync: string | null;
+  syncError: string | null;
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
+  sync: () => Promise<void>;
 }
 
-// Create context with default values
-const ConnectionContext = createContext<ConnectionContextType>({
-  connectionStatus: 'online',
-  syncStatus: 'idle',
-  syncData: async () => {},
-  pendingSyncCount: 0,
-  lastSyncedAt: null,
+const ConnectionStatusContext = createContext<ConnectionStatusContextProps>({
+  isConnected: navigator.onLine,
+  isSyncing: false,
+  lastSync: null,
+  syncError: null,
+  tickets: 0,
+  expenses: 0,
+  clients: 0,
+  feedback: 0,
+  sync: async () => {}
 });
 
-// Hook to use connection context
-export const useConnection = () => useContext(ConnectionContext);
+interface ConnectionStatusProviderProps {
+  children: ReactNode;
+}
 
-// Connection status provider component
-export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [status, setStatus] = useState<ConnectionStatus>('online');
-  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
-  const [lastSync, setLastSync] = useState<Date | null>(null);
-  const [pendingSync, setPendingSync] = useState<number>(0);
+const ConnectionStatusProvider: React.FC<ConnectionStatusProviderProps> = ({
+  children
+}) => {
+  const [isConnected, setIsConnected] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [tickets, setTickets] = useState<number | undefined>(0);
+  const [expenses, setExpenses] = useState<number | undefined>(0);
+  const [clients, setClients] = useState<number | undefined>(0);
+  const [feedback, setFeedback] = useState<number | undefined>(0);
+  const navigate = useNavigate();
 
-  // Check network status on initial load and changes
   useEffect(() => {
-    const handleOnline = () => {
-      setStatus('online');
-      toast.success('Conexión restaurada');
-    };
+    const handleOnline = () => setIsConnected(true);
+    const handleOffline = () => setIsConnected(false);
 
-    const handleOffline = () => {
-      setStatus('offline');
-      toast.error('Sin conexión');
-    };
-
-    // Set initial status
-    setStatus(navigator.onLine ? 'online' : 'offline');
-
-    // Add event listeners
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Clean up
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Function to sync data with backend
-  const syncData = async () => {
-    if (status === 'offline') {
-      toast.error('No hay conexión a internet');
-      return;
-    }
+  useEffect(() => {
+    const initialSyncStatus = getSyncStatus();
+    setLastSync(initialSyncStatus.lastSync || null);
+    setTickets(initialSyncStatus.tickets);
+    setExpenses(initialSyncStatus.expenses);
+    setClients(initialSyncStatus.clients);
+    setFeedback(initialSyncStatus.feedback);
+  }, []);
 
+  const sync = async () => {
+    setIsSyncing(true);
+    setSyncError(null);
     try {
-      setSyncStatus('syncing');
-      // Import syncService here to avoid circular dependencies
-      const { syncAllData } = await import('@/lib/data/sync/comprehensiveSync');
       const result = await syncAllData();
-
-      // Add lastSync field to make it compatible with SimpleSyncStatus
-      const syncResult: SimpleSyncStatus = {
-        ...result,
-        lastSync: new Date().toISOString()
-      };
-
-      setPendingSync(0);
-      setLastSync(new Date());
-      setSyncStatus('success');
-      
-      // Show toast only if there was data synced
-      const totalSynced = result.tickets + result.clients + result.feedback + result.expenses;
-      if (totalSynced > 0) {
-        toast.success(`Sincronización completada: ${totalSynced} elementos`);
-      }
-    } catch (error) {
-      console.error('Error during sync:', error);
-      setSyncStatus('error');
-      toast.error('Error al sincronizar datos');
+      const syncStatus = handleSyncComplete(result);
+      setLastSync(syncStatus.lastSync);
+      setTickets(syncStatus.tickets);
+      setExpenses(syncStatus.expenses);
+      setClients(syncStatus.clients);
+      setFeedback(syncStatus.feedback);
+      navigate('/');
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      setSyncError(error.message || 'Sync failed');
+    } finally {
+      setIsSyncing(false);
     }
   };
 
-  const value = {
-    connectionStatus: status,
-    syncStatus,
-    syncData,
-    pendingSyncCount: pendingSync,
-    lastSyncedAt: lastSync
+  const handleSyncComplete = (result: {
+    tickets: number;
+    expenses: number;
+    feedback: number;
+    clients: number;
+    timestamp: Date;
+  }) => {
+    const syncStatus: SimpleSyncStatus = {
+      lastSync: result.timestamp.toISOString(),
+      syncInProgress: false,
+      syncError: null,
+      tickets: result.tickets,
+      expenses: result.expenses,
+      clients: result.clients,
+      feedback: result.feedback
+    };
+    
+    // Update sync status
+    localStorage.setItem('syncStatus', JSON.stringify(syncStatus));
+    
+    return syncStatus;
   };
 
-  return <ConnectionContext.Provider value={value}>{children}</ConnectionContext.Provider>;
+  return (
+    <ConnectionStatusContext.Provider
+      value={{
+        isConnected,
+        isSyncing,
+        lastSync,
+        syncError,
+        tickets,
+        expenses,
+        clients,
+        feedback,
+        sync
+      }}
+    >
+      {children}
+    </ConnectionStatusContext.Provider>
+  );
 };
+
+const useConnectionStatus = () => {
+  return useContext(ConnectionStatusContext);
+};
+
+export { ConnectionStatusProvider, useConnectionStatus };

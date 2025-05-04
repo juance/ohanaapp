@@ -1,164 +1,113 @@
-import { supabase } from '@/integrations/supabase/client';
-import { logError } from '@/lib/errorService';
 
-type DiagnosticResult = {
-  name: string;
-  status: 'success' | 'error';
-  message: string;
-  details?: any;
-};
+import { supabase } from '@/integrations/supabase/client';
+
+// Types
+interface DiagnosticResult {
+  structureOk: boolean;
+  ticketsExist: boolean;
+  missingTables: string[];
+  missingColumns: { table: string; column: string }[];
+}
 
 /**
- * Run database diagnostics to check the health of the database
+ * Run diagnostics on the database structure and data
  */
-export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult[]> => {
-  const results: DiagnosticResult[] = [];
-  
+export const runDatabaseDiagnostics = async (): Promise<DiagnosticResult> => {
+  const result: DiagnosticResult = {
+    structureOk: true,
+    ticketsExist: false,
+    missingTables: [],
+    missingColumns: []
+  };
+
   try {
-    // Check database connection
-    const connectionResult = await checkDatabaseConnection();
-    results.push(connectionResult);
+    // Check essential tables
+    const requiredTables = ['tickets', 'customers', 'dry_cleaning_items', 'ticket_sequence'];
     
-    // Check tables exist
-    const tablesResult = await checkTablesExist([
-      'tickets', 
-      'customers', 
-      'dry_cleaning_items', 
-      'ticket_laundry_options',
-      'expenses'
-    ]);
-    results.push(tablesResult);
-    
-    // Check RLS policies
-    const rlsResult = await checkRLSPolicies();
-    results.push(rlsResult);
-    
-    // Check for data integrity
-    const integrityResult = await checkDataIntegrity();
-    results.push(integrityResult);
-    
-    return results;
+    // Check tickets
+    const { data: ticketData, error: ticketError } = await supabase
+      .from('tickets')
+      .select('count(*)')
+      .single();
+
+    if (ticketError) {
+      console.error('Error checking tickets table:', ticketError);
+      result.structureOk = false;
+      result.missingTables.push('tickets');
+    } else {
+      // Check if there are any tickets in the system
+      result.ticketsExist = ticketData.count > 0;
+    }
+
+    // Check customers
+    const { error: customerError } = await supabase
+      .from('customers')
+      .select('count(*)')
+      .limit(1);
+
+    if (customerError) {
+      console.error('Error checking customers table:', customerError);
+      result.structureOk = false;
+      result.missingTables.push('customers');
+    }
+
+    // Check dry_cleaning_items
+    const { error: itemsError } = await supabase
+      .from('dry_cleaning_items')
+      .select('count(*)')
+      .limit(1);
+
+    if (itemsError) {
+      console.error('Error checking dry_cleaning_items table:', itemsError);
+      result.structureOk = false;
+      result.missingTables.push('dry_cleaning_items');
+    }
+
+    // Check ticket_sequence
+    const { error: sequenceError } = await supabase
+      .from('ticket_sequence')
+      .select('count(*)')
+      .limit(1);
+
+    if (sequenceError) {
+      console.error('Error checking ticket_sequence table:', sequenceError);
+      result.structureOk = false;
+      result.missingTables.push('ticket_sequence');
+    }
+
+    // Check important columns in tickets table
+    if (!result.missingTables.includes('tickets')) {
+      const requiredTicketColumns = [
+        'id', 'ticket_number', 'customer_id', 'total', 'payment_method', 'status', 
+        'date', 'is_paid', 'is_canceled', 'created_at'
+      ];
+
+      for (const column of requiredTicketColumns) {
+        try {
+          // Try to select this column - if it doesn't exist, will throw an error
+          const { error } = await supabase
+            .from('tickets')
+            .select(column)
+            .limit(1);
+
+          if (error && error.message.includes(`column "${column}" does not exist`)) {
+            result.missingColumns.push({ table: 'tickets', column });
+            result.structureOk = false;
+          }
+        } catch (err) {
+          console.error(`Error checking column tickets.${column}:`, err);
+        }
+      }
+    }
+
+    return result;
   } catch (error) {
-    logError('Error running database diagnostics', {
-      error: String(error)
-    });
-    
-    return [{
-      name: 'Database Diagnostics',
-      status: 'error',
-      message: 'Failed to complete diagnostic tests',
-      details: String(error)
-    }];
+    console.error('Error running diagnostics:', error);
+    return {
+      structureOk: false,
+      ticketsExist: false,
+      missingTables: ['unknown'],
+      missingColumns: []
+    };
   }
 };
-
-async function checkDatabaseConnection(): Promise<DiagnosticResult> {
-  try {
-    const { data, error } = await supabase
-      .from('tickets')
-      .select('count(id)')
-      .limit(1)
-      .single();
-      
-    if (error) throw error;
-    
-    return {
-      name: 'Database Connection',
-      status: 'success',
-      message: 'Successfully connected to database'
-    };
-  } catch (error) {
-    return {
-      name: 'Database Connection',
-      status: 'error',
-      message: 'Failed to connect to database',
-      details: String(error)
-    };
-  }
-}
-
-async function checkTablesExist(tableNames: string[]): Promise<DiagnosticResult> {
-  try {
-    const results = await Promise.all(tableNames.map(async (table) => {
-      try {
-        const { data, error } = await supabase
-          .from(table)
-          .select('id')
-          .limit(1);
-          
-        return { table, exists: !error };
-      } catch {
-        return { table, exists: false };
-      }
-    }));
-    
-    const missingTables = results.filter(r => !r.exists).map(r => r.table);
-    
-    if (missingTables.length > 0) {
-      return {
-        name: 'Tables Check',
-        status: 'error',
-        message: `Missing tables: ${missingTables.join(', ')}`,
-        details: missingTables
-      };
-    }
-    
-    return {
-      name: 'Tables Check',
-      status: 'success',
-      message: 'All required tables exist'
-    };
-  } catch (error) {
-    return {
-      name: 'Tables Check',
-      status: 'error',
-      message: 'Failed to check tables',
-      details: String(error)
-    };
-  }
-}
-
-async function checkRLSPolicies(): Promise<DiagnosticResult> {
-  // In a real implementation, we'd check if RLS is enabled
-  // and proper policies are in place. This is a placeholder.
-  return {
-    name: 'RLS Policies',
-    status: 'success',
-    message: 'RLS policy check completed'
-  };
-}
-
-async function checkDataIntegrity(): Promise<DiagnosticResult> {
-  try {
-    // Check for tickets without customers
-    const { data, error } = await supabase
-      .from('tickets')
-      .select('id, ticket_number')
-      .is('customer_id', null)
-      .limit(10);
-      
-    if (error) throw error;
-    
-    if (data.length > 0) {
-      return {
-        name: 'Data Integrity',
-        status: 'error',
-        message: `Found ${data.length} tickets without customer IDs`,
-        details: data
-      };
-    }
-    
-    return {
-      name: 'Data Integrity',
-      status: 'success',
-      message: 'No data integrity issues found'
-    };
-  } catch (error) {
-    return {
-      name: 'Data Integrity',
-      status: 'error',
-      message: 'Failed to check data integrity',
-      details: String(error)
-    };
-  }
-}

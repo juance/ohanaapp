@@ -13,19 +13,21 @@ export const updateSyncStatus = async (syncData: {
   try {
     // Get existing status or create new one
     let existingStatus = localStorage.getItem('syncStatus');
-    let parsedStatus = existingStatus ? JSON.parse(existingStatus) : {
+    let parsedStatus: SimpleSyncStatus = existingStatus ? JSON.parse(existingStatus) : {
       tickets: 0,
       expenses: 0,
       clients: 0,
       feedback: 0,
-      lastSync: new Date().toISOString()
+      lastSync: new Date().toISOString(),
+      syncInProgress: false,
+      syncError: null
     };
     
     // Update counts
-    parsedStatus.tickets += syncData.tickets;
-    parsedStatus.expenses += syncData.expenses;
-    parsedStatus.clients += syncData.clients;
-    parsedStatus.feedback += syncData.feedback;
+    parsedStatus.tickets = (parsedStatus.tickets || 0) + syncData.tickets;
+    parsedStatus.expenses = (parsedStatus.expenses || 0) + syncData.expenses;
+    parsedStatus.clients = (parsedStatus.clients || 0) + syncData.clients;
+    parsedStatus.feedback = (parsedStatus.feedback || 0) + syncData.feedback;
     parsedStatus.lastSync = syncData.lastSync.toISOString();
     
     // Save back to local storage
@@ -50,13 +52,7 @@ export const updateSyncStatus = async (syncData: {
 };
 
 // Get the current sync status
-export const getSyncStatus = (): { 
-  tickets: number; 
-  expenses: number; 
-  clients: number; 
-  feedback: number; 
-  lastSync: string 
-} => {
+export const getSyncStatus = (): SimpleSyncStatus => {
   try {
     const syncStatusJson = localStorage.getItem('syncStatus');
     if (syncStatusJson) {
@@ -67,7 +63,9 @@ export const getSyncStatus = (): {
       expenses: 0,
       clients: 0,
       feedback: 0,
-      lastSync: ''
+      lastSync: '',
+      syncInProgress: false,
+      syncError: null
     };
   } catch (error) {
     console.error('Error getting sync status:', error);
@@ -76,7 +74,9 @@ export const getSyncStatus = (): {
       expenses: 0,
       clients: 0,
       feedback: 0,
-      lastSync: ''
+      lastSync: '',
+      syncInProgress: false,
+      syncError: null
     };
   }
 };

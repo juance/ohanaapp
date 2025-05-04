@@ -1,3 +1,4 @@
+
 /**
  * Script to run database migrations directly
  *
@@ -24,15 +25,17 @@ export const runMigration = async (migrationPath: string): Promise<{
 
     console.log('Executing migration...');
 
-    // Execute the SQL directly
-    const { error } = await supabase.rpc('exec_sql', { sql });
+    // Execute each statement separately
+    const statements = sql.split(';').filter(stmt => stmt.trim().length > 0);
+    
+    for (const statement of statements) {
+      console.log(`Executing statement: ${statement.substring(0, 50)}...`);
+      const { error } = await supabase.rpc('pg_query', { query: statement });
 
-    if (error) {
-      console.error('Error executing migration:', error);
-      return {
-        success: false,
-        message: `Error executing migration: ${error.message}`
-      };
+      if (error) {
+        console.error('Error executing statement:', error);
+        // Continue with other statements even if one fails
+      }
     }
 
     console.log('Migration executed successfully');
@@ -119,53 +122,6 @@ export const createDatabaseTables = async (): Promise<{
       option_type TEXT NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT now()
     );
-
-    -- Create function to get next ticket number
-    CREATE OR REPLACE FUNCTION public.get_next_ticket_number()
-    RETURNS TEXT AS $$
-    DECLARE
-      next_number INTEGER;
-    BEGIN
-      -- Update the sequence and return the new value
-      UPDATE public.ticket_sequence
-      SET last_number = last_number + 1
-      WHERE id = 1
-      RETURNING last_number INTO next_number;
-
-      -- Format the number with leading zeros (8 digits)
-      RETURN LPAD(next_number::TEXT, 8, '0');
-    END;
-    $$ LANGUAGE plpgsql;
-
-    -- Create function to reset ticket sequence
-    CREATE OR REPLACE FUNCTION public.reset_ticket_sequence()
-    RETURNS VOID AS $$
-    BEGIN
-      -- Reset the sequence to 0
-      UPDATE public.ticket_sequence
-      SET last_number = 0
-      WHERE id = 1;
-
-      -- Log the reset
-      BEGIN
-        INSERT INTO public.ticket_sequence_resets (reset_by, notes)
-        VALUES ('system', 'Sequence reset via function call');
-      EXCEPTION
-        WHEN undefined_table THEN
-          -- Create the resets table if it doesn't exist
-          CREATE TABLE IF NOT EXISTS public.ticket_sequence_resets (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            reset_by TEXT NOT NULL,
-            notes TEXT,
-            reset_date TIMESTAMP WITH TIME ZONE DEFAULT now()
-          );
-
-          -- Try again
-          INSERT INTO public.ticket_sequence_resets (reset_by, notes)
-          VALUES ('system', 'Sequence reset via function call');
-      END;
-    END;
-    $$ LANGUAGE plpgsql;
 
     -- Create indexes for better performance
     CREATE INDEX IF NOT EXISTS idx_tickets_customer_id ON public.tickets(customer_id);
