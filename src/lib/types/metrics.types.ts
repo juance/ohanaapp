@@ -19,7 +19,7 @@ export interface DailyMetrics {
 
 export interface WeeklyMetrics {
   salesByDay: Record<string, number>;
-  salesByWeek?: Record<string, number>;
+  salesByWeek: Record<string, number>;
   paymentMethods: {
     cash: number;
     debit: number;

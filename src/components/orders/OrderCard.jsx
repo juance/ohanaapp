@@ -5,24 +5,29 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Printer, Send, Check } from 'lucide-react';
 
-// Define the props interface
-export interface OrderCardProps {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  phoneNumber?: string;
-  status: string;
-  createdDate: string;
-  totalPrice: number;
-  isPaid: boolean;
-  isSelected: boolean;
-  onSelect: (id: string) => void;
-  onMarkAsDelivered?: (id: string) => void;
-  onPrint?: (id: string) => void;
-  onNotify?: (id: string, phoneNumber?: string) => void;
-}
+// Using PropTypes would be ideal here, but for now we'll use JSDoc comments
+/**
+ * @typedef {Object} OrderCardProps
+ * @property {string} id - Ticket ID
+ * @property {string} ticketNumber - Ticket number
+ * @property {string} clientName - Client name
+ * @property {string} [phoneNumber] - Phone number
+ * @property {string} status - Status
+ * @property {string} createdDate - Created date
+ * @property {number} totalPrice - Total price
+ * @property {boolean} isPaid - Is paid
+ * @property {boolean} isSelected - Is selected
+ * @property {function(string)} onSelect - On select callback
+ * @property {function(string)} [onMarkAsDelivered] - On mark as delivered callback
+ * @property {function(string)} [onPrint] - On print callback
+ * @property {function(string, string)} [onNotify] - On notify callback
+ */
 
-export const OrderCard: React.FC<OrderCardProps> = ({
+/**
+ * Order card component
+ * @param {OrderCardProps} props - Component props
+ */
+const OrderCard = ({
   id,
   ticketNumber,
   clientName,
@@ -41,7 +46,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   const formattedDate = new Date(createdDate).toLocaleDateString('es-ES');
   
   // Determine badge color based on status
-  const getBadgeVariant = (status: string) => {
+  const getBadgeVariant = (status) => {
     switch (status.toLowerCase()) {
       case 'ready':
         return 'success';
@@ -55,7 +60,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
   };
 
   // Translate status to Spanish
-  const translateStatus = (status: string) => {
+  const translateStatus = (status) => {
     switch (status.toLowerCase()) {
       case 'ready':
         return 'Listo';
@@ -83,7 +88,7 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           <div className="text-sm text-muted-foreground">#{ticketNumber}</div>
         </div>
         <div className="flex flex-col items-end">
-          <Badge variant={getBadgeVariant(status) as any}>
+          <Badge variant={getBadgeVariant(status)}>
             {translateStatus(status)}
           </Badge>
           <span className="text-xs text-muted-foreground mt-1">{formattedDate}</span>

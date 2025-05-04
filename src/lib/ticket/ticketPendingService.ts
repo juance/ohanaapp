@@ -1,39 +1,54 @@
 
-import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
-import { toast } from '@/lib/toast';
+import { supabase } from '@/integrations/supabase/client';
+import { buildTicketSelectQuery, mapTicketData } from './ticketQueryUtils';
 
-// Create or export the getDatabaseStatuses function
-export const getDatabaseStatuses = () => {
-  return ['pending', 'processing', 'ready', 'delivered', 'cancelled'];
-};
-
-export const getProcessingTickets = async (): Promise<Ticket[]> => {
+/**
+ * Get all tickets with pending status
+ * @returns A list of tickets with pending status
+ */
+export async function getPendingTickets(): Promise<Ticket[]> {
   try {
-    const { data, error } = await supabase
+    // Get tickets with pending status
+    const { data: pendingTickets, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
-      .in('status', ['processing', 'pending']) // Use array directly here
+      .select(buildTicketSelectQuery())
+      .eq('status', 'pending')
       .order('created_at', { ascending: false });
-      
-    if (error) throw error;
 
-    return data.map((ticket: any) => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number || '000',
-      clientName: ticket.customers?.name || 'Cliente',
-      phoneNumber: ticket.customers?.phone || '',
-      totalPrice: ticket.total || 0,
-      paymentMethod: ticket.payment_method || 'cash',
-      status: ticket.status || 'pending',
-      isPaid: ticket.is_paid || false,
-      valetQuantity: ticket.valet_quantity || 0,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date
-    }));
+    if (error) {
+      console.error('Error fetching pending tickets:', error);
+      throw error;
+    }
+
+    return pendingTickets.map(mapTicketData);
   } catch (error) {
-    console.error('Error fetching processing tickets:', error);
-    toast.error('Error al cargar los tickets en proceso');
+    console.error('Error in getPendingTickets:', error);
     return [];
   }
-};
+}
+
+/**
+ * Get all tickets with ready status
+ * @returns A list of tickets with ready status
+ */
+export async function getReadyTickets(): Promise<Ticket[]> {
+  try {
+    // Get tickets with ready status
+    const { data: readyTickets, error } = await supabase
+      .from('tickets')
+      .select(buildTicketSelectQuery())
+      .eq('status', 'ready')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching ready tickets:', error);
+      throw error;
+    }
+
+    return readyTickets.map(mapTicketData);
+  } catch (error) {
+    console.error('Error in getReadyTickets:', error);
+    return [];
+  }
+}

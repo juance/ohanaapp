@@ -1,17 +1,10 @@
 
-// Types for sync operations
+// Sync-related types
+import { Customer, CustomerFeedback, Ticket } from '@/lib/types';
 
-export interface SyncableCustomerFeedback {
-  id: string;
-  customerName: string;
-  rating: number;
-  comment: string;
-  createdAt: string;
-  source?: string;
-  pendingSync: boolean;
+export interface SyncableTicket extends Ticket {
+  pendingSync?: boolean;
   pendingDelete?: boolean;
-  customer_name?: string; // For backward compatibility
-  created_at?: string; // For backward compatibility
 }
 
 export interface SyncableExpense {
@@ -20,44 +13,29 @@ export interface SyncableExpense {
   amount: number;
   date: string;
   category: string;
-  pendingSync: boolean;
-  synced?: boolean;
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
-export interface SyncableTicket {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  phoneNumber: string;
-  totalPrice: number;
-  paymentMethod: string;
-  status: string;
-  isPaid: boolean;
-  createdAt: string;
-  pendingSync: boolean;
+export interface SyncableCustomerFeedback extends CustomerFeedback {
+  pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 export interface LocalClient {
-  clientId: string;
-  clientName: string;
-  phoneNumber: string;
-  phone: string;
+  id: string;
   name: string;
-  loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
+  phone: string;
   lastVisit?: string;
+  loyaltyPoints: number;
+  valetsCount: number;
+  freeValets: number;
   pendingSync?: boolean;
+  pendingDelete?: boolean;
 }
 
 export interface SimpleSyncStatus {
-  tickets: number;
-  clients: number;
-  feedback: number;
-  expenses: number;
-  lastSync: Date | null;
-  ticketsCount?: number;
-  expensesCount?: number;
-  feedbackCount?: number;
-  clientsCount?: number;
+  lastSync: string | null;
+  syncInProgress: boolean;
+  syncError: string | null;
 }

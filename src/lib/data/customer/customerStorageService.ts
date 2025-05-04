@@ -1,124 +1,120 @@
 
-import { Customer, ClientVisit } from '@/lib/types';
-import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { supabase } from '@/integrations/supabase/client';
+import { Customer } from '@/lib/types';
 
-export function storeCustomer(customer: Customer): void {
-  try {
-    // Get existing customers
-    const existingCustomers = getStoredCustomers();
-    
-    // Check if customer already exists
-    const customerIndex = existingCustomers.findIndex(c => c.id === customer.id);
-    
-    if (customerIndex >= 0) {
-      // Update existing customer
-      existingCustomers[customerIndex] = customer;
-    } else {
-      // Add new customer
-      existingCustomers.push(customer);
-    }
-    
-    // Save to local storage
-    localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(existingCustomers));
-  } catch (error) {
-    console.error('Error storing customer:', error);
+/**
+ * Save a customer to local storage
+ * @param customer Customer to save
+ */
+export const saveCustomerToLocalStorage = (customer: Customer): void => {
+  const customers = getCustomersFromLocalStorage();
+  
+  // Check if customer already exists
+  const existingCustomerIndex = customers.findIndex(c => c.id === customer.id);
+  
+  if (existingCustomerIndex >= 0) {
+    // Update existing customer
+    customers[existingCustomerIndex] = customer;
+  } else {
+    // Add new customer
+    customers.push(customer);
   }
-}
+  
+  // Save to local storage
+  localStorage.setItem('customers', JSON.stringify(customers));
+};
 
-export function getStoredCustomers(): Customer[] {
+/**
+ * Get all customers from local storage
+ * @returns Array of customers
+ */
+export const getCustomersFromLocalStorage = (): Customer[] => {
+  const customersString = localStorage.getItem('customers');
+  if (!customersString) return [];
+  
   try {
-    const customersJson = localStorage.getItem(CUSTOMERS_STORAGE_KEY);
-    if (!customersJson) return [];
+    const customers = JSON.parse(customersString);
     
-    const customers = JSON.parse(customersJson);
+    // Map each customer to ensure all fields are present
     return customers.map((customer: any) => ({
       id: customer.id,
       name: customer.name,
       phoneNumber: customer.phoneNumber,
-      phone: customer.phone || customer.phoneNumber, // Ensure phone is always set
+      phone: customer.phone,
       valetsCount: customer.valetsCount || 0,
       freeValets: customer.freeValets || 0,
       lastVisit: customer.lastVisit,
       loyaltyPoints: customer.loyaltyPoints || 0,
-      createdAt: customer.createdAt || new Date().toISOString(),
+      createdAt: customer.createdAt,
       valetsRedeemed: customer.valetsRedeemed || 0
     }));
   } catch (error) {
-    console.error('Error getting stored customers:', error);
+    console.error('Error parsing customers from localStorage:', error);
     return [];
   }
-}
+};
 
-export function getCustomerByPhone(phoneNumber: string): Customer | null {
+/**
+ * Update customer in database and local storage
+ * @param customer Customer to update
+ */
+export const updateCustomer = async (customer: Customer): Promise<void> => {
   try {
-    const customers = getStoredCustomers();
-    const customer = customers.find(c => 
-      c.phone === phoneNumber || c.phoneNumber === phoneNumber
-    );
-    return customer || null;
-  } catch (error) {
-    console.error('Error finding customer by phone:', error);
-    return null;
-  }
-}
-
-export function updateCustomer(customer: Customer): boolean {
-  try {
-    const customers = getStoredCustomers();
-    const index = customers.findIndex(c => c.id === customer.id);
+    // Update in database
+    const { error } = await supabase
+      .from('customers')
+      .update({
+        name: customer.name,
+        phone: customer.phone,
+        loyalty_points: customer.loyaltyPoints,
+        valets_count: customer.valetsCount,
+        free_valets: customer.freeValets,
+        last_visit: customer.lastVisit,
+        valets_redeemed: customer.valetsRedeemed
+      })
+      .eq('id', customer.id);
     
-    if (index === -1) return false;
+    if (error) {
+      console.error('Error updating customer in database:', error);
+      throw error;
+    }
     
-    customers[index] = {
-      id: customer.id,
-      name: customer.name,
-      phoneNumber: customer.phoneNumber,
-      phone: customer.phone,
-      loyaltyPoints: customer.loyaltyPoints,
-      valetsCount: customer.valetsCount,
-      freeValets: customer.freeValets,
-      createdAt: customer.createdAt,
-      lastVisit: customer.lastVisit,
-      valetsRedeemed: customer.valetsRedeemed
-    };
-    
-    localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
-    return true;
+    // Update in local storage
+    saveCustomerToLocalStorage(customer);
   } catch (error) {
     console.error('Error updating customer:', error);
-    return false;
+    throw error;
   }
-}
+};
 
-export function storeOrUpdateCustomer(customer: Partial<Customer>): Customer {
-  const customers = getStoredCustomers();
-  const existingCustomer = customers.find(
-    c => c.phone === customer.phone || c.phoneNumber === customer.phoneNumber
-  );
-  
-  if (existingCustomer) {
-    const updatedCustomer = {
-      ...existingCustomer,
-      ...customer,
-      lastVisit: new Date().toISOString()
-    };
-    updateCustomer(updatedCustomer);
-    return updatedCustomer;
+/**
+ * Update customer's last visit date
+ * @param customerId Customer ID
+ * @param date Last visit date
+ */
+export const updateCustomerLastVisit = async (customerId: string, date: string): Promise<void> => {
+  try {
+    // Update in database
+    const { error } = await supabase
+      .from('customers')
+      .update({ last_visit: date })
+      .eq('id', customerId);
+    
+    if (error) {
+      console.error('Error updating customer last visit in database:', error);
+      throw error;
+    }
+    
+    // Update in local storage
+    const customers = getCustomersFromLocalStorage();
+    const customerIndex = customers.findIndex(c => c.id === customerId);
+    
+    if (customerIndex >= 0) {
+      customers[customerIndex].lastVisit = date;
+      localStorage.setItem('customers', JSON.stringify(customers));
+    }
+  } catch (error) {
+    console.error('Error updating customer last visit:', error);
+    throw error;
   }
-  
-  const newCustomer: Customer = {
-    id: crypto.randomUUID(),
-    name: customer.name || '',
-    phoneNumber: customer.phoneNumber || '',
-    phone: customer.phone || customer.phoneNumber || '',
-    loyaltyPoints: customer.loyaltyPoints || 0,
-    valetsCount: customer.valetsCount || 0,
-    freeValets: customer.freeValets || 0,
-    createdAt: new Date().toISOString(),
-    lastVisit: customer.lastVisit || new Date().toISOString(),
-    valetsRedeemed: customer.valetsRedeemed || 0
-  };
-  
-  storeCustomer(newCustomer);
-  return newCustomer;
-}
+};

@@ -33,7 +33,7 @@ export interface ClientVisit {
   lastVisit?: string;
   loyaltyPoints: number;
   freeValets: number;
-  valetsCount?: number;
+  valetsCount: number;
 }
 
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {

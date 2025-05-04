@@ -48,10 +48,10 @@ const ClientList: React.FC<ClientListProps> = ({
                 editClientName={editClientName}
                 editClientPhone={editClientPhone}
                 selectedClient={selectedClient}
-                onEdit={onEditClient}
-                onSave={onSaveClient}
+                onEdit={() => onEditClient(client)}
+                onSave={() => onSaveClient(client.id)}
                 onCancel={onCancelEdit}
-                onSelect={onSelectClient}
+                onSelect={() => onSelectClient(client)}
                 onEditNameChange={onEditNameChange}
                 onEditPhoneChange={onEditPhoneChange}
               />
