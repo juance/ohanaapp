@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SyncableTicket } from '@/lib/types/sync.types';
-import { STORAGE_KEYS } from '@/lib/constants/appConstants';
+import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
 
 // Get tickets from local storage
 const getLocalTickets = (): SyncableTicket[] => {

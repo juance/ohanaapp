@@ -1,8 +1,7 @@
 
 /**
- * Constants for local storage keys
+ * Constants for storage keys
  */
-
 export const STORAGE_KEYS = {
   TICKETS: 'tickets',
   CLIENTS: 'clients',
@@ -14,6 +13,7 @@ export const STORAGE_KEYS = {
   SYSTEM_VERSION: 'systemVersion'
 };
 
-export const TICKETS_STORAGE_KEY = STORAGE_KEYS.TICKETS;
-export const EXPENSES_STORAGE_KEY = STORAGE_KEYS.EXPENSES;
-export const FEEDBACK_STORAGE_KEY = STORAGE_KEYS.FEEDBACK;
+export const TICKETS_STORAGE_KEY = 'tickets';
+export const EXPENSES_STORAGE_KEY = 'expenses';
+export const CLIENT_STORAGE_KEY = 'clients';
+export const FEEDBACK_STORAGE_KEY = 'feedback';

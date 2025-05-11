@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { getNextStatus as getNextTicketStatus } from './ticketStatusService';
