@@ -127,8 +127,13 @@ export const calculateTicketAnalytics = async (startDate: Date, endDate: Date): 
       throw error;
     }
 
-    // Parse the response and return it
-    return data as TicketAnalytics;
+    // Parse and type-cast the response properly
+    if (data) {
+      // Cast to unknown first, then to TicketAnalytics
+      return data as unknown as TicketAnalytics;
+    }
+
+    return null;
   } catch (error) {
     console.error('Error in calculateTicketAnalytics:', error);
     return null;
