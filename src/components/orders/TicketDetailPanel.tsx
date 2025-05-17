@@ -36,21 +36,35 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
     }
   };
 
-  // Combine ticket.services with received services if needed
-  const displayServices = services && services.length > 0 ? services : (ticket.services || []);
+  // Determine which services to display with a preference order
+  // 1. Use provided services if available
+  // 2. Use ticket.dryCleaningItems if available
+  // 3. Fall back to ticket.services
+  let displayServices: TicketService[] = [];
   
-  // Get dry cleaning items from ticket
-  const dryCleaningItems = ticket.dryCleaningItems || [];
-  const hasDryCleaningItems = dryCleaningItems.length > 0;
+  if (services && services.length > 0) {
+    displayServices = services;
+  } else if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
+    displayServices = ticket.dryCleaningItems.map(item => ({
+      id: item.id,
+      name: item.name || 'Servicio',
+      price: item.price || 0,
+      quantity: item.quantity || 1
+    }));
+  } else if (ticket.services && ticket.services.length > 0) {
+    displayServices = ticket.services;
+  }
   
-  // Debug log to see the items available
-  console.log('Ticket detail panel services:', { 
-    propsServices: services, 
-    ticketServices: ticket.services,
-    dryCleaningItems: ticket.dryCleaningItems,
-    displayServices
-  });
-
+  // Si no hay servicios y es un ticket, crear un servicio por defecto
+  if (displayServices.length === 0) {
+    displayServices = [{
+      id: 'default-service',
+      name: 'Servicio general',
+      price: ticket.totalPrice || 0,
+      quantity: 1
+    }];
+  }
+  
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -99,55 +113,38 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
 
       <div>
         <h3 className="text-lg font-medium mb-3">Servicios</h3>
-        {/* Display services from props, ticket.services, or ticket.dryCleaningItems */}
-        {(displayServices.length > 0 || hasDryCleaningItems) ? (
-          <Card>
-            <CardContent className="p-4">
-              <div className="divide-y">
-                {/* Display regular services */}
-                {displayServices.map((service) => (
-                  <div key={service.id || `service-${service.name}`} className="py-2 flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{service.name}</div>
-                      <div className="text-sm text-gray-500">
-                        Cantidad: {service.quantity}
-                      </div>
-                    </div>
-                    <div className="font-medium">
-                      $ {service.price}
+        <Card>
+          <CardContent className="p-4">
+            <div className="divide-y">
+              {displayServices.map((service, index) => (
+                <div key={service.id || `service-${index}`} className="py-2 flex justify-between items-center">
+                  <div>
+                    <div className="font-medium">{service.name || 'Servicio'}</div>
+                    <div className="text-sm text-gray-500">
+                      Cantidad: {service.quantity || 1}
                     </div>
                   </div>
-                ))}
-                
-                {/* Display dry cleaning items if they exist */}
-                {hasDryCleaningItems && dryCleaningItems.map((item) => (
-                  <div key={item.id || `item-${item.name}`} className="py-2 flex justify-between items-center">
-                    <div>
-                      <div className="font-medium">{item.name}</div>
-                      <div className="text-sm text-gray-500">
-                        Cantidad: {item.quantity}
-                      </div>
-                    </div>
-                    <div className="font-medium">
-                      $ {item.price}
-                    </div>
+                  <div className="font-medium">
+                    $ {service.price?.toLocaleString() || '0'}
                   </div>
-                ))}
+                </div>
+              ))}
+            </div>
+            
+            <Separator className="my-4" />
+            
+            <div className="flex justify-between items-center font-bold">
+              <span>Total:</span>
+              <span>$ {ticket.totalPrice?.toLocaleString() || '0'}</span>
+            </div>
+            
+            {ticket.basketTicketNumber && (
+              <div className="mt-4 text-center bg-gray-100 py-2 rounded-md">
+                <span className="font-medium">Ticket de canasta: #{ticket.basketTicketNumber}</span>
               </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="flex justify-between items-center font-bold">
-                <span>Total:</span>
-                <span>$ {ticket.totalPrice}</span>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="text-center py-6 bg-gray-50 rounded-lg border">
-            <p className="text-gray-500">No hay servicios registrados para este ticket</p>
-          </div>
-        )}
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

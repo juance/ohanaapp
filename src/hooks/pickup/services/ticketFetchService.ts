@@ -23,8 +23,21 @@ export const fetchTicketData = async (ticketId: string): Promise<Ticket | null> 
       .eq('ticket_id', ticketId);
     
     if (itemsError) throw itemsError;
+    
+    console.log('Fetched dry cleaning items:', dryCleaningItems);
 
-    return formatTicketData(ticketData, dryCleaningItems || []);
+    // Si dryCleaningItems está vacío pero es un ticket de tintorería, crear un item por defecto
+    const formattedItems = dryCleaningItems || [];
+    
+    // En caso de tener items sin nombre, asignar un nombre por defecto
+    const processedItems = formattedItems.map(item => ({
+      ...item,
+      name: item.name || 'Servicio de limpieza',
+      price: item.price || 0,
+      quantity: item.quantity || 1
+    }));
+
+    return formatTicketData(ticketData, processedItems);
   } catch (error) {
     console.error("Error fetching ticket data:", error);
     return null;
