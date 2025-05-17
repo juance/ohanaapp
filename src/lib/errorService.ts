@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { SystemError } from './types/error.types';
 import { v4 as uuidv4 } from 'uuid';
@@ -185,6 +186,7 @@ export const setupGlobalErrorHandling = () => {
   };
 };
 
+// Export the initErrorService function that was referenced in main.tsx
 export const initErrorService = () => {
   setupGlobalErrorHandling();
 };
