@@ -3,47 +3,13 @@ import { useCallback } from 'react';
 import { toast } from '@/lib/toast';
 import { Ticket } from '@/lib/types';
 import { getTicket } from '../services/ticketFetchService';
-import { sendTicketNotification, shareTicketPDF } from '../services/notificationService';
+import { sendTicketNotification, sendOrderReadyNotification } from '../services/notificationService';
+import { markTicketAsReady } from '@/lib/ticket/ticketStatusTransitionService';
 
 /**
  * Hook for ticket notification operations
  */
 export const useTicketNotificationOperations = () => {
-  /**
-   * Shares a ticket via WhatsApp with PDF attachment
-   */
-  const handleShareWhatsApp = useCallback(async (
-    ticketId: string, 
-    phoneNumber: string | undefined, 
-    tickets?: Ticket[]
-  ): Promise<void> => {
-    if (!phoneNumber) {
-      toast.error('No hay número de teléfono para este cliente');
-      return;
-    }
-
-    try {
-      const ticket = await getTicket(ticketId, tickets);
-      
-      if (!ticket) {
-        toast.error('Ticket no encontrado');
-        return;
-      }
-
-      // Ensure ticket has services property to prevent errors
-      if (!ticket.services) {
-        ticket.services = [];
-      }
-      
-      // Share the PDF via WhatsApp
-      await shareTicketPDF(phoneNumber, ticket);
-
-    } catch (err: any) {
-      console.error("Error preparing WhatsApp message:", err);
-      toast.error(`Error al preparar mensaje de WhatsApp: ${err.message}`);
-    }
-  }, []);
-
   /**
    * Notifies a client with a text message via WhatsApp
    */
@@ -79,8 +45,54 @@ export const useTicketNotificationOperations = () => {
     }
   }, []);
 
+  /**
+   * Marks a ticket as ready and notifies the client
+   */
+  const handleOrderReady = useCallback(async (
+    ticketId: string,
+    phoneNumber: string | undefined,
+    tickets?: Ticket[]
+  ): Promise<void> => {
+    if (!phoneNumber) {
+      toast.error('No hay número de teléfono para este cliente');
+      return;
+    }
+
+    try {
+      // First mark the ticket as ready in the database
+      const success = await markTicketAsReady(ticketId);
+      
+      if (!success) {
+        toast.error('Error al marcar el ticket como listo para retirar');
+        return;
+      }
+      
+      // Get the ticket data
+      const ticket = await getTicket(ticketId, tickets);
+      
+      if (!ticket) {
+        toast.error('Ticket no encontrado');
+        return;
+      }
+      
+      // Ensure ticket has services property to prevent errors
+      if (!ticket.services) {
+        ticket.services = [];
+      }
+      
+      // Send order ready notification
+      sendOrderReadyNotification(phoneNumber, ticket);
+      
+      toast.success('Cliente notificado que su pedido está listo para retirar');
+
+    } catch (err: any) {
+      console.error("Error sending order ready notification:", err);
+      toast.error(`Error al enviar notificación: ${err.message}`);
+    }
+  }, []);
+
   return {
-    handleShareWhatsApp,
-    handleNotifyClient
+    handleNotifyClient,
+    handleOrderReady
   };
 };

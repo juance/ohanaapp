@@ -13,14 +13,14 @@ export const usePickupTicketOperations = () => {
   const { handleCancelTicket } = useTicketCancellationOperations();
   const { handleUpdatePaymentMethod } = useTicketPaymentOperations();
   const { handlePrintTicket } = useTicketPrintOperations();
-  const { handleShareWhatsApp, handleNotifyClient } = useTicketNotificationOperations();
+  const { handleNotifyClient, handleOrderReady } = useTicketNotificationOperations();
 
   return {
     handleMarkAsDelivered,
     handleCancelTicket,
     handleUpdatePaymentMethod,
     handlePrintTicket,
-    handleShareWhatsApp,
-    handleNotifyClient
+    handleNotifyClient,
+    handleOrderReady
   };
 };

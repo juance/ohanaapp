@@ -30,7 +30,7 @@ export const usePickupOrdersLogic = () => {
   const { formatDate } = usePickupUtils();
   const { 
     handleMarkAsDelivered, handleCancelTicket, handleUpdatePaymentMethod, 
-    handlePrintTicket, handleNotifyClient, handleShareWhatsApp 
+    handlePrintTicket, handleNotifyClient, handleOrderReady 
   } = usePickupTicketOperations();
 
   // Apply filters to tickets
@@ -102,8 +102,8 @@ export const usePickupOrdersLogic = () => {
     handlePrintTicket,
     handleNotifyClient: (ticketId: string, phoneNumber?: string) => 
       handleNotifyClient(ticketId, phoneNumber, pickupTickets),
-    handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => 
-      handleShareWhatsApp(ticketId, phoneNumber, pickupTickets),
+    handleOrderReady: (ticketId: string, phoneNumber?: string) => 
+      handleOrderReady(ticketId, phoneNumber, pickupTickets),
     handleOpenPaymentMethodDialog,
     handleUpdatePaymentMethod: handleUpdatePaymentMethodWrapper,
     handleError,

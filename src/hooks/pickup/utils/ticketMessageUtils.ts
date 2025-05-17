@@ -62,3 +62,20 @@ export const createDetailedTicketMessage = (ticket: Ticket): string => {
   
   return message;
 };
+
+/**
+ * Creates a message to notify the client that their order is ready
+ */
+export const createOrderReadyMessage = (ticket: Ticket): string => {
+  let message = `Hola! Tu pedido #${ticket.ticketNumber} está listo para retirar.\n\n`;
+  message += `El importe a abonar es: $${ticket.totalPrice.toLocaleString()}\n\n`;
+  
+  if (ticket.basketTicketNumber) {
+    message += `N° Canasto: ${ticket.basketTicketNumber}\n\n`;
+  }
+  
+  message += "Puedes pasar a retirarlo en nuestro horario de atención.\n";
+  message += "Gracias por elegirnos!";
+  
+  return message;
+};

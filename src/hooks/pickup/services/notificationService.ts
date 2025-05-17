@@ -1,9 +1,8 @@
 
 import { Ticket } from '@/lib/types';
 import { formatPhoneForWhatsApp } from '../utils/phoneUtils';
-import { createSimplifiedTicketMessage, createDetailedTicketMessage } from '../utils/ticketMessageUtils';
+import { createSimplifiedTicketMessage, createDetailedTicketMessage, createOrderReadyMessage } from '../utils/ticketMessageUtils';
 import { openWhatsApp } from '@/lib/utils/whatsappUtils';
-import { shareTicketPDFViaWhatsApp } from '@/utils/pdfUtils';
 import { getTicketOptions } from '@/lib/ticket/ticketServiceCore';
 
 /**
@@ -15,6 +14,18 @@ export const sendTicketNotification = (
 ): void => {
   const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
   const message = createSimplifiedTicketMessage(ticket);
+  openWhatsApp(formattedPhone, message);
+};
+
+/**
+ * Sends an order ready notification via WhatsApp
+ */
+export const sendOrderReadyNotification = (
+  phoneNumber: string,
+  ticket: Ticket
+): void => {
+  const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
+  const message = createOrderReadyMessage(ticket);
   openWhatsApp(formattedPhone, message);
 };
 
