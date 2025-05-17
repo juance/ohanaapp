@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,8 @@ export const SystemVersions = () => {
   const { 
     versions, 
     loading, 
-    rollbackVersion 
+    rollbackVersion,
+    fetchVersions 
   } = useSystemVersions();
   
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
@@ -100,13 +102,8 @@ export const SystemVersions = () => {
         <div className="flex justify-end mb-4 space-x-2">
           <GitHubSyncButton onSyncCompleted={() => {
             // Refresh versions after sync
-            if (typeof loading === 'boolean' && typeof versions === 'object') {
-              // This assumes there is a loadVersions function in the useSystemVersions hook
-              // If not, you may need to adjust this
-              const { refetch } = useSystemVersions();
-              if (typeof refetch === 'function') {
-                refetch();
-              }
+            if (typeof fetchVersions === 'function') {
+              fetchVersions();
             }
           }} />
         </div>
@@ -229,3 +226,4 @@ export const SystemVersions = () => {
     </Card>
   );
 };
+
