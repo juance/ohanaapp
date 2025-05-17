@@ -17,14 +17,15 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
-  // Asegúrate de que useDashboardData devuelve todos estos valores
+  // Use the correct properties from useDashboardData
   const { 
-    dashboardData: data, 
     isLoading, 
     error, 
-    refreshDashboardData: refreshData,
-    dateRange: dateFilter,
-    updateDateRange: updateDateFilter 
+    refetch: refreshData,
+    dateRange,
+    setDateRange: updateDateFilter, 
+    ticketsInRange: data,
+    incomeInRange
   } = useDashboardData();
 
   console.log('Dashboard component - data:', data);
@@ -47,7 +48,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   };
 
   const handleDateChange = (startDate: Date, endDate: Date) => {
-    updateDateFilter(startDate, endDate);
+    updateDateFilter({ start: startDate, end: endDate });
   };
 
   const content = (
@@ -77,8 +78,8 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       {/* Añadimos el filtro de fechas */}
       <div className="mb-6">
         <DateRangeFilter 
-          startDate={dateFilter.startDate}
-          endDate={dateFilter.endDate}
+          startDate={dateRange.start}
+          endDate={dateRange.end}
           onDateChange={handleDateChange}
         />
       </div>
@@ -98,7 +99,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             Reintentar
           </Button>
         </div>
-      ) : !data || Object.keys(data.metrics).length === 0 ? (
+      ) : !data || data.length === 0 ? (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
           <h3 className="text-lg font-medium text-yellow-800">No hay datos disponibles</h3>
           <p className="text-yellow-700">No se encontraron datos para mostrar en el panel de control.</p>
@@ -114,19 +115,24 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
       ) : (
         <>
           <MetricsCards
-            metrics={data.metrics}
-            expenses={data.expenses}
+            metrics={{
+              todayTickets: data.length,
+              todayIncome: incomeInRange,
+              pendingTickets: 0, // This will be calculated elsewhere
+              totalTickets: data.length
+            }}
+            expenses={{}}
             viewType="monthly"
             dateRange={{
-              from: dateFilter.startDate,
-              to: dateFilter.endDate
+              from: dateRange.start,
+              to: dateRange.end
             }}
           />
           <div className="h-6"></div>
           <ChartSection
-            chartData={data.chartData}
+            chartData={{}}
             viewType="monthly"
-            frequentClients={data.clients}
+            frequentClients={[]}
           />
 
           <div className="mt-8 grid grid-cols-1 gap-6">

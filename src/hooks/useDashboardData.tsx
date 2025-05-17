@@ -97,7 +97,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         totalIncome,
         serviceCounts,
         dryCleaningItems,
-        ticketsInRange: rangeTicketsData,
+        ticketsInRange: rangeTicketsData || [],
         incomeInRange: rangeIncome
       };
     } catch (error) {
