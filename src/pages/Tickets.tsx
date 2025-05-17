@@ -6,7 +6,7 @@ import TicketPrint from '@/components/TicketPrint';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Ticket, LaundryOption } from '@/lib/types';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 const Tickets = () => {
   const [printTicket, setPrintTicket] = useState<Ticket | null>(null);
