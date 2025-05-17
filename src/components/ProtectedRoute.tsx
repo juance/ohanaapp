@@ -28,8 +28,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
       return <Navigate to="/user-tickets" replace />;
     }
     
-    // Redirect others to home page
-    return <Navigate to="/" replace />;
+    // Redirect others to auth page
+    return <Navigate to="/auth" replace />;
   }
 
   return <>{children}</>;

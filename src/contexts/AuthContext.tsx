@@ -1,9 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role } from '@/lib/types/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
-import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -33,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     const storedUser = sessionStorage.getItem('user');
@@ -50,10 +49,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           const userData = JSON.parse(storedUser);
           setUser(userData);
-
-          if (userData.requiresPasswordChange) {
-            navigate('/change-password');
-          }
         }
       } catch (err) {
         console.error('Error parsing stored user:', err);
@@ -62,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
     setLoading(false);
-  }, [navigate]);
+  }, []);
 
   const login = async (phoneNumber: string, password: string) => {
     try {
@@ -193,6 +188,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       description: "Has cerrado sesión correctamente",
       variant: "default",
     });
+    
+    // Instead of using navigate, we'll use window.location for redirection after logout
+    window.location.href = '/auth';
   };
 
   const changePassword = async (oldPassword: string, newPassword: string) => {
@@ -204,7 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const updatedUser = { ...user, requiresPasswordChange: false };
-      localStorage.setItem('user', JSON.stringify(updatedUser));
+      sessionStorage.setItem('user', JSON.stringify(updatedUser));
       setUser(updatedUser);
 
       toast({
@@ -213,7 +211,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         variant: "default",
       });
 
-      navigate('/');
+      // Instead of navigate, use window.location
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.message || 'Error al cambiar la contraseña');
       toast({
