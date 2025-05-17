@@ -19,7 +19,7 @@ export interface InventoryListProps {
 }
 
 // Form state for creating/editing items
-export interface InventoryItemFormState extends Omit<InventoryItem, 'id'> {
+export interface InventoryItemFormState {
   name: string;
   quantity: number;
   unit: string;

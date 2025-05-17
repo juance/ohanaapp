@@ -17,32 +17,40 @@ const Metrics: React.FC = () => {
           value="$435,200"
           description="Últimos 30 días"
           icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-          trend="+12.5%"
-          trendDirection="up"
+          trend={{
+            value: 12.5,
+            isPositive: true
+          }}
         />
         <MetricsCard
           title="Tickets Emitidos"
           value="235"
           description="Últimos 30 días"
           icon={<ShoppingBag className="h-4 w-4 text-muted-foreground" />}
-          trend="+8.2%"
-          trendDirection="up"
+          trend={{
+            value: 8.2,
+            isPositive: true
+          }}
         />
         <MetricsCard
           title="Ticket Promedio"
           value="$1,852"
           description="Últimos 30 días"
           icon={<BarChart4 className="h-4 w-4 text-muted-foreground" />}
-          trend="+3.7%"
-          trendDirection="up"
+          trend={{
+            value: 3.7,
+            isPositive: true
+          }}
         />
         <MetricsCard
           title="Clientes Nuevos"
           value="34"
           description="Últimos 30 días"
           icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          trend="+5.3%"
-          trendDirection="up"
+          trend={{
+            value: 5.3,
+            isPositive: true
+          }}
         />
       </div>
 

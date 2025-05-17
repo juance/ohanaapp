@@ -1,146 +1,203 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import useInventory from '@/hooks/useInventory';
+import React, { useState, useEffect } from 'react';
+import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
+import InventorySearch from '@/components/inventory/InventorySearch';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import InventoryItemForm from '@/components/inventory/InventoryItemForm';
 import DeleteItemDialog from '@/components/inventory/DeleteItemDialog';
-import InventorySearch from '@/components/inventory/InventorySearch';
-import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { v4 as uuidv4 } from 'uuid';
 
-const InventoryList = () => {
-  // Inventory state and operations
-  const {
-    items,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    sortColumn,
-    sortDirection,
-    handleSort,
-    createItem,
-    updateItem,
-    deleteItem,
-  } = useInventory();
+// Mock inventory data for testing
+const mockInventoryData: InventoryItemWithTimestamp[] = [
+  {
+    id: '1',
+    name: 'Detergente líquido',
+    quantity: 15,
+    unit: 'litros',
+    threshold: 5,
+    notes: 'Para lavadora',
+    lastUpdated: '2023-06-01'
+  },
+  {
+    id: '2',
+    name: 'Perchas',
+    quantity: 200,
+    unit: 'unidades',
+    threshold: 50,
+    notes: 'Plásticas',
+    lastUpdated: '2023-05-28'
+  },
+  {
+    id: '3',
+    name: 'Bolsas',
+    quantity: 500,
+    unit: 'unidades',
+    threshold: 100,
+    notes: 'Para entrega',
+    lastUpdated: '2023-06-02'
+  },
+];
 
-  // Local UI state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [openCreateDialog, setOpenCreateDialog] = useState(false);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItemWithTimestamp | null>(null);
-
-  // Form states
-  const [newItem, setNewItem] = useState<InventoryItemFormState>({
+const InventoryList: React.FC = () => {
+  const [items, setItems] = useState<InventoryItemWithTimestamp[]>([]);
+  const [filteredItems, setFilteredItems] = useState<InventoryItemWithTimestamp[]>([]);
+  const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [currentItem, setCurrentItem] = useState<InventoryItemFormState>({
     name: '',
     quantity: 0,
     unit: '',
     threshold: 0,
     notes: ''
   });
-  
-  const [editItem, setEditItem] = useState<InventoryItemWithTimestamp>({
-    id: '',
-    name: '',
-    quantity: 0,
-    unit: '',
-    threshold: 0,
-    notes: ''
-  });
+  const [itemToDelete, setItemToDelete] = useState<InventoryItemWithTimestamp | null>(null);
 
-  // Filter items by search query
-  const filteredItems = items.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  useEffect(() => {
+    // In a real app, fetch from API or localStorage
+    setItems(mockInventoryData);
+    setFilteredItems(mockInventoryData);
+  }, []);
 
-  // Event handlers
-  const handleCreateItem = async () => {
-    const success = await createItem(newItem);
-    if (success) {
-      setNewItem({ name: '', quantity: 0, unit: '', threshold: 0, notes: '' });
-      setOpenCreateDialog(false);
+  const handleSearch = (query: string) => {
+    if (!query) {
+      setFilteredItems(items);
+      return;
+    }
+
+    const filtered = items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(query.toLowerCase()) ||
+        item.notes.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredItems(filtered);
+  };
+
+  const handleCreateNew = () => {
+    setCurrentItem({
+      name: '',
+      quantity: 0,
+      unit: '',
+      threshold: 0,
+      notes: ''
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = (item: InventoryItemWithTimestamp) => {
+    // Convert to form state, ensuring all required properties are present
+    setCurrentItem({
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit || '', // Ensure unit is not undefined
+      threshold: item.threshold || 0, // Ensure threshold is not undefined
+      notes: item.notes || '' // Ensure notes is not undefined
+    });
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (item: InventoryItemWithTimestamp) => {
+    setItemToDelete(item);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      // In a real app, call API to delete
+      const updatedItems = items.filter((item) => item.id !== itemToDelete.id);
+      setItems(updatedItems);
+      setFilteredItems(updatedItems);
+      toast.success('Ítem eliminado correctamente');
+    } catch (error) {
+      toast.error('Error al eliminar el ítem');
+    } finally {
+      setIsDeleting(false);
+      setIsDeleteDialogOpen(false);
+      setItemToDelete(null);
     }
   };
 
-  const handleUpdateItem = async () => {
-    const success = await updateItem(editItem);
-    if (success) {
-      setOpenEditDialog(false);
-    }
-  };
-
-  const handleDeleteItem = async () => {
-    if (selectedItem) {
-      const success = await deleteItem(selectedItem.id);
-      if (success) {
-        setOpenDeleteDialog(false);
-        setSelectedItem(null);
+  const handleSubmit = async (formData: InventoryItemFormState) => {
+    setIsSubmitting(true);
+    try {
+      const now = new Date().toISOString().split('T')[0];
+      
+      if (currentItem.name && items.some(item => item.name === currentItem.name)) {
+        // Update existing item
+        const updatedItems = items.map((item) =>
+          item.name === currentItem.name
+            ? { ...item, ...formData, lastUpdated: now }
+            : item
+        );
+        setItems(updatedItems);
+        setFilteredItems(updatedItems);
+        toast.success('Ítem actualizado correctamente');
+      } else {
+        // Add new item
+        const newItem: InventoryItemWithTimestamp = {
+          id: uuidv4(),
+          ...formData,
+          lastUpdated: now
+        };
+        const updatedItems = [...items, newItem];
+        setItems(updatedItems);
+        setFilteredItems(updatedItems);
+        toast.success('Ítem añadido correctamente');
       }
+      
+      setIsFormOpen(false);
+    } catch (error) {
+      toast.error('Error al guardar el ítem');
+    } finally {
+      setIsSubmitting(false);
     }
-  };
-
-  const handleEditClick = (item: InventoryItemWithTimestamp) => {
-    setEditItem(item);
-    setOpenEditDialog(true);
-  };
-
-  const handleDeleteClick = (item: InventoryItemWithTimestamp) => {
-    setSelectedItem(item);
-    setOpenDeleteDialog(true);
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex items-center justify-between">
-        <CardTitle>Inventario</CardTitle>
-        <InventorySearch 
-          onSearch={setSearchQuery} 
-          onCreateNew={() => setOpenCreateDialog(true)}
-        />
-      </CardHeader>
-      <CardContent>
-        <InventoryTable
-          items={filteredItems}
-          sortColumn={sortColumn}
-          sortDirection={sortDirection}
-          onSort={handleSort}
-          onEdit={handleEditClick}
-          onDelete={handleDeleteClick}
-        />
-      </CardContent>
-
-      {/* Create Item Dialog */}
-      <InventoryItemForm
-        isOpen={openCreateDialog}
-        onOpenChange={setOpenCreateDialog}
-        title="Crear Ítem"
-        formState={newItem}
-        setFormState={setNewItem}
-        onSubmit={handleCreateItem}
-        isSubmitting={isCreating}
-        submitLabel="Crear"
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Inventario</h2>
+      </div>
+      
+      <InventorySearch
+        onSearch={handleSearch}
+        onCreateNew={handleCreateNew}
       />
-
-      {/* Edit Item Dialog */}
-      <InventoryItemForm
-        isOpen={openEditDialog}
-        onOpenChange={setOpenEditDialog}
-        title="Editar Ítem"
-        formState={editItem}
-        setFormState={setEditItem}
-        onSubmit={handleUpdateItem}
-        isSubmitting={isUpdating}
-        submitLabel="Actualizar"
+      
+      <InventoryTable
+        items={filteredItems}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
-
-      {/* Delete Item Dialog */}
+      
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{currentItem.name ? 'Editar' : 'Crear'} Ítem</DialogTitle>
+          </DialogHeader>
+          <InventoryItemForm
+            initialData={currentItem}
+            isSubmitting={isSubmitting}
+            onSubmit={handleSubmit}
+            onCancel={() => setIsFormOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
       <DeleteItemDialog
-        isOpen={openDeleteDialog}
-        onOpenChange={setOpenDeleteDialog}
-        onDelete={handleDeleteItem}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onDelete={confirmDelete}
         isDeleting={isDeleting}
       />
-    </Card>
+    </div>
   );
 };
 
