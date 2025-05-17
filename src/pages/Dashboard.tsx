@@ -25,7 +25,9 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
     dateRange,
     setDateRange: updateDateFilter, 
     ticketsInRange: data,
-    incomeInRange
+    incomeInRange,
+    serviceCounts,
+    dryCleaningItems
   } = useDashboardData();
 
   console.log('Dashboard component - data:', data);
@@ -49,6 +51,27 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
 
   const handleDateChange = (startDate: Date, endDate: Date) => {
     updateDateFilter({ start: startDate, end: endDate });
+  };
+
+  // Prepare chart data objects with proper structure
+  const barData = [{ name: 'Tickets', total: data?.length || 0 }];
+  
+  const lineData = [
+    { name: 'Actual', income: incomeInRange || 0, expenses: 0 }
+  ];
+  
+  // Convert dryCleaningItems to pieData format
+  const pieData = dryCleaningItems 
+    ? Object.entries(dryCleaningItems).map(([name, value]) => ({
+        name,
+        value: value as number
+      }))
+    : [{ name: 'Sin datos', value: 1 }];
+
+  const chartData = {
+    barData,
+    lineData,
+    pieData
   };
 
   const content = (
@@ -130,7 +153,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
           />
           <div className="h-6"></div>
           <ChartSection
-            chartData={{}}
+            chartData={chartData}
             viewType="monthly"
             frequentClients={[]}
           />
