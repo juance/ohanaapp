@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import MetricsCard from '@/components/MetricsCard';
 import { CalendarIcon, StarIcon, UsersIcon, CoinsIcon } from 'lucide-react';
-import { TicketAnalytics } from '@/lib/analyticsService';
+import { TicketAnalytics } from '@/lib/analytics/interfaces';
 
 interface MetricsSectionProps {
   loading: boolean;

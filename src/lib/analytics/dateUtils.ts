@@ -7,7 +7,7 @@ import { format } from 'date-fns';
 export const getDefaultDateRange = (): { startDate: Date; endDate: Date } => {
   const endDate = new Date();
   const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-  return { startDate, startDate };
+  return { startDate, endDate };
 };
 
 /**
