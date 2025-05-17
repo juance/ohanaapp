@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
-import { CLIENTS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { CLIENT_STORAGE_KEY } from '@/lib/constants/storageKeys';
 import { logError } from '@/lib/errorService';
 
 export const useCachedClients = () => {
@@ -15,7 +14,7 @@ export const useCachedClients = () => {
       setIsLoading(true);
       
       // Try to get clients from local storage first
-      const cachedClients = localStorage.getItem(CLIENTS_STORAGE_KEY);
+      const cachedClients = localStorage.getItem(CLIENT_STORAGE_KEY);
       if (cachedClients) {
         setClients(JSON.parse(cachedClients));
       }
@@ -48,7 +47,7 @@ export const useCachedClients = () => {
       
       // Update state and cache
       setClients(clientVisits);
-      localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clientVisits));
+      localStorage.setItem(CLIENT_STORAGE_KEY, JSON.stringify(clientVisits));
       setError(null);
     } catch (err) {
       console.error('Error fetching clients:', err);
@@ -60,7 +59,7 @@ export const useCachedClients = () => {
   };
 
   const invalidateCache = () => {
-    localStorage.removeItem(CLIENTS_STORAGE_KEY);
+    localStorage.removeItem(CLIENT_STORAGE_KEY);
   };
 
   // Function to refresh clients data - for API compatibility
