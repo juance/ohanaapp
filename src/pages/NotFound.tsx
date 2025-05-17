@@ -1,11 +1,12 @@
 
-import { useEffect } from "react";
+import React from "react";
 
 const NotFound = () => {
-  // No intentamos usar useLocation ya que puede fallar si se renderiza fuera del contexto del Router
-  const pathname = window.location.pathname || "ruta-desconocida";
+  // Get current path without using useLocation hook
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : "unknown-route";
 
-  useEffect(() => {
+  // Log the error on component mount
+  React.useEffect(() => {
     console.error(
       "404 Error: User attempted to access non-existent route:",
       pathname

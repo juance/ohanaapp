@@ -1,27 +1,25 @@
 
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.tsx'
-import { BrowserRouter } from 'react-router-dom'
-import './index.css'
-import { Toaster } from './components/ui/toaster'
-import { ThemeProvider } from './providers/theme-provider'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { setupGlobalErrorHandling, initErrorService } from './lib/errorService'
-import { ErrorBoundary } from './components/ErrorBoundary'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { Toaster } from './components/ui/toaster';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { setupGlobalErrorHandling, initErrorService } from './lib/errorService';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
-// Configuración del cliente de consulta
-const queryClient = new QueryClient()
+// Configure the query client
+const queryClient = new QueryClient();
 
-// Inicializar servicio de errores
+// Initialize error service
 initErrorService();
 
-// Asegurarnos de que el documento esté completamente cargado antes de renderizar
+// Make sure the document is fully loaded before rendering
 document.addEventListener('DOMContentLoaded', () => {
   const rootElement = document.getElementById('root');
   
   if (!rootElement) {
-    console.error('No se pudo encontrar el elemento raíz "root"');
+    console.error('Root element "root" not found');
     return;
   }
   
@@ -30,14 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
   root.render(
     <React.StrictMode>
       <ErrorBoundary>
-        <BrowserRouter>
-          <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-            <QueryClientProvider client={queryClient}>
-              <App />
-              <Toaster />
-            </QueryClientProvider>
-          </ThemeProvider>
-        </BrowserRouter>
+        <QueryClientProvider client={queryClient}>
+          <App />
+          <Toaster />
+        </QueryClientProvider>
       </ErrorBoundary>
     </React.StrictMode>
   );

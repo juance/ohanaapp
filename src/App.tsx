@@ -15,6 +15,7 @@ const DeliveredOrders = lazy(() => import('./pages/DeliveredOrders'));
 const Expenses = lazy(() => import('./pages/Expenses'));
 const Clients = lazy(() => import('./pages/Clients'));
 const AdminTools = lazy(() => import('./pages/AdminTools'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Router configuration
 const router = createBrowserRouter([
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: <AdminTools />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
 
