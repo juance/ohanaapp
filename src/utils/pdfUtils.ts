@@ -52,8 +52,9 @@ export const generateTicketPDF = (ticket: Ticket, selectedOptions: LaundryOption
   y += 7;
   
   // Service type
-  const hasLaundry = ticket.services.some(s => s.name.includes('Valet'));
-  const hasDryCleaning = ticket.services.some(s => !s.name.includes('Valet'));
+  const services = ticket.services || [];
+  const hasLaundry = services.some(s => s.name.includes('Valet'));
+  const hasDryCleaning = services.some(s => !s.name.includes('Valet'));
   
   doc.text(`Tipo de servicio:`, leftMargin, y);
   y += 7;
@@ -64,8 +65,8 @@ export const generateTicketPDF = (ticket: Ticket, selectedOptions: LaundryOption
   doc.text('Servicios:', leftMargin, y);
   y += 7;
   
-  if (ticket.services && ticket.services.length > 0) {
-    ticket.services.forEach(service => {
+  if (services && services.length > 0) {
+    services.forEach(service => {
       const quantity = 'quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1;
       if (quantity > 1) {
         doc.text(`✓ ${service.name} x${quantity}`, leftMargin + 5, y);
@@ -74,6 +75,10 @@ export const generateTicketPDF = (ticket: Ticket, selectedOptions: LaundryOption
       }
       y += 6;
     });
+  } else {
+    // If no services are defined, add a placeholder
+    doc.text('No se especificaron servicios', leftMargin + 5, y);
+    y += 6;
   }
   
   // Options
@@ -93,7 +98,7 @@ export const generateTicketPDF = (ticket: Ticket, selectedOptions: LaundryOption
   y += 10;
   
   // Calculate total items
-  const totalItems = ticket.services.reduce((sum, service) => {
+  const totalItems = services.reduce((sum, service) => {
     const quantity = 'quantity' in service && typeof service.quantity === 'number' ? service.quantity : 1;
     return sum + quantity;
   }, 0);
@@ -124,6 +129,11 @@ export const shareTicketPDFViaWhatsApp = (phoneNumber: string, ticket: Ticket, s
   if (!phoneNumber) {
     console.error('No phone number provided');
     return;
+  }
+  
+  // Ensure ticket has a services array to prevent errors
+  if (!ticket.services) {
+    ticket.services = [];
   }
   
   // Format phone number (remove spaces, dashes, etc.)

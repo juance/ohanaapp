@@ -52,6 +52,11 @@ export const useTicketNotificationOperations = () => {
         toast.error('Ticket no encontrado');
         return;
       }
+      
+      // Ensure ticket has services property to prevent errors
+      if (!ticket.services) {
+        ticket.services = [];
+      }
 
       // Get laundry options for the ticket
       const laundryOptions = await getTicketOptions(ticketId);
