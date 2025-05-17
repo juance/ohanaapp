@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -13,7 +12,7 @@ import {
   Archive,
   DollarSign,
   MessageSquare,
-  Inventory
+  Package
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -28,7 +27,7 @@ const MobileNav = () => {
     { to: '/pending-orders', icon: <ShoppingCart className="mr-2 h-5 w-5" />, label: 'Órdenes Pendientes' },
     { to: '/delivered-orders', icon: <Archive className="mr-2 h-5 w-5" />, label: 'Órdenes Entregadas' },
     { to: '/loyalty', icon: <Users className="mr-2 h-5 w-5" />, label: 'Programa de Fidelidad' },
-    { to: '/inventory', icon: <Inventory className="mr-2 h-5 w-5" />, label: 'Inventario' },
+    { to: '/inventory', icon: <Package className="mr-2 h-5 w-5" />, label: 'Inventario' },
     { to: '/expenses', icon: <DollarSign className="mr-2 h-5 w-5" />, label: 'Gastos' },
     { to: '/feedback', icon: <MessageSquare className="mr-2 h-5 w-5" />, label: 'Comentarios' },
     { to: '/metrics', icon: <ChartBar className="mr-2 h-5 w-5" />, label: 'Métricas' },
