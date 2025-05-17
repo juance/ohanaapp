@@ -7,16 +7,14 @@ import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
 import { TicketAnalytics } from '@/lib/analytics/interfaces';
 
 interface ChartTabsProps {
-  loading: boolean;
+  loading?: boolean;
   analytics: TicketAnalytics | null;
 }
 
-const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
-  // Prepare chart data with safe fallbacks
+const ChartTabs = ({ loading = false, analytics }: ChartTabsProps) => {
+  // Prepare chart data
   const preparePaymentMethodData = () => {
-    if (!analytics || !analytics.paymentMethodDistribution || Object.keys(analytics.paymentMethodDistribution).length === 0) {
-      return [{ name: 'Sin datos', value: 1 }];
-    }
+    if (!analytics) return [];
     
     return Object.entries(analytics.paymentMethodDistribution).map(([name, value]) => ({
       name: name === 'cash' ? 'Efectivo' :
@@ -28,9 +26,7 @@ const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
   };
   
   const prepareRevenueChartData = () => {
-    if (!analytics || !analytics.revenueByMonth || analytics.revenueByMonth.length === 0) {
-      return [{ name: 'Sin datos', income: 0, expenses: 0 }];
-    }
+    if (!analytics) return [];
     
     return analytics.revenueByMonth.map(item => ({
       name: item.month,
@@ -40,9 +36,7 @@ const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
   };
   
   const prepareItemDistributionData = () => {
-    if (!analytics || !analytics.itemTypeDistribution || Object.keys(analytics.itemTypeDistribution).length === 0) {
-      return [{ name: 'Sin datos', total: 0 }];
-    }
+    if (!analytics) return [];
     
     // Get top 10 items by quantity
     return Object.entries(analytics.itemTypeDistribution)

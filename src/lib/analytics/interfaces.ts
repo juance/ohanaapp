@@ -6,7 +6,7 @@ export interface TicketAnalytics {
   totalRevenue: number;
   itemTypeDistribution: Record<string, number>;
   paymentMethodDistribution: Record<string, number>;
-  ticketsByStatus: Record<string, number>;
+  ticketsByStatus?: Record<string, number>;
   revenueByMonth: { month: string; revenue: number }[];
 }
 
