@@ -1,89 +1,87 @@
 
-import { Ticket } from '@/lib/types';
 import { TicketAnalytics } from '@/lib/analytics/interfaces';
 import { format } from 'date-fns';
 
 /**
- * Process ticket data for analytics visualization
+ * Processes raw ticket data into analytics format
+ * @param tickets Raw ticket data from Supabase
+ * @param dryCleaningItems Dry cleaning items data from Supabase
+ * @returns Processed analytics data
  */
-export const processTicketAnalyticsData = (tickets: any[], dryCleaningItems: any[] = []): TicketAnalytics => {
-  // Filter out canceled tickets
-  const activeTickets = tickets.filter(t => !t.is_canceled);
-  
-  // Calculate basic metrics
-  const totalTickets = activeTickets.length;
-  const totalRevenue = activeTickets.reduce((sum, ticket) => sum + (Number(ticket.total) || 0), 0);
-  const averageTicketValue = totalTickets > 0 ? totalRevenue / totalTickets : 0;
-  
-  // Count tickets by status
-  const ticketsByStatus = {
-    pending: activeTickets.filter(t => t.status === 'pending').length,
-    processing: activeTickets.filter(t => t.status === 'processing').length,
-    ready: activeTickets.filter(t => t.status === 'ready').length,
-    delivered: activeTickets.filter(t => t.status === 'delivered').length
+export const processTicketAnalyticsData = (tickets: any[], dryCleaningItems: any[], newCustomers: any[] = []): TicketAnalytics => {
+  // Prepare the analytics object with default values
+  const analytics: TicketAnalytics = {
+    totalTickets: tickets.length,
+    totalRevenue: 0,
+    averageTicketValue: 0,
+    ticketsByStatus: {
+      pending: 0,
+      processing: 0,
+      ready: 0,
+      delivered: 0
+    },
+    revenueByMonth: [],
+    itemTypeDistribution: {},
+    paymentMethodDistribution: {},
+    freeValets: 0,
+    paidTickets: 0,
+    newCustomers: newCustomers.length
   };
   
-  // Calculate revenue by month
-  const revenueByMonthMap = new Map<string, number>();
+  // Initialize objects to track distributions
+  const revenueByMonthMap: Record<string, number> = {};
   
-  activeTickets.forEach(ticket => {
-    const date = new Date(ticket.created_at);
-    const monthKey = format(date, 'MMM yyyy');
+  // Process each ticket
+  tickets.forEach(ticket => {
+    // Add to total revenue
+    analytics.totalRevenue += Number(ticket.total || 0);
     
-    const currentRevenue = revenueByMonthMap.get(monthKey) || 0;
-    revenueByMonthMap.set(monthKey, currentRevenue + (Number(ticket.total) || 0));
+    // Increment ticket status count
+    if (ticket.status && analytics.ticketsByStatus) {
+      const status = ticket.status as keyof typeof analytics.ticketsByStatus;
+      analytics.ticketsByStatus[status] = (analytics.ticketsByStatus[status] || 0) + 1;
+    }
+    
+    // Track payment methods
+    if (ticket.payment_method) {
+      analytics.paymentMethodDistribution[ticket.payment_method] = 
+        (analytics.paymentMethodDistribution[ticket.payment_method] || 0) + 1;
+    }
+    
+    // Track paid tickets
+    if (ticket.is_paid) {
+      analytics.paidTickets = (analytics.paidTickets || 0) + 1;
+    }
+    
+    // Track free valets from ticket customers
+    if (ticket.customers?.free_valets) {
+      analytics.freeValets = (analytics.freeValets || 0) + ticket.customers.free_valets;
+    }
+    
+    // Add to revenue by month
+    const month = format(new Date(ticket.created_at), 'yyyy-MM');
+    revenueByMonthMap[month] = (revenueByMonthMap[month] || 0) + Number(ticket.total || 0);
   });
   
-  // Convert revenue map to array
-  const revenueByMonth = Array.from(revenueByMonthMap.entries()).map(([month, revenue]) => ({
+  // Process dry cleaning items
+  dryCleaningItems.forEach(item => {
+    // Track item type distribution
+    if (item.name) {
+      analytics.itemTypeDistribution[item.name] = 
+        (analytics.itemTypeDistribution[item.name] || 0) + Number(item.quantity || 1);
+    }
+  });
+  
+  // Calculate average ticket value
+  analytics.averageTicketValue = analytics.totalTickets > 0 
+    ? analytics.totalRevenue / analytics.totalTickets 
+    : 0;
+  
+  // Convert revenue by month map to array format
+  analytics.revenueByMonth = Object.entries(revenueByMonthMap).map(([month, revenue]) => ({
     month,
     revenue
-  }));
+  })).sort((a, b) => a.month.localeCompare(b.month));
   
-  // Count payment methods
-  const paymentMethodDistribution: Record<string, number> = {};
-  
-  activeTickets.forEach(ticket => {
-    const method = ticket.payment_method || 'unknown';
-    paymentMethodDistribution[method] = (paymentMethodDistribution[method] || 0) + 1;
-  });
-  
-  // Count item types
-  const itemTypeDistribution: Record<string, number> = {};
-  
-  // Count valet tickets
-  activeTickets.forEach(ticket => {
-    if (ticket.valet_quantity && ticket.valet_quantity > 0) {
-      itemTypeDistribution['Valet'] = (itemTypeDistribution['Valet'] || 0) + ticket.valet_quantity;
-    }
-  });
-  
-  // Count dry cleaning items
-  dryCleaningItems.forEach(item => {
-    const itemName = item.name || 'Unknown Item';
-    itemTypeDistribution[itemName] = (itemTypeDistribution[itemName] || 0) + (item.quantity || 1);
-  });
-  
-  // Count additional metrics
-  const freeValets = activeTickets.reduce((sum, ticket) => {
-    // If the ticket was paid with free valets
-    if (ticket.payment_method === 'free_valet') {
-      return sum + (ticket.valet_quantity || 1);
-    }
-    return sum;
-  }, 0);
-  
-  const paidTickets = activeTickets.filter(t => t.is_paid).length;
-  
-  return {
-    totalTickets,
-    averageTicketValue,
-    totalRevenue,
-    ticketsByStatus,
-    revenueByMonth,
-    itemTypeDistribution,
-    paymentMethodDistribution,
-    freeValets,
-    paidTickets
-  };
+  return analytics;
 };

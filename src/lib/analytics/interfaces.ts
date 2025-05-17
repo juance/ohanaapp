@@ -17,6 +17,8 @@ export interface TicketAnalytics {
   paymentMethodDistribution: Record<string, number>;
   freeValets?: number;
   paidTickets?: number;
+  newCustomers?: number;
+  customerRetentionRate?: number;
 }
 
 export interface DateRange {
@@ -31,3 +33,5 @@ export interface AnalyticsSummary {
   pendingTickets: number;
   deliveredTickets: number;
 }
+
+export type DateFilterType = 'day' | 'week' | 'month' | 'quarter' | 'custom';

@@ -2,16 +2,18 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import MetricsCard from '@/components/MetricsCard';
-import { CalendarIcon, CoinsIcon, CheckCircle } from 'lucide-react';
+import { CalendarIcon, TrendingUp, DollarSign, ShoppingBag } from 'lucide-react';
 import { TicketAnalytics } from '@/lib/analytics/interfaces';
+import ComparativeMetricsCard from './ComparativeMetricsCard';
 
 interface MetricsSectionProps {
   loading: boolean;
   analytics: TicketAnalytics | null;
+  previousAnalytics?: TicketAnalytics | null;
+  periodLabel?: string;
 }
 
-const MetricsSection = ({ loading, analytics }: MetricsSectionProps) => {
+const MetricsSection = ({ loading, analytics, previousAnalytics, periodLabel = 'Periodo seleccionado' }: MetricsSectionProps) => {
   if (loading) {
     return (
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -24,38 +26,37 @@ const MetricsSection = ({ loading, analytics }: MetricsSectionProps) => {
     );
   }
 
-  // Ensure analytics object exists with default values
-  const safeAnalytics = analytics || {
-    totalTickets: 0,
-    averageTicketValue: 0,
-    totalRevenue: 0,
-    ticketsByStatus: { ready: 0 },
-    itemTypeDistribution: {},
-    paymentMethodDistribution: {},
-    revenueByMonth: []
-  };
-
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      <MetricsCard
+      <ComparativeMetricsCard
         title="Total de Tickets"
-        value={safeAnalytics.totalTickets.toString() || '0'}
-        icon={<CalendarIcon className="h-4 w-4" />}
+        currentValue={analytics?.totalTickets || 0}
+        previousValue={previousAnalytics?.totalTickets}
+        icon={<ShoppingBag className="h-4 w-4" />}
+        period={periodLabel}
       />
-      <MetricsCard
+      <ComparativeMetricsCard
         title="Valor Promedio"
-        value={`$${safeAnalytics.averageTicketValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
-        icon={<CoinsIcon className="h-4 w-4" />}
+        currentValue={analytics?.averageTicketValue || 0}
+        previousValue={previousAnalytics?.averageTicketValue}
+        format="currency"
+        icon={<DollarSign className="h-4 w-4" />}
+        period={periodLabel}
       />
-      <MetricsCard
+      <ComparativeMetricsCard
         title="Ingresos Totales"
-        value={`$${safeAnalytics.totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
-        icon={<CoinsIcon className="h-4 w-4" />}
+        currentValue={analytics?.totalRevenue || 0}
+        previousValue={previousAnalytics?.totalRevenue}
+        format="currency"
+        icon={<DollarSign className="h-4 w-4" />}
+        period={periodLabel}
       />
-      <MetricsCard
+      <ComparativeMetricsCard
         title="Tickets Listos"
-        value={safeAnalytics.ticketsByStatus?.ready?.toString() || '0'}
-        icon={<CheckCircle className="h-4 w-4" />}
+        currentValue={analytics?.ticketsByStatus?.ready || 0}
+        previousValue={previousAnalytics?.ticketsByStatus?.ready}
+        icon={<CalendarIcon className="h-4 w-4" />}
+        period={periodLabel}
       />
     </div>
   );

@@ -39,10 +39,21 @@ export const fetchTicketsInDateRange = async (startDate: Date, endDate: Date) =>
       throw itemsError;
     }
     
-    return { tickets, dryCleaningItems };
+    // Fetch new customers in the date range
+    const { data: newCustomers = [], error: customersError } = await supabase
+      .from('customers')
+      .select('id')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString());
+    
+    if (customersError) {
+      console.error('Error fetching new customers:', customersError);
+    }
+    
+    return { tickets, dryCleaningItems, newCustomers };
   } catch (error) {
     console.error('Error in fetchTicketsInDateRange:', error);
-    return { tickets: [], dryCleaningItems: [] };
+    return { tickets: [], dryCleaningItems: [], newCustomers: [] };
   }
 };
 
@@ -59,6 +70,7 @@ export const exportAnalyticsToCSV = async (analytics: TicketAnalytics): Promise<
       'Tickets Ready',
       'Top Payment Method',
       'Top Item Type',
+      'New Customers',
     ];
     
     // Get top payment method
@@ -90,6 +102,7 @@ export const exportAnalyticsToCSV = async (analytics: TicketAnalytics): Promise<
       analytics.ticketsByStatus?.ready?.toString() || '0',
       topPaymentMethod,
       topItemType,
+      analytics.newCustomers?.toString() || '0',
     ];
     
     // Create CSV content
@@ -130,7 +143,23 @@ export const calculateTicketAnalytics = async (startDate: Date, endDate: Date): 
     // Parse and type-cast the response properly
     if (data) {
       // Cast to unknown first, then to TicketAnalytics
-      return data as unknown as TicketAnalytics;
+      const result = data as unknown as TicketAnalytics;
+      
+      // Additionally fetch new customers data which the RPC might not include
+      const { data: newCustomers = [], error: customersError } = await supabase
+        .from('customers')
+        .select('id')
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+      
+      if (customersError) {
+        console.error('Error fetching new customers:', customersError);
+      } else {
+        // Add new customers data to the analytics
+        result.newCustomers = newCustomers.length;
+      }
+      
+      return result;
     }
 
     return null;
