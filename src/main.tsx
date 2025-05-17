@@ -5,11 +5,18 @@ import App from './App.tsx';
 import './index.css';
 import { Toaster } from './components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { setupGlobalErrorHandling, initErrorService } from './lib/errorService';
+import { setupGlobalErrorHandling, logError } from './lib/errorService';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Configure the query client
 const queryClient = new QueryClient();
+
+// Initialize error handling
+const initErrorService = () => {
+  // Set up global error handling
+  setupGlobalErrorHandling();
+  console.log('Error service initialized');
+};
 
 // Initialize error service
 initErrorService();
