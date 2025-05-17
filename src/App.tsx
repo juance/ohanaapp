@@ -11,6 +11,7 @@ import { ConnectionStatusProvider } from '@/providers/ConnectionStatusProvider';
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Tickets = lazy(() => import('./pages/Tickets'));
 const PickupOrders = lazy(() => import('./pages/PickupOrders'));
+const DeliveredOrders = lazy(() => import('./pages/DeliveredOrders'));
 const Expenses = lazy(() => import('./pages/Expenses'));
 const Clients = lazy(() => import('./pages/Clients'));
 const AdminTools = lazy(() => import('./pages/AdminTools'));
@@ -28,6 +29,14 @@ const router = createBrowserRouter([
   {
     path: "/pickup",
     element: <PickupOrders />,
+  },
+  {
+    path: "/pickup-orders",
+    element: <PickupOrders />,
+  },
+  {
+    path: "/delivered",
+    element: <DeliveredOrders />,
   },
   {
     path: "/expenses",

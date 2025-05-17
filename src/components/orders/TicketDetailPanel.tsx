@@ -1,96 +1,122 @@
 
 import React from 'react';
+import { Ticket, TicketService } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Ticket } from '@/lib/types';
-import { AlertCircle, Clock } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Phone, Calendar, CreditCard, AlertCircle } from 'lucide-react';
 
 interface TicketDetailPanelProps {
   ticket?: Ticket;
-  services: any[];
-  formatDate: (date: string) => string;
+  services: TicketService[];
+  formatDate: (dateString: string) => string;
 }
 
 const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services, formatDate }) => {
   if (!ticket) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-6">
-        <AlertCircle className="h-12 w-12 text-gray-300 mb-4" />
-        <h3 className="text-xl font-medium text-gray-700">Seleccione un ticket</h3>
-        <p className="text-gray-500 text-center mt-2">
-          Seleccione un ticket para ver sus detalles
+      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-gray-300 mb-4" />
+        <h3 className="text-lg font-medium text-gray-500">Seleccione un ticket</h3>
+        <p className="text-sm text-gray-400 mt-2">
+          Los detalles del ticket se mostrarán aquí
         </p>
       </div>
     );
   }
 
+  // Format payment method for display
+  const getPaymentMethodText = (method?: string): string => {
+    switch (method) {
+      case 'cash': return 'Efectivo';
+      case 'debit': return 'Débito';
+      case 'mercadopago': return 'Mercado Pago';
+      case 'cuenta_dni': return 'Cuenta DNI';
+      default: return 'No especificado';
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Ticket #{ticket.ticketNumber}</h2>
-        <div className="flex items-center text-gray-500 text-sm">
-          <Clock className="h-4 w-4 mr-1" />
-          <span>{formatDate(ticket.createdAt)}</span>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-xl font-bold">Ticket #{ticket.ticketNumber}</h2>
+          <div className="text-sm text-gray-500">
+            {ticket.clientName || 'Cliente sin nombre'}
+          </div>
         </div>
+
+        <Badge variant={ticket.status === 'ready' ? 'success' : 'outline'}>
+          {ticket.status === 'ready' ? 'Listo para entrega' : 
+           ticket.status === 'processing' ? 'En proceso' : 'Pendiente'}
+        </Badge>
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Cliente</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium text-gray-500">Información del ticket</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="font-medium">{ticket.clientName}</p>
-          <p className="text-gray-500">{ticket.phoneNumber}</p>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-2">
+              <Phone className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">{ticket.phoneNumber || 'Sin teléfono'}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">{formatDate(ticket.createdAt)}</span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">{getPaymentMethodText(ticket.paymentMethod)}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">
+                {ticket.isPaid ? "Pagado" : "Pendiente de pago"}
+              </Badge>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Servicios</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {services.length > 0 ? (
-            <div className="space-y-2">
-              {services.map((service) => (
-                <div key={service.id} className="flex justify-between items-center py-1 border-b">
-                  <div>
-                    <p>{service.name}</p>
-                    <p className="text-xs text-gray-500">x{service.quantity}</p>
+      <div>
+        <h3 className="text-lg font-medium mb-3">Servicios</h3>
+        {services && services.length > 0 ? (
+          <Card>
+            <CardContent className="p-4">
+              <div className="divide-y">
+                {services.map((service) => (
+                  <div key={service.id} className="py-2 flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{service.name}</div>
+                      <div className="text-sm text-gray-500">
+                        Cantidad: {service.quantity}
+                      </div>
+                    </div>
+                    <div className="font-medium">
+                      $ {service.price}
+                    </div>
                   </div>
-                  <p className="font-medium">${service.price * service.quantity}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500">No hay servicios registrados</p>
-          )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Pago</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-between items-center">
-            <p>Método de pago</p>
-            <p className="capitalize">{ticket.paymentMethod.replace('_', ' ')}</p>
+                ))}
+              </div>
+              
+              <Separator className="my-4" />
+              
+              <div className="flex justify-between items-center font-bold">
+                <span>Total:</span>
+                <span>$ {ticket.totalPrice}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="text-center py-6 bg-gray-50 rounded-lg border">
+            <p className="text-gray-500">No hay servicios registrados para este ticket</p>
           </div>
-          <div className="flex justify-between items-center font-bold mt-2">
-            <p>Total</p>
-            <p>${ticket.totalPrice}</p>
-          </div>
-          <div className="flex justify-between items-center mt-2">
-            <p>Estado</p>
-            <div className={`px-2 py-1 rounded-full text-xs uppercase font-medium
-              ${ticket.status === 'delivered' ? 'bg-green-100 text-green-800' : 
-                ticket.status === 'processing' ? 'bg-blue-100 text-blue-800' : 
-                ticket.status === 'ready' ? 'bg-yellow-100 text-yellow-800' : 
-                'bg-gray-100 text-gray-800'}`}>
-              {ticket.status}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
     </div>
   );
 };
