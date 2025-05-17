@@ -4,14 +4,14 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
-import { TicketAnalytics } from '@/lib/analytics/interfaces';
+import { TicketAnalytics } from '@/lib/types/analytics.types';
 
 interface ChartTabsProps {
   loading?: boolean;
   analytics: TicketAnalytics | null;
 }
 
-const ChartTabs = ({ loading = false, analytics }: ChartTabsProps) => {
+const ChartTabs: React.FC<ChartTabsProps> = ({ loading = false, analytics }) => {
   // Prepare chart data
   const preparePaymentMethodData = () => {
     if (!analytics) return [];
@@ -21,7 +21,7 @@ const ChartTabs = ({ loading = false, analytics }: ChartTabsProps) => {
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value: Number(value) || 0 // Ensure value is a number
+      value: Number(value) || 0
     }));
   };
   
@@ -31,7 +31,7 @@ const ChartTabs = ({ loading = false, analytics }: ChartTabsProps) => {
     return analytics.revenueByMonth.map(item => ({
       name: item.month,
       income: parseFloat(item.revenue.toFixed(2)),
-      expenses: 0 // Adding default expenses value to match LineChart data type
+      expenses: 0 // Adding default expenses value
     }));
   };
   

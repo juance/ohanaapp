@@ -6,7 +6,21 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { useUserAuth } from '@/hooks/use-user-auth';
 import { cn } from '@/lib/utils';
-import { LogOut, Menu, ShoppingBag, Package, PackageCheck, DollarSign, Users, Package2, Award, MessageSquare } from 'lucide-react';
+import { 
+  LogOut, 
+  Menu, 
+  ShoppingBag, 
+  Package, 
+  PackageCheck, 
+  DollarSign, 
+  Users, 
+  Package2, 
+  Award, 
+  MessageSquare, 
+  LayoutDashboard,
+  BarChart,
+  LineChart
+} from 'lucide-react';
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -16,6 +30,24 @@ const Navbar = () => {
   const closeMenu = () => setIsMenuOpen(false);
 
   const NavItems = [
+    {
+      name: 'Panel de Control',
+      path: '/dashboard',
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Métricas',
+      path: '/metrics',
+      icon: <BarChart className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Análisis de Tickets',
+      path: '/analysis',
+      icon: <LineChart className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
     {
       name: 'Tickets',
       path: '/tickets',

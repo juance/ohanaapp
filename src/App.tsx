@@ -21,6 +21,10 @@ const Inventory = lazy(() => import('./pages/Inventory'));
 const Loyalty = lazy(() => import('./pages/Loyalty'));
 const Feedback = lazy(() => import('./pages/Feedback'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+// New analytics pages
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Metrics = lazy(() => import('./pages/Metrics'));
+const TicketAnalysis = lazy(() => import('./pages/TicketAnalysis'));
 
 // Router configuration
 const router = createBrowserRouter([
@@ -119,6 +123,30 @@ const router = createBrowserRouter([
         <Layout>
           <Feedback />
         </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/metrics",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Metrics />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/analysis",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <TicketAnalysis />
       </ProtectedRoute>
     ),
   },

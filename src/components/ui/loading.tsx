@@ -1,34 +1,24 @@
 
 import React from 'react';
-import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
-interface LoadingProps {
-  className?: string;
-  text?: string;
-  size?: 'sm' | 'md' | 'lg';
-  center?: boolean;
-}
+interface LoadingProps extends React.HTMLAttributes<HTMLDivElement> {}
 
-export const Loading: React.FC<LoadingProps> = ({ 
-  className = '', 
-  text = 'Cargando...', 
-  size = 'md',
-  center = false
-}) => {
-  const sizeClasses = {
-    sm: 'h-4 w-4',
-    md: 'h-6 w-6',
-    lg: 'h-8 w-8'
-  };
-
-  const wrapperClasses = center 
-    ? `flex items-center justify-center ${className}` 
-    : `flex items-center ${className}`;
-
+export function Loading({ className, ...props }: LoadingProps) {
   return (
-    <div className={wrapperClasses}>
-      <Loader2 className={`animate-spin mr-2 ${sizeClasses[size]}`} />
-      {text && <span>{text}</span>}
+    <div
+      className={cn("flex items-center justify-center", className)}
+      {...props}
+    >
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
     </div>
   );
-};
+}
+
+export function LoadingPage() {
+  return (
+    <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+      <Loading className="h-8 w-8" />
+    </div>
+  );
+}
