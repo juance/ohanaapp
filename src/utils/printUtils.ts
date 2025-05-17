@@ -16,6 +16,19 @@ const ticketToHtml = (ticket: Ticket, selectedOptions: LaundryOption[] = []): st
     return sum + quantity;
   }, 0);
   
+  // Generate services HTML
+  const servicesHtml = ticket.services.map(service => `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <div style="display: flex; align-items: center;">
+        <div style="width: 16px; height: 16px; border: 1px solid #999; margin-right: 8px; display: flex; align-items: center; justify-content: center; background-color: #3b82f6; color: white;">✓</div>
+        <span>${service.name}</span>
+      </div>
+      ${('quantity' in service && typeof service.quantity === 'number' && service.quantity > 1) 
+        ? `<span style="font-size: 14px; font-weight: 500;">x${service.quantity}</span>` 
+        : ''}
+    </div>
+  `).join('');
+  
   return `
     <div style="font-family: Arial, sans-serif; width: 350px; padding: 20px; background-color: white;">
       <div style="text-align: center; margin-bottom: 20px;">
@@ -68,17 +81,7 @@ const ticketToHtml = (ticket: Ticket, selectedOptions: LaundryOption[] = []): st
       </div>
       
       <div style="margin-bottom: 20px;">
-        ${ticket.services.map(service => `
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <div style="display: flex; align-items: center;">
-              <div style="width: 16px; height: 16px; border: 1px solid #999; margin-right: 8px; display: flex; align-items: center; justify-content: center; background-color: #3b82f6; color: white;">✓</div>
-              <span>${service.name}</span>
-            </div>
-            ${('quantity' in service && typeof service.quantity === 'number' && service.quantity > 1) 
-              ? `<span style="font-size: 14px; font-weight: 500;">x${service.quantity}</span>` 
-              : ''}
-          </div>
-        `).join('')}
+        ${servicesHtml}
       </div>
       
       <div style="margin-bottom: 20px;">
