@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Menu, X, BarChart, ShoppingBag, Users, Clipboard, Award, Settings, 
   DollarSign, FileText, LogOut, User, Clock, AlertTriangle, Package2,
@@ -14,7 +14,6 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 const MobileNav: React.FC = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, logout, checkUserPermission } = useAuth();
 
   const isActive = (path: string) => {
@@ -41,7 +40,6 @@ const MobileNav: React.FC = () => {
   const handleLogout = async () => {
     await logout();
     setOpen(false);
-    navigate('/auth');
   };
 
   // Filter nav items based on user role
@@ -122,8 +120,8 @@ const MobileNav: React.FC = () => {
               <div className="p-4 border-t">
                 {user ? (
                   <Button
-                    variant="outline"
-                    className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700"
+                    variant="destructive"
+                    className="w-full justify-start"
                     onClick={handleLogout}
                   >
                     <LogOut className="h-4 w-4 mr-2" />
@@ -135,7 +133,7 @@ const MobileNav: React.FC = () => {
                     className="w-full justify-start"
                     onClick={() => {
                       setOpen(false);
-                      navigate('/auth');
+                      window.location.href = '/auth';
                     }}
                   >
                     <User className="h-4 w-4 mr-2" />

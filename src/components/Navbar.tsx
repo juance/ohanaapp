@@ -4,9 +4,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
   Home, Package, Clipboard, DollarSign, Users, 
   Settings, ChevronRight, Menu, X, BarChart,
-  FileText, Award, Package2, MessageSquare
+  FileText, Award, Package2, MessageSquare, LogOut
 } from 'lucide-react';
 import { ConnectionStatusBar } from './ui/connection-status-bar';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NavLinkProps {
   to: string;
@@ -36,9 +38,14 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const currentPath = window.location.pathname;
+  const { logout } = useAuth();
   
   const toggleMenu = () => setIsOpen(!isOpen);
   const closeMenu = () => setIsOpen(false);
+
+  const handleLogout = async () => {
+    await logout();
+  };
 
   return (
     <>
@@ -161,9 +168,17 @@ const Navbar = () => {
             />
           </nav>
 
-          {/* Bottom section with connection status */}
-          <div className="p-4 border-t">
+          {/* Bottom section with connection status and logout button */}
+          <div className="p-4 border-t space-y-4">
             <ConnectionStatusBar variant="compact" />
+            <Button 
+              variant="destructive" 
+              className="w-full flex items-center justify-center"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Cerrar Sesión
+            </Button>
           </div>
         </div>
       </div>
