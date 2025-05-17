@@ -9,7 +9,6 @@ interface NotificationOptions {
   description: string;
   type?: NotificationType;
   priority?: NotificationPriority;
-  duration?: number;
   action?: {
     label: string;
     onClick: () => void;
@@ -42,23 +41,13 @@ export const notify = ({
   description,
   type = 'info',
   priority = 'medium',
-  duration,
   action,
   onDismiss
 }: NotificationOptions): void => {
-  // Determine duration based on priority if not explicitly set
-  const finalDuration = duration || PRIORITY_DURATIONS[priority];
-  
   toast({
     title,
     description,
-    variant: getVariant(type),
-    duration: finalDuration,
-    action: action ? {
-      label: action.label,
-      onClick: action.onClick
-    } : undefined,
-    onDismiss
+    variant: getVariant(type)
   });
 };
 
@@ -94,8 +83,7 @@ export const notificationService = {
       title: 'Modo sin conexión activado',
       description: 'Estás trabajando sin conexión. Los cambios se sincronizarán cuando vuelvas a estar en línea.',
       type: 'warning',
-      priority: 'high',
-      duration: 10000
+      priority: 'high'
     });
   },
   

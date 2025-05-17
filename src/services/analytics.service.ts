@@ -18,7 +18,10 @@ export const fetchTicketAnalytics = async (dateRange: DateRange): Promise<Ticket
 
     if (error) throw error;
     
-    return data as TicketAnalytics;
+    // Type cast as unknown first since the shape needs to be validated
+    const typedData = data as unknown as TicketAnalytics;
+    
+    return typedData;
   } catch (error) {
     console.error("Error fetching ticket analytics:", error);
     toast.error("Error fetching analytics data");

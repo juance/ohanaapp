@@ -59,10 +59,20 @@ class NotificationManager {
     this.notifyListeners();
     
     // También mostrar como toast si la aplicación está abierta
-    toast[type]({
-      title,
-      description: message
-    });
+    switch (type) {
+      case NotificationType.INFO:
+        toast.info(message);
+        break;
+      case NotificationType.SUCCESS:
+        toast.success(message);
+        break;
+      case NotificationType.WARNING:
+        toast.warning(message);
+        break;
+      case NotificationType.ERROR:
+        toast.error(message);
+        break;
+    }
 
     return notification;
   }
