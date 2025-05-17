@@ -1,0 +1,28 @@
+
+import { InventoryItem } from '@/lib/types/inventory.types';
+
+// Extended inventory item with UI-specific properties
+export interface InventoryItemWithTimestamp extends InventoryItem {
+  lastUpdated?: string;
+}
+
+// Props for the InventoryItem component
+export interface InventoryItemProps {
+  item: InventoryItemWithTimestamp;
+  onEdit: (item: InventoryItemWithTimestamp) => void;
+  onDelete: (item: InventoryItemWithTimestamp) => void;
+}
+
+// Props for the inventory list component
+export interface InventoryListProps {
+  searchQuery?: string;
+}
+
+// Form state for creating/editing items
+export interface InventoryItemFormState extends Omit<InventoryItem, 'id'> {
+  name: string;
+  quantity: number;
+  unit: string;
+  threshold: number;
+  notes: string;
+}
