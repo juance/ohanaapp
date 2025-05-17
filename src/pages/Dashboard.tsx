@@ -17,7 +17,6 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
-  // Use the correct properties from useDashboardData
   const { 
     isLoading, 
     error, 
@@ -141,7 +140,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             metrics={{
               todayTickets: data.length,
               todayIncome: incomeInRange,
-              pendingTickets: 0, // This will be calculated elsewhere
+              pendingTickets: 0,
               totalTickets: data.length
             }}
             expenses={{}}

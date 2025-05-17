@@ -7,7 +7,7 @@ import { Customer } from '@/lib/types';
  * @param customer Customer to save or update
  * @returns The stored customer
  */
-export const storeOrUpdateCustomer = (customer: Partial<Customer>): Customer | null => {
+export const storeCustomer = (customer: Partial<Customer>): Customer | null => {
   try {
     if (!customer.id) {
       // Generate id if not provided
@@ -72,34 +72,6 @@ export const getCustomerByPhone = (phone: string): Customer | null => {
 };
 
 /**
- * Store a customer to local storage (alias for backward compatibility)
- * @param customer Customer to store
- */
-export const storeCustomer = storeOrUpdateCustomer;
-
-/**
- * Save a customer to local storage
- * @param customer Customer to save
- */
-export const saveCustomerToLocalStorage = (customer: Customer): void => {
-  const customers = getCustomersFromLocalStorage();
-  
-  // Check if customer already exists
-  const existingCustomerIndex = customers.findIndex(c => c.id === customer.id);
-  
-  if (existingCustomerIndex >= 0) {
-    // Update existing customer
-    customers[existingCustomerIndex] = customer;
-  } else {
-    // Add new customer
-    customers.push(customer);
-  }
-  
-  // Save to local storage
-  localStorage.setItem('customers', JSON.stringify(customers));
-};
-
-/**
  * Get all customers from local storage
  * @returns Array of customers
  */
@@ -126,39 +98,6 @@ export const getCustomersFromLocalStorage = (): Customer[] => {
   } catch (error) {
     console.error('Error parsing customers from localStorage:', error);
     return [];
-  }
-};
-
-/**
- * Update customer in database and local storage
- * @param customer Customer to update
- */
-export const updateCustomer = async (customer: Customer): Promise<void> => {
-  try {
-    // Update in database
-    const { error } = await supabase
-      .from('customers')
-      .update({
-        name: customer.name,
-        phone: customer.phone,
-        loyalty_points: customer.loyaltyPoints,
-        valets_count: customer.valetsCount,
-        free_valets: customer.freeValets,
-        last_visit: customer.lastVisit,
-        valets_redeemed: customer.valetsRedeemed
-      })
-      .eq('id', customer.id);
-    
-    if (error) {
-      console.error('Error updating customer in database:', error);
-      throw error;
-    }
-    
-    // Update in local storage
-    saveCustomerToLocalStorage(customer);
-  } catch (error) {
-    console.error('Error updating customer:', error);
-    throw error;
   }
 };
 

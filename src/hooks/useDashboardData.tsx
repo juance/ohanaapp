@@ -5,13 +5,6 @@ import { useState, useCallback } from 'react';
 
 // Define the return type for the hook
 interface UseDashboardDataReturn {
-  todayTickets: number;
-  todayIncome: number;
-  pendingTickets: number;
-  totalTickets: number;
-  totalIncome: number;
-  serviceCounts: Record<string, number>;
-  dryCleaningItems: Record<string, number>;
   isLoading: boolean;
   isError: boolean;
   error: Error | null;
@@ -20,6 +13,8 @@ interface UseDashboardDataReturn {
   setDateRange: (range: { start: Date, end: Date }) => void;
   ticketsInRange: any[];
   incomeInRange: number;
+  serviceCounts: Record<string, number>;
+  dryCleaningItems: Record<string, number>;
 }
 
 export const useDashboardData = (): UseDashboardDataReturn => {
@@ -30,44 +25,9 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      // Tickets del día
-      const todayStart = new Date();
-      todayStart.setHours(0, 0, 0, 0);
-      
-      const todayEnd = new Date();
-      todayEnd.setHours(23, 59, 59, 999);
-      
       // Convertir a formato ISO para queries de Supabase
-      const todayStartISO = todayStart.toISOString();
-      const todayEndISO = todayEnd.toISOString();
       const rangeStartISO = dateRange.start.toISOString();
       const rangeEndISO = dateRange.end.toISOString();
-
-      // Get all tickets
-      const { data: allTickets, error: allTicketsError } = await supabase
-        .from('tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (allTicketsError) throw allTicketsError;
-
-      // Get today's tickets
-      const { data: todayTicketsData, error: todayTicketsError } = await supabase
-        .from('tickets')
-        .select('*')
-        .gte('created_at', todayStartISO)
-        .lte('created_at', todayEndISO);
-      
-      if (todayTicketsError) throw todayTicketsError;
-
-      // Get pending tickets
-      const { data: pendingTicketsData, error: pendingTicketsError } = await supabase
-        .from('tickets')
-        .select('*')
-        .in('status', ['pending', 'processing'])
-        .is('delivered_date', null);
-      
-      if (pendingTicketsError) throw pendingTicketsError;
 
       // Get tickets in custom date range
       const { data: rangeTicketsData, error: rangeTicketsError } = await supabase
@@ -79,26 +39,19 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       if (rangeTicketsError) throw rangeTicketsError;
 
       // Process data
-      const todayIncome = calculateTotalIncome(todayTicketsData);
-      const totalIncome = calculateTotalIncome(allTickets);
-      const rangeIncome = calculateTotalIncome(rangeTicketsData);
+      const rangeIncome = calculateTotalIncome(rangeTicketsData || []);
       
       // Count services
-      const serviceCounts = countServices(allTickets);
+      const serviceCounts = countServices(rangeTicketsData || []);
       
       // Count dry cleaning items
-      const dryCleaningItems = countDryCleaningItems(allTickets);
+      const dryCleaningItems = countDryCleaningItems(rangeTicketsData || []);
 
       return {
-        todayTickets: todayTicketsData.length,
-        todayIncome,
-        pendingTickets: pendingTicketsData.length,
-        totalTickets: allTickets.length,
-        totalIncome,
-        serviceCounts,
-        dryCleaningItems,
         ticketsInRange: rangeTicketsData || [],
-        incomeInRange: rangeIncome
+        incomeInRange: rangeIncome,
+        serviceCounts,
+        dryCleaningItems
       };
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -177,13 +130,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   };
 
   return {
-    todayTickets: data?.todayTickets || 0,
-    todayIncome: data?.todayIncome || 0,
-    pendingTickets: data?.pendingTickets || 0,
-    totalTickets: data?.totalTickets || 0,
-    totalIncome: data?.totalIncome || 0,
-    serviceCounts: data?.serviceCounts || { valet: 0, lavanderia: 0, tintoreria: 0 },
-    dryCleaningItems: data?.dryCleaningItems || {},
     isLoading,
     isError,
     error,
@@ -191,6 +137,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     dateRange,
     setDateRange,
     ticketsInRange: data?.ticketsInRange || [],
-    incomeInRange: data?.incomeInRange || 0
+    incomeInRange: data?.incomeInRange || 0,
+    serviceCounts: data?.serviceCounts || { valet: 0, lavanderia: 0, tintoreria: 0 },
+    dryCleaningItems: data?.dryCleaningItems || {}
   };
 };
