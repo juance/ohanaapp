@@ -1,7 +1,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit, convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { toast } from '@/lib/toast';
+import { logError } from '@/lib/errorService';
 
 export const useClientsList = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
@@ -36,6 +38,12 @@ export const useClientsList = () => {
     } catch (err) {
       console.error('Error fetching clients:', err);
       setError(err instanceof Error ? err : new Error('Error fetching clients'));
+      
+      // Log the error through our error service
+      await logError(err, { component: 'useClientsList' });
+      
+      // Show toast notification
+      toast.error('Error al cargar los clientes');
     } finally {
       setIsLoading(false);
     }
@@ -50,8 +58,11 @@ export const useClientsList = () => {
     await fetchClients();
   }, [fetchClients]);
 
-  // Add refetch as an alias for refreshClients for compatibility
-  const refetch = refreshClients;
-
-  return { clients, isLoading, error, refreshClients, refetch };
+  return { 
+    clients, 
+    isLoading, 
+    error, 
+    refreshClients,
+    refetch: refreshClients // Add refetch as an alias for compatibility
+  };
 };

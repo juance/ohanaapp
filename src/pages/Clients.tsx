@@ -4,21 +4,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/toast';
-import { ClientVisit, Customer } from '@/lib/types';
+import { ClientVisit } from '@/lib/types';
 import ClientListItem from '@/components/clients/ClientListItem';
 import { supabase } from '@/integrations/supabase/client';
 import { Search } from 'lucide-react';
 import AddClientForm from '@/components/clients/AddClientForm';
-import { getAllClients } from '@/lib/dataService';
 import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { useClientsList } from '@/hooks/useClientsList';
+import ClientHeader from '@/components/clients/ClientHeader';
 
 const Clients = () => {
-  const [clients, setClients] = useState<ClientVisit[]>([]);
+  const { clients: allClients, isLoading, refreshClients } = useClientsList();
   const [filteredClients, setFilteredClients] = useState<ClientVisit[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<keyof ClientVisit>('clientName');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isLoading, setIsLoading] = useState(true);
   const [isEditingClient, setIsEditingClient] = useState('');
   const [editClientName, setEditClientName] = useState('');
   const [editClientPhone, setEditClientPhone] = useState('');
@@ -27,36 +27,15 @@ const Clients = () => {
   const [newClientName, setNewClientName] = useState('');
   const [newClientPhone, setNewClientPhone] = useState('');
 
-  // Function to refresh clients data
-  const refreshClients = async () => {
-    setIsLoading(true);
-    try {
-      const customersData = await getAllClients();
-      const clientVisits = customersData.map(customer => convertCustomerToClientVisit(customer));
-      setClients(clientVisits);
-      setFilteredClients(clientVisits);
-    } catch (error) {
-      console.error('Error fetching clients:', error);
-      toast.error('Error al cargar los clientes');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Load clients on component mount
-  useEffect(() => {
-    refreshClients();
-  }, []);
-
-  // Filter clients when search query changes
+  // Update filtered clients when all clients or search query changes
   useEffect(() => {
     if (searchQuery.trim() === '') {
-      setFilteredClients(clients);
+      setFilteredClients(allClients);
       return;
     }
 
     const lowercaseQuery = searchQuery.toLowerCase();
-    const filtered = clients.filter(client => {
+    const filtered = allClients.filter(client => {
       return (
         client.clientName.toLowerCase().includes(lowercaseQuery) ||
         client.phoneNumber.toLowerCase().includes(lowercaseQuery)
@@ -64,7 +43,7 @@ const Clients = () => {
     });
 
     setFilteredClients(filtered);
-  }, [searchQuery, clients]);
+  }, [searchQuery, allClients]);
 
   // Sort clients when sort field or direction changes
   useEffect(() => {
@@ -88,7 +67,7 @@ const Clients = () => {
     });
 
     setFilteredClients(sorted);
-  }, [sortField, sortDirection]);
+  }, [sortField, sortDirection, filteredClients]);
 
   const handleSortChange = (field: keyof ClientVisit) => {
     if (field === sortField) {
@@ -119,20 +98,8 @@ const Clients = () => {
 
       if (error) throw error;
 
-      // Update client in local state
-      const updatedClients = clients.map(client => {
-        if (client.id === clientId) {
-          return {
-            ...client,
-            clientName: editClientName,
-            phoneNumber: editClientPhone
-          };
-        }
-        return client;
-      });
-
-      setClients(updatedClients);
-      setFilteredClients(updatedClients);
+      // Refresh clients data after update
+      await refreshClients();
       setIsEditingClient('');
       toast.success('Cliente actualizado correctamente');
     } catch (error) {
@@ -169,21 +136,8 @@ const Clients = () => {
 
       if (error) throw error;
 
-      // Create a ClientVisit object from the new customer
-      const newClient: ClientVisit = {
-        id: data.id,
-        clientName: data.name,
-        phoneNumber: data.phone,
-        visitCount: 0,
-        lastVisit: data.created_at,
-        loyaltyPoints: 0,
-        freeValets: 0,
-        valetsCount: 0
-      };
-
-      // Add to client list
-      setClients([newClient, ...clients]);
-      setFilteredClients([newClient, ...filteredClients]);
+      // Refresh clients data
+      await refreshClients();
       
       // Reset form
       setNewClientName('');
@@ -210,6 +164,8 @@ const Clients = () => {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
+      <ClientHeader />
+      
       <AddClientForm
         newClientName={newClientName}
         newClientPhone={newClientPhone}

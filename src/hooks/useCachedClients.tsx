@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CLIENTS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { logError } from '@/lib/errorService';
 
 export const useCachedClients = () => {
   const [clients, setClients] = useState<ClientVisit[]>([]);
@@ -52,6 +53,7 @@ export const useCachedClients = () => {
     } catch (err) {
       console.error('Error fetching clients:', err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching clients'));
+      await logError(err, { component: 'useCachedClients' });
     } finally {
       setIsLoading(false);
     }
@@ -73,8 +75,8 @@ export const useCachedClients = () => {
     clients, 
     isLoading, 
     error, 
-    refetch, 
+    refetch,
     invalidateCache,
-    refreshClients  // Add this to fix the missing property error
+    refreshClients
   };
 };
