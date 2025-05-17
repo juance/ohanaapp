@@ -1,5 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
+import { SimpleSyncStatus } from '@/lib/types/sync.types';
+import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 
 type ConnectionStatus = 'online' | 'offline';
 type SyncStatus = 'synced' | 'syncing' | 'error' | 'pending';
@@ -28,13 +31,33 @@ export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> =
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Initialize sync status from storage
+    const storedStatus = getSyncStatus();
+    if (storedStatus.lastSync) {
+      setLastSyncedAt(new Date(storedStatus.lastSync));
+    }
+    
+    // Calculate pending sync items
+    const totalPending = 
+      (storedStatus.tickets || 0) + 
+      (storedStatus.expenses || 0) + 
+      (storedStatus.clients || 0) + 
+      (storedStatus.feedback || 0);
+      
+    setPendingSyncCount(totalPending);
+    
+    // Perform initial sync if online
+    if (navigator.onLine && totalPending > 0) {
+      syncData();
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Mock sync function - replace with real sync logic
+  // Real sync function that uses the comprehensive sync implementation
   const syncData = async () => {
     if (connectionStatus === 'offline' || syncStatus === 'syncing') {
       return;
@@ -43,14 +66,19 @@ export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> =
     try {
       setSyncStatus('syncing');
       
-      // Simulate sync delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Use the real syncAllData implementation
+      const syncResult = await syncAllData();
       
-      // In a real app, this would be your sync logic
-      
-      setLastSyncedAt(new Date());
-      setPendingSyncCount(0);
-      setSyncStatus('synced');
+      // Update the sync status
+      const totalSynced = 
+        syncResult.tickets + 
+        syncResult.expenses + 
+        syncResult.clients + 
+        syncResult.feedback;
+        
+      setPendingSyncCount(Math.max(0, pendingSyncCount - totalSynced));
+      setLastSyncedAt(syncResult.timestamp);
+      setSyncStatus(totalSynced > 0 ? 'synced' : 'pending');
     } catch (error) {
       console.error('Sync error:', error);
       setSyncStatus('error');

@@ -5,14 +5,11 @@ import { RefreshCw } from "lucide-react";
 import { toast } from '@/lib/toast';
 import { syncAllData } from "@/lib/data/sync/comprehensiveSync";
 import { SimpleSyncStatus } from '@/lib/types/sync.types';
+import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
 
 export const SyncDataButton = () => {
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SimpleSyncStatus>({
-    lastSync: null,
-    syncInProgress: false,
-    syncError: null
-  });
+  const [syncStatus, setSyncStatus] = useState<SimpleSyncStatus>(getSyncStatus());
 
   const handleSync = async () => {
     if (isSyncing) return;
