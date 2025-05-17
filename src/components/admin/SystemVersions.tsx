@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useSystemVersions } from '@/hooks/useSystemVersions';
+import { GitHubSyncButton } from './GitHubSyncButton';
 
 export const SystemVersions = () => {
   const { 
@@ -96,6 +97,20 @@ export const SystemVersions = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        <div className="flex justify-end mb-4 space-x-2">
+          <GitHubSyncButton onSyncCompleted={() => {
+            // Refresh versions after sync
+            if (typeof loading === 'boolean' && typeof versions === 'object') {
+              // This assumes there is a loadVersions function in the useSystemVersions hook
+              // If not, you may need to adjust this
+              const { refetch } = useSystemVersions();
+              if (typeof refetch === 'function') {
+                refetch();
+              }
+            }
+          }} />
+        </div>
+        
         {loading ? (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>

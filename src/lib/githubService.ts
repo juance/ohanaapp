@@ -271,3 +271,84 @@ export const getAllVersions = async (): Promise<SystemVersion[]> => {
     throw error;
   }
 };
+
+/**
+ * Sincroniza los últimos cambios desde GitHub al sistema local
+ * @returns Objeto con información de la sincronización
+ */
+export const syncFromGitHub = async (): Promise<{
+  success: boolean;
+  message: string;
+  latestCommit?: GitHubCommit;
+}> => {
+  try {
+    console.log('Iniciando sincronización desde GitHub');
+    
+    // Obtener el último commit sincronizado
+    const lastSyncCommit = localStorage.getItem('latestCommit') ? 
+      JSON.parse(localStorage.getItem('latestCommit') || '{}') as GitHubCommit : 
+      null;
+    
+    // Obtener los últimos commits de GitHub
+    const latestCommits = await getLatestCommits(5);
+    
+    if (!latestCommits || latestCommits.length === 0) {
+      return {
+        success: false,
+        message: 'No se pudieron obtener commits de GitHub'
+      };
+    }
+    
+    const latestCommit = latestCommits[0];
+    
+    // Si ya tenemos el último commit, no hay nada que sincronizar
+    if (lastSyncCommit && lastSyncCommit.sha === latestCommit.sha) {
+      return {
+        success: true,
+        message: 'Ya estás sincronizado con la última versión',
+        latestCommit
+      };
+    }
+    
+    // Guardar el último commit sincronizado
+    localStorage.setItem('latestCommit', JSON.stringify(latestCommit));
+    localStorage.setItem('lastGitHubSync', new Date().toISOString());
+    
+    // Extraer información de versión del mensaje de commit si existe (formato: v1.2.3: mensaje)
+    const versionMatch = latestCommit.commit.message.match(/^v(\d+\.\d+\.\d+):/i);
+    let version = '';
+    
+    if (versionMatch) {
+      version = versionMatch[1];
+    }
+    
+    // Si encontramos una versión en el mensaje, crear una nueva versión en el sistema
+    if (version) {
+      const changes = [latestCommit.commit.message.replace(/^v\d+\.\d+\.\d+:\s*/i, '')];
+      
+      await createVersionFromCommit(
+        version,
+        latestCommit.sha,
+        changes
+      );
+      
+      return {
+        success: true,
+        message: `Sincronizado con éxito a la versión ${version}`,
+        latestCommit
+      };
+    }
+    
+    return {
+      success: true,
+      message: 'Sincronizado con éxito',
+      latestCommit
+    };
+  } catch (error) {
+    console.error('Error al sincronizar desde GitHub:', error);
+    return {
+      success: false,
+      message: `Error al sincronizar: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
