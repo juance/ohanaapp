@@ -7,3 +7,10 @@ export * from './usePickupTicketQueries';
 export * from './usePickupTicketFilters';
 export * from './usePickupDialogs';
 export * from './usePickupUtils';
+
+// Export operations hooks
+export * from './operations/useTicketDeliveryOperations';
+export * from './operations/useTicketCancellationOperations';
+export * from './operations/useTicketPaymentOperations';
+export * from './operations/useTicketPrintOperations';
+export * from './operations/useTicketNotificationOperations';
