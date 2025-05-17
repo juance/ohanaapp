@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { MetricsCard } from '@/components/MetricsCard';
+import MetricsCard from '@/components/MetricsCard';
 import { BarChart4, TrendingUp, DollarSign, ShoppingBag } from 'lucide-react';
 
 const Metrics: React.FC = () => {

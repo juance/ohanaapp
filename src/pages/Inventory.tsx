@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus } from 'lucide-react';
-import { InventoryList } from '@/components/InventoryList';
+import InventoryList from '@/components/InventoryList';
 
 const Inventory: React.FC = () => {
   return (
