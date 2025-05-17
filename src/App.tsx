@@ -1,173 +1,36 @@
-
-import React, { Suspense, lazy } from 'react';
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/providers/theme-provider";
-import { Loading } from "@/components/ui/loading";
-import { ConnectionStatusProvider } from '@/providers/ConnectionStatusProvider';
-import Layout from '@/components/Layout';
-import ProtectedRoute from '@/components/ProtectedRoute';
-
-// Lazy loaded components
-const Tickets = lazy(() => import('./pages/Tickets'));
-const PickupOrders = lazy(() => import('./pages/PickupOrders'));
-const DeliveredOrders = lazy(() => import('./pages/DeliveredOrders'));
-const Expenses = lazy(() => import('./pages/Expenses'));
-const Clients = lazy(() => import('./pages/Clients'));
-const AdminTools = lazy(() => import('./pages/Admin'));
-const Auth = lazy(() => import('./pages/Auth'));
-const Inventory = lazy(() => import('./pages/Inventory'));
-const Loyalty = lazy(() => import('./pages/Loyalty'));
-const Feedback = lazy(() => import('./pages/Feedback'));
-const NotFound = lazy(() => import('./pages/NotFound'));
-// New analytics pages
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Metrics = lazy(() => import('./pages/Metrics'));
-const TicketAnalysis = lazy(() => import('./pages/TicketAnalysis'));
-
-// Router configuration
-const router = createBrowserRouter([
-  {
-    path: "/auth",
-    element: <Auth />,
-  },
-  {
-    path: "/",
-    element: <Navigate to="/auth" replace />,
-  },
-  {
-    path: "/tickets",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Tickets />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/pickup",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <PickupOrders />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/delivered",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <DeliveredOrders />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/expenses",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Expenses />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/clients",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Clients />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/loyalty",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Loyalty />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/inventory",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Inventory />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/admin",
-    element: (
-      <ProtectedRoute allowedRoles={['admin']}>
-        <Layout>
-          <AdminTools />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/feedback",
-    element: (
-      <ProtectedRoute allowedRoles={['admin']}>
-        <Layout>
-          <Feedback />
-        </Layout>
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Dashboard />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/metrics",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Metrics />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/analysis",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <TicketAnalysis />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "*",
-    element: <NotFound />,
-  },
-]);
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import Tickets from './pages/Tickets';
+import Clients from './pages/Clients';
+import Users from './pages/Users';
+import Settings from './pages/Settings';
+import Login from './pages/Login';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import TicketDetails from './pages/TicketDetails';
+import CreateUser from './pages/CreateUser';
+import EditUser from './pages/EditUser';
+import TicketMetrics from './pages/TicketMetrics';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="app-theme">
-      <ConnectionStatusProvider>
-        <ErrorBoundary>
-          <Suspense fallback={<Loading />}>
-            <RouterProvider router={router} />
-          </Suspense>
-          <Toaster />
-        </ErrorBoundary>
-      </ConnectionStatusProvider>
-    </ThemeProvider>
+    <Router>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/tickets" element={<ProtectedRoute><Tickets /></ProtectedRoute>} />
+          <Route path="/tickets/:id" element={<ProtectedRoute><TicketDetails /></ProtectedRoute>} />
+          <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+          <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
+          <Route path="/users/create" element={<ProtectedRoute><CreateUser /></ProtectedRoute>} />
+          <Route path="/users/edit/:id" element={<ProtectedRoute><EditUser /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/metrics" element={<TicketMetrics />} />
+        </Routes>
+      </AuthProvider>
+    </Router>
   );
 }
 

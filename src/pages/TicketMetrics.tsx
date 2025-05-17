@@ -1,46 +1,26 @@
 
-import React, { useState } from 'react';
-import { ArrowLeft, Download, Printer } from 'lucide-react';
+import React from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
-import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
-import DateRangeSelector from '@/components/analysis/DateRangeSelector';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import DateRangeSelector from '@/components/analytics/DateRangeSelector';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import MetricsSection from '@/components/analytics/MetricsSection';
 import ChartTabs from '@/components/analytics/ChartTabs';
-import { toast } from '@/lib/toast';
+import ActionButtons from '@/components/analytics/ActionButtons';
 
 const TicketMetrics: React.FC = () => {
   const {
-    data,
     isLoading,
     error,
+    analytics,
     dateRange,
     setDateRange,
     exportData
-  } = useTicketAnalytics();
+  } = useAnalytics();
 
-  // Handler para exportar datos
-  const handleExport = async () => {
-    try {
-      toast.info("Exportando datos de métricas...");
-      await exportData();
-      toast.success("Datos exportados correctamente");
-    } catch (err) {
-      console.error("Error al exportar datos:", err);
-      toast.error("Error al exportar los datos");
-    }
-  };
-
-  // Handler para imprimir
-  const handlePrint = () => {
-    toast.info("Preparando impresión...");
-    window.print();
-  };
-
-  // Handler para cambio de rango de fechas
   const handleDateRangeChange = (from: Date, to: Date) => {
     setDateRange({ from, to });
   };
@@ -65,16 +45,7 @@ const TicketMetrics: React.FC = () => {
               to={dateRange.to} 
               onUpdate={handleDateRangeChange} 
             />
-            <div className="flex gap-2">
-              <Button onClick={handleExport} variant="outline" size="sm" className="flex items-center gap-2">
-                <Download className="h-4 w-4" />
-                Exportar
-              </Button>
-              <Button onClick={handlePrint} variant="outline" size="sm" className="flex items-center gap-2">
-                <Printer className="h-4 w-4" />
-                Imprimir
-              </Button>
-            </div>
+            <ActionButtons onExportData={exportData} />
           </div>
 
           {isLoading ? (
@@ -84,14 +55,15 @@ const TicketMetrics: React.FC = () => {
           ) : error ? (
             <div className="space-y-4">
               <ErrorMessage message={`Error al cargar datos: ${error.message}`} />
-              <Button onClick={() => window.location.reload()} variant="outline" className="mx-auto block">
-                Reintentar
-              </Button>
+            </div>
+          ) : analytics ? (
+            <div className="space-y-8">
+              <MetricsSection loading={isLoading} analytics={analytics} />
+              <ChartTabs loading={isLoading} analytics={analytics} />
             </div>
           ) : (
-            <div className="space-y-8">
-              <MetricsSection loading={isLoading} analytics={data} />
-              <ChartTabs loading={isLoading} analytics={data} />
+            <div className="text-center py-10">
+              <p className="text-gray-500">No hay datos disponibles</p>
             </div>
           )}
         </div>

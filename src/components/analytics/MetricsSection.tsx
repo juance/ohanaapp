@@ -1,65 +1,65 @@
 
 import React from 'react';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CircleDollarSign, Package, CheckCircle2, ShoppingCart } from 'lucide-react';
 import MetricsCard from '@/components/MetricsCard';
-import { ShoppingBag, DollarSign, BarChart4, CheckCircle } from 'lucide-react';
 import { TicketAnalytics } from '@/lib/types/analytics.types';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loading } from '@/components/ui/loading';
 
 interface MetricsSectionProps {
+  analytics: TicketAnalytics;
   loading: boolean;
-  analytics: TicketAnalytics | null;
 }
 
-const MetricsSection: React.FC<MetricsSectionProps> = ({ loading, analytics }) => {
+const MetricsSection: React.FC<MetricsSectionProps> = ({ analytics, loading }) => {
   if (loading) {
     return (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        {Array(4).fill(0).map((_, i) => (
-          <Card key={i} className="p-6">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-1/2" />
-              <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-4 w-1/4" />
-            </div>
-          </Card>
-        ))}
-      </div>
+      <Card className="p-6">
+        <Loading />
+      </Card>
     );
   }
 
-  // Ensure analytics object exists with default values
-  const safeAnalytics = analytics || {
-    totalTickets: 0,
-    averageTicketValue: 0,
-    totalRevenue: 0,
-    ticketsByStatus: { ready: 0, delivered: 0, pending: 0 },
-    itemTypeDistribution: {},
-    paymentMethodDistribution: {},
-    revenueByMonth: []
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value);
   };
 
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <MetricsCard
         title="Total de Tickets"
-        value={safeAnalytics.totalTickets.toString() || '0'}
-        icon={<ShoppingBag className="h-4 w-4" />}
+        value={analytics.totalTickets.toString()}
+        icon={<ShoppingCart className="h-4 w-4" />}
+        description="Total de tickets generados"
       />
+      
       <MetricsCard
-        title="Valor Promedio"
-        value={`$${safeAnalytics.averageTicketValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
-        icon={<BarChart4 className="h-4 w-4" />}
+        title="Facturación Total"
+        value={formatCurrency(analytics.totalRevenue)}
+        icon={<CircleDollarSign className="h-4 w-4" />}
+        description="Ingresos totales"
       />
+      
       <MetricsCard
-        title="Ingresos Totales"
-        value={`$${safeAnalytics.totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
-        icon={<DollarSign className="h-4 w-4" />}
+        title="Ticket Promedio"
+        value={formatCurrency(analytics.averageTicketValue)}
+        icon={<Package className="h-4 w-4" />}
+        description="Valor promedio por ticket"
       />
+      
       <MetricsCard
-        title="Tickets Listos"
-        value={safeAnalytics.ticketsByStatus?.ready?.toString() || '0'}
-        icon={<CheckCircle className="h-4 w-4" />}
+        title="Tickets Entregados"
+        value={analytics.ticketsByStatus.delivered.toString()}
+        icon={<CheckCircle2 className="h-4 w-4" />}
+        description={`De un total de ${analytics.totalTickets} tickets`}
+        trend={
+          analytics.totalTickets > 0
+            ? {
+                value: Math.round((analytics.ticketsByStatus.delivered / analytics.totalTickets) * 100),
+                isPositive: true
+              }
+            : undefined
+        }
       />
     </div>
   );

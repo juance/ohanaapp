@@ -1,17 +1,11 @@
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import {
-  Calendar
-} from '@/components/ui/calendar';
 
 interface DateRangeSelectorProps {
   from: Date;
@@ -19,108 +13,111 @@ interface DateRangeSelectorProps {
   onUpdate: (from: Date, to: Date) => void;
 }
 
-const DateRangeSelector = ({ from, to, onUpdate }: DateRangeSelectorProps) => {
+const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
+  from,
+  to,
+  onUpdate,
+}) => {
   const [isFromOpen, setIsFromOpen] = React.useState(false);
   const [isToOpen, setIsToOpen] = React.useState(false);
+  const [tempFrom, setTempFrom] = React.useState<Date>(from);
+  const [tempTo, setTempTo] = React.useState<Date>(to);
+
+  const handleFromSelect = (date: Date | undefined) => {
+    if (date) {
+      setTempFrom(date);
+      setIsFromOpen(false);
+      if (date > tempTo) {
+        setTempTo(date);
+      }
+    }
+  };
+
+  const handleToSelect = (date: Date | undefined) => {
+    if (date) {
+      setTempTo(date);
+      setIsToOpen(false);
+      if (date < tempFrom) {
+        setTempFrom(date);
+      }
+    }
+  };
+
+  const applyDateRange = () => {
+    onUpdate(tempFrom, tempTo);
+  };
+
+  const quickSelect = (days: number) => {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    
+    setTempFrom(from);
+    setTempTo(to);
+    onUpdate(from, to);
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-2">
-      <span className="text-sm font-medium text-gray-500">Rango de fechas:</span>
-      
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col sm:flex-row items-center gap-4">
+      <div className="flex gap-2 items-center">
         <Popover open={isFromOpen} onOpenChange={setIsFromOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              className="justify-start text-left font-normal w-[130px]"
+              className="w-[160px] justify-start text-left font-normal"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              <span>{format(from, 'dd/MM/yyyy', { locale: es })}</span>
+              {format(tempFrom, "dd/MM/yyyy")}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={from}
-              onSelect={(date) => {
-                if (date) {
-                  onUpdate(date, to);
-                  setIsFromOpen(false);
-                }
-              }}
+              selected={tempFrom}
+              onSelect={handleFromSelect}
               initialFocus
-              disabled={(date) => date > to || date > new Date()}
+              locale={es}
             />
           </PopoverContent>
         </Popover>
-        
-        <span>a</span>
-        
+
+        <span>-</span>
+
         <Popover open={isToOpen} onOpenChange={setIsToOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
-              className="justify-start text-left font-normal w-[130px]"
+              className="w-[160px] justify-start text-left font-normal"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              <span>{format(to, 'dd/MM/yyyy', { locale: es })}</span>
+              {format(tempTo, "dd/MM/yyyy")}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
-              selected={to}
-              onSelect={(date) => {
-                if (date) {
-                  onUpdate(from, date);
-                  setIsToOpen(false);
-                }
-              }}
+              selected={tempTo}
+              onSelect={handleToSelect}
               initialFocus
-              disabled={(date) => date < from || date > new Date()}
+              locale={es}
             />
           </PopoverContent>
         </Popover>
+
+        <Button variant="outline" size="sm" onClick={applyDateRange}>
+          Aplicar
+        </Button>
       </div>
-      
-      <div className="flex gap-2 mt-2 sm:mt-0">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => {
-            const today = new Date();
-            const weekAgo = new Date();
-            weekAgo.setDate(today.getDate() - 7);
-            onUpdate(weekAgo, today);
-          }}
-        >
-          7 días
+
+      <div className="flex gap-1">
+        <Button variant="ghost" size="sm" onClick={() => quickSelect(7)}>
+          7d
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => {
-            const today = new Date();
-            const monthAgo = new Date();
-            monthAgo.setDate(today.getDate() - 30);
-            onUpdate(monthAgo, today);
-          }}
-        >
-          30 días
+        <Button variant="ghost" size="sm" onClick={() => quickSelect(30)}>
+          30d
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => {
-            const today = new Date();
-            const threeMonthsAgo = new Date();
-            threeMonthsAgo.setMonth(today.getMonth() - 3);
-            onUpdate(threeMonthsAgo, today);
-          }}
-        >
-          3 meses
+        <Button variant="ghost" size="sm" onClick={() => quickSelect(90)}>
+          90d
         </Button>
       </div>
     </div>

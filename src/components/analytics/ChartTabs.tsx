@@ -1,121 +1,120 @@
 
-import React from 'react';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
+import { BarChart, PieChart, LineChart } from '@/components/ui/custom-charts';
 import { TicketAnalytics } from '@/lib/types/analytics.types';
+import { ChartData, LineChartData, BarChartData } from '@/lib/types/analytics.types';
+import { Loading } from '@/components/ui/loading';
 
 interface ChartTabsProps {
-  loading?: boolean;
-  analytics: TicketAnalytics | null;
+  analytics: TicketAnalytics;
+  loading: boolean;
 }
 
-const ChartTabs: React.FC<ChartTabsProps> = ({ loading = false, analytics }) => {
-  // Prepare chart data
-  const preparePaymentMethodData = () => {
-    if (!analytics) return [];
-    
-    return Object.entries(analytics.paymentMethodDistribution).map(([name, value]) => ({
-      name: name === 'cash' ? 'Efectivo' :
-            name === 'debit' ? 'Débito' :
-            name === 'mercadopago' ? 'MercadoPago' :
-            name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value: Number(value) || 0
-    }));
-  };
-  
-  const prepareRevenueChartData = () => {
-    if (!analytics) return [];
-    
-    return analytics.revenueByMonth.map(item => ({
-      name: item.month,
-      income: parseFloat(item.revenue.toFixed(2)),
-      expenses: 0 // Adding default expenses value
-    }));
-  };
-  
-  const prepareItemDistributionData = () => {
-    if (!analytics) return [];
-    
-    // Get top 10 items by quantity
-    return Object.entries(analytics.itemTypeDistribution)
-      .sort((a, b) => Number(b[1]) - Number(a[1]))
-      .slice(0, 10)
-      .map(([name, value]) => ({
-        name,
-        total: Number(value) || 0
-      }));
-  };
+const ChartTabs: React.FC<ChartTabsProps> = ({ analytics, loading }) => {
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  // Revenue by month chart data
+  const revenueData: LineChartData[] = analytics.revenueByMonth.map(item => ({
+    name: item.month,
+    income: item.revenue,
+    expenses: 0 // We don't have expenses data in this example
+  }));
+
+  // Payment methods chart data
+  const paymentMethodsData: ChartData[] = Object.entries(analytics.paymentMethodDistribution).map(
+    ([name, value]) => ({ name, value })
+  );
+
+  // Service types chart data
+  const serviceTypesData: ChartData[] = Object.entries(analytics.itemTypeDistribution).map(
+    ([name, value]) => ({ name, value })
+  );
+
+  // Status chart data
+  const statusData: BarChartData[] = [
+    { name: 'Pendientes', total: analytics.ticketsByStatus.pending },
+    { name: 'Listos', total: analytics.ticketsByStatus.ready },
+    { name: 'Entregados', total: analytics.ticketsByStatus.delivered }
+  ];
+
+  if (loading) {
+    return (
+      <Card className="p-6">
+        <Loading />
+      </Card>
+    );
+  }
 
   return (
-    <Tabs defaultValue="revenue">
-      <TabsList>
-        <TabsTrigger value="revenue">Ingresos</TabsTrigger>
-        <TabsTrigger value="items">Artículos</TabsTrigger>
-        <TabsTrigger value="payment">Métodos de Pago</TabsTrigger>
-      </TabsList>
-      
-      <TabsContent value="revenue" className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ingresos por Mes</CardTitle>
-            <CardDescription>
-              Análisis de tendencia de ingresos en el período seleccionado
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-[350px] w-full" />
-            ) : (
-              <div className="h-[350px]">
-                <LineChart data={prepareRevenueChartData()} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="items" className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribución de Artículos</CardTitle>
-            <CardDescription>
-              Los 10 artículos más procesados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-[350px] w-full" />
-            ) : (
-              <div className="h-[350px]">
-                <BarChart data={prepareItemDistributionData()} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-      
-      <TabsContent value="payment" className="mt-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Métodos de Pago</CardTitle>
-            <CardDescription>
-              Distribución de métodos de pago utilizados
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <Skeleton className="h-[350px] w-full" />
-            ) : (
-              <div className="h-[350px]">
-                <PieChart data={preparePaymentMethodData()} />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-    </Tabs>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle>Análisis de Tickets</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-4">
+            <TabsTrigger value="overview">Ingresos</TabsTrigger>
+            <TabsTrigger value="payment">Métodos de Pago</TabsTrigger>
+            <TabsTrigger value="services">Servicios</TabsTrigger>
+            <TabsTrigger value="status">Estado</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Ingresos Mensuales</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <LineChart data={revenueData} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="payment" className="mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Distribución de Métodos de Pago</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <PieChart data={paymentMethodsData} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="services" className="mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Tipos de Servicios</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <PieChart data={serviceTypesData} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="status" className="mt-0">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Estado de Tickets</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[350px]">
+                  <BarChart data={statusData} />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

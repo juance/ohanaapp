@@ -1,26 +1,37 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { TicketAnalytics, DateRange } from '@/lib/types/analytics.types';
-import { format } from 'date-fns';
+import { supabase } from "@/integrations/supabase/client";
+import { TicketAnalytics, DateRange } from "@/lib/types/analytics.types";
+import { toast } from "@/lib/toast";
 
+/**
+ * Fetch ticket analytics data from the database
+ */
 export const fetchTicketAnalytics = async (dateRange: DateRange): Promise<TicketAnalytics> => {
   try {
-    // Call our database function to get analytics data
-    const { data, error } = await supabase.rpc('calculate_ticket_metrics', {
-      start_date: dateRange.from.toISOString(),
-      end_date: dateRange.to.toISOString()
-    });
+    const { data, error } = await supabase.rpc(
+      'calculate_ticket_metrics',
+      {
+        start_date: dateRange.from.toISOString(),
+        end_date: dateRange.to.toISOString()
+      }
+    );
 
     if (error) throw error;
-
+    
     return data as TicketAnalytics;
   } catch (error) {
     console.error("Error fetching ticket analytics:", error);
+    toast.error("Error fetching analytics data");
+    // Return default data
     return {
       totalTickets: 0,
       totalRevenue: 0,
       averageTicketValue: 0,
-      ticketsByStatus: { ready: 0, delivered: 0, pending: 0 },
+      ticketsByStatus: {
+        ready: 0,
+        delivered: 0,
+        pending: 0
+      },
       paymentMethodDistribution: {},
       itemTypeDistribution: {},
       revenueByMonth: []
@@ -28,56 +39,48 @@ export const fetchTicketAnalytics = async (dateRange: DateRange): Promise<Ticket
   }
 };
 
-export const exportAnalyticsToCSV = async (data: TicketAnalytics): Promise<void> => {
+/**
+ * Export analytics data to CSV
+ */
+export const exportAnalyticsToCSV = async (analytics: TicketAnalytics): Promise<void> => {
   try {
-    // Convert analytics data to CSV format
-    let csvContent = "data:text/csv;charset=utf-8,";
+    // Create CSV content
+    const csvContent = [
+      // Headers
+      ["Category", "Value"],
+      ["Total Tickets", analytics.totalTickets.toString()],
+      ["Total Revenue", `$${analytics.totalRevenue.toFixed(2)}`],
+      ["Average Ticket Value", `$${analytics.averageTicketValue.toFixed(2)}`],
+      ["Ready Tickets", analytics.ticketsByStatus.ready.toString()],
+      ["Delivered Tickets", analytics.ticketsByStatus.delivered.toString()],
+      ["Pending Tickets", analytics.ticketsByStatus.pending.toString()],
+      [""], // Empty row for separation
+      ["Payment Method", "Count"],
+      ...Object.entries(analytics.paymentMethodDistribution).map(([method, count]) => [method, count.toString()]),
+      [""], // Empty row for separation
+      ["Item Type", "Count"],
+      ...Object.entries(analytics.itemTypeDistribution).map(([type, count]) => [type, count.toString()]),
+      [""], // Empty row for separation
+      ["Month", "Revenue"],
+      ...analytics.revenueByMonth.map(item => [item.month, `$${item.revenue.toFixed(2)}`])
+    ];
+
+    // Convert to CSV string
+    const csv = csvContent.map(row => row.join(',')).join('\n');
     
-    // Add headers
-    csvContent += "Métricas de Tickets\n\n";
-    
-    // Add summary data
-    csvContent += `Total de Tickets,${data.totalTickets}\n`;
-    csvContent += `Ingresos Totales,${data.totalRevenue}\n`;
-    csvContent += `Valor Promedio,${data.averageTicketValue}\n\n`;
-    
-    // Add ticket status
-    csvContent += "Estado de Tickets\n";
-    csvContent += `Listos,${data.ticketsByStatus.ready}\n`;
-    csvContent += `Entregados,${data.ticketsByStatus.delivered}\n`;
-    csvContent += `Pendientes,${data.ticketsByStatus.pending}\n\n`;
-    
-    // Add payment methods
-    csvContent += "Métodos de Pago\n";
-    Object.entries(data.paymentMethodDistribution).forEach(([method, count]) => {
-      csvContent += `${method},${count}\n`;
-    });
-    csvContent += "\n";
-    
-    // Add item types
-    csvContent += "Tipos de Artículos\n";
-    Object.entries(data.itemTypeDistribution).forEach(([type, count]) => {
-      csvContent += `${type},${count}\n`;
-    });
-    csvContent += "\n";
-    
-    // Add monthly revenue
-    csvContent += "Ingresos Mensuales\n";
-    csvContent += "Mes,Ingresos\n";
-    data.revenueByMonth.forEach(({ month, revenue }) => {
-      csvContent += `${month},${revenue}\n`;
-    });
-    
-    // Create a download link and trigger it
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create a blob and download link
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   } catch (error) {
-    console.error("Error exporting analytics to CSV:", error);
+    console.error("Error exporting data:", error);
+    toast.error("Failed to export data");
     throw error;
   }
 };
