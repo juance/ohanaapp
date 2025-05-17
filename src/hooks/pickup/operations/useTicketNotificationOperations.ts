@@ -6,6 +6,7 @@ import { Ticket } from '@/lib/types';
 import { formatTicketData, createDetailedTicketMessage, formatPhoneForWhatsApp } from '../utils/ticketFormatters';
 import { shareTicketPDFViaWhatsApp } from '@/utils/pdfUtils';
 import { getTicketOptions } from '@/lib/ticket/ticketServiceCore';
+import { openWhatsApp } from '@/lib/utils/whatsappUtils';
 
 /**
  * Hook for ticket notification operations
@@ -72,11 +73,125 @@ export const useTicketNotificationOperations = () => {
   }, []);
 
   /**
-   * Notifies a client (currently uses WhatsApp with PDF)
+   * Notifies a client with a text message via WhatsApp
    */
-  const handleNotifyClient = useCallback((ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): void => {
-    handleShareWhatsApp(ticketId, phoneNumber, tickets);
-  }, [handleShareWhatsApp]);
+  const handleNotifyClient = useCallback(async (ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): Promise<void> => {
+    if (!phoneNumber) {
+      toast.error('No hay número de teléfono para este cliente');
+      return;
+    }
+
+    try {
+      // If tickets are provided, try to find the ticket in the array first
+      let ticket: Ticket | undefined;
+      if (tickets && tickets.length > 0) {
+        ticket = tickets.find(t => t.id === ticketId);
+      }
+
+      // If ticket wasn't found in the array or tickets array wasn't provided, fetch directly from DB
+      if (!ticket) {
+        const { data: ticketData, error: ticketError } = await supabase
+          .from('tickets')
+          .select('*, customers(name, phone)')
+          .eq('id', ticketId)
+          .single();
+        
+        if (ticketError) throw ticketError;
+
+        // Get dry cleaning items
+        const { data: dryCleaningItems, error: itemsError } = await supabase
+          .from('dry_cleaning_items')
+          .select('*')
+          .eq('ticket_id', ticketId);
+        
+        if (itemsError) throw itemsError;
+
+        ticket = formatTicketData(ticketData, dryCleaningItems);
+      }
+      
+      if (!ticket) {
+        toast.error('Ticket no encontrado');
+        return;
+      }
+      
+      // Ensure ticket has services property to prevent errors
+      if (!ticket.services) {
+        ticket.services = [];
+      }
+
+      // Get laundry options for the ticket
+      const laundryOptions = await getTicketOptions(ticketId);
+      
+      // Create a formatted message with ticket details
+      const message = createFormattedTicketMessage(ticket, laundryOptions);
+      
+      // Send WhatsApp message with ticket details
+      const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
+      openWhatsApp(formattedPhone, message);
+
+    } catch (err: any) {
+      console.error("Error sending notification message:", err);
+      toast.error(`Error al enviar notificación: ${err.message}`);
+    }
+  }, []);
+
+  /**
+   * Creates a formatted message with ticket details like the one in the image
+   */
+  const createFormattedTicketMessage = (ticket: Ticket, laundryOptions: any[] = []): string => {
+    // Format date
+    const date = new Date(ticket.createdAt);
+    const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    
+    let message = `*Tickets de Lavandería*\n*COPIA LAVANDERÍA*\n\n*Lavandería Ohana*\nFecha: ${formattedDate}\n\n`;
+    message += `Cliente: ${ticket.clientName}\n`;
+    message += `Teléfono: ${ticket.phoneNumber}\n\n`;
+    
+    // Add laundry options if present
+    if (laundryOptions && laundryOptions.length > 0) {
+      message += 'Opciones de lavado:\n';
+      laundryOptions.forEach((option, index) => {
+        // Note: Using checkbox symbol but it will display as unchecked in WhatsApp
+        message += `□ ${index + 1}. ${translateOption(option.name)}\n`;
+      });
+      message += '\n';
+    }
+    
+    // Add valet quantity if present
+    if (ticket.valetQuantity && ticket.valetQuantity > 0) {
+      message += `Cantidad de Valet: ${ticket.valetQuantity}\n`;
+    }
+    
+    message += `Método de pago: ${ticket.paymentMethod}\n`;
+    message += `Total: $${ticket.totalPrice.toLocaleString()}\n\n`;
+    
+    message += `Ticket #${ticket.ticketNumber}\n`;
+    message += '¡Gracias por su preferencia!';
+    
+    return message;
+  };
+  
+  /**
+   * Translates option names into more user-friendly descriptions
+   */
+  const translateOption = (option: string): string => {
+    switch (option) {
+      case 'separateByColor':
+        return 'Separar por color';
+      case 'delicateDry':
+        return 'Secar en delicado';
+      case 'stainRemoval':
+        return 'Desmanchar';
+      case 'bleach':
+        return 'Blanquear';
+      case 'noFragrance':
+        return 'Sin perfume';
+      case 'noDry':
+        return 'No secar';
+      default:
+        return option;
+    }
+  };
 
   return {
     handleShareWhatsApp,

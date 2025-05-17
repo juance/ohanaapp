@@ -22,7 +22,8 @@ export const formatTicketData = (
     createdAt: ticketData.created_at,
     deliveredDate: ticketData.delivered_date,
     basketTicketNumber: (ticketData as any).basket_ticket_number || '',
-    services: mapDryCleaningItemsToServices(dryCleaningItems)
+    services: mapDryCleaningItemsToServices(dryCleaningItems),
+    valetQuantity: ticketData.valet_quantity || 0
   };
 };
 
