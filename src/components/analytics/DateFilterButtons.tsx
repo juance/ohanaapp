@@ -1,10 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DateRange } from '@/lib/analytics/interfaces';
+import { DateRange, DateFilterType } from '@/lib/analytics/interfaces';
 import { subDays, subWeeks, subMonths, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subQuarters, startOfQuarter, endOfQuarter } from 'date-fns';
-
-type DateFilterType = 'day' | 'week' | 'month' | 'quarter';
 
 interface DateFilterButtonsProps {
   onFilterChange: (range: DateRange) => void;
@@ -29,7 +27,7 @@ const DateFilterButtons = ({ onFilterChange, activeFilter, setActiveFilter }: Da
         break;
       case 'week':
         newRange = {
-          from: startOfWeek(now, { weekStartsOn: 1 }), // Semana comienza el lunes
+          from: startOfWeek(now, { weekStartsOn: 1 }),
           to: endOfWeek(now, { weekStartsOn: 1 })
         };
         break;
@@ -45,6 +43,10 @@ const DateFilterButtons = ({ onFilterChange, activeFilter, setActiveFilter }: Da
           to: endOfQuarter(now)
         };
         break;
+      case 'custom':
+        // For custom, we don't change the date range here
+        // as it will be set by the date picker
+        return;
       default:
         newRange = {
           from: subDays(now, 30),
