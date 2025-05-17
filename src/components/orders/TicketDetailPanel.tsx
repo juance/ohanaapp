@@ -39,8 +39,17 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
   // Combine ticket.services with received services if needed
   const displayServices = services && services.length > 0 ? services : (ticket.services || []);
   
-  // Check for dry cleaning items specifically
-  const hasDryCleaningItems = ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0;
+  // Get dry cleaning items from ticket
+  const dryCleaningItems = ticket.dryCleaningItems || [];
+  const hasDryCleaningItems = dryCleaningItems.length > 0;
+  
+  // Debug log to see the items available
+  console.log('Ticket detail panel services:', { 
+    propsServices: services, 
+    ticketServices: ticket.services,
+    dryCleaningItems: ticket.dryCleaningItems,
+    displayServices
+  });
 
   return (
     <div className="space-y-6">
@@ -91,13 +100,13 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
       <div>
         <h3 className="text-lg font-medium mb-3">Servicios</h3>
         {/* Display services from props, ticket.services, or ticket.dryCleaningItems */}
-        {(displayServices && displayServices.length > 0) || hasDryCleaningItems ? (
+        {(displayServices.length > 0 || hasDryCleaningItems) ? (
           <Card>
             <CardContent className="p-4">
               <div className="divide-y">
                 {/* Display regular services */}
                 {displayServices.map((service) => (
-                  <div key={service.id} className="py-2 flex justify-between items-center">
+                  <div key={service.id || `service-${service.name}`} className="py-2 flex justify-between items-center">
                     <div>
                       <div className="font-medium">{service.name}</div>
                       <div className="text-sm text-gray-500">
@@ -110,9 +119,9 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
                   </div>
                 ))}
                 
-                {/* Display dry cleaning items if they exist and aren't already in services */}
-                {hasDryCleaningItems && ticket.dryCleaningItems.map((item) => (
-                  <div key={item.id} className="py-2 flex justify-between items-center">
+                {/* Display dry cleaning items if they exist */}
+                {hasDryCleaningItems && dryCleaningItems.map((item) => (
+                  <div key={item.id || `item-${item.name}`} className="py-2 flex justify-between items-center">
                     <div>
                       <div className="font-medium">{item.name}</div>
                       <div className="text-sm text-gray-500">

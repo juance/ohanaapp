@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Printer, X, Bell, CreditCard } from 'lucide-react';
+import { Check, Printer, X, Bell, CreditCard, Share2 } from 'lucide-react';
 import { Ticket } from '@/lib/types';
 
 interface PickupActionButtonsProps {
@@ -11,6 +11,7 @@ interface PickupActionButtonsProps {
   handleOpenCancelDialog: () => void;
   handlePrintTicket: (ticketId: string) => void;
   handleNotifyClient: (ticketId: string, phoneNumber?: string) => void;
+  handleShareWhatsApp?: (ticketId: string, phoneNumber?: string) => void;
   handleOpenPaymentMethodDialog: () => void;
 }
 
@@ -21,6 +22,7 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
   handleOpenCancelDialog,
   handlePrintTicket,
   handleNotifyClient,
+  handleShareWhatsApp,
   handleOpenPaymentMethodDialog
 }) => {
   const getSelectedTicketPhone = () => {
@@ -65,6 +67,19 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
         <Bell className="mr-1 h-4 w-4" />
         <span>Notificar</span>
       </Button>
+      
+      {handleShareWhatsApp && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex items-center"
+          disabled={!isTicketSelected}
+          onClick={() => selectedTicket && handleShareWhatsApp(selectedTicket, getSelectedTicketPhone())}
+        >
+          <Share2 className="mr-1 h-4 w-4" />
+          <span>Compartir PDF</span>
+        </Button>
+      )}
 
       <Button
         variant="outline"

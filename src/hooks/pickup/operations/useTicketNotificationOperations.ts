@@ -118,12 +118,9 @@ export const useTicketNotificationOperations = () => {
       if (!ticket.services) {
         ticket.services = [];
       }
-
-      // Get laundry options for the ticket
-      const laundryOptions = await getTicketOptions(ticketId);
       
-      // Create a formatted message with ticket details
-      const message = createFormattedTicketMessage(ticket, laundryOptions);
+      // Create the simplified message format as requested
+      const message = createSimplifiedTicketMessage(ticket);
       
       // Send WhatsApp message with ticket details
       const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
@@ -136,60 +133,37 @@ export const useTicketNotificationOperations = () => {
   }, []);
 
   /**
-   * Creates a formatted message with ticket details like the one in the image
+   * Creates the simplified message format as requested by the user
    */
-  const createFormattedTicketMessage = (ticket: Ticket, laundryOptions: any[] = []): string => {
+  const createSimplifiedTicketMessage = (ticket: Ticket): string => {
     // Format date
     const date = new Date(ticket.createdAt);
     const formattedDate = `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     
-    let message = `*Tickets de Lavandería*\n*COPIA LAVANDERÍA*\n\n*Lavandería Ohana*\nFecha: ${formattedDate}\n\n`;
+    let message = `*Tickets de Lavandería*\n*COPIA*\n\n*Lavandería Ohana*\nFecha: ${formattedDate}\n\n`;
     message += `Cliente: ${ticket.clientName}\n`;
     message += `Teléfono: ${ticket.phoneNumber}\n\n`;
-    
-    // Add laundry options if present
-    if (laundryOptions && laundryOptions.length > 0) {
-      message += 'Opciones de lavado:\n';
-      laundryOptions.forEach((option, index) => {
-        // Note: Using checkbox symbol but it will display as unchecked in WhatsApp
-        message += `□ ${index + 1}. ${translateOption(option.name)}\n`;
-      });
-      message += '\n';
-    }
-    
-    // Add valet quantity if present
-    if (ticket.valetQuantity && ticket.valetQuantity > 0) {
-      message += `Cantidad de Valet: ${ticket.valetQuantity}\n`;
-    }
-    
-    message += `Método de pago: ${ticket.paymentMethod}\n`;
+    message += `Método de pago: ${getPaymentMethodText(ticket.paymentMethod)}\n`;
     message += `Total: $${ticket.totalPrice.toLocaleString()}\n\n`;
-    
     message += `Ticket #${ticket.ticketNumber}\n`;
-    message += '¡Gracias por su preferencia!';
+    message += '¡Gracias por elegirnos!';
     
     return message;
   };
-  
+
   /**
-   * Translates option names into more user-friendly descriptions
+   * Format payment method for display
    */
-  const translateOption = (option: string): string => {
-    switch (option) {
-      case 'separateByColor':
-        return 'Separar por color';
-      case 'delicateDry':
-        return 'Secar en delicado';
-      case 'stainRemoval':
-        return 'Desmanchar';
-      case 'bleach':
-        return 'Blanquear';
-      case 'noFragrance':
-        return 'Sin perfume';
-      case 'noDry':
-        return 'No secar';
-      default:
-        return option;
+  const getPaymentMethodText = (method?: string): string => {
+    switch (method) {
+      case 'cash': return 'efectivo';
+      case 'debit': return 'débito';
+      case 'credit': return 'crédito';
+      case 'mercadopago': return 'Mercado Pago';
+      case 'cuenta_dni': return 'Cuenta DNI';
+      case 'cuentaDni': return 'Cuenta DNI';
+      case 'transfer': return 'transferencia';
+      default: return method || 'No especificado';
     }
   };
 
