@@ -17,17 +17,32 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
-  const { data, isLoading, error, refreshData, dateFilter, updateDateFilter } = useDashboardData();
+  // Asegúrate de que useDashboardData devuelve todos estos valores
+  const { 
+    dashboardData: data, 
+    isLoading, 
+    error, 
+    refreshDashboardData: refreshData,
+    dateRange: dateFilter,
+    updateDateRange: updateDateFilter 
+  } = useDashboardData();
 
   console.log('Dashboard component - data:', data);
 
   const handleRefresh = async () => {
     try {
-      toast.info("Actualizando panel de control...");
+      toast({
+        title: "Actualizando panel de control...",
+        description: "Por favor espere mientras se actualizan los datos."
+      });
       await refreshData();
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
-      toast.error("Error al actualizar el panel de control");
+      toast({
+        variant: "destructive",
+        title: "Error al actualizar",
+        description: "No se pudo actualizar el panel de control"
+      });
     }
   };
 

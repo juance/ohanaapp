@@ -54,6 +54,11 @@ export const addLoyaltyPoints = async (customerId: string, points: number): Prom
 export { storeCustomer, getCustomerByPhone, updateCustomerLastVisit };
 
 /**
+ * Re-export functions from valetService
+ */
+export { getCustomerValetCount, useFreeValet };
+
+/**
  * Redeem loyalty points for free valets
  * @param customerId Customer ID to redeem points for
  * @param pointsToRedeem Number of points to redeem
