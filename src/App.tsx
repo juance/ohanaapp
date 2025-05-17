@@ -10,13 +10,16 @@ import Layout from '@/components/Layout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Lazy loaded components
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Tickets = lazy(() => import('./pages/Tickets'));
 const PickupOrders = lazy(() => import('./pages/PickupOrders'));
 const DeliveredOrders = lazy(() => import('./pages/DeliveredOrders'));
 const Expenses = lazy(() => import('./pages/Expenses'));
 const Clients = lazy(() => import('./pages/Clients'));
-const AdminTools = lazy(() => import('./pages/Admin'));
+const AdminTools = lazy(() => import('./pages/AdminTools'));
 const Auth = lazy(() => import('./pages/Auth'));
+const Metrics = lazy(() => import('./pages/Metrics'));
+const Analysis = lazy(() => import('./pages/Analysis'));
 const Inventory = lazy(() => import('./pages/Inventory'));
 const Loyalty = lazy(() => import('./pages/Loyalty'));
 const Feedback = lazy(() => import('./pages/Feedback'));
@@ -31,6 +34,16 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/auth" replace />,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Dashboard />
+        </Layout>
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/tickets",
@@ -98,6 +111,26 @@ const router = createBrowserRouter([
       <ProtectedRoute allowedRoles={['admin', 'operator']}>
         <Layout>
           <Inventory />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/metrics",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <Layout>
+          <Metrics />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/analysis",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <Layout>
+          <Analysis />
         </Layout>
       </ProtectedRoute>
     ),
