@@ -1,51 +1,50 @@
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowDown, ArrowUp } from 'lucide-react';
-
-interface Trend {
-  value: number;
-  isPositive: boolean;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface MetricsCardProps {
   title: string;
-  value: string;
+  value: string | number;
   description?: string;
   icon?: React.ReactNode;
-  trend?: Trend;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+  className?: string;
 }
 
-const MetricsCard: React.FC<MetricsCardProps> = ({ 
-  title, 
-  value, 
-  description, 
+const MetricsCard = ({
+  title,
+  value,
+  description,
   icon,
-  trend 
-}) => {
+  trend,
+  className,
+}: MetricsCardProps) => {
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between space-y-0 pb-2">
-          <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          {icon && <span className="text-muted-foreground">{icon}</span>}
+    <Card className={cn("overflow-hidden transition-all duration-200 hover:shadow-md", className)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        {icon && <div className="h-4 w-4 text-muted-foreground">{icon}</div>}
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-baseline space-x-3">
+          <div className="text-2xl font-bold">{value}</div>
+          {trend && (
+            <div
+              className={cn(
+                "text-xs font-medium",
+                trend.isPositive ? "text-green-500" : "text-red-500"
+              )}
+            >
+              {trend.isPositive ? "+" : "-"}
+              {trend.value}%
+            </div>
+          )}
         </div>
-        <div className="text-2xl font-bold">{value}</div>
-        
-        {(description || trend) && (
-          <div className="flex items-center pt-1">
-            {trend && (
-              <span className={`mr-2 text-xs ${trend.isPositive ? 'text-green-500' : 'text-red-500'} flex items-center`}>
-                {trend.isPositive ? <ArrowUp className="h-3 w-3 mr-1" /> : <ArrowDown className="h-3 w-3 mr-1" />}
-                {trend.value}%
-              </span>
-            )}
-            {description && (
-              <span className="text-xs text-muted-foreground">
-                {description}
-              </span>
-            )}
-          </div>
+        {description && (
+          <p className="text-xs text-muted-foreground">{description}</p>
         )}
       </CardContent>
     </Card>

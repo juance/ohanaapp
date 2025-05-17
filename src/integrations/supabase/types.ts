@@ -9,30 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      analytics_data: {
-        Row: {
-          created_at: string
-          date_range_end: string
-          date_range_start: string
-          id: string
-          metrics_data: Json
-        }
-        Insert: {
-          created_at?: string
-          date_range_end: string
-          date_range_start: string
-          id?: string
-          metrics_data?: Json
-        }
-        Update: {
-          created_at?: string
-          date_range_end?: string
-          date_range_start?: string
-          id?: string
-          metrics_data?: Json
-        }
-        Relationships: []
-      }
       audit_logs: {
         Row: {
           action: string
@@ -835,10 +811,6 @@ export type Database = {
         Args: { ticket_id: string }
         Returns: undefined
       }
-      calculate_ticket_metrics: {
-        Args: { start_date: string; end_date: string }
-        Returns: Json
-      }
       check_relation_exists: {
         Args: { table_name: string; foreign_table: string }
         Returns: boolean
@@ -913,10 +885,6 @@ export type Database = {
       reset_ticket_sequence: {
         Args: Record<PropertyKey, never>
         Returns: undefined
-      }
-      store_analytics_data: {
-        Args: { start_date: string; end_date: string }
-        Returns: string
       }
       update_user: {
         Args: {

@@ -1,118 +1,145 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Dashboard from './pages/Dashboard';
-import Tickets from './pages/Tickets';
-import Clients from './pages/Clients';
-import Auth from './pages/Auth';
-import { AuthProvider } from './contexts/AuthContext';
-import ProtectedRoute from './components/ProtectedRoute';
-import TicketMetrics from './pages/TicketMetrics';
-import Layout from './components/Layout';
-import Settings from './pages/Settings';
-import PendingOrders from './pages/PendingOrders';
-import DeliveredOrders from './pages/DeliveredOrders';
-import Loyalty from './pages/Loyalty';
-import Inventory from './pages/Inventory';
-import Expenses from './pages/Expenses';
-import Administration from './pages/Administration';
-import Feedback from './pages/Feedback';
-import UserTickets from './pages/UserTickets';
+import React, { Suspense, lazy } from 'react';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { Loading } from "@/components/ui/loading";
+import { ConnectionStatusProvider } from '@/providers/ConnectionStatusProvider';
+import Layout from '@/components/Layout';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
+// Lazy loaded components
+const Tickets = lazy(() => import('./pages/Tickets'));
+const PickupOrders = lazy(() => import('./pages/PickupOrders'));
+const DeliveredOrders = lazy(() => import('./pages/DeliveredOrders'));
+const Expenses = lazy(() => import('./pages/Expenses'));
+const Clients = lazy(() => import('./pages/Clients'));
+const AdminTools = lazy(() => import('./pages/Admin'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Inventory = lazy(() => import('./pages/Inventory'));
+const Loyalty = lazy(() => import('./pages/Loyalty'));
+const Feedback = lazy(() => import('./pages/Feedback'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Router configuration
+const router = createBrowserRouter([
+  {
+    path: "/auth",
+    element: <Auth />,
+  },
+  {
+    path: "/",
+    element: <Navigate to="/auth" replace />,
+  },
+  {
+    path: "/tickets",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Tickets />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/pickup",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <PickupOrders />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/delivered",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <DeliveredOrders />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/expenses",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Expenses />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/clients",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Clients />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/loyalty",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Loyalty />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/inventory",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <Layout>
+          <Inventory />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <Layout>
+          <AdminTools />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/feedback",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <Layout>
+          <Feedback />
+        </Layout>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "*",
+    element: <NotFound />,
+  },
+]);
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager', 'operator']}>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/tickets" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager', 'operator']}>
-              <Layout>
-                <Tickets />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/clients" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager', 'operator']}>
-              <Layout>
-                <Clients />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/metrics" element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
-              <Layout>
-                <TicketMetrics />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/settings" element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
-              <Layout>
-                <Settings />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/pending-orders" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager', 'operator']}>
-              <Layout>
-                <PendingOrders />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/delivered-orders" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager', 'operator']}>
-              <Layout>
-                <DeliveredOrders />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/loyalty" element={
-            <ProtectedRoute allowedRoles={['admin', 'staff', 'manager']}>
-              <Layout>
-                <Loyalty />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/inventory" element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
-              <Layout>
-                <Inventory />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/expenses" element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
-              <Layout>
-                <Expenses />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/administration" element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <Layout>
-                <Administration />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/feedback" element={
-            <ProtectedRoute allowedRoles={['admin', 'manager']}>
-              <Layout>
-                <Feedback />
-              </Layout>
-            </ProtectedRoute>
-          } />
-          <Route path="/user-tickets" element={<UserTickets />} />
-        </Routes>
-      </AuthProvider>
-    </Router>
+    <ThemeProvider defaultTheme="light" storageKey="app-theme">
+      <ConnectionStatusProvider>
+        <ErrorBoundary>
+          <Suspense fallback={<Loading />}>
+            <RouterProvider router={router} />
+          </Suspense>
+          <Toaster />
+        </ErrorBoundary>
+      </ConnectionStatusProvider>
+    </ThemeProvider>
   );
 }
 

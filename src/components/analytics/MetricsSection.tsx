@@ -1,65 +1,61 @@
 
 import React from 'react';
-import { CircleDollarSign, Package, CheckCircle2, ShoppingCart } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import MetricsCard from '@/components/MetricsCard';
-import { TicketAnalytics } from '@/lib/types/analytics.types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Loading } from '@/components/ui/loading';
+import { CalendarIcon, CoinsIcon, CheckCircle } from 'lucide-react';
+import { TicketAnalytics } from '@/lib/analytics/interfaces';
 
 interface MetricsSectionProps {
-  analytics: TicketAnalytics;
   loading: boolean;
+  analytics: TicketAnalytics | null;
 }
 
-const MetricsSection: React.FC<MetricsSectionProps> = ({ analytics, loading }) => {
+const MetricsSection = ({ loading, analytics }: MetricsSectionProps) => {
   if (loading) {
     return (
-      <Card className="p-6">
-        <Loading />
-      </Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {Array(4).fill(0).map((_, i) => (
+          <Card key={i}>
+            <Skeleton className="h-20 w-full" />
+          </Card>
+        ))}
+      </div>
     );
   }
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(value);
+  // Ensure analytics object exists with default values
+  const safeAnalytics = analytics || {
+    totalTickets: 0,
+    averageTicketValue: 0,
+    totalRevenue: 0,
+    ticketsByStatus: { ready: 0 },
+    itemTypeDistribution: {},
+    paymentMethodDistribution: {},
+    revenueByMonth: []
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <MetricsCard
         title="Total de Tickets"
-        value={analytics.totalTickets.toString()}
-        icon={<ShoppingCart className="h-4 w-4" />}
-        description="Total de tickets generados"
+        value={safeAnalytics.totalTickets.toString() || '0'}
+        icon={<CalendarIcon className="h-4 w-4" />}
       />
-      
       <MetricsCard
-        title="Facturación Total"
-        value={formatCurrency(analytics.totalRevenue)}
-        icon={<CircleDollarSign className="h-4 w-4" />}
-        description="Ingresos totales"
+        title="Valor Promedio"
+        value={`$${safeAnalytics.averageTicketValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        icon={<CoinsIcon className="h-4 w-4" />}
       />
-      
       <MetricsCard
-        title="Ticket Promedio"
-        value={formatCurrency(analytics.averageTicketValue)}
-        icon={<Package className="h-4 w-4" />}
-        description="Valor promedio por ticket"
+        title="Ingresos Totales"
+        value={`$${safeAnalytics.totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        icon={<CoinsIcon className="h-4 w-4" />}
       />
-      
       <MetricsCard
-        title="Tickets Entregados"
-        value={analytics.ticketsByStatus.delivered.toString()}
-        icon={<CheckCircle2 className="h-4 w-4" />}
-        description={`De un total de ${analytics.totalTickets} tickets`}
-        trend={
-          analytics.totalTickets > 0
-            ? {
-                value: Math.round((analytics.ticketsByStatus.delivered / analytics.totalTickets) * 100),
-                isPositive: true
-              }
-            : undefined
-        }
+        title="Tickets Listos"
+        value={safeAnalytics.ticketsByStatus?.ready?.toString() || '0'}
+        icon={<CheckCircle className="h-4 w-4" />}
       />
     </div>
   );

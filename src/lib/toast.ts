@@ -1,45 +1,91 @@
 
 import { toast as sonnerToast } from "sonner";
 
-interface ToastOptions {
+// Define toast interface
+export interface ToastProps {
   title?: string;
   description?: string;
-  variant?: "default" | "destructive" | "success";
+  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
+  [key: string]: any;
 }
 
-export const toast = (options: ToastOptions) => {
-  const { title, description, variant = "default" } = options;
+// Create a toast function that properly handles objects and strings
+function toastFunction(props: ToastProps | string) {
+  if (typeof props === 'string') {
+    return sonnerToast(props);
+  }
+  
+  const { title, description, variant, ...rest } = props;
 
-  if (variant === "destructive") {
-    return sonnerToast.error(title, {
+  if (variant === 'destructive') {
+    return sonnerToast.error(title || '', {
       description,
+      ...rest
+    });
+  } else if (variant === 'success') {
+    return sonnerToast.success(title || '', {
+      description,
+      ...rest
+    });
+  } else if (variant === 'warning') {
+    return sonnerToast.warning(title || '', {
+      description,
+      ...rest
+    });
+  } else if (variant === 'info') {
+    return sonnerToast.info(title || '', {
+      description,
+      ...rest
     });
   }
 
-  if (variant === "success") {
-    return sonnerToast.success(title, {
-      description,
-    });
-  }
-
-  return sonnerToast(title, {
+  return sonnerToast(title || '', {
     description,
+    ...rest
   });
-};
+}
 
-// Convenience methods
-toast.error = (message: string) => {
-  sonnerToast.error("Error", { description: message });
-};
+// Create toast object with the function as default and helper methods
+export const toast = Object.assign(toastFunction, {
+  success: (message: string | ToastProps) => {
+    if (typeof message === 'string') {
+      return sonnerToast.success(message);
+    }
+    return sonnerToast.success(message.title || '', {
+      description: message.description,
+      ...message
+    });
+  },
+  error: (message: string | ToastProps) => {
+    if (typeof message === 'string') {
+      return sonnerToast.error(message);
+    }
+    return sonnerToast.error(message.title || '', {
+      description: message.description,
+      ...message
+    });
+  },
+  warning: (message: string | ToastProps) => {
+    if (typeof message === 'string') {
+      return sonnerToast.warning(message);
+    }
+    return sonnerToast.warning(message.title || '', {
+      description: message.description,
+      ...message
+    });
+  },
+  info: (message: string | ToastProps) => {
+    if (typeof message === 'string') {
+      return sonnerToast.info(message);
+    }
+    return sonnerToast.info(message.title || '', {
+      description: message.description,
+      ...message
+    });
+  },
+  loading: (title: string, options?: Omit<ToastProps, 'title'>) => {
+    return sonnerToast.loading(title, options);
+  }
+});
 
-toast.success = (message: string) => {
-  sonnerToast.success("Éxito", { description: message });
-};
-
-toast.info = (message: string) => {
-  sonnerToast.info("Información", { description: message });
-};
-
-toast.warning = (message: string) => {
-  sonnerToast.warning("Advertencia", { description: message });
-};
+export default toast;

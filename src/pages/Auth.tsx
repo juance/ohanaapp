@@ -1,15 +1,18 @@
 
-import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Lock, UserPlus } from 'lucide-react';
+import { User, Lock, UserPlus, Phone, AlertCircle } from 'lucide-react';
+import { ForgotPasswordDialog } from '@/components/auth/ForgotPasswordDialog';
+import { toast } from '@/hooks/use-toast';
 
-const Auth: React.FC = () => {
+const Auth = () => {
   const { user, login, register, loading } = useAuth();
+  const navigate = useNavigate();
 
   // Login form state
   const [loginPhone, setLoginPhone] = useState('');
@@ -19,16 +22,31 @@ const Auth: React.FC = () => {
   const [registerName, setRegisterName] = useState('');
   const [registerPhone, setRegisterPhone] = useState('');
   const [registerPassword, setRegisterPassword] = useState('');
+  const [registerPasswordConfirm, setRegisterPasswordConfirm] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-  // If user is already logged in, redirect to dashboard
+  // Forgot password dialog state
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+  // If user is already logged in, redirect to appropriate page
   if (user) {
-    return <Navigate to="/" />;
+    if (user.role === 'client') {
+      return <Navigate to="/user-tickets" />;
+    } else {
+      return <Navigate to="/" />;
+    }
   }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!loginPhone || !loginPassword) {
+      return;
+    }
+
     try {
       await login(loginPhone, loginPassword);
+      // Navigation will be handled by the redirect above when user state updates
     } catch (err) {
       // Error is handled in the login function
     }
@@ -36,10 +54,32 @@ const Auth: React.FC = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPasswordError('');
+
+    if (!registerName || !registerPhone || !registerPassword) {
+      return;
+    }
+
+    if (registerPassword !== registerPasswordConfirm) {
+      setPasswordError('Las contraseñas no coinciden');
+      return;
+    }
+
+    // Validar longitud mínima de contraseña (8 caracteres)
+    if (registerPassword.length < 8) {
+      setPasswordError('La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
     try {
       await register(registerName, registerPhone, registerPassword);
-    } catch (err) {
-      // Error is handled in the register function
+      // Navigation will be handled by the redirect above when user state updates
+    } catch (err: any) {
+      // La mayoría de errores son manejados en la función register
+      // Pero podemos manejar errores específicos aquí si es necesario
+      if (err.message && err.message.includes('contraseña')) {
+        setPasswordError(err.message);
+      }
     }
   };
 
@@ -75,6 +115,7 @@ const Auth: React.FC = () => {
                     value={loginPhone}
                     onChange={(e) => setLoginPhone(e.target.value)}
                     required
+                    autoComplete="tel"
                   />
                 </div>
                 <div className="space-y-2">
@@ -84,8 +125,17 @@ const Auth: React.FC = () => {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                   />
                 </div>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="px-0 text-sm text-blue-600"
+                  onClick={() => setForgotPasswordOpen(true)}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -105,6 +155,7 @@ const Auth: React.FC = () => {
                     value={registerName}
                     onChange={(e) => setRegisterName(e.target.value)}
                     required
+                    autoComplete="name"
                   />
                 </div>
                 <div className="space-y-2">
@@ -114,17 +165,43 @@ const Auth: React.FC = () => {
                     value={registerPhone}
                     onChange={(e) => setRegisterPhone(e.target.value)}
                     required
+                    autoComplete="tel"
                   />
                 </div>
                 <div className="space-y-2">
                   <Input
                     type="password"
-                    placeholder="Contraseña"
+                    placeholder="Contraseña (mínimo 8 caracteres)"
                     value={registerPassword}
-                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    onChange={(e) => {
+                      setRegisterPassword(e.target.value);
+                      setPasswordError('');
+                    }}
                     required
+                    autoComplete="new-password"
+                    className={passwordError ? 'border-red-500' : ''}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="Confirmar contraseña"
+                    value={registerPasswordConfirm}
+                    onChange={(e) => {
+                      setRegisterPasswordConfirm(e.target.value);
+                      setPasswordError('');
+                    }}
+                    required
+                    autoComplete="new-password"
+                    className={passwordError ? 'border-red-500' : ''}
+                  />
+                </div>
+                {passwordError && (
+                  <div className="text-red-500 text-sm flex items-center gap-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{passwordError}</span>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <Button type="submit" className="w-full" disabled={loading}>
@@ -135,6 +212,11 @@ const Auth: React.FC = () => {
           </TabsContent>
         </Tabs>
       </Card>
+
+      <ForgotPasswordDialog
+        open={forgotPasswordOpen}
+        onOpenChange={setForgotPasswordOpen}
+      />
     </div>
   );
 };

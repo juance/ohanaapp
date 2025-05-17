@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { LayoutDashboard, BarChart, LineChart } from 'lucide-react';
 
 const Index: React.FC = () => {
   return (
@@ -13,32 +12,26 @@ const Index: React.FC = () => {
         
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LayoutDashboard className="h-5 w-5" />
-              Panel de Control
-            </CardTitle>
-            <CardDescription>Vista general del negocio</CardDescription>
+            <CardTitle>Dashboard</CardTitle>
+            <CardDescription>Visualiza métricas de ventas y desempeño</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
-            <p>Accede a información resumida del negocio. Visualiza tus métricas clave y gráficos de rendimiento.</p>
+            <p>Accede a información resumida del negocio.</p>
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
-              <Link to="/dashboard">Ver Panel de Control</Link>
+              <Link to="/dashboard">Ver Dashboard</Link>
             </Button>
           </CardFooter>
         </Card>
         
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart className="h-5 w-5" />
-              Métricas
-            </CardTitle>
+            <CardTitle>Métricas</CardTitle>
             <CardDescription>Análisis detallado de tickets</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
-            <p>Analiza el rendimiento de tu negocio con métricas detalladas de ventas, tickets y clientes.</p>
+            <p>Analiza el rendimiento de tu negocio.</p>
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
@@ -49,14 +42,11 @@ const Index: React.FC = () => {
         
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LineChart className="h-5 w-5" />
-              Análisis de Tickets
-            </CardTitle>
+            <CardTitle>Análisis</CardTitle>
             <CardDescription>Análisis avanzado</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
-            <p>Analiza tendencias y patrones en tus datos. Visualiza información detallada sobre los tickets.</p>
+            <p>Analiza tendencias y patrones en tus datos.</p>
           </CardContent>
           <CardFooter>
             <Button asChild className="w-full">
