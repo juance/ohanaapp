@@ -1,124 +1,136 @@
 
-import React, { useState, useEffect } from 'react';
-import { toast } from '@/lib/toast';
-import { InventoryItemWithTimestamp } from '@/lib/types/inventory-ui.types';
+import { useState, useEffect, useCallback } from 'react';
+import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const useInventory = () => {
   const [items, setItems] = useState<InventoryItemWithTimestamp[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [sortColumn, setSortColumn] = useState<keyof InventoryItemWithTimestamp | null>(null);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    // Mock data for demonstration
-    const mockInventory: InventoryItemWithTimestamp[] = [
-      { id: '1', name: 'Camisetas', quantity: 50, unit: 'unidades', threshold: 20, notes: 'Algodón', lastUpdated: '2024-07-01' },
-      { id: '2', name: 'Pantalones', quantity: 30, unit: 'unidades', threshold: 15, notes: 'Jean', lastUpdated: '2024-07-01' },
-      { id: '3', name: 'Zapatos', quantity: 20, unit: 'pares', threshold: 10, notes: 'Cuero', lastUpdated: '2024-07-01' },
-    ];
-    setItems(mockInventory);
-  }, []);
-
-  const handleSort = (column: keyof InventoryItemWithTimestamp) => {
-    if (sortColumn === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortColumn(column);
-      setSortDirection('asc');
+  // Load inventory items
+  const loadItems = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('inventory')
+        .select('*')
+        .order('name');
+        
+      if (error) throw error;
+      
+      setItems(data.map(item => ({
+        ...item,
+        lastUpdated: item.updated_at || item.created_at
+      })));
+    } catch (error) {
+      console.error('Error loading inventory items:', error);
+      toast.error('Error al cargar el inventario');
+    } finally {
+      setIsLoading(false);
     }
-  };
-
-  const sortedItems = React.useMemo(() => {
-    if (!sortColumn) return items;
-
-    return [...items].sort((a, b) => {
-      const aValue = a[sortColumn] || '';
-      const bValue = b[sortColumn] || '';
-
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
-      }
-
-      return 0;
-    });
-  }, [items, sortColumn, sortDirection]);
-
-  const createItem = async (newItem: Omit<InventoryItemWithTimestamp, 'id'>) => {
+  }, []);
+  
+  // Initial load
+  useEffect(() => {
+    loadItems();
+  }, [loadItems]);
+  
+  // Create a new inventory item
+  const createItem = async (item: InventoryItemFormState): Promise<void> => {
     setIsCreating(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const newItemWithId: InventoryItemWithTimestamp = { 
-        ...newItem, 
-        id: String(Date.now()), 
-        lastUpdated: new Date().toISOString() 
-      };
-      setItems([...items, newItemWithId]);
-      toast.success('Ítem creado con éxito');
-      return true;
+      const { error } = await supabase
+        .from('inventory')
+        .insert({
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          threshold: item.threshold,
+          notes: item.notes
+        });
+        
+      if (error) throw error;
+      
+      await loadItems();
     } catch (error) {
-      toast.error('Error al crear el ítem');
-      return false;
+      console.error('Error creating inventory item:', error);
+      throw error;
     } finally {
       setIsCreating(false);
     }
   };
-
-  const updateItem = async (editItem: InventoryItemWithTimestamp) => {
+  
+  // Update an existing inventory item
+  const updateItem = async (item: InventoryItemWithTimestamp): Promise<void> => {
     setIsUpdating(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const updatedItems = items.map(item => 
-        item.id === editItem.id 
-          ? { ...editItem, lastUpdated: new Date().toISOString() } 
-          : item
-      );
-      setItems(updatedItems);
-      toast.success('Ítem actualizado con éxito');
-      return true;
+      const { error } = await supabase
+        .from('inventory')
+        .update({
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit,
+          threshold: item.threshold,
+          notes: item.notes,
+          updated_at: new Date()
+        })
+        .eq('id', item.id);
+        
+      if (error) throw error;
+      
+      await loadItems();
     } catch (error) {
-      toast.error('Error al actualizar el ítem');
-      return false;
+      console.error('Error updating inventory item:', error);
+      throw error;
     } finally {
       setIsUpdating(false);
     }
   };
-
-  const deleteItem = async (itemId: string) => {
+  
+  // Delete an inventory item
+  const deleteItem = async (id: string): Promise<void> => {
     setIsDeleting(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const updatedItems = items.filter(item => item.id !== itemId);
-      setItems(updatedItems);
-      toast.success('Ítem eliminado con éxito');
-      return true;
+      const { error } = await supabase
+        .from('inventory')
+        .delete()
+        .eq('id', id);
+        
+      if (error) throw error;
+      
+      await loadItems();
     } catch (error) {
-      toast.error('Error al eliminar el ítem');
-      return false;
+      console.error('Error deleting inventory item:', error);
+      throw error;
     } finally {
       setIsDeleting(false);
     }
   };
-
+  
+  // Filter items based on search query
+  const filteredItems = items.filter(item =>
+    searchQuery === '' || 
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   return {
-    items: sortedItems,
+    items: filteredItems,
+    isLoading,
     isCreating,
     isUpdating,
     isDeleting,
-    sortColumn,
-    sortDirection,
-    handleSort,
+    searchQuery,
+    setSearchQuery,
     createItem,
     updateItem,
     deleteItem,
+    refreshItems: loadItems
   };
 };
 
