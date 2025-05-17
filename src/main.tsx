@@ -6,7 +6,7 @@ import './index.css';
 import { Toaster } from './components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setupGlobalErrorHandling, initErrorService } from './lib/errorService';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Configure the query client
 const queryClient = new QueryClient();
