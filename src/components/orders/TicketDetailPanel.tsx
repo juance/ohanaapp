@@ -36,6 +36,12 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
     }
   };
 
+  // Combine ticket.services with received services if needed
+  const displayServices = services && services.length > 0 ? services : (ticket.services || []);
+  
+  // Check for dry cleaning items specifically
+  const hasDryCleaningItems = ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-start">
@@ -84,11 +90,13 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
 
       <div>
         <h3 className="text-lg font-medium mb-3">Servicios</h3>
-        {services && services.length > 0 ? (
+        {/* Display services from props, ticket.services, or ticket.dryCleaningItems */}
+        {(displayServices && displayServices.length > 0) || hasDryCleaningItems ? (
           <Card>
             <CardContent className="p-4">
               <div className="divide-y">
-                {services.map((service) => (
+                {/* Display regular services */}
+                {displayServices.map((service) => (
                   <div key={service.id} className="py-2 flex justify-between items-center">
                     <div>
                       <div className="font-medium">{service.name}</div>
@@ -98,6 +106,21 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services,
                     </div>
                     <div className="font-medium">
                       $ {service.price}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Display dry cleaning items if they exist and aren't already in services */}
+                {hasDryCleaningItems && ticket.dryCleaningItems.map((item) => (
+                  <div key={item.id} className="py-2 flex justify-between items-center">
+                    <div>
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-sm text-gray-500">
+                        Cantidad: {item.quantity}
+                      </div>
+                    </div>
+                    <div className="font-medium">
+                      $ {item.price}
                     </div>
                   </div>
                 ))}
