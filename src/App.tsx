@@ -9,6 +9,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import TicketMetrics from './pages/TicketMetrics';
 import Layout from './components/Layout';
+import Settings from './pages/Settings';
 
 function App() {
   return (
@@ -41,6 +42,13 @@ function App() {
             <ProtectedRoute allowedRoles={['admin', 'manager']}>
               <Layout>
                 <TicketMetrics />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute allowedRoles={['admin', 'manager']}>
+              <Layout>
+                <Settings />
               </Layout>
             </ProtectedRoute>
           } />

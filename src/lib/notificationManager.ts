@@ -5,27 +5,95 @@ export interface NotificationOptions {
   duration?: number;
 }
 
-// Update the method that has the incorrect parameter type
-export const sendNotification = (message: { title: string; description: string }) => {
-  // Convert the object to a string or handle it properly
-  const formattedMessage = `${message.title}: ${message.description}`;
-  // Then call the actual notification function that expects a string
-  actualNotificationFunction(formattedMessage);
-};
+export enum NotificationType {
+  SUCCESS = 'success',
+  ERROR = 'error',
+  WARNING = 'warning',
+  INFO = 'info'
+}
 
-// Or alternatively, update the method signature to accept an object:
-export const actualNotificationFunction = (messageObj: { title: string; description: string }) => {
-  // Handle the object directly
-  console.log(`Notification: ${messageObj.title} - ${messageObj.description}`);
-};
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  timestamp: Date;
+  read: boolean;
+}
+
+class NotificationManager {
+  private notifications: Notification[] = [];
+  private subscribers: ((notifications: Notification[]) => void)[] = [];
+
+  constructor() {
+    // Initialize with empty notifications array
+    this.notifications = [];
+  }
+
+  getNotifications(): Notification[] {
+    return [...this.notifications];
+  }
+
+  addNotification(title: string, message: string, type: NotificationType = NotificationType.INFO): void {
+    const notification: Notification = {
+      id: Date.now().toString(),
+      title,
+      message,
+      type,
+      timestamp: new Date(),
+      read: false
+    };
+
+    this.notifications.unshift(notification);
+    // Keep only the last 50 notifications
+    if (this.notifications.length > 50) {
+      this.notifications.pop();
+    }
+    
+    this.notifySubscribers();
+  }
+
+  markAllAsRead(): void {
+    this.notifications = this.notifications.map(n => ({ ...n, read: true }));
+    this.notifySubscribers();
+  }
+
+  clearAll(): void {
+    this.notifications = [];
+    this.notifySubscribers();
+  }
+
+  subscribe(callback: (notifications: Notification[]) => void): () => void {
+    this.subscribers.push(callback);
+    return () => {
+      this.subscribers = this.subscribers.filter(sub => sub !== callback);
+    };
+  }
+
+  private notifySubscribers(): void {
+    this.subscribers.forEach(callback => callback(this.getNotifications()));
+  }
+
+  // Convert from previous method signatures to new ones
+  sendNotification(message: { title: string; description: string }): void {
+    this.addNotification(message.title, message.description);
+  }
+
+  // Actual notification function that expects a proper object
+  actualNotificationFunction(messageObj: { title: string; description: string }): void {
+    this.addNotification(messageObj.title, messageObj.description);
+  }
+}
+
+// Export a singleton instance
+export const notificationManager = new NotificationManager();
 
 // Show a notification with the given options
 export const showNotification = (options: NotificationOptions) => {
   const { title, description, type = 'info', duration = 3000 } = options;
   
-  // Here you would integrate with your notification system
-  // For example, using a toast library or custom notification component
-  console.log(`[${type.toUpperCase()}] ${title}: ${description} (${duration}ms)`);
+  const notificationType = type as unknown as NotificationType;
+  notificationManager.addNotification(title, description, notificationType);
 };
 
 // Convenience methods for different notification types
