@@ -1,4 +1,3 @@
-
 import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -33,13 +32,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    element: (
-      <ProtectedRoute allowedRoles={['admin', 'operator']}>
-        <Layout>
-          <Dashboard />
-        </Layout>
-      </ProtectedRoute>
-    ),
+    element: <Navigate to="/auth" replace />, // Redirige la ruta principal a /auth
   },
   {
     path: "/dashboard",

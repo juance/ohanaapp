@@ -7,6 +7,8 @@ import { Toaster } from './components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initErrorService } from './lib/errorService';
+import { AuthProvider } from './contexts/AuthContext';
+import { BrowserRouter } from 'react-router-dom';
 
 // Configure the query client
 const queryClient = new QueryClient();
@@ -29,8 +31,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <React.StrictMode>
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
-          <App />
-          <Toaster />
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+              <Toaster />
+            </AuthProvider>
+          </BrowserRouter>
         </QueryClientProvider>
       </ErrorBoundary>
     </React.StrictMode>
