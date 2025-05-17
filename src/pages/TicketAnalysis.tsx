@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DateRangeSelector from '@/components/analysis/DateRangeSelector';
 import ActionButtons from '@/components/analysis/ActionButtons';
@@ -12,18 +12,32 @@ import { Loading } from '@/components/ui/loading';
 import { toast } from '@/lib/toast';
 import { ErrorMessage } from '@/components/ui/error-message';
 import { Button } from '@/components/ui/button';
+import DateFilterButtons from '@/components/analytics/DateFilterButtons';
+import { DateFilterType } from '@/lib/analytics/interfaces';
 
 interface TicketAnalysisProps {
   embedded?: boolean;
 }
 
 const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => {
+  const [activeFilter, setActiveFilter] = useState<DateFilterType>('month');
   const [isComponentMounted, setIsComponentMounted] = useState(false);
 
   useEffect(() => {
     setIsComponentMounted(true);
     return () => setIsComponentMounted(false);
   }, []);
+
+  // Get analytics data
+  const {
+    data,
+    previousPeriodData,
+    isLoading,
+    error,
+    dateRange,
+    setDateRange,
+    exportData
+  } = useTicketAnalytics();
 
   // Handler function for exporting data
   const handleExport = async () => {
@@ -47,16 +61,6 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
     }
   };
 
-  // Get analytics data
-  const {
-    data,
-    isLoading,
-    error,
-    dateRange,
-    setDateRange,
-    exportData
-  } = useTicketAnalytics();
-
   // Handler for date range changes
   const handleDateRangeChange = (from: Date, to: Date) => {
     setDateRange({ from, to });
@@ -70,6 +74,22 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
       </div>
     );
   }
+
+  // Get period label based on active filter
+  const getPeriodLabel = () => {
+    switch (activeFilter) {
+      case 'day':
+        return 'Hoy';
+      case 'week':
+        return 'Esta semana';
+      case 'month':
+        return 'Este mes';
+      case 'quarter':
+        return 'Este trimestre';
+      default:
+        return 'Periodo seleccionado';
+    }
+  };
 
   const content = (
     <>
@@ -85,11 +105,20 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
       )}
 
       <div className="mb-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <DateRangeSelector 
-          from={dateRange.from} 
-          to={dateRange.to} 
-          onUpdate={handleDateRangeChange} 
-        />
+        <div className="w-full md:w-auto">
+          <DateFilterButtons 
+            onFilterChange={setDateRange}
+            activeFilter={activeFilter}
+            setActiveFilter={setActiveFilter}
+          />
+          <div className="mt-2">
+            <DateRangeSelector 
+              from={dateRange.from} 
+              to={dateRange.to} 
+              onUpdate={handleDateRangeChange} 
+            />
+          </div>
+        </div>
         <ActionButtons onExportData={handleExport} />
       </div>
 
@@ -106,7 +135,12 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
         </div>
       ) : (
         <div className="space-y-8">
-          <MetricsSection loading={isLoading} analytics={data} />
+          <MetricsSection 
+            loading={isLoading} 
+            analytics={data} 
+            previousAnalytics={previousPeriodData}
+            periodLabel={getPeriodLabel()}
+          />
           <ChartTabs loading={isLoading} analytics={data} />
         </div>
       )}

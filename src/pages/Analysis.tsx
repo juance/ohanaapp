@@ -10,7 +10,7 @@ import ChartTabs from '@/components/analytics/ChartTabs';
 import DateFilterButtons from '@/components/analytics/DateFilterButtons';
 import ComparativeMetricsCard from '@/components/analytics/ComparativeMetricsCard';
 import { DateFilterType } from '@/lib/analytics/interfaces';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 const Analysis: React.FC = () => {

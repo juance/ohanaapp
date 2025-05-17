@@ -1,8 +1,9 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import MetricsCard from '@/components/MetricsCard';
-import { BarChart4, TrendingUp, DollarSign, ShoppingBag } from 'lucide-react';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
 const Metrics: React.FC = () => {
   return (
@@ -11,82 +12,20 @@ const Metrics: React.FC = () => {
         <h1 className="text-2xl font-bold">Métricas</h1>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <MetricsCard
-          title="Ventas Totales"
-          value="$435,200"
-          description="Últimos 30 días"
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
-          trend={{
-            value: 12.5,
-            isPositive: true
-          }}
-        />
-        <MetricsCard
-          title="Tickets Emitidos"
-          value="235"
-          description="Últimos 30 días"
-          icon={<ShoppingBag className="h-4 w-4 text-muted-foreground" />}
-          trend={{
-            value: 8.2,
-            isPositive: true
-          }}
-        />
-        <MetricsCard
-          title="Ticket Promedio"
-          value="$1,852"
-          description="Últimos 30 días"
-          icon={<BarChart4 className="h-4 w-4 text-muted-foreground" />}
-          trend={{
-            value: 3.7,
-            isPositive: true
-          }}
-        />
-        <MetricsCard
-          title="Clientes Nuevos"
-          value="34"
-          description="Últimos 30 días"
-          icon={<TrendingUp className="h-4 w-4 text-muted-foreground" />}
-          trend={{
-            value: 5.3,
-            isPositive: true
-          }}
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Rendimiento Mensual</CardTitle>
+      <Card className="border-dashed flex flex-col items-center justify-center py-12">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Análisis de métricas</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-            <p className="text-muted-foreground">Gráfico de métricas mensuales</p>
-          </div>
-        </CardContent>
+        <p className="text-center text-muted-foreground mb-6 max-w-md">
+          Las métricas completas se han trasladado a la página de análisis de tickets, donde encontrarás información detallada sobre ventas, tickets y más.
+        </p>
+        <Link to="/analysis">
+          <Button className="flex items-center gap-2">
+            Ver análisis de tickets
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </Card>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Servicios Más Populares</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-              <p className="text-muted-foreground">Gráfico de servicios</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Distribución de Pagos</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-              <p className="text-muted-foreground">Gráfico de métodos de pago</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
