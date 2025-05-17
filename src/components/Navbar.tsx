@@ -1,185 +1,142 @@
 
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Home, Package, Clipboard, DollarSign, Users, 
-  Settings, ChevronRight, Menu, X, BarChart,
-  FileText, Award, Package2, MessageSquare, LogOut
-} from 'lucide-react';
-import { ConnectionStatusBar } from './ui/connection-status-bar';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/contexts/AuthContext';
-
-interface NavLinkProps {
-  to: string;
-  icon: React.ReactNode;
-  text: string;
-  active?: boolean;
-  onClick?: () => void;
-}
-
-const NavLink: React.FC<NavLinkProps> = ({ to, icon, text, active, onClick }) => {
-  return (
-    <Link
-      to={to}
-      className={`flex items-center space-x-2 p-2 hover:bg-gray-100 rounded transition-colors ${
-        active ? 'bg-gray-100 text-blue-600' : 'text-gray-700'
-      }`}
-      onClick={onClick}
-    >
-      {icon}
-      <span>{text}</span>
-      <ChevronRight className="ml-auto h-4 w-4" />
-    </Link>
-  );
-};
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useUserAuth } from '@/hooks/use-user-auth';
+import { cn } from '@/lib/utils';
+import { LogOut, Menu, ShoppingBag, Package, PackageCheck, DollarSign, Users, Package2, Award, MessageSquare } from 'lucide-react';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const navigate = useNavigate();
-  const currentPath = window.location.pathname;
-  const { logout } = useAuth();
-  
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
+  const { pathname } = useLocation();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { logout, isAdmin } = useUserAuth();
 
-  const handleLogout = async () => {
-    await logout();
-  };
+  const closeMenu = () => setIsMenuOpen(false);
+
+  const NavItems = [
+    {
+      name: 'Tickets',
+      path: '/tickets',
+      icon: <ShoppingBag className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Tickets Listos',
+      path: '/pickup',
+      icon: <Package className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Tickets Entregados',
+      path: '/delivered',
+      icon: <PackageCheck className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Gastos',
+      path: '/expenses',
+      icon: <DollarSign className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Clientes',
+      path: '/clients',
+      icon: <Users className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Programa de Fidelidad',
+      path: '/loyalty',
+      icon: <Award className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Inventario',
+      path: '/inventory',
+      icon: <Package2 className="h-5 w-5" />,
+      roles: ['admin', 'operator']
+    },
+    {
+      name: 'Feedback de Clientes',
+      path: '/feedback',
+      icon: <MessageSquare className="h-5 w-5" />,
+      roles: ['admin']
+    },
+    {
+      name: 'Administración',
+      path: '/admin',
+      icon: <DollarSign className="h-5 w-5" />,
+      roles: ['admin']
+    },
+  ];
 
   return (
     <>
-      {/* Mobile menu button */}
-      <div className="fixed top-4 left-4 z-40 md:hidden">
-        <button
-          onClick={toggleMenu}
-          className="p-2 rounded-md bg-white shadow text-gray-700"
-        >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+      {/* Mobile navbar */}
+      <div className="flex items-center border-b bg-background px-4 py-3 md:hidden">
+        <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0">
+            <ScrollArea className="h-full px-2 py-4">
+              <div className="flex flex-col gap-1 p-2">
+                {NavItems.filter(item => isAdmin || item.roles.includes('operator')).map((item) => (
+                  <Link key={item.path} to={item.path} onClick={closeMenu}>
+                    <Button
+                      variant={pathname === item.path ? 'default' : 'ghost'}
+                      className="w-full justify-start"
+                    >
+                      {item.icon}
+                      <span className="ml-2">{item.name}</span>
+                    </Button>
+                  </Link>
+                ))}
+                <Button variant="ghost" className="w-full justify-start text-red-500" onClick={logout}>
+                  <LogOut className="mr-2 h-5 w-5" />
+                  Cerrar Sesión
+                </Button>
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
+        <div className="ml-4 flex-1 text-center text-lg font-semibold">
+          Lavandería App
+        </div>
       </div>
 
-      {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"
-          onClick={closeMenu}
-        />
-      )}
-
-      {/* Navbar */}
-      <div
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-white shadow-lg z-30 transform transition-transform duration-300 ease-in-out md:transform-none ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 border-b">
-            <h1 className="text-xl font-bold text-blue-600">Lavandería Ohana</h1>
-            <p className="text-sm text-gray-500">Sistema de Gestión</p>
+      {/* Desktop sidebar */}
+      <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+        <div className="flex h-full flex-col border-r bg-background">
+          <div className="flex h-16 items-center border-b px-6">
+            <Link to="/" className="text-lg font-semibold">
+              Lavandería App
+            </Link>
           </div>
-
-          {/* Navigation links */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            <NavLink
-              to="/dashboard"
-              icon={<Home className="h-5 w-5" />}
-              text="Panel de Control"
-              active={currentPath === '/' || currentPath === '/dashboard'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/tickets"
-              icon={<Clipboard className="h-5 w-5" />}
-              text="Tickets"
-              active={currentPath === '/tickets'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/pickup"
-              icon={<Package className="h-5 w-5" />}
-              text="Órdenes Pendientes"
-              active={currentPath === '/pickup'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/delivered"
-              icon={<FileText className="h-5 w-5" />}
-              text="Órdenes Entregadas"
-              active={currentPath === '/delivered'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/clients"
-              icon={<Users className="h-5 w-5" />}
-              text="Clientes"
-              active={currentPath === '/clients'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/loyalty"
-              icon={<Award className="h-5 w-5" />}
-              text="Programa de Fidelidad"
-              active={currentPath === '/loyalty'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/inventory"
-              icon={<Package2 className="h-5 w-5" />}
-              text="Inventario"
-              active={currentPath === '/inventory'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/metrics"
-              icon={<BarChart className="h-5 w-5" />}
-              text="Métricas"
-              active={currentPath === '/metrics'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/analysis"
-              icon={<FileText className="h-5 w-5" />}
-              text="Análisis de Tickets"
-              active={currentPath === '/analysis'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/expenses"
-              icon={<DollarSign className="h-5 w-5" />}
-              text="Gastos"
-              active={currentPath === '/expenses'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/admin"
-              icon={<Settings className="h-5 w-5" />}
-              text="Administración"
-              active={currentPath === '/admin'}
-              onClick={closeMenu}
-            />
-            <NavLink
-              to="/feedback"
-              icon={<MessageSquare className="h-5 w-5" />}
-              text="Comentarios"
-              active={currentPath === '/feedback'}
-              onClick={closeMenu}
-            />
-          </nav>
-
-          {/* Bottom section with connection status and logout button */}
-          <div className="p-4 border-t space-y-4">
-            <ConnectionStatusBar variant="compact" />
-            <Button 
-              variant="destructive" 
-              className="w-full flex items-center justify-center"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Cerrar Sesión
-            </Button>
-          </div>
+          <ScrollArea className="flex-1 p-4">
+            <div className="flex flex-col gap-1">
+              {NavItems.filter(item => isAdmin || item.roles.includes('operator')).map((item) => (
+                <Link key={item.path} to={item.path}>
+                  <Button
+                    variant={pathname === item.path ? 'default' : 'ghost'}
+                    className={cn('w-full justify-start', pathname === item.path && 'bg-accent')}
+                  >
+                    {item.icon}
+                    <span className="ml-2">{item.name}</span>
+                  </Button>
+                </Link>
+              ))}
+              <Button variant="ghost" className="w-full justify-start text-red-500" onClick={logout}>
+                <LogOut className="mr-2 h-5 w-5" />
+                Cerrar Sesión
+              </Button>
+            </div>
+          </ScrollArea>
         </div>
       </div>
     </>
