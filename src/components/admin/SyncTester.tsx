@@ -1,132 +1,106 @@
 
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { toast } from '@/lib/toast';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { testSync, cleanupSyncTest } from '@/lib/tests/syncTester';
-import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
 
 export function SyncTester() {
-  const [testing, setTesting] = useState(false);
-  const [results, setResults] = useState<any>(null);
-  const [syncing, setSyncing] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; results: any } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const runTest = async () => {
-    if (testing) return;
-    
-    setTesting(true);
+  const handleRunTest = async () => {
     try {
-      const testResults = await testSync();
-      setResults(testResults);
+      setIsRunning(true);
+      setError(null);
       
-      if (testResults.success) {
-        toast.success('Sync test completed successfully');
-      } else {
-        toast.error('Sync test failed');
-      }
-    } catch (error) {
-      console.error('Error running sync test:', error);
-      toast.error('Error running sync test');
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const cleanup = async () => {
-    try {
+      const result = await testSync();
+      setTestResult(result);
+      
+      // Clean up test data after running the test
       await cleanupSyncTest();
-      setResults(null);
-      toast.success('Test data cleaned up');
-    } catch (error) {
-      console.error('Error cleaning up:', error);
-      toast.error('Error cleaning up test data');
-    }
-  };
-
-  const runSync = async () => {
-    if (syncing) return;
-    
-    setSyncing(true);
-    try {
-      const syncResults = await syncAllData(true);
-      
-      toast.success(`Sync completed: ${
-        syncResults.tickets + 
-        syncResults.expenses + 
-        syncResults.clients + 
-        syncResults.feedback
-      } items synced`);
-    } catch (error) {
-      console.error('Error running sync:', error);
-      toast.error('Error running sync');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error running sync test');
+      console.error('Error running sync test:', err);
     } finally {
-      setSyncing(false);
+      setIsRunning(false);
     }
   };
 
   return (
-    <Card className="w-full">
+    <Card>
       <CardHeader>
-        <CardTitle>Tester de Sincronización</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <span>Prueba de Sincronización</span>
+          {testResult && (
+            testResult.success 
+              ? <CheckCircle2 className="h-5 w-5 text-green-500" /> 
+              : <AlertCircle className="h-5 w-5 text-red-500" />
+          )}
+        </CardTitle>
         <CardDescription>
-          Comprueba que el sistema de sincronización funciona correctamente
+          Verifica que el sistema de sincronización de datos esté funcionando correctamente
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-col gap-4">
-          <Button 
-            onClick={runTest} 
-            disabled={testing}
-            className="w-full"
-          >
-            {testing ? 'Probando...' : 'Probar sincronización'}
-          </Button>
-          
-          <Button 
-            onClick={runSync} 
-            disabled={syncing}
-            variant="outline"
-            className="w-full"
-          >
-            {syncing ? 'Sincronizando...' : 'Forzar sincronización'}
-          </Button>
-          
-          {results && (
-            <div className="mt-4 space-y-4">
-              <div className="grid grid-cols-4 gap-2">
-                <div className="border rounded p-2">
-                  <h3 className="text-sm font-medium">Tickets</h3>
-                  <p className="text-2xl">{results.results.syncResults.tickets}</p>
-                </div>
-                <div className="border rounded p-2">
-                  <h3 className="text-sm font-medium">Gastos</h3>
-                  <p className="text-2xl">{results.results.syncResults.expenses}</p>
-                </div>
-                <div className="border rounded p-2">
-                  <h3 className="text-sm font-medium">Clientes</h3>
-                  <p className="text-2xl">{results.results.syncResults.clients}</p>
-                </div>
-                <div className="border rounded p-2">
-                  <h3 className="text-sm font-medium">Feedback</h3>
-                  <p className="text-2xl">{results.results.syncResults.feedback}</p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 justify-center">
-                <span className={`text-lg font-medium ${results.success ? 'text-green-600' : 'text-red-600'}`}>
-                  {results.success ? '✓ Prueba exitosa' : '✗ Prueba fallida'}
-                </span>
-                <Button onClick={cleanup} variant="ghost" size="sm">
-                  Limpiar datos de prueba
-                </Button>
-              </div>
+      
+      <CardContent className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        {testResult && (
+          <div className="text-sm space-y-2">
+            <h3 className="font-medium">Resultados:</h3>
+            
+            <div className="bg-gray-50 p-3 rounded-md">
+              <p className="mb-1 text-xs font-medium">Estado inicial:</p>
+              <ul className="list-disc pl-5 text-xs">
+                <li>Tickets: {testResult.results.initialState.tickets}</li>
+                <li>Gastos: {testResult.results.initialState.expenses}</li>
+                <li>Clientes: {testResult.results.initialState.clients}</li>
+                <li>Feedback: {testResult.results.initialState.feedback}</li>
+              </ul>
             </div>
-          )}
-        </div>
+            
+            <div className="bg-gray-50 p-3 rounded-md">
+              <p className="mb-1 text-xs font-medium">Datos de prueba creados:</p>
+              <ul className="list-disc pl-5 text-xs">
+                <li>Ticket: {testResult.results.testCreation.ticket ? 'Sí' : 'No'}</li>
+                <li>Gasto: {testResult.results.testCreation.expense ? 'Sí' : 'No'}</li>
+                <li>Cliente: {testResult.results.testCreation.client ? 'Sí' : 'No'}</li>
+                <li>Feedback: {testResult.results.testCreation.feedback ? 'Sí' : 'No'}</li>
+              </ul>
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded-md">
+              <p className="mb-1 text-xs font-medium">Resultados de sincronización:</p>
+              <ul className="list-disc pl-5 text-xs">
+                <li>Tickets: {testResult.results.syncResults.tickets}</li>
+                <li>Gastos: {testResult.results.syncResults.expenses}</li>
+                <li>Clientes: {testResult.results.syncResults.clients}</li>
+                <li>Feedback: {testResult.results.syncResults.feedback}</li>
+              </ul>
+            </div>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex-col items-start text-sm text-gray-500">
-        <p>Este componente crea datos de prueba y verifica la sincronización.</p>
-        <p>Solo use para fines de prueba, no en producción.</p>
+      
+      <CardFooter>
+        <Button 
+          onClick={handleRunTest} 
+          disabled={isRunning}
+          variant="outline"
+          className="gap-2"
+        >
+          {isRunning && <RefreshCw className="h-4 w-4 animate-spin" />}
+          {isRunning ? 'Ejecutando...' : 'Ejecutar prueba de sincronización'}
+        </Button>
       </CardFooter>
     </Card>
   );
