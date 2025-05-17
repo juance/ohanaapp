@@ -46,7 +46,6 @@ const PickupOrders: React.FC = () => {
     handleOpenCancelDialog,
     handleCancelTicket,
     handlePrintTicket,
-    handleShareWhatsApp,
     handleNotifyClient,
     handleOpenPaymentMethodDialog,
     handleUpdatePaymentMethod,
@@ -83,7 +82,6 @@ const PickupOrders: React.FC = () => {
           handleMarkAsDelivered={handleMarkAsDelivered}
           handleOpenCancelDialog={handleOpenCancelDialog}
           handlePrintTicket={handlePrintTicket}
-          handleShareWhatsApp={handleShareWhatsApp}
           handleNotifyClient={handleNotifyClient}
           handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
         />

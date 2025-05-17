@@ -106,7 +106,7 @@ const TicketAnalysis: React.FC<TicketAnalysisProps> = ({ embedded = false }) => 
         </div>
       ) : (
         <div className="space-y-8">
-          <MetricsSection metrics={data} />
+          <MetricsSection loading={isLoading} analytics={data} />
           <ChartTabs chartData={data} />
         </div>
       )}

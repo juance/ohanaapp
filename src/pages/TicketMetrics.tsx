@@ -90,7 +90,7 @@ const TicketMetrics: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              <MetricsSection metrics={data} />
+              <MetricsSection loading={isLoading} analytics={data} />
               <ChartTabs chartData={data} />
             </div>
           )}
