@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { InventoryItemWithTimestamp } from '@/lib/types/inventory-ui.types';
+import React, { useState } from 'react';
+import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
 import InventorySearch from '@/components/inventory/InventorySearch';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import InventoryItemForm from '@/components/inventory/InventoryItemForm';
@@ -59,13 +59,7 @@ const InventoryList: React.FC = () => {
     }
   };
 
-  const handleSubmit = async (formData: {
-    name: string;
-    quantity: number;
-    unit: string;
-    threshold: number;
-    notes: string;
-  }) => {
+  const handleSubmit = async (formData: InventoryItemFormState): Promise<void> => {
     try {
       if (currentItem) {
         // Update existing item
