@@ -1,16 +1,11 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { TicketAnalytics } from './interfaces';
 
-export interface TicketAnalytics {
-  totalTickets: number;
-  averageTicketValue: number;
-  totalRevenue: number;
-  itemTypeDistribution: Record<string, number>;
-  paymentMethodDistribution: Record<string, number>;
-  ticketsByStatus: Record<string, number>;
-  revenueByMonth: { month: string; revenue: number }[];
-}
-
+/**
+ * Get analytics data for tickets within a date range
+ */
 export const getTicketAnalytics = async (
   startDate?: Date, 
   endDate?: Date
