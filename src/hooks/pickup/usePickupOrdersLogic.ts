@@ -36,13 +36,6 @@ export const usePickupOrdersLogic = () => {
   // Apply filters to tickets
   const filteredTickets = filterTickets(pickupTickets);
 
-  // Load ticket services when a ticket is selected
-  useEffect(() => {
-    if (selectedTicket) {
-      loadTicketServices(selectedTicket);
-    }
-  }, [selectedTicket, loadTicketServices]);
-
   /**
    * Handles errors in a consistent way
    */

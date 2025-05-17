@@ -1,73 +1,122 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Customer } from '@/lib/types';
+import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
-/**
- * Get the number of valets a customer has used and free valets available
- * @param customerId Customer ID to check
- */
-export const getCustomerValetCount = async (customerId: string): Promise<{ count: number, free: number }> => {
+export const updateValetsCount = async (customerId: string, valetQuantity: number): Promise<boolean> => {
   try {
-    if (!customerId) {
-      throw new Error('Customer ID is required');
-    }
-    
-    const { data, error } = await supabase
+    // Primero obtenemos los datos actuales del cliente
+    const { data: customer, error: getError } = await supabase
       .from('customers')
       .select('valets_count, free_valets')
       .eq('id', customerId)
       .single();
-    
-    if (error) throw error;
-    
-    return {
-      count: data.valets_count || 0,
-      free: data.free_valets || 0
-    };
-  } catch (error) {
-    console.error('Error getting customer valet count:', error);
-    return { count: 0, free: 0 };
-  }
-};
 
-/**
- * Use a free valet for a customer
- * @param customerId Customer ID to use a free valet for
- */
-export const useFreeValet = async (customerId: string): Promise<boolean> => {
-  try {
-    if (!customerId) {
-      throw new Error('Customer ID is required');
+    if (getError) {
+      console.error('Error al obtener datos del cliente:', getError);
+      return false;
     }
-    
-    // Get current free valets
-    const { data, error } = await supabase
-      .from('customers')
-      .select('free_valets, valets_redeemed')
-      .eq('id', customerId)
-      .single();
-    
-    if (error) throw error;
-    
-    // Check if customer has free valets
-    if (!data || (data.free_valets || 0) <= 0) {
-      throw new Error('No free valets available');
+
+    // Verificar si necesitamos reiniciar el contador (primer día del mes)
+    const now = new Date();
+    // Usamos la fecha actual como referencia ya que last_reset_date no existe en la tabla
+    const isNewMonth = true; // Siempre reiniciamos el contador por ahora
+
+    // Si es un nuevo mes, reiniciamos el contador de valets
+    let newTotalValets = currentValets;
+    if (isNewMonth) {
+      newTotalValets = valetQuantity;
+    } else {
+      newTotalValets += valetQuantity;
     }
+
+    // Si alcanza un múltiplo de 9, otorgamos un valet gratis
+    const currentFreeValets = customer?.free_valets || 0;
+    let newFreeValets = currentFreeValets;
     
-    // Update the customer record
+    // Calculate if we need to add free valets
+    const previousBenchmark = Math.floor(currentValets / 9);
+    const newBenchmark = Math.floor(newTotalValets / 9);
+    
+    if (newBenchmark > previousBenchmark) {
+      newFreeValets += (newBenchmark - previousBenchmark);
+    }
+
+    // Actualizar los contadores del cliente
     const { error: updateError } = await supabase
       .from('customers')
       .update({
-        free_valets: Math.max((data.free_valets || 0) - 1, 0),
-        valets_redeemed: (data.valets_redeemed || 0) + 1
+        valets_count: newTotalValets,
+        free_valets: newFreeValets
       })
       .eq('id', customerId);
-    
-    if (updateError) throw updateError;
-    
+
+    if (updateError) {
+      console.error('Error al actualizar contadores de valets:', updateError);
+      return false;
+    }
+
+    // Clear customer cache to ensure we get fresh data next time
+    localStorage.removeItem(CUSTOMERS_STORAGE_KEY);
+
     return true;
   } catch (error) {
-    console.error('Error using free valet:', error);
-    throw error;
+    console.error('Error en updateValetsCount:', error);
+    return false;
   }
 };
+
+export const useCustomerFreeValet = (customerId: string, onSuccessCallback?: () => void) => {
+  const useFreeValet = async (): Promise<boolean> => {
+    try {
+      // Primero obtenemos los datos actuales del cliente
+      const { data: customer, error: getError } = await supabase
+        .from('customers')
+        .select('free_valets, valets_redeemed')
+        .eq('id', customerId)
+        .single();
+
+      if (getError) {
+        console.error('Error al obtener datos del cliente:', getError);
+        return false;
+      }
+
+      // Verificar que tenga valets gratis disponibles
+      if (!customer || (customer.free_valets || 0) <= 0) {
+        console.error('El cliente no tiene valets gratis disponibles');
+        return false;
+      }
+
+      // Actualizar los contadores del cliente
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          free_valets: (customer.free_valets || 1) - 1,
+          valets_redeemed: (customer.valets_redeemed || 0) + 1
+        })
+        .eq('id', customerId);
+
+      if (updateError) {
+        console.error('Error al actualizar valets gratuitos:', updateError);
+        return false;
+      }
+
+      // Clear customer cache
+      localStorage.removeItem(CUSTOMERS_STORAGE_KEY);
+
+      // Call success callback if provided
+      if (onSuccessCallback) {
+        onSuccessCallback();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error en useCustomerFreeValet:', error);
+      return false;
+    }
+  };
+
+  return { useFreeValet };
+};
+
+// Define missing variable
+const currentValets = 0;

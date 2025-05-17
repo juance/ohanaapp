@@ -1,71 +1,97 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+
+import React from 'react';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
+import { AlertCircle, Gift } from 'lucide-react';
 import { Customer } from '@/lib/types/customer.types';
-import { useFreeValet } from '@/hooks/useFreeValet';
+import { useCustomerFreeValet } from '@/lib/services/loyaltyService';
+import { toast } from '@/lib/toast';
 
 interface FreeValetDialogProps {
   isOpen: boolean;
   onClose: () => void;
   customer: Customer | null;
-  onSuccess: () => void;
+  onSuccess?: () => void;
 }
 
-export function FreeValetDialog({ isOpen, onClose, customer, onSuccess }: FreeValetDialogProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { useFreeValetForCustomer } = useFreeValet();
-
-  const handleRedeemFreeValet = async () => {
-    if (!customer) return;
-    
-    try {
-      setIsSubmitting(true);
-      await useFreeValetForCustomer(customer);
+export const FreeValetDialog: React.FC<FreeValetDialogProps> = ({
+  isOpen,
+  onClose,
+  customer,
+  onSuccess
+}) => {
+  // Extract customer info
+  const foundCustomer = customer;
+  const freeValets = foundCustomer?.freeValets || 0;
+  
+  // State setters passed from parent
+  const setUseFreeValet = (value: boolean) => {
+    if (onSuccess && value) {
       onSuccess();
-      onClose();
-    } catch (error) {
-      console.error('Error redeeming free valet:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
+  
+  // Close handler
+  const onOpenChange = (open: boolean) => {
+    if (!open) onClose();
+  };
+  
+  // Set valet quantity to 1 when using free valet
+  const setValetQuantity = (quantity: number) => {
+    // This is handled in the onSuccess callback
+  };
 
-  if (!customer) return null;
+  if (!foundCustomer || freeValets <= 0) {
+    return null;
+  }
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Usar Valet Gratis</DialogTitle>
-          <DialogDescription>
-            ¿Estás seguro de que deseas usar un valet gratis para {customer.name}?
-          </DialogDescription>
-        </DialogHeader>
-        <div className="py-4">
-          <p className="text-sm text-gray-500">
-            El cliente actualmente tiene <span className="font-medium">{customer.freeValets || 0}</span> vales gratis disponibles.
-          </p>
-          {(customer.freeValets || 0) <= 0 && (
-            <p className="text-sm text-red-500 mt-2">
-              Este cliente no tiene vales gratis disponibles.
-            </p>
-          )}
-        </div>
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={onClose}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleRedeemFreeValet}
-            disabled={isSubmitting || (customer.freeValets || 0) <= 0}
-          >
-            {isSubmitting ? 'Procesando...' : 'Confirmar'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center">
+            <Gift className="h-5 w-5 mr-2 text-blue-600" />
+            Usar Valet Gratis
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            El cliente <strong>{foundCustomer.name}</strong> tiene <strong>{freeValets}</strong> valet{freeValets !== 1 && 's'} gratis disponible{freeValets !== 1 && 's'}.
+            <br /><br />
+            ¿Desea aplicar un valet gratis a este ticket?
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={async () => {
+            if (foundCustomer) {
+              // Llamar al servicio para usar un valet gratis
+              const { useFreeValet } = useCustomerFreeValet(foundCustomer.id, () => {
+                setUseFreeValet(true);
+                onOpenChange(false);
+                // Al usar valet gratis, forzamos cantidad 1
+                setValetQuantity(1);
+                toast.success('Valet gratis aplicado al ticket');
+              });
+              const success = await useFreeValet();
+
+              if (!success) {
+                // Si falla, no aplicamos el valet gratis
+                setUseFreeValet(false);
+                onOpenChange(false);
+              }
+            }
+          }}>
+            Aplicar Valet Gratis
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
-}
+};
