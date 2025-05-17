@@ -113,10 +113,10 @@ export const testSync = async (): Promise<{ success: boolean, results: any }> =>
     };
   } catch (error) {
     console.error('Error during sync test:', error);
+    // Fixed: Return a type-compliant object without the 'error' property
     return {
       success: false,
-      results,
-      error
+      results
     };
   }
 };

@@ -3,8 +3,8 @@ import React, { Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Toaster } from "@/components/ui/toaster";
-import { ThemeProvider } from "@/providers/ThemeProvider";
-import Loading from "@/components/Loading";
+import { ThemeProvider } from "@/providers/theme-provider";
+import { Loading } from "@/components/ui/loading";
 import { ConnectionStatusProvider } from '@/providers/ConnectionStatusProvider';
 
 // Lazy loaded components
