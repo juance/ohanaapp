@@ -119,7 +119,7 @@ export const usePickupTicketOperations = () => {
         isPaid: ticketData.is_paid,
         createdAt: ticketData.created_at,
         deliveredDate: ticketData.delivered_date,
-        basketTicketNumber: ticketData.basket_ticket_number || '',
+        basketTicketNumber: (ticketData as any).basket_ticket_number || '',
         services: dryCleaningItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -184,7 +184,7 @@ export const usePickupTicketOperations = () => {
           isPaid: ticketData.is_paid,
           createdAt: ticketData.created_at,
           deliveredDate: ticketData.delivered_date,
-          basketTicketNumber: ticketData.basket_ticket_number || '',
+          basketTicketNumber: (ticketData as any).basket_ticket_number || '',
           services: dryCleaningItems.map(item => ({
             id: item.id,
             name: item.name,
