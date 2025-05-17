@@ -74,3 +74,21 @@ export const createDetailedTicketMessage = (ticket: Ticket): string => {
 export const formatPhoneForWhatsApp = (phoneNumber: string): string => {
   return phoneNumber.replace(/\D/g, '');
 };
+
+/**
+ * Creates a simplified WhatsApp notification message
+ * This matches the format shown in the example image
+ */
+export const createSimpleTicketMessage = (ticket: Ticket): string => {
+  let message = `*Lavandería Ohana*\n\n`;
+  message += `Hola! Tu pedido #${ticket.ticketNumber} está listo para retirar.\n\n`;
+  
+  if (ticket.basketTicketNumber) {
+    message += `N° Canasto: ${ticket.basketTicketNumber}\n`;
+  }
+  
+  message += `Total: $${ticket.totalPrice.toLocaleString()}\n\n`;
+  message += "Gracias por tu confianza!";
+  
+  return message;
+};

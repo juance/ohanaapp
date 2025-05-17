@@ -15,4 +15,3 @@ export function openWhatsApp(phoneNumber: string, message: string): void {
   // Open WhatsApp in a new window
   window.open(whatsappUrl, '_blank');
 }
-
