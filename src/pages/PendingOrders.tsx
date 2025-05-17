@@ -28,6 +28,7 @@ const PendingOrders = () => {
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [ticketToCancelId, setTicketToCancelId] = useState<string | null>(null);
   const [ticketToChangePayment, setTicketToChangePayment] = useState<Ticket | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
   
   // Filter tickets based on search query
   const filteredPendingTickets = pendingTickets?.filter(ticket => {
@@ -73,6 +74,21 @@ const PendingOrders = () => {
     } else if (newStatus === 'delivered') {
       await handleTicketDelivered(ticketId);
     }
+  };
+
+  const handleCancelConfirm = async () => {
+    // Handle ticket cancellation logic here
+    // After cancellation:
+    setTicketToCancelId(null);
+    setCancelReason('');
+    refreshTickets();
+  };
+
+  const handleUpdatePaymentMethod = async (method: string) => {
+    // Handle payment method update logic here
+    // After updating:
+    setTicketToChangePayment(null);
+    refreshTickets();
   };
 
   const renderOrderCard = (ticket: Ticket) => (
@@ -166,23 +182,24 @@ const PendingOrders = () => {
       {/* Cancel Ticket Dialog */}
       {ticketToCancelId && (
         <CancelTicketDialog
-          isOpen={!!ticketToCancelId}
-          onClose={() => setTicketToCancelId(null)}
-          ticketId={ticketToCancelId}
-          ticketNumber={(pendingTickets.find(t => t.id === ticketToCancelId) || readyTickets.find(t => t.id === ticketToCancelId))?.ticketNumber || ''}
-          onCanceled={refreshTickets}
+          open={!!ticketToCancelId}
+          onOpenChange={(open) => {
+            if (!open) setTicketToCancelId(null);
+          }}
+          cancelReason={cancelReason}
+          setCancelReason={setCancelReason}
+          onCancel={handleCancelConfirm}
         />
       )}
       
       {/* Change Payment Method Dialog */}
       {ticketToChangePayment && (
         <PaymentMethodDialog
-          isOpen={!!ticketToChangePayment}
-          onClose={() => setTicketToChangePayment(null)}
-          ticketId={ticketToChangePayment.id}
-          ticketNumber={ticketToChangePayment.ticketNumber}
-          currentPaymentMethod={ticketToChangePayment.paymentMethod}
-          onPaymentMethodChanged={refreshTickets}
+          open={!!ticketToChangePayment}
+          onOpenChange={(open) => {
+            if (!open) setTicketToChangePayment(null);
+          }}
+          onUpdatePaymentMethod={handleUpdatePaymentMethod}
         />
       )}
     </div>
