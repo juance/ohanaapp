@@ -119,7 +119,7 @@ export const usePickupTicketOperations = () => {
         isPaid: ticketData.is_paid,
         createdAt: ticketData.created_at,
         deliveredDate: ticketData.delivered_date,
-        basketTicketNumber: ticketData.basket_ticket_number,
+        basketTicketNumber: ticketData.basket_ticket_number || '',
         services: dryCleaningItems.map(item => ({
           id: item.id,
           name: item.name,
@@ -138,23 +138,97 @@ export const usePickupTicketOperations = () => {
   }, []);
 
   /**
-   * Shares a ticket via WhatsApp
+   * Shares a ticket via WhatsApp with detailed information
    */
-  const handleShareWhatsApp = useCallback((ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): void => {
+  const handleShareWhatsApp = useCallback(async (ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): Promise<void> => {
     if (!phoneNumber) {
       toast.error('No hay número de teléfono para este cliente');
       return;
     }
 
-    const ticket = tickets?.find(t => t.id === ticketId);
-    if (!ticket) {
-      toast.error('Ticket no encontrado');
-      return;
-    }
+    try {
+      // If tickets are provided, try to find the ticket in the array first
+      let ticket: Ticket | undefined;
+      if (tickets && tickets.length > 0) {
+        ticket = tickets.find(t => t.id === ticketId);
+      }
 
-    const message = `Hola! Tu pedido #${ticket.ticketNumber} está listo para retirar. Total: $${ticket.totalPrice}. Gracias por tu compra!`;
-    const whatsappUrl = `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
+      // If ticket wasn't found in the array or tickets array wasn't provided, fetch directly from DB
+      if (!ticket) {
+        const { data: ticketData, error: ticketError } = await supabase
+          .from('tickets')
+          .select('*, customers(name, phone)')
+          .eq('id', ticketId)
+          .single();
+        
+        if (ticketError) throw ticketError;
+
+        // Get dry cleaning items
+        const { data: dryCleaningItems, error: itemsError } = await supabase
+          .from('dry_cleaning_items')
+          .select('*')
+          .eq('ticket_id', ticketId);
+        
+        if (itemsError) throw itemsError;
+
+        ticket = {
+          id: ticketData.id,
+          ticketNumber: ticketData.ticket_number,
+          clientName: ticketData.customers?.name || '',
+          phoneNumber: ticketData.customers?.phone || '',
+          total: ticketData.total || 0,
+          totalPrice: ticketData.total || 0,
+          status: ticketData.status,
+          paymentMethod: ticketData.payment_method,
+          date: ticketData.date,
+          isPaid: ticketData.is_paid,
+          createdAt: ticketData.created_at,
+          deliveredDate: ticketData.delivered_date,
+          basketTicketNumber: ticketData.basket_ticket_number || '',
+          services: dryCleaningItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price || 0,
+            quantity: item.quantity || 1
+          }))
+        };
+      }
+      
+      if (!ticket) {
+        toast.error('Ticket no encontrado');
+        return;
+      }
+
+      // Create a detailed message with ticket information
+      let message = `Hola! Tu pedido #${ticket.ticketNumber} está listo para retirar.\n\n`;
+      
+      // Add items to the message
+      if (ticket.services && ticket.services.length > 0) {
+        message += "Artículos:\n";
+        ticket.services.forEach(service => {
+          const quantity = service.quantity || 1;
+          const price = service.price || 0;
+          message += `- ${service.name} x${quantity}: $${price}\n`;
+        });
+        message += "\n";
+      }
+      
+      if (ticket.basketTicketNumber) {
+        message += `N° Canasto: ${ticket.basketTicketNumber}\n\n`;
+      }
+      
+      message += `Total: $${ticket.totalPrice.toLocaleString()}\n\n`;
+      message += "Gracias por tu confianza!";
+
+      // Format phone number and open WhatsApp
+      const formattedPhone = phoneNumber.replace(/\D/g, '');
+      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, '_blank');
+
+    } catch (err: any) {
+      console.error("Error preparing WhatsApp message:", err);
+      toast.error(`Error al preparar mensaje de WhatsApp: ${err.message}`);
+    }
   }, []);
 
   /**
