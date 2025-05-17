@@ -1,171 +1,46 @@
-
-import { toast } from '@/lib/toast';
-
-export enum NotificationType {
-  INFO = 'info',
-  SUCCESS = 'success',
-  WARNING = 'warning',
-  ERROR = 'error'
-}
-
-export interface Notification {
-  id: string;
-  type: NotificationType;
+export interface NotificationOptions {
   title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  data?: any;
+  description: string;
+  type?: 'success' | 'error' | 'warning' | 'info';
+  duration?: number;
 }
 
-class NotificationManager {
-  private notifications: Notification[] = [];
-  private listeners: ((notifications: Notification[]) => void)[] = [];
+// Update the method that has the incorrect parameter type
+export const sendNotification = (message: { title: string; description: string }) => {
+  // Convert the object to a string or handle it properly
+  const formattedMessage = `${message.title}: ${message.description}`;
+  // Then call the actual notification function that expects a string
+  actualNotificationFunction(formattedMessage);
+};
 
-  constructor() {
-    // Load persisted notifications from localStorage
-    this.loadFromStorage();
-  }
+// Or alternatively, update the method signature to accept an object:
+export const actualNotificationFunction = (messageObj: { title: string; description: string }) => {
+  // Handle the object directly
+  console.log(`Notification: ${messageObj.title} - ${messageObj.description}`);
+};
 
-  // Get all notifications
-  getNotifications(): Notification[] {
-    return [...this.notifications];
-  }
+// Show a notification with the given options
+export const showNotification = (options: NotificationOptions) => {
+  const { title, description, type = 'info', duration = 3000 } = options;
+  
+  // Here you would integrate with your notification system
+  // For example, using a toast library or custom notification component
+  console.log(`[${type.toUpperCase()}] ${title}: ${description} (${duration}ms)`);
+};
 
-  // Get unread notifications count
-  getUnreadCount(): number {
-    return this.notifications.filter(n => !n.read).length;
-  }
+// Convenience methods for different notification types
+export const showSuccess = (title: string, description: string, duration?: number) => {
+  showNotification({ title, description, type: 'success', duration });
+};
 
-  // Add a new notification
-  addNotification(
-    type: NotificationType,
-    title: string,
-    message: string,
-    data?: any
-  ): Notification {
-    const notification: Notification = {
-      id: this.generateId(),
-      type,
-      title,
-      message,
-      timestamp: new Date(),
-      read: false,
-      data
-    };
+export const showError = (title: string, description: string, duration?: number) => {
+  showNotification({ title, description, type: 'error', duration });
+};
 
-    this.notifications.unshift(notification);
-    this.persistToStorage();
-    this.notifyListeners();
-    
-    // También mostrar como toast si la aplicación está abierta
-    switch (type) {
-      case NotificationType.INFO:
-        toast.info(message);
-        break;
-      case NotificationType.SUCCESS:
-        toast.success(message);
-        break;
-      case NotificationType.WARNING:
-        toast.warning(message);
-        break;
-      case NotificationType.ERROR:
-        toast.error(message);
-        break;
-    }
+export const showWarning = (title: string, description: string, duration?: number) => {
+  showNotification({ title, description, type: 'warning', duration });
+};
 
-    return notification;
-  }
-
-  // Mark a notification as read
-  markAsRead(id: string): void {
-    const notification = this.notifications.find(n => n.id === id);
-    if (notification) {
-      notification.read = true;
-      this.persistToStorage();
-      this.notifyListeners();
-    }
-  }
-
-  // Mark all notifications as read
-  markAllAsRead(): void {
-    this.notifications.forEach(n => n.read = true);
-    this.persistToStorage();
-    this.notifyListeners();
-  }
-
-  // Delete a notification
-  deleteNotification(id: string): void {
-    this.notifications = this.notifications.filter(n => n.id !== id);
-    this.persistToStorage();
-    this.notifyListeners();
-  }
-
-  // Clear all notifications
-  clearAll(): void {
-    this.notifications = [];
-    this.persistToStorage();
-    this.notifyListeners();
-  }
-
-  // Subscribe to notification changes
-  subscribe(listener: (notifications: Notification[]) => void): () => void {
-    this.listeners.push(listener);
-    return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
-    };
-  }
-
-  // Convenience methods
-  info(title: string, message: string, data?: any): Notification {
-    return this.addNotification(NotificationType.INFO, title, message, data);
-  }
-
-  success(title: string, message: string, data?: any): Notification {
-    return this.addNotification(NotificationType.SUCCESS, title, message, data);
-  }
-
-  warning(title: string, message: string, data?: any): Notification {
-    return this.addNotification(NotificationType.WARNING, title, message, data);
-  }
-
-  error(title: string, message: string, data?: any): Notification {
-    return this.addNotification(NotificationType.ERROR, title, message, data);
-  }
-
-  // Private methods
-  private generateId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substring(2);
-  }
-
-  private notifyListeners(): void {
-    this.listeners.forEach(listener => listener([...this.notifications]));
-  }
-
-  private persistToStorage(): void {
-    try {
-      localStorage.setItem('notifications', JSON.stringify(this.notifications));
-    } catch (error) {
-      console.error('Failed to persist notifications', error);
-    }
-  }
-
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem('notifications');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert string timestamps back to Date objects
-        this.notifications = parsed.map((n: any) => ({
-          ...n,
-          timestamp: new Date(n.timestamp)
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to load notifications from storage', error);
-    }
-  }
-}
-
-// Export singleton instance
-export const notificationManager = new NotificationManager();
+export const showInfo = (title: string, description: string, duration?: number) => {
+  showNotification({ title, description, type: 'info', duration });
+};

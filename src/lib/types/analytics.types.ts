@@ -9,6 +9,23 @@ export interface RevenueByMonth {
   revenue: number;
 }
 
+// Add the missing chart data types
+export interface ChartData {
+  name: string;
+  value: number;
+}
+
+export interface LineChartData {
+  name: string;
+  income: number;
+  expenses: number;
+}
+
+export interface BarChartData {
+  name: string;
+  total: number;
+}
+
 export interface TicketAnalytics {
   totalTickets: number;
   totalRevenue: number;

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Role } from '@/lib/types/auth';
 
@@ -10,6 +9,7 @@ interface AuthContextType {
   register: (name: string, phoneNumber: string, password: string, role?: Role) => Promise<void>;
   logout: () => Promise<void>;
   checkUserPermission: (requiredRoles: Role[]) => boolean;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -20,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   register: async () => {},
   logout: async () => {},
   checkUserPermission: () => false,
+  changePassword: async () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -108,6 +109,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return requiredRoles.includes(user.role);
   };
 
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    setLoading(true);
+    try {
+      // Mock password change for now
+      // In a real implementation, this would call an API endpoint
+      console.log(`Changing password from ${oldPassword} to ${newPassword}`);
+      
+      // Update the user if needed
+      if (user) {
+        const updatedUser = { ...user, requiresPasswordChange: false };
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        setUser(updatedUser);
+      }
+      
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Error changing password');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -116,7 +140,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       login,
       register,
       logout,
-      checkUserPermission
+      checkUserPermission,
+      changePassword
     }}>
       {children}
     </AuthContext.Provider>
