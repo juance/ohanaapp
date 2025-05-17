@@ -5,7 +5,7 @@ import App from './App.tsx';
 import './index.css';
 import { Toaster } from './components/ui/toaster';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ErrorBoundary from './components/ErrorBoundary';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { initErrorService } from './lib/errorService';
 
 // Configure the query client
