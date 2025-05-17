@@ -20,7 +20,7 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   chartData, 
   frequentClients = [] 
 }) => {
-  // Ensure all data properties exist with default empty arrays if undefined
+  // Validate and provide safe defaults for all data
   const safeBarData = Array.isArray(chartData?.barData) && chartData.barData.length > 0 
     ? chartData.barData 
     : [{ name: 'Sin datos', total: 0 }];
@@ -35,7 +35,8 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   
   const safeClients = Array.isArray(frequentClients) ? frequentClients : [];
 
-  console.log("Chart data being used:", {
+  // Debug information to help identify issues
+  console.log("Chart data being processed:", {
     barData: safeBarData,
     lineData: safeLineData,
     pieData: safePieData,

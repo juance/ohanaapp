@@ -9,8 +9,9 @@ import { useDashboardData } from '@/hooks/useDashboardData';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import DateRangeFilter from '@/components/dashboard/DateRangeFilter';
+import { ErrorMessage } from '@/components/ui/error-message';
 
 interface DashboardProps {
   embedded?: boolean;
@@ -19,6 +20,7 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   const { 
     isLoading, 
+    isError,
     error, 
     refetch: refreshData,
     dateRange,
@@ -29,8 +31,6 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
     dryCleaningItems
   } = useDashboardData();
 
-  console.log('Dashboard component - data:', data);
-
   const handleRefresh = async () => {
     try {
       toast({
@@ -38,6 +38,11 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         description: "Por favor espere mientras se actualizan los datos."
       });
       await refreshData();
+      toast({
+        variant: "success",
+        title: "Panel actualizado",
+        description: "Los datos se han actualizado correctamente."
+      });
     } catch (err) {
       console.error("Error refreshing dashboard:", err);
       toast({
@@ -53,7 +58,9 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   };
 
   // Prepare chart data objects with proper structure
-  const barData = [{ name: 'Tickets', total: data?.length || 0 }];
+  const barData = [
+    { name: 'Tickets', total: data?.length || 0 }
+  ];
   
   const lineData = [
     { name: 'Actual', income: incomeInRange || 0, expenses: 0 }
@@ -97,7 +104,6 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
         </header>
       )}
 
-      {/* Añadimos el filtro de fechas */}
       <div className="mb-6">
         <DateRangeFilter 
           startDate={dateRange.start}
@@ -108,23 +114,16 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
 
       {isLoading ? (
         <LoadingState />
-      ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-          <h3 className="text-lg font-medium text-red-800">Error al cargar datos</h3>
-          <p className="text-red-700">{error.message}</p>
-          <Button
-            onClick={handleRefresh}
-            variant="destructive"
-            size="sm"
-            className="mt-2"
-          >
-            Reintentar
-          </Button>
-        </div>
+      ) : isError ? (
+        <ErrorMessage 
+          title="Error al cargar datos" 
+          message={error?.message || "Ocurrió un error al cargar los datos del dashboard."}
+          onRetry={handleRefresh}
+        />
       ) : !data || data.length === 0 ? (
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
           <h3 className="text-lg font-medium text-yellow-800">No hay datos disponibles</h3>
-          <p className="text-yellow-700">No se encontraron datos para mostrar en el panel de control.</p>
+          <p className="text-yellow-700">No se encontraron tickets para el rango de fechas seleccionado.</p>
           <Button
             onClick={handleRefresh}
             variant="outline"
@@ -140,8 +139,13 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
             metrics={{
               todayTickets: data.length,
               todayIncome: incomeInRange,
-              pendingTickets: 0,
-              totalTickets: data.length
+              pendingTickets: data.filter(t => t.status === 'pending' || t.status === 'processing').length,
+              totalTickets: data.length,
+              revenue: incomeInRange,
+              delivered: data.filter(t => t.status === 'delivered').length,
+              pending: data.filter(t => t.status === 'pending').length,
+              valetCount: serviceCounts.valet,
+              dryCleaningItemsCount: Object.values(dryCleaningItems).reduce((sum: number, val: any) => sum + val, 0)
             }}
             expenses={{}}
             viewType="monthly"

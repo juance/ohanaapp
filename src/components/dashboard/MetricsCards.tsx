@@ -1,5 +1,5 @@
 
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingBag, DollarSign, CalendarDays, TrendingUp, Award, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -24,16 +24,13 @@ const formatCurrency = (value: number) => {
 };
 
 export default function MetricsCards({ metrics, expenses, viewType, dateRange }: MetricsCardsProps) {
-  // Usar directamente los datos de las estadísticas de tickets
-  console.log('MetricsCards - metrics completo:', metrics);
-
-  // Calcular métricas directamente desde los datos de tickets
-  const revenue = Number(metrics?.revenue || 0);
-  const currentExpenses = expenses ? expenses.total || 0 : 0;
-  const profit = revenue - Number(currentExpenses || 0);
-  const totalTickets = Number(metrics?.total || 0);
+  // Ensure all metrics have default values to prevent NaN and undefined errors
+  const revenue = Number(metrics?.todayIncome || metrics?.revenue || 0);
+  const currentExpenses = Number(expenses?.total || 0);
+  const profit = revenue - currentExpenses;
+  const totalTickets = Number(metrics?.totalTickets || 0);
   const deliveredTickets = Number(metrics?.delivered || 0);
-  const pendingTickets = Number(metrics?.pending || 0);
+  const pendingTickets = Number(metrics?.pendingTickets || metrics?.pending || 0);
   const valetCount = Number(metrics?.valetCount || 0);
   const dryCleaningItemsCount = Number(metrics?.dryCleaningItemsCount || 0);
 
@@ -41,15 +38,6 @@ export default function MetricsCards({ metrics, expenses, viewType, dateRange }:
   const dateRangeLabel = dateRange 
     ? `${format(dateRange.from, 'dd/MM/yyyy', { locale: es })} - ${format(dateRange.to, 'dd/MM/yyyy', { locale: es })}`
     : viewType === 'daily' ? 'Hoy' : viewType === 'weekly' ? 'Esta semana' : 'Este mes';
-
-  console.log('MetricsCards - Valores calculados:', {
-    revenue,
-    totalTickets,
-    deliveredTickets,
-    pendingTickets,
-    valetCount,
-    dryCleaningItemsCount
-  });
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -130,6 +118,25 @@ export default function MetricsCards({ metrics, expenses, viewType, dateRange }:
           <p className="text-xs text-muted-foreground">
             {dateRangeLabel}
           </p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">Servicios</CardTitle>
+          <CalendarDays className="h-4 w-4 text-muted-foreground" />
+        </CardHeader>
+        <CardContent>
+          <div className="text-xs space-y-1">
+            <div className="flex justify-between">
+              <span>Valets:</span>
+              <span className="font-medium">{valetCount}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tintorería:</span>
+              <span className="font-medium">{dryCleaningItemsCount}</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

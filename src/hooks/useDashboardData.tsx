@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useState, useCallback } from 'react';
+import { toast } from '@/lib/toast';
 
 // Define the return type for the hook
 interface UseDashboardDataReturn {
@@ -26,8 +27,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   const fetchDashboardData = useCallback(async () => {
     try {
       console.log('Fetching dashboard data for date range:', {
-        start: dateRange.start,
-        end: dateRange.end
+        start: dateRange.start.toISOString(),
+        end: dateRange.end.toISOString()
       });
       
       // Convert to ISO format for Supabase queries
@@ -43,7 +44,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
           dry_cleaning_items (id, name, quantity, price)
         `)
         .gte('created_at', rangeStartISO)
-        .lte('created_at', rangeEndISO);
+        .lte('created_at', rangeEndISO)
+        .order('created_at', { ascending: false });
       
       if (rangeTicketsError) {
         console.error('Error fetching tickets:', rangeTicketsError);
@@ -53,22 +55,27 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       console.log(`Fetched ${rangeTicketsData?.length || 0} tickets`);
       
       // Process data
-      const rangeIncome = calculateTotalIncome(rangeTicketsData || []);
+      const validTickets = rangeTicketsData?.filter(ticket => 
+        !ticket.is_canceled && ticket.status !== 'canceled' && ticket.status !== 'cancelled'
+      ) || [];
+      
+      const rangeIncome = calculateTotalIncome(validTickets);
       
       // Count services
-      const serviceCounts = countServices(rangeTicketsData || []);
+      const serviceCounts = countServices(validTickets);
       
       // Count dry cleaning items
-      const dryCleaningItems = countDryCleaningItems(rangeTicketsData || []);
+      const dryCleaningItems = countDryCleaningItems(validTickets);
 
       return {
-        ticketsInRange: rangeTicketsData || [],
+        ticketsInRange: validTickets,
         incomeInRange: rangeIncome,
         serviceCounts,
         dryCleaningItems
       };
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      toast.error('Error al cargar datos del dashboard');
       throw error;
     }
   }, [dateRange]);
@@ -77,7 +84,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     queryKey: ['dashboardData', dateRange.start.toISOString(), dateRange.end.toISOString()],
     queryFn: fetchDashboardData,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    gcTime: 1000 * 60 * 10 // 10 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    retry: 2
   });
 
   const calculateTotalIncome = (tickets: any[]): number => {
@@ -98,11 +106,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     };
 
     tickets.forEach(ticket => {
-      // Ignore cancelled tickets
-      if (ticket.status === 'canceled' || ticket.status === 'cancelled') {
-        return;
-      }
-
       // Count by valet quantity for valet tickets
       if (ticket.valet_quantity > 0) {
         counts.valet += ticket.valet_quantity;
@@ -127,11 +130,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     const dryCleaningItems: Record<string, number> = {};
 
     tickets.forEach(ticket => {
-      // Ignore cancelled tickets
-      if (ticket.status === 'canceled' || ticket.status === 'cancelled') {
-        return;
-      }
-      
       // Process dry cleaning items if available
       if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
         ticket.dry_cleaning_items.forEach((item: any) => {
@@ -139,6 +137,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
           }
         });
+      }
+
+      // Add valet entries for pie chart
+      if (ticket.valet_quantity > 0) {
+        dryCleaningItems['Valet'] = (dryCleaningItems['Valet'] || 0) + ticket.valet_quantity;
       }
     });
 
