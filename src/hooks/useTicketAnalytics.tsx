@@ -1,34 +1,18 @@
 
 import { useState, useEffect } from 'react';
 import { toast } from '@/lib/toast';
-import { fetchTicketsInDateRange, exportAnalyticsToCSV } from '@/services/analytics/ticketAnalyticsService';
+import { TicketAnalytics, DateRange } from '@/lib/analytics/interfaces';
+import { fetchTicketsInDateRange, exportAnalyticsToCSV, calculateTicketAnalytics } from '@/lib/analytics/ticketAnalyticsService';
 import { processTicketAnalyticsData } from '@/utils/analytics/ticketDataProcessor';
-
-export interface TicketAnalytics {
-  totalTickets: number;
-  averageTicketValue: number;
-  totalRevenue: number;
-  ticketsByStatus?: {
-    pending: number;
-    processing: number;
-    ready: number;
-    delivered: number;
-  };
-  topServices: Array<{ name: string; count: number }>;
-  revenueByMonth: Array<{ month: string; revenue: number }>;
-  itemTypeDistribution: Record<string, number>;
-  paymentMethodDistribution: Record<string, number>;
-  freeValets?: number; 
-  paidTickets?: number; 
-}
 
 export interface UseTicketAnalyticsReturn {
   data: TicketAnalytics;
-  dateRange: { from: Date; to: Date };
-  setDateRange: (range: { from: Date; to: Date }) => void;
+  dateRange: DateRange;
+  setDateRange: (range: DateRange) => void;
   isLoading: boolean;
   error: Error | null;
   exportData: () => Promise<void>;
+  refreshData: () => Promise<void>;
 }
 
 export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
@@ -52,7 +36,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     paidTickets: 0
   });
 
-  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().setDate(new Date().getDate() - 30)),
     to: new Date()
   });
@@ -62,6 +46,21 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     setError(null);
     
     try {
+      // Try to use server-side calculation first
+      try {
+        const serverData = await calculateTicketAnalytics(dateRange.from, dateRange.to);
+        
+        if (serverData) {
+          setData(serverData);
+          setIsLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.log('Server-side calculation failed, falling back to client-side:', err);
+        // Continue with client-side calculation
+      }
+      
+      // Fall back to client-side calculation
       const { tickets, dryCleaningItems } = await fetchTicketsInDateRange(dateRange.from, dateRange.to);
       
       if (!tickets || tickets.length === 0) {
@@ -92,6 +91,12 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     } catch (err) {
       console.error("Error fetching ticket analytics:", err);
       setError(err instanceof Error ? err : new Error('Unknown error fetching analytics'));
+      
+      toast({
+        variant: "destructive",
+        title: "Error al cargar análisis",
+        description: "No se pudieron cargar los datos de análisis."
+      });
     } finally {
       setIsLoading(false);
     }
@@ -104,9 +109,20 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   const exportData = async () => {
     try {
       await exportAnalyticsToCSV(data);
+      toast({
+        title: "Exportación exitosa",
+        description: "Los datos han sido exportados correctamente."
+      });
       return Promise.resolve();
     } catch (error) {
       console.error('Error exporting data:', error);
+      
+      toast({
+        variant: "destructive",
+        title: "Error al exportar",
+        description: "No se pudieron exportar los datos."
+      });
+      
       return Promise.reject(error);
     }
   };
@@ -117,6 +133,7 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
     setDateRange,
     isLoading,
     error,
-    exportData
+    exportData,
+    refreshData: fetchData
   };
 };

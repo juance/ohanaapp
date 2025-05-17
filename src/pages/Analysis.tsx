@@ -1,79 +1,88 @@
 
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DateRange } from '@/lib/analytics/interfaces';
+import { useTicketAnalytics } from '@/hooks/useTicketAnalytics';
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Button } from '@/components/ui/button';
+import { Download, RefreshCw } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import MetricsSection from '@/components/analytics/MetricsSection';
+import ChartTabs from '@/components/analytics/ChartTabs';
 
 const Analysis: React.FC = () => {
+  const { 
+    data: analytics, 
+    isLoading, 
+    dateRange, 
+    setDateRange,
+    exportData,
+    refreshData
+  } = useTicketAnalytics();
+
+  const handleDateRangeChange = (range: DateRange) => {
+    setDateRange(range);
+  };
+
+  const handleExport = async () => {
+    await exportData();
+  };
+
+  const handleRefresh = async () => {
+    await refreshData();
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Análisis de Tickets</h1>
         
-        <div className="flex items-center space-x-2">
-          <Select defaultValue="30days">
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="7days">Últimos 7 días</SelectItem>
-              <SelectItem value="30days">Últimos 30 días</SelectItem>
-              <SelectItem value="90days">Últimos 90 días</SelectItem>
-              <SelectItem value="year">Este año</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <DateRangePicker
+            value={{
+              from: dateRange.from,
+              to: dateRange.to
+            }}
+            onChange={handleDateRangeChange}
+          />
+          
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+          
+          <Button
+            variant="outline"
+            onClick={handleExport}
+            disabled={isLoading}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Exportar
+          </Button>
         </div>
       </div>
 
-      <Tabs defaultValue="trends">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="trends">Tendencias</TabsTrigger>
-          <TabsTrigger value="comparison">Comparación</TabsTrigger>
-          <TabsTrigger value="clients">Clientes</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="trends" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tendencia de Ventas</CardTitle>
-              <CardDescription>Análisis de ventas en el tiempo</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-                <p className="text-muted-foreground">Gráfico de tendencias</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="comparison" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Comparativa de Períodos</CardTitle>
-              <CardDescription>Comparación entre períodos similares</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-                <p className="text-muted-foreground">Gráfico de comparación</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="clients" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Análisis de Clientes</CardTitle>
-              <CardDescription>Comportamiento y frecuencia de clientes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px] flex items-center justify-center bg-gray-50 rounded-md">
-                <p className="text-muted-foreground">Gráfico de clientes</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {isLoading ? (
+        <div className="space-y-6">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-72 w-full" />
+        </div>
+      ) : (
+        <>
+          <MetricsSection 
+            loading={isLoading} 
+            analytics={analytics} 
+          />
+          
+          <ChartTabs 
+            loading={isLoading} 
+            analytics={analytics} 
+          />
+        </>
+      )}
     </div>
   );
 };
