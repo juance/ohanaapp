@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';

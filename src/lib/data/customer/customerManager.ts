@@ -1,6 +1,6 @@
 
 import { Customer } from '@/lib/types';
-import { CUSTOMERS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { getCustomersFromLocalStorage, saveCustomersToLocalStorage } from './customerLocalStorage';
 
 /**
  * Store or update customer to local storage
@@ -52,42 +52,12 @@ export const storeCustomer = (customer: Partial<Customer>): Customer | null => {
     }
     
     // Save back to local storage
-    localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
+    saveCustomersToLocalStorage(customers);
     
     return updatedCustomer;
   } catch (error) {
     console.error('Error storing customer:', error);
     return null;
-  }
-};
-
-/**
- * Get all customers from local storage
- * @returns Array of customers
- */
-export const getCustomersFromLocalStorage = (): Customer[] => {
-  const customersString = localStorage.getItem(CUSTOMERS_STORAGE_KEY);
-  if (!customersString) return [];
-  
-  try {
-    const customers = JSON.parse(customersString);
-    
-    // Map each customer to ensure all fields are present
-    return customers.map((customer: any) => ({
-      id: customer.id,
-      name: customer.name,
-      phoneNumber: customer.phoneNumber,
-      phone: customer.phone,
-      valetsCount: customer.valetsCount || 0,
-      freeValets: customer.freeValets || 0,
-      lastVisit: customer.lastVisit,
-      loyaltyPoints: customer.loyaltyPoints || 0,
-      createdAt: customer.createdAt,
-      valetsRedeemed: customer.valetsRedeemed || 0
-    }));
-  } catch (error) {
-    console.error('Error parsing customers from localStorage:', error);
-    return [];
   }
 };
 
@@ -102,45 +72,6 @@ export const getCustomerByPhone = (phone: string): Customer | null => {
 };
 
 /**
- * Update customer's last visit date
- * @param customerId Customer ID
- * @param date Last visit date
- */
-export const updateCustomerLastVisit = async (customerId: string, date: string): Promise<void> => {
-  const { supabase } = await import('@/integrations/supabase/client');
-  try {
-    // Update in database
-    const { error } = await supabase
-      .from('customers')
-      .update({ last_visit: date })
-      .eq('id', customerId);
-    
-    if (error) {
-      console.error('Error updating customer last visit in database:', error);
-      throw error;
-    }
-    
-    // Update in local storage
-    const customers = getCustomersFromLocalStorage();
-    const customerIndex = customers.findIndex(c => c.id === customerId);
-    
-    if (customerIndex >= 0) {
-      customers[customerIndex].lastVisit = date;
-      localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
-    }
-  } catch (error) {
-    console.error('Error updating customer last visit:', error);
-    throw error;
-  }
-};
-
-/**
  * Alias for storeCustomer to maintain compatibility with older code
  */
 export const storeOrUpdateCustomer = storeCustomer;
-
-/**
- * Get all stored customers
- * @returns Array of customers
- */
-export const getStoredCustomers = getCustomersFromLocalStorage;

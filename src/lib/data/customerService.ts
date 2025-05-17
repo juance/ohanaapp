@@ -1,7 +1,8 @@
 
 import { Customer } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
-import { storeOrUpdateCustomer, getStoredCustomers } from '@/lib/data/customer/customerStorageService';
+import { storeCustomer, getStoredCustomers } from '@/lib/data/customer/customerLocalStorage';
+import { storeOrUpdateCustomer } from '@/lib/data/customer/customerManager';
 
 export async function getCustomerByPhone(phoneNumber: string): Promise<Customer | null> {
   try {

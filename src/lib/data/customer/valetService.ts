@@ -39,7 +39,7 @@ export const useFreeValet = async (customerId: string): Promise<number> => {
     // Get customer free valets count
     const { data, error } = await supabase
       .from('customers')
-      .select('free_valets')
+      .select('free_valets, valets_redeemed')
       .eq('id', customerId)
       .single();
     
