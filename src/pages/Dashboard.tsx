@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import MetricsCards from '@/components/dashboard/MetricsCards';
 import ChartSection from '@/components/dashboard/ChartSection';
@@ -30,6 +30,12 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
     serviceCounts,
     dryCleaningItems
   } = useDashboardData();
+
+  // Initial data load
+  useEffect(() => {
+    // Load data automatically when the component mounts
+    refreshData();
+  }, []);
 
   const handleRefresh = async () => {
     try {
@@ -67,7 +73,7 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
   ];
   
   // Convert dryCleaningItems to pieData format
-  const pieData = dryCleaningItems 
+  const pieData = dryCleaningItems && Object.keys(dryCleaningItems).length > 0
     ? Object.entries(dryCleaningItems).map(([name, value]) => ({
         name,
         value: value as number
@@ -144,8 +150,8 @@ const Dashboard: React.FC<DashboardProps> = ({ embedded = false }) => {
               revenue: incomeInRange,
               delivered: data.filter(t => t.status === 'delivered').length,
               pending: data.filter(t => t.status === 'pending').length,
-              valetCount: serviceCounts.valet,
-              dryCleaningItemsCount: Object.values(dryCleaningItems).reduce((sum: number, val: any) => sum + val, 0)
+              valetCount: serviceCounts.valet || 0,
+              dryCleaningItemsCount: Object.values(dryCleaningItems || {}).reduce((sum: number, val: any) => sum + val, 0)
             }}
             expenses={{}}
             viewType="monthly"

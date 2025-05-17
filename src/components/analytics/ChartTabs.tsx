@@ -4,46 +4,53 @@ import { Card, CardHeader, CardContent, CardTitle, CardDescription } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, LineChart, PieChart } from '@/components/ui/custom-charts';
+import { TicketAnalytics } from '@/lib/analytics/interfaces';
 
 interface ChartTabsProps {
-  chartData: any;
-  loading?: boolean;
+  loading: boolean;
+  analytics: TicketAnalytics | null;
 }
 
-const ChartTabs = ({ chartData, loading = false }: ChartTabsProps) => {
-  // Prepare chart data
+const ChartTabs = ({ loading, analytics }: ChartTabsProps) => {
+  // Prepare chart data with safe fallbacks
   const preparePaymentMethodData = () => {
-    if (!chartData) return [];
+    if (!analytics || !analytics.paymentMethodDistribution || Object.keys(analytics.paymentMethodDistribution).length === 0) {
+      return [{ name: 'Sin datos', value: 1 }];
+    }
     
-    return Object.entries(chartData.paymentMethodDistribution || {}).map(([name, value]) => ({
+    return Object.entries(analytics.paymentMethodDistribution).map(([name, value]) => ({
       name: name === 'cash' ? 'Efectivo' :
             name === 'debit' ? 'Débito' :
             name === 'mercadopago' ? 'MercadoPago' :
             name === 'cuentadni' ? 'Cuenta DNI' : name,
-      value: Number(value) // Explicitly convert to number to fix type issue
+      value: Number(value) || 0 // Ensure value is a number
     }));
   };
   
   const prepareRevenueChartData = () => {
-    if (!chartData) return [];
+    if (!analytics || !analytics.revenueByMonth || analytics.revenueByMonth.length === 0) {
+      return [{ name: 'Sin datos', income: 0, expenses: 0 }];
+    }
     
-    return (chartData.revenueByMonth || []).map((item: any) => ({
+    return analytics.revenueByMonth.map(item => ({
       name: item.month,
-      income: parseFloat((item.revenue || 0).toFixed(2)),
+      income: parseFloat(item.revenue.toFixed(2)),
       expenses: 0 // Adding default expenses value to match LineChart data type
     }));
   };
   
   const prepareItemDistributionData = () => {
-    if (!chartData) return [];
+    if (!analytics || !analytics.itemTypeDistribution || Object.keys(analytics.itemTypeDistribution).length === 0) {
+      return [{ name: 'Sin datos', total: 0 }];
+    }
     
     // Get top 10 items by quantity
-    return Object.entries(chartData.itemTypeDistribution || {})
+    return Object.entries(analytics.itemTypeDistribution)
       .sort((a, b) => Number(b[1]) - Number(a[1]))
       .slice(0, 10)
       .map(([name, value]) => ({
         name,
-        total: Number(value)
+        total: Number(value) || 0
       }));
   };
 

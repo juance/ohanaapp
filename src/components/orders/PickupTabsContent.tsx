@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import PickupTicketList from '@/components/orders/PickupTicketList';
@@ -34,14 +33,6 @@ const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
 }) => {
   return (
     <>
-      <Tabs defaultValue="pending" className="mb-4">
-        <TabsList>
-          <TabsTrigger value="pending">Pendientes</TabsTrigger>
-          <TabsTrigger value="processing">En Proceso</TabsTrigger>
-          <TabsTrigger value="ready">Listos</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
           <Loading />

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check, Printer, Share2, X, Bell, CreditCard } from 'lucide-react';
+import { Check, Printer, X, Bell, CreditCard } from 'lucide-react';
 import { Ticket } from '@/lib/types';
 
 interface PickupActionButtonsProps {
@@ -10,7 +10,6 @@ interface PickupActionButtonsProps {
   handleMarkAsDelivered: (ticketId: string) => Promise<void>;
   handleOpenCancelDialog: () => void;
   handlePrintTicket: (ticketId: string) => void;
-  handleShareWhatsApp: (ticketId: string, phoneNumber?: string) => void;
   handleNotifyClient: (ticketId: string, phoneNumber?: string) => void;
   handleOpenPaymentMethodDialog: () => void;
 }
@@ -21,7 +20,6 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
   handleMarkAsDelivered,
   handleOpenCancelDialog,
   handlePrintTicket,
-  handleShareWhatsApp,
   handleNotifyClient,
   handleOpenPaymentMethodDialog
 }) => {
@@ -55,17 +53,6 @@ const PickupActionButtons: React.FC<PickupActionButtonsProps> = ({
       >
         <Printer className="mr-1 h-4 w-4" />
         <span>Imprimir</span>
-      </Button>
-
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center"
-        disabled={!isTicketSelected}
-        onClick={() => selectedTicket && handleShareWhatsApp(selectedTicket, getSelectedTicketPhone())}
-      >
-        <Share2 className="mr-1 h-4 w-4" />
-        <span>WhatsApp</span>
       </Button>
 
       <Button

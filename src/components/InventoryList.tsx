@@ -1,11 +1,13 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
 import InventorySearch from '@/components/inventory/InventorySearch';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import InventoryItemForm from '@/components/inventory/InventoryItemForm';
 import DeleteItemDialog from '@/components/inventory/DeleteItemDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
 import { toast } from 'sonner';
 
@@ -17,7 +19,9 @@ const InventoryList: React.FC = () => {
     isDeleting,
     createItem,
     updateItem,
-    deleteItem
+    deleteItem,
+    searchQuery,
+    setSearchQuery
   } = useInventory();
   
   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
@@ -26,8 +30,7 @@ const InventoryList: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<InventoryItemWithTimestamp | null>(null);
 
   const handleSearch = (query: string) => {
-    // Using the search functionality from useInventory hook
-    // This is handled by the InventorySearch component directly
+    setSearchQuery(query);
   };
 
   const handleCreateNew = () => {
@@ -84,6 +87,9 @@ const InventoryList: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">Inventario</h2>
+        <Button onClick={handleCreateNew} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" /> Agregar Producto
+        </Button>
       </div>
       
       <InventorySearch
