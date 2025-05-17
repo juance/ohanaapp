@@ -1,72 +1,81 @@
 
-import React from 'react';
-import Navbar from '@/components/Navbar';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Loading } from '@/components/ui/loading';
-import { Card } from '@/components/ui/card';
-import CustomerSearch from '@/components/loyalty/CustomerSearch';
-import CustomerDetails from '@/components/loyalty/CustomerDetails';
-import LoyaltyPoints from '@/components/loyalty/LoyaltyPoints';
-import { useLoyaltyCustomer } from '@/hooks/useLoyaltyCustomer';
+import React, { useState } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import LoyaltyInfo from '@/components/LoyaltyInfo';
 
-const Loyalty = () => {
-  const {
-    phone,
-    setPhone,
-    loading,
-    searchResult,
-    redeeming,
-    handleSearch,
-    handleRedeemValet
-  } = useLoyaltyCustomer();
+const Loyalty: React.FC = () => {
+  // Example customer state - in a real app this would come from an API or context
+  const [selectedCustomer, setSelectedCustomer] = useState<{name: string, valetsCount: number, freeValets: number} | null>(null);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  
+  // Dummy function to simulate customer lookup
+  const handleSearch = () => {
+    if (phoneNumber.trim() === '') return;
+    
+    // Simulate finding a customer
+    setSelectedCustomer({
+      name: 'Cliente de Ejemplo',
+      valetsCount: 7,
+      freeValets: 1
+    });
+  };
   
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Navbar />
-      
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          <header className="mb-8">
-            <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              <span>Volver al Inicio</span>
-            </Link>
-            <h1 className="text-2xl font-bold text-blue-600">Programa de Fidelidad</h1>
-            <p className="text-gray-500">Gestión de puntos y recompensas para clientes</p>
-          </header>
-          
-          <div className="grid gap-6 md:grid-cols-2">
-            <CustomerSearch 
-              phone={phone}
-              setPhone={setPhone}
-              handleSearch={handleSearch}
-              loading={loading}
-            />
-            
-            {loading ? (
-              <Card className="md:col-span-2 flex justify-center items-center p-8">
-                <Loading />
-              </Card>
-            ) : searchResult ? (
-              <>
-                <CustomerDetails 
-                  name={searchResult.name}
-                  phone={searchResult.phone}
-                  valetsCount={searchResult.valets_count}
-                />
-                
-                <LoyaltyPoints 
-                  loyaltyPoints={searchResult.loyalty_points}
-                  freeValets={searchResult.free_valets}
-                  handleRedeemValet={handleRedeemValet}
-                  redeeming={redeeming}
-                />
-              </>
-            ) : null}
-          </div>
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Programa de Fidelidad</h1>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Buscar Cliente</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                className="pl-8" 
+                placeholder="Ingrese número de teléfono..." 
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleSearch}>Buscar</Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {selectedCustomer && (
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold">{selectedCustomer.name}</h2>
+          
+          <LoyaltyInfo 
+            valetsCount={selectedCustomer.valetsCount} 
+            freeValets={selectedCustomer.freeValets} 
+          />
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Historial de Valets</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-muted-foreground">
+                Aquí se mostrará el historial de valets del cliente
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {!selectedCustomer && (
+        <div className="text-center py-12 text-muted-foreground">
+          Busque un cliente para ver su información de fidelidad
+        </div>
+      )}
     </div>
   );
 };

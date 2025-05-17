@@ -1,45 +1,37 @@
 
 import React from 'react';
-import Navbar from '@/components/Navbar';
-import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import InventoryList from '@/components/InventoryList';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search, Plus } from 'lucide-react';
+import { InventoryList } from '@/components/InventoryList';
 
-interface InventoryProps {
-  embedded?: boolean;
-}
-
-const Inventory: React.FC<InventoryProps> = ({ embedded = false }) => {
-  const content = (
-    <>
-      {!embedded && (
-        <header className="mb-8">
-          <Link to="/" className="flex items-center text-blue-600 hover:underline mb-2">
-            <ArrowLeft className="mr-1 h-4 w-4" />
-            <span>Volver al Inicio</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-blue-600">Lavandería Ohana</h1>
-          <p className="text-gray-500">Inventario</p>
-        </header>
-      )}
-      
-      <InventoryList />
-    </>
-  );
-  
-  if (embedded) {
-    return content;
-  }
-  
+const Inventory: React.FC = () => {
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Navbar />
-      
-      <div className="flex-1 md:ml-64 p-6">
-        <div className="container mx-auto pt-6">
-          {content}
-        </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Inventario</h1>
+        
+        <Button>
+          <Plus className="mr-2 h-4 w-4" /> Agregar Producto
+        </Button>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Productos en Inventario</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input className="pl-8" placeholder="Buscar productos..." />
+            </div>
+          </div>
+          
+          <InventoryList />
+        </CardContent>
+      </Card>
     </div>
   );
 };

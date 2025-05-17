@@ -1,7 +1,11 @@
 
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Home, Package, Clipboard, DollarSign, Users, Settings, ChevronRight, Menu, X } from 'lucide-react';
+import { 
+  Home, Package, Clipboard, DollarSign, Users, 
+  Settings, ChevronRight, Menu, X, BarChart,
+  FileText, Award, Package2, MessageSquare
+} from 'lucide-react';
 import { ConnectionStatusBar } from './ui/connection-status-bar';
 
 interface NavLinkProps {
@@ -72,10 +76,10 @@ const Navbar = () => {
           {/* Navigation links */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             <NavLink
-              to="/"
+              to="/dashboard"
               icon={<Home className="h-5 w-5" />}
-              text="Inicio"
-              active={currentPath === '/'}
+              text="Panel de Control"
+              active={currentPath === '/' || currentPath === '/dashboard'}
               onClick={closeMenu}
             />
             <NavLink
@@ -88,15 +92,15 @@ const Navbar = () => {
             <NavLink
               to="/pickup"
               icon={<Package className="h-5 w-5" />}
-              text="Entregas"
+              text="Órdenes Pendientes"
               active={currentPath === '/pickup'}
               onClick={closeMenu}
             />
             <NavLink
-              to="/expenses"
-              icon={<DollarSign className="h-5 w-5" />}
-              text="Gastos"
-              active={currentPath === '/expenses'}
+              to="/delivered"
+              icon={<FileText className="h-5 w-5" />}
+              text="Órdenes Entregadas"
+              active={currentPath === '/delivered'}
               onClick={closeMenu}
             />
             <NavLink
@@ -107,10 +111,52 @@ const Navbar = () => {
               onClick={closeMenu}
             />
             <NavLink
+              to="/loyalty"
+              icon={<Award className="h-5 w-5" />}
+              text="Programa de Fidelidad"
+              active={currentPath === '/loyalty'}
+              onClick={closeMenu}
+            />
+            <NavLink
+              to="/inventory"
+              icon={<Package2 className="h-5 w-5" />}
+              text="Inventario"
+              active={currentPath === '/inventory'}
+              onClick={closeMenu}
+            />
+            <NavLink
+              to="/metrics"
+              icon={<BarChart className="h-5 w-5" />}
+              text="Métricas"
+              active={currentPath === '/metrics'}
+              onClick={closeMenu}
+            />
+            <NavLink
+              to="/analysis"
+              icon={<FileText className="h-5 w-5" />}
+              text="Análisis de Tickets"
+              active={currentPath === '/analysis'}
+              onClick={closeMenu}
+            />
+            <NavLink
+              to="/expenses"
+              icon={<DollarSign className="h-5 w-5" />}
+              text="Gastos"
+              active={currentPath === '/expenses'}
+              onClick={closeMenu}
+            />
+            <NavLink
               to="/admin"
               icon={<Settings className="h-5 w-5" />}
-              text="Herramientas Admin"
+              text="Administración"
               active={currentPath === '/admin'}
+              onClick={closeMenu}
+            />
+            <NavLink
+              to="/feedback"
+              icon={<MessageSquare className="h-5 w-5" />}
+              text="Comentarios"
+              active={currentPath === '/feedback'}
               onClick={closeMenu}
             />
           </nav>

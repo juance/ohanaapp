@@ -5,7 +5,7 @@ import { LaundryOption } from '@/lib/types';
 export const useValetForm = () => {
   // Valet quantity and options
   const [valetQuantity, setValetQuantity] = useState<number>(1);
-  const [pricePerValet] = useState<number>(5000);
+  const [pricePerValet] = useState<number>(6000);
   
   // Free valet state
   const [useFreeValet, setUseFreeValet] = useState<boolean>(false);

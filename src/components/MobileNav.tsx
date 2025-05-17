@@ -1,11 +1,15 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X, BarChart, ShoppingBag, Users, Ticket, Award, Settings, DollarSign, FileText, LogOut, User, Clock, AlertTriangle } from 'lucide-react';
+import { 
+  Menu, X, BarChart, ShoppingBag, Users, Clipboard, Award, Settings, 
+  DollarSign, FileText, LogOut, User, Clock, AlertTriangle, Package2,
+  MessageSquare, Home, Package
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Role } from '@/lib/types/auth';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import AnimatedLogo from '@/components/AnimatedLogo';
 
 const MobileNav: React.FC = () => {
   const [open, setOpen] = useState(false);
@@ -19,17 +23,18 @@ const MobileNav: React.FC = () => {
 
   // Define navigation items with required roles
   const navItems = [
-    { path: '/dashboard', name: 'Dashboard', icon: <BarChart className="h-4 w-4" />, roles: ['admin' as Role] },
-    { path: '/tickets', name: 'Tickets', icon: <Ticket className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
-    { path: '/pickup', name: 'Pedidos a Retirar', icon: <ShoppingBag className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
-    { path: '/delivered', name: 'Entregados', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/dashboard', name: 'Panel de Control', icon: <Home className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/tickets', name: 'Tickets', icon: <Clipboard className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/pickup', name: 'Órdenes Pendientes', icon: <Package className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/delivered', name: 'Órdenes Entregadas', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
     { path: '/clients', name: 'Clientes', icon: <Users className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
     { path: '/loyalty', name: 'Programa de Fidelidad', icon: <Award className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/inventory', name: 'Inventario', icon: <Package2 className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
+    { path: '/metrics', name: 'Métricas', icon: <BarChart className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/analysis', name: 'Análisis de Tickets', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/expenses', name: 'Gastos', icon: <DollarSign className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role] },
-    { path: '/administration', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin' as Role] },
-    { path: '/feedback', name: 'Comentarios', icon: <FileText className="h-4 w-4" />, roles: ['admin' as Role] },
-    { path: '/diagnostics', name: 'Diagnóstico', icon: <AlertTriangle className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/admin', name: 'Administración', icon: <Settings className="h-4 w-4" />, roles: ['admin' as Role] },
+    { path: '/feedback', name: 'Comentarios', icon: <MessageSquare className="h-4 w-4" />, roles: ['admin' as Role] },
     { path: '/user-tickets', name: 'Portal para Clientes', icon: <User className="h-4 w-4" />, roles: ['admin' as Role, 'operator' as Role, 'client' as Role] },
   ];
 
@@ -40,14 +45,21 @@ const MobileNav: React.FC = () => {
   };
 
   // Filter nav items based on user role
-  const filteredNavItems = navItems.filter(item =>
-    user && checkUserPermission(item.roles)
-  );
+  const filteredNavItems = user ? navItems.filter(item => 
+    checkUserPermission(item.roles)
+  ) : navItems;
 
   return (
     <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b">
       <div className="flex items-center justify-between p-4">
-        <AnimatedLogo size="sm" />
+        <div className="flex items-center">
+          <img
+            src="/images/ohana-favicon.svg"
+            alt="Lavandería Ohana"
+            className="h-8 w-auto mr-2"
+          />
+          <span className="font-bold">Lavandería Ohana</span>
+        </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>

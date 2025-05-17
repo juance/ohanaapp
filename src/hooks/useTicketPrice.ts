@@ -11,8 +11,8 @@ export const useTicketPrice = (
   setTotalPrice: (price: number) => void
 ) => {
   useEffect(() => {
-    // Base price per valet (updated to 5000)
-    const basePrice = 5000;
+    // Base price per valet (updated to 6000)
+    const basePrice = 6000;
     let calculatedPrice = 0;
     
     if (activeTab === 'valet') {

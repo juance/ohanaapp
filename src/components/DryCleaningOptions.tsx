@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -10,7 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 
 // Define dry cleaning items with their prices
 export const dryCleaningItems = [
-  { id: 'lavado_valet', name: 'Lavado (valet)', price: 5000 },
+  { id: 'lavado_valet', name: 'Lavado (valet)', price: 6000 },
   { id: 'secado', name: 'Secado', price: 4000 },
   { id: 'lavado_mano', name: 'Lavado a mano (por 3 prendas)', price: 5000 },
   { id: 'lavado_zapatillas', name: 'Lavado de zapatillas (por par)', price: 10000 },
