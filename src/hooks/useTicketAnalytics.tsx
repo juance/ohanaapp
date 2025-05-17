@@ -16,8 +16,8 @@ interface TicketAnalytics {
   revenueByMonth: Array<{ month: string; revenue: number }>;
   itemTypeDistribution: Record<string, number>;
   paymentMethodDistribution: Record<string, number>;
-  freeValets?: number; // Add this optional property
-  paidTickets?: number; // Add this optional property
+  freeValets?: number; 
+  paidTickets?: number; 
 }
 
 export interface UseTicketAnalyticsReturn {
@@ -57,6 +57,8 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
 
   const fetchData = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
       console.log('Fetching ticket analytics data for date range:', {
         from: dateRange.from.toISOString(),
@@ -82,6 +84,10 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         .lte('created_at', dateRange.to.toISOString())
         .eq('is_canceled', false);
 
+      if (ticketsError) throw ticketsError;
+
+      console.log(`Fetched ${tickets?.length || 0} tickets`);
+      
       // Get dry cleaning items for these tickets
       let dryCleaningItems = [];
       if (tickets && tickets.length > 0) {
@@ -99,9 +105,8 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
         }
       }
 
-      if (ticketsError) throw ticketsError;
-
       if (!tickets || tickets.length === 0) {
+        console.log('No tickets found in date range');
         setData({
           totalTickets: 0,
           averageTicketValue: 0,
@@ -143,15 +148,17 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
       };
 
       tickets.forEach(ticket => {
-        const status = ticket.status as keyof typeof ticketsByStatus;
+        const status = ticket.status;
         if (status in ticketsByStatus) {
-          ticketsByStatus[status]++;
+          ticketsByStatus[status as keyof typeof ticketsByStatus]++;
         }
       });
 
       // Distribution by payment method
       const paymentMethodDistribution: Record<string, number> = {};
       tickets.forEach(ticket => {
+        if (!ticket.payment_method) return;
+        
         const method = ticket.payment_method;
         paymentMethodDistribution[method] = (paymentMethodDistribution[method] || 0) + 1;
       });
@@ -202,6 +209,17 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
           return aIndex - bIndex;
         });
 
+      console.log('Setting analytics data:', {
+        totalTickets,
+        averageTicketValue,
+        totalRevenue,
+        ticketsByStatus,
+        topServices: topServices.length,
+        revenueByMonth: revenueByMonth.length,
+        itemTypes: Object.keys(itemTypeDistribution).length,
+        paymentMethods: Object.keys(paymentMethodDistribution).length
+      });
+
       setData({
         totalTickets,
         averageTicketValue,
@@ -227,7 +245,6 @@ export const useTicketAnalytics = (): UseTicketAnalyticsReturn => {
   }, [dateRange]);
 
   const exportData = async () => {
-    // Implement CSV export logic
     try {
       const csvContent = [
         ['Métrica', 'Valor'],

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import MetricsCard from '@/components/MetricsCard';
-import { CalendarIcon, StarIcon, UsersIcon, CoinsIcon } from 'lucide-react';
+import { CalendarIcon, StarIcon, UsersIcon, CoinsIcon, CheckCircle } from 'lucide-react';
 
 interface MetricsSectionProps {
   metrics: any;
@@ -22,27 +22,33 @@ const MetricsSection = ({ metrics }: MetricsSectionProps) => {
     );
   }
 
+  // Ensure we have numbers for all metrics
+  const totalTickets = metrics.totalTickets || 0;
+  const avgTicketValue = metrics.averageTicketValue || 0;
+  const totalRevenue = metrics.totalRevenue || 0;
+  const readyTickets = metrics.ticketsByStatus?.ready || 0;
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       <MetricsCard
         title="Total de Tickets"
-        value={metrics.totalTickets?.toString() || '0'}
+        value={totalTickets.toString()}
         icon={<CalendarIcon className="h-4 w-4" />}
       />
       <MetricsCard
         title="Valor Promedio"
-        value={`$${metrics.averageTicketValue?.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        value={`$${avgTicketValue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         icon={<CoinsIcon className="h-4 w-4" />}
       />
       <MetricsCard
         title="Ingresos Totales"
-        value={`$${metrics.totalRevenue?.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0'}`}
+        value={`$${totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
         icon={<CoinsIcon className="h-4 w-4" />}
       />
       <MetricsCard
         title="Tickets Listos"
-        value={metrics.ticketsByStatus?.ready?.toString() || '0'}
-        icon={<StarIcon className="h-4 w-4" />}
+        value={readyTickets.toString()}
+        icon={<CheckCircle className="h-4 w-4" />}
       />
     </div>
   );

@@ -35,6 +35,13 @@ const ChartSection: React.FC<ChartSectionProps> = ({
   
   const safeClients = Array.isArray(frequentClients) ? frequentClients : [];
 
+  console.log("Chart data being used:", {
+    barData: safeBarData,
+    lineData: safeLineData,
+    pieData: safePieData,
+    clients: safeClients.length
+  });
+
   return (
     <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
       <Card className="xl:col-span-2">

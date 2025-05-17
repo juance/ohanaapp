@@ -19,25 +19,39 @@ interface UseDashboardDataReturn {
 
 export const useDashboardData = (): UseDashboardDataReturn => {
   const [dateRange, setDateRange] = useState({
-    start: new Date(new Date().setHours(0, 0, 0, 0)),
-    end: new Date(new Date().setHours(23, 59, 59, 999))
+    start: new Date(new Date().setDate(new Date().getDate() - 30)),
+    end: new Date()
   });
 
   const fetchDashboardData = useCallback(async () => {
     try {
-      // Convertir a formato ISO para queries de Supabase
+      console.log('Fetching dashboard data for date range:', {
+        start: dateRange.start,
+        end: dateRange.end
+      });
+      
+      // Convert to ISO format for Supabase queries
       const rangeStartISO = dateRange.start.toISOString();
       const rangeEndISO = dateRange.end.toISOString();
 
-      // Get tickets in custom date range
+      // Get tickets in custom date range with customer info and dry cleaning items
       const { data: rangeTicketsData, error: rangeTicketsError } = await supabase
         .from('tickets')
-        .select('*')
+        .select(`
+          *,
+          customers (name, phone),
+          dry_cleaning_items (id, name, quantity, price)
+        `)
         .gte('created_at', rangeStartISO)
         .lte('created_at', rangeEndISO);
       
-      if (rangeTicketsError) throw rangeTicketsError;
+      if (rangeTicketsError) {
+        console.error('Error fetching tickets:', rangeTicketsError);
+        throw rangeTicketsError;
+      }
 
+      console.log(`Fetched ${rangeTicketsData?.length || 0} tickets`);
+      
       // Process data
       const rangeIncome = calculateTotalIncome(rangeTicketsData || []);
       
@@ -60,7 +74,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
   }, [dateRange]);
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ['dashboardData', dateRange],
+    queryKey: ['dashboardData', dateRange.start.toISOString(), dateRange.end.toISOString()],
     queryFn: fetchDashboardData,
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10 // 10 minutes
@@ -72,7 +86,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
       if (ticket.status === 'canceled' || ticket.status === 'cancelled') {
         return acc;
       }
-      return acc + (ticket.total_price || 0);
+      return acc + (Number(ticket.total) || 0);
     }, 0);
   };
 
@@ -89,13 +103,20 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         return;
       }
 
-      // Count by service type
-      if (ticket.service_type === 'valet') {
-        counts.valet++;
-      } else if (ticket.service_type === 'lavanderia') {
-        counts.lavanderia++;
-      } else if (ticket.service_type === 'tintoreria') {
+      // Count by valet quantity for valet tickets
+      if (ticket.valet_quantity > 0) {
+        counts.valet += ticket.valet_quantity;
+      }
+      
+      // Count dry cleaning items
+      if (ticket.dry_cleaning_items && ticket.dry_cleaning_items.length > 0) {
         counts.tintoreria++;
+      }
+      
+      // If it's not a valet or dry cleaning, count as laundry
+      if (ticket.valet_quantity === 0 && 
+          (!ticket.dry_cleaning_items || ticket.dry_cleaning_items.length === 0)) {
+        counts.lavanderia++;
       }
     });
 
@@ -111,18 +132,13 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         return;
       }
       
-      // Try to get dry cleaning items
-      try {
-        // Fetch dry cleaning items for this ticket
-        const dryCleaningItemsData = Array.isArray((ticket as any).dry_cleaning_items) ? (ticket as any).dry_cleaning_items : [];
-
-        if (dryCleaningItemsData.length > 0) {
-          dryCleaningItemsData.forEach((item: any) => {
+      // Process dry cleaning items if available
+      if (ticket.dry_cleaning_items && Array.isArray(ticket.dry_cleaning_items)) {
+        ticket.dry_cleaning_items.forEach((item: any) => {
+          if (item && item.name) {
             dryCleaningItems[item.name] = (dryCleaningItems[item.name] || 0) + (item.quantity || 1);
-          });
-        }
-      } catch (e) {
-        console.error('Error processing dry cleaning items:', e);
+          }
+        });
       }
     });
 
