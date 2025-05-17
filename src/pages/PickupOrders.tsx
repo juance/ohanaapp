@@ -1,9 +1,7 @@
-
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { usePickupOrdersLogic } from '@/hooks/usePickupOrdersLogic';
+import { usePickupOrdersLogic } from '@/hooks/pickup';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import OrderHeader from '@/components/orders/OrderHeader';
