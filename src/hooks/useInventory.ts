@@ -17,16 +17,26 @@ export const useInventory = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .select('*')
         .order('name');
         
       if (error) throw error;
       
-      setItems(data.map(item => ({
-        ...item,
-        lastUpdated: item.updated_at || item.created_at
-      })));
+      if (data) {
+        const formattedItems: InventoryItemWithTimestamp[] = data.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          unit: item.unit || '',
+          threshold: item.threshold || 0,
+          notes: item.notes || '',
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          lastUpdated: item.updated_at || item.created_at
+        }));
+        setItems(formattedItems);
+      }
     } catch (error) {
       console.error('Error loading inventory items:', error);
       toast.error('Error al cargar el inventario');
@@ -45,7 +55,7 @@ export const useInventory = () => {
     setIsCreating(true);
     try {
       const { error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .insert({
           name: item.name,
           quantity: item.quantity,
@@ -57,6 +67,7 @@ export const useInventory = () => {
       if (error) throw error;
       
       await loadItems();
+      toast.success('Ítem creado correctamente');
     } catch (error) {
       console.error('Error creating inventory item:', error);
       throw error;
@@ -70,14 +81,14 @@ export const useInventory = () => {
     setIsUpdating(true);
     try {
       const { error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .update({
           name: item.name,
           quantity: item.quantity,
           unit: item.unit,
           threshold: item.threshold,
           notes: item.notes,
-          updated_at: new Date()
+          updated_at: new Date().toISOString()
         })
         .eq('id', item.id);
         
@@ -97,7 +108,7 @@ export const useInventory = () => {
     setIsDeleting(true);
     try {
       const { error } = await supabase
-        .from('inventory')
+        .from('inventory_items')
         .delete()
         .eq('id', id);
         

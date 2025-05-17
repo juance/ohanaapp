@@ -22,7 +22,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
       threshold: item.threshold,
       unit: item.unit,
       notes: item.notes,
-      createdAt: item.created_at
+      created_at: item.created_at
     }));
   } catch (error) {
     console.error('Error fetching inventory items:', error);
@@ -43,7 +43,7 @@ export const getInventoryItems = async (): Promise<InventoryItem[]> => {
 
 // Add a new inventory item
 export const createInventoryItem = async (
-  item: Omit<InventoryItem, 'id' | 'createdAt'>
+  item: Omit<InventoryItem, 'id' | 'created_at'>
 ): Promise<InventoryItem | null> => {
   try {
     const { data, error } = await supabase
@@ -67,7 +67,7 @@ export const createInventoryItem = async (
       threshold: data.threshold,
       unit: data.unit,
       notes: data.notes,
-      createdAt: data.created_at
+      created_at: data.created_at
     };
   } catch (error) {
     console.error('Error creating inventory item:', error);
