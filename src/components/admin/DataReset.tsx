@@ -25,7 +25,7 @@ const DataReset = () => {
       setIsResetting(true);
 
       // Call the Supabase edge function to reset all data
-      const { data, error } = await supabase.functions.invoke('reset_all_data');
+      const { data, error } = await supabase.functions.invoke('reset_all_data_complete');
 
       if (error) {
         throw error;
