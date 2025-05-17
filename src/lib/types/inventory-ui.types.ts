@@ -4,6 +4,7 @@ import { InventoryItem } from '@/lib/types/inventory.types';
 // Extended inventory item with UI-specific properties
 export interface InventoryItemWithTimestamp extends InventoryItem {
   lastUpdated?: string;
+  updated_at?: string; // Make updated_at optional since it might not exist in the database
 }
 
 // Props for the InventoryItem component

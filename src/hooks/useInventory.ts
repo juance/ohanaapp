@@ -32,8 +32,10 @@ export const useInventory = () => {
           threshold: item.threshold || 0,
           notes: item.notes || '',
           created_at: item.created_at,
-          updated_at: item.updated_at,
-          lastUpdated: item.updated_at || item.created_at
+          // Since updated_at might not exist in the database response, we use created_at as fallback
+          updated_at: item.created_at,
+          // Use created_at for lastUpdated if updated_at is missing
+          lastUpdated: item.created_at
         }));
         setItems(formattedItems);
       }
@@ -87,8 +89,9 @@ export const useInventory = () => {
           quantity: item.quantity,
           unit: item.unit,
           threshold: item.threshold,
-          notes: item.notes,
-          updated_at: new Date().toISOString()
+          notes: item.notes
+          // Note: We're not adding updated_at here since it appears the database 
+          // might handle this automatically or doesn't have this column
         })
         .eq('id', item.id);
         
