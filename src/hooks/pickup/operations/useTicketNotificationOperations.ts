@@ -4,13 +4,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 import { Ticket } from '@/lib/types';
 import { formatTicketData, createDetailedTicketMessage, formatPhoneForWhatsApp } from '../utils/ticketFormatters';
+import { shareTicketPDFViaWhatsApp } from '@/utils/pdfUtils';
+import { getTicketOptions } from '@/lib/ticket/ticketServiceCore';
 
 /**
  * Hook for ticket notification operations
  */
 export const useTicketNotificationOperations = () => {
   /**
-   * Shares a ticket via WhatsApp with detailed information
+   * Shares a ticket via WhatsApp with PDF attachment
    */
   const handleShareWhatsApp = useCallback(async (ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): Promise<void> => {
     if (!phoneNumber) {
@@ -51,13 +53,12 @@ export const useTicketNotificationOperations = () => {
         return;
       }
 
-      // Create a detailed message with ticket information
-      const message = createDetailedTicketMessage(ticket);
-
-      // Format phone number and open WhatsApp
+      // Get laundry options for the ticket
+      const laundryOptions = await getTicketOptions(ticketId);
+      
+      // Format phone number and share the PDF via WhatsApp
       const formattedPhone = formatPhoneForWhatsApp(phoneNumber);
-      const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-      window.open(whatsappUrl, '_blank');
+      shareTicketPDFViaWhatsApp(formattedPhone, ticket, laundryOptions);
 
     } catch (err: any) {
       console.error("Error preparing WhatsApp message:", err);
@@ -66,7 +67,7 @@ export const useTicketNotificationOperations = () => {
   }, []);
 
   /**
-   * Notifies a client (currently uses WhatsApp)
+   * Notifies a client (currently uses WhatsApp with PDF)
    */
   const handleNotifyClient = useCallback((ticketId: string, phoneNumber: string | undefined, tickets: Ticket[] | undefined): void => {
     handleShareWhatsApp(ticketId, phoneNumber, tickets);
