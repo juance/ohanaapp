@@ -1,6 +1,6 @@
 
 // Payment method types
-export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'cuentaDni' | 'transfer' | string;
+export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'cuenta_dni' | 'transfer' | string;
 
 export interface Ticket {
   id: string;
@@ -17,7 +17,7 @@ export interface Ticket {
   createdAt: string;
   customerId?: string;
   items?: DryCleaningItem[];
-  valetQuantity?: number;
+  valetQuantity?: number; // Make sure this exists
   deliveredDate?: string;
   basketTicketNumber?: string;
   services?: TicketService[];
@@ -34,8 +34,9 @@ export interface DryCleaningItem {
   ticketId?: string;
 }
 
+// Make sure LaundryOption interface matches the one used everywhere
 export interface LaundryOption {
-  id?: string; // Make optional to match usage in components
+  id?: string; // Optional to be compatible with both versions
   name: string;
   optionType: string;
   type?: string; // For backwards compatibility
@@ -59,4 +60,23 @@ export interface TicketService {
   name: string;
   price: number;
   quantity: number;
+}
+
+// Add TicketFormState interface for useTicketForm.ts
+export interface TicketFormState {
+  customerName: string;
+  phoneNumber: string;
+  valetQuantity: number;
+  useFreeValet: boolean;
+  paymentMethod: PaymentMethod;
+  totalPrice: number;
+  activeTab: string;
+  date: Date;
+  selectedDryCleaningItems: any[];
+  getSelectedLaundryOptions: () => LaundryOption[];
+  resetCustomerForm: () => void;
+  resetValetForm: () => void;
+  resetDryCleaningForm: () => void;
+  resetTicketFormState: () => void;
+  isPaidInAdvance?: boolean;
 }

@@ -6,6 +6,7 @@ import { useValetForm } from './ticket/useValetForm';
 import { useDryCleaningForm } from './ticket/useDryCleaningForm';
 import { useTicketFormState } from './ticket/useTicketFormState';
 import { useTicketFormSubmit } from './ticket/useTicketFormSubmit';
+import { TicketFormState } from '@/lib/types/ticket.types';  // Added specific import
 
 export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void) => {
   // New state for paid in advance option
@@ -21,7 +22,7 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
   const ticketFormState = useTicketFormState();
   
   // Combine all form state for the submit handler
-  const formState = {
+  const formState: TicketFormState = {  // Added explicit type annotation
     customerName: customerForm.customerName,
     phoneNumber: customerForm.phoneNumber,
     valetQuantity: valetForm.valetQuantity, // Use valetQuantity instead of quantity

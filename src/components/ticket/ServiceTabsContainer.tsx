@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ValetTab } from './ValetTab';
 import { DryCleaningTab } from './DryCleaningTab';
 import { SelectedDryCleaningItem } from '@/components/DryCleaningOptions';
-import { PaymentMethod } from '@/lib/types';
+import { PaymentMethod } from '@/lib/types'; // Updated import
 
 interface ServiceTabsContainerProps {
   activeTab: string;

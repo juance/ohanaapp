@@ -1,7 +1,7 @@
 
 import { toast } from '@/lib/toast';
 import { storeTicket } from '@/lib/dataService';
-import { PaymentMethod, LaundryOption } from '@/lib/types';
+import { PaymentMethod, LaundryOption } from '@/lib/types';  // Updated import
 import { useFormValidation } from './useFormValidation';
 import { useQueryClient } from '@tanstack/react-query';
 

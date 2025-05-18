@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { PaymentMethod } from '@/lib/types';
 

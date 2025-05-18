@@ -1,44 +1,11 @@
 
-// Base ticket interface
-export interface Ticket {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  phoneNumber: string;
-  total: number;
-  totalPrice: number;
-  isPaid: boolean;
-  status: 'pending' | 'processing' | 'ready' | 'delivered' | 'canceled' | string;
-  paymentMethod: 'cash' | 'card' | 'transfer' | 'debit' | 'mercadopago' | 'cuentaDni' | string;
-  createdAt: string;
-  deliveredDate?: string;
-  customerId?: string;
-  usesFreeValet?: boolean;
-  basketTicketNumber?: string;
-  dryCleaningItems?: DryCleaningItem[];
-  services?: TicketService[];
-}
+// Re-export all types from the typed directory structure for backward compatibility
+export * from '@/lib/types/index';
 
-// Laundry service option
-export interface LaundryOption {
-  id: string;
-  name: string;
-  selected: boolean;
-  optionType?: string;
-}
-
-// Dry cleaning item
-export interface DryCleaningItem {
-  id: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-// Ticket service
-export interface TicketService {
-  id?: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
+// Specifically add the types that seem to be missing from imports
+export type { Role, User } from '@/lib/types/auth.types';
+export type { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types/client.types';
+export type { PaymentMethod, LaundryOption, LaundryService, DryCleaningItem, Ticket } from '@/lib/types/ticket.types';
+export type { DailyMetrics, WeeklyMetrics, MonthlyMetrics } from '@/lib/types/metrics.types';
+export type { CustomerFeedback } from '@/lib/types/feedback.types';
+export type { InventoryItemWithTimestamp, InventoryItemFormState, InventoryItemProps } from '@/lib/types/inventory-ui.types';

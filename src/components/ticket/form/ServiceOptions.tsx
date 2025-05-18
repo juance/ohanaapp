@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { LaundryService } from '@/lib/types/ticket.types';
+import { LaundryService } from '@/lib/types';  // Updated import
 
 interface ServiceOptionsProps {
   laundryServices: LaundryService[];

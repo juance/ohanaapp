@@ -1,5 +1,5 @@
 
-import { ClientVisit } from '@/lib/types/client.types';
+import { ClientVisit } from '@/lib/types';  // Updated import
 
 // Only fixing the specific part with the error
 // Convert to client visit method

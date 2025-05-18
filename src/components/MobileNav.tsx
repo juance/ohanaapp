@@ -7,7 +7,7 @@ import {
   MessageSquare, Home, Package
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Role } from '@/lib/types/auth';
+import { Role } from '@/lib/types';  // Updated import
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 

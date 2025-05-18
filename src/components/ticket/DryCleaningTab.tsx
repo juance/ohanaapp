@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { PaymentMethodSelector } from './PaymentMethodSelector';
 import { PriceDisplay } from './PriceDisplay';
 import DryCleaningOptions, { SelectedDryCleaningItem } from '@/components/DryCleaningOptions';
-import { PaymentMethod } from '@/lib/types';
+import { PaymentMethod } from '@/lib/types'; // Updated import
 
 interface DryCleaningTabProps {
   paymentMethod: PaymentMethod;

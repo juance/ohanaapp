@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Checkbox } from "@/components/ui/checkbox";
-import { LaundryService } from '@/lib/types';
+import { LaundryService } from '@/lib/types';  // Updated import
 
 interface ServicesSectionProps {
   laundryServices: LaundryService[];
