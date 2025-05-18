@@ -8,6 +8,14 @@ export interface DailyMetrics {
   averageTicketValue: number;
   salesByHour: { hour: number; count: number; revenue: number }[];
   paidTickets?: number; // Added missing property
+  
+  // Legacy properties for backward compatibility
+  totalSales?: number;
+  valetCount?: number;
+  paymentMethods?: Record<string, number>;
+  totalRevenue?: number;
+  totalTickets?: number;
+  dryCleaningItems?: Record<string, number>;
 }
 
 export interface WeeklyMetrics {
@@ -18,6 +26,14 @@ export interface WeeklyMetrics {
   averageTicketValue: number;
   salesByDay: { day: string; count: number; revenue: number }[];
   salesByWeek?: { week: string; count: number; revenue: number }[]; // Added missing property
+  
+  // Legacy properties for backward compatibility
+  totalSales?: number;
+  valetCount?: number;
+  paymentMethods?: Record<string, number>;
+  totalRevenue?: number;
+  totalTickets?: number;
+  dryCleaningItems?: Record<string, number>;
 }
 
 export interface MonthlyMetrics {
@@ -28,6 +44,14 @@ export interface MonthlyMetrics {
   averageTicketValue: number;
   salesByDay: { day: number; count: number; revenue: number }[];
   paidTickets?: number; // Added missing property
+  
+  // Legacy properties for backward compatibility
+  totalSales?: number;
+  valetCount?: number;
+  paymentMethods?: Record<string, number>;
+  totalRevenue?: number;
+  totalTickets?: number;
+  dryCleaningItems?: Record<string, number>;
 }
 
 export interface MetricsData {

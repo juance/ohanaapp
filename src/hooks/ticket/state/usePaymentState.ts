@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { PaymentMethod } from '@/lib/types';
+import { PaymentMethod } from '@/lib/types/ticket.types';
 
 export const usePaymentState = () => {
   // Payment method state

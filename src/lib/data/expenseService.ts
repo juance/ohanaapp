@@ -9,10 +9,11 @@ export const getExpenses = (): SyncableExpense[] => {
     const expenses = localStorage.getItem('expenses');
     if (expenses) {
       const parsedExpenses = JSON.parse(expenses);
-      // Ensure all expenses have the required category field
+      // Ensure all expenses have the required category field and createdAt
       return parsedExpenses.map((expense: any) => ({
         ...expense,
-        category: expense.category || 'other' // Set default category if missing
+        category: expense.category || 'other', // Set default category if missing
+        createdAt: expense.createdAt || expense.date || new Date().toISOString() // Ensure createdAt exists
       }));
     }
     return [];
@@ -36,6 +37,7 @@ export const addExpense = (description: string, amount: number, date: string, ca
       amount,
       date,
       category,
+      createdAt: new Date().toISOString(),
       pendingSync: true
     };
     
@@ -83,12 +85,14 @@ export const fetchServerExpenses = async (): Promise<SyncableExpense[]> => {
     
     if (error) throw error;
     
+    // Map the server data to SyncableExpense type with required fields
     return data.map(item => ({
       id: item.id,
       description: item.description,
       amount: item.amount,
       date: item.date,
       category: 'other', // Provide default category since it's missing in the DB
+      createdAt: item.created_at || item.date, // Use created_at if available, fall back to date
       pendingSync: false, // Already synced since coming from server
       synced: true
     }));

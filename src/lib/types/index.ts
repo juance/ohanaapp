@@ -5,31 +5,16 @@
 export * from './auth.types';
 
 // Ticket types
-export type { 
-  Ticket, 
-  PaymentMethod, 
-  DryCleaningItem, 
-  TicketService,
-  LaundryOption,
-  LaundryService
-} from './ticket.types';
+export * from './ticket.types';
 
 // Customer types
 export * from './customer.types';
 
 // Client types
-export type {
-  ClientVisit,
-  Customer
-} from './client.types';
-export { convertCustomerToClientVisit } from './client.types';
+export * from './client.types';
 
 // Error types
-export type { 
-  ErrorLevel,
-  ErrorContext,
-  SystemError
-} from './error.types';
+export * from './error.types';
 
 // Sync types
 export * from './sync.types';
@@ -41,24 +26,16 @@ export * from './inventory.types';
 export * from './inventory-ui.types';
 
 // Metrics types
-export type {
-  DailyMetrics,
-  WeeklyMetrics,
-  MonthlyMetrics,
-  MetricsData
-} from './metrics.types';
+export * from './metrics.types';
 
 // Menu types
 export * from './menu.types';
 
 // Feedback types
-export type { CustomerFeedback } from './feedback.types';
+export * from './feedback.types';
 
 // Expense types
-export type { 
-  Expense,
-  ExpenseCategory
-} from './expense.types';
+export * from './expense.types';
 
 // Laundry types
 export * from './laundry.types';

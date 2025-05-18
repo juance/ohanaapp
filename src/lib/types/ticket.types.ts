@@ -35,7 +35,7 @@ export interface DryCleaningItem {
 }
 
 export interface LaundryOption {
-  id?: string; // Made optional to match usage
+  id?: string; // Make optional to match usage in components
   name: string;
   optionType: string;
   type?: string; // For backwards compatibility
@@ -50,6 +50,7 @@ export interface LaundryService {
   name: string;
   price: number;
   optionType: string;
+  description?: string;
   quantity?: number;
 }
 
