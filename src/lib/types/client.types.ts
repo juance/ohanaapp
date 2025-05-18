@@ -1,38 +1,43 @@
 
-export interface ClientVisit {
-  id: string;
-  clientName: string;
-  phoneNumber: string;
-  visitCount: number;
-  freeValets: number;
-  lastVisit?: string;
-  totalSpent?: number;
-  valetsCount?: number;
-  loyaltyPoints?: number;
-  visitFrequency?: string;
-  lastVisitDate?: string;
-}
-
+// Customer interface for client information
 export interface Customer {
   id: string;
-  name?: string;
-  phone: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
   lastVisit?: string;
+  visitCount?: number;
   loyaltyPoints?: number;
-  freeValets?: number;
-  valetsCount?: number;
-  valets_redeemed?: number;
+  hasFreeValet?: boolean;
 }
 
-// Utility function to convert Customer to ClientVisit
+// Client visit interface for tracking customer interactions
+export interface ClientVisit {
+  id: string;
+  customerId: string;
+  customerName: string;
+  phoneNumber?: string;
+  visitDate: string;
+  ticketId?: string;
+  ticketNumber?: string;
+  total: number;
+  isPaid: boolean;
+  pendingSync?: boolean;
+}
+
+// Helper function to convert from Customer to ClientVisit
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
   return {
-    id: customer.id,
-    clientName: customer.name || 'Sin nombre',
+    id: `visit-${customer.id}`,
+    customerId: customer.id,
+    customerName: customer.name,
     phoneNumber: customer.phone,
-    visitCount: customer.valetsCount || 0,
-    freeValets: customer.freeValets || 0,
-    lastVisit: customer.lastVisit,
-    loyaltyPoints: customer.loyaltyPoints || 0
+    visitDate: customer.lastVisit || new Date().toISOString(),
+    total: 0,
+    isPaid: false,
   };
 };
