@@ -1,31 +1,46 @@
 
-// Basic metrics interfaces
 export interface DailyMetrics {
-  date: string;
-  revenue: number;
-  tickets: number;
-  clients: number;
+  salesByHour: Record<string, number>;
+  paymentMethods: { 
+    cash: number; 
+    debit: number; 
+    mercadopago: number; 
+    cuentaDni: number;
+    transfer?: number; 
+  };
+  totalSales: number;
+  valetCount: number;
+  dryCleaningItems?: Record<string, number>;
 }
 
 export interface WeeklyMetrics {
-  week: string;
-  revenue: number;
-  tickets: number;
-  clients: number;
+  salesByDay: Record<string, number>;
+  paymentMethods: { 
+    cash: number; 
+    debit: number; 
+    mercadopago: number; 
+    cuentaDni: number;
+    transfer?: number; 
+  };
+  totalSales: number;
+  valetCount: number;
 }
 
 export interface MonthlyMetrics {
-  month: string;
-  revenue: number;
-  tickets: number;
-  clients: number;
+  salesByDay: Record<string, number>;
+  paymentMethods: { 
+    cash: number; 
+    debit: number; 
+    mercadopago: number; 
+    cuentaDni: number;
+    transfer?: number; 
+  };
+  totalSales: number;
+  valetCount: number;
 }
 
 export interface MetricsData {
-  daily: DailyMetrics[];
-  weekly: WeeklyMetrics[];
-  monthly: MonthlyMetrics[];
-  totalRevenue: number;
-  totalTickets: number;
-  totalClients: number;
+  daily?: DailyMetrics;
+  weekly?: WeeklyMetrics;
+  monthly?: MonthlyMetrics;
 }

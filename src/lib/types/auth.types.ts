@@ -5,7 +5,7 @@ export type Role = 'admin' | 'operator' | 'client';
 // Define the User interface
 export interface User {
   id: string;
-  name?: string;
+  name: string;
   email?: string;
   phoneNumber?: string;
   role: Role;
