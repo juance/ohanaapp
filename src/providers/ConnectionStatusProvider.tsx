@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
 import { SimpleSyncStatus } from '@/lib/types/sync.types';
 import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
+import { dispatchConnectionStatusEvent } from '@/lib/notificationService';
 
 type ConnectionStatus = 'online' | 'offline';
 type SyncStatus = 'synced' | 'syncing' | 'error' | 'pending';
@@ -25,8 +26,15 @@ export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> =
 
   // Monitor online/offline status
   useEffect(() => {
-    const handleOnline = () => setConnectionStatus('online');
-    const handleOffline = () => setConnectionStatus('offline');
+    const handleOnline = () => {
+      setConnectionStatus('online');
+      dispatchConnectionStatusEvent(true, pendingSyncCount);
+    };
+    
+    const handleOffline = () => {
+      setConnectionStatus('offline');
+      dispatchConnectionStatusEvent(false, pendingSyncCount);
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
