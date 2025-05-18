@@ -41,9 +41,10 @@ export const updateSyncStatus = (status: Partial<SimpleSyncStatus>): SimpleSyncS
 /**
  * Clear pending sync items for a specific type
  */
-export const clearPendingSyncItems = (type: keyof Omit<SimpleSyncStatus, 'lastSync'>, count: number): SimpleSyncStatus => {
+export const clearPendingSyncItems = (type: keyof Omit<SimpleSyncStatus, 'lastSync' | 'syncError'>, count: number): SimpleSyncStatus => {
   const currentStatus = getSyncStatus();
-  const currentCount = currentStatus[type] || 0;
+  // Make sure we're working with numbers by using Number() to convert any potential string values
+  const currentCount = Number(currentStatus[type] || 0);
   
   return updateSyncStatus({
     [type]: Math.max(0, currentCount - count),
@@ -54,9 +55,10 @@ export const clearPendingSyncItems = (type: keyof Omit<SimpleSyncStatus, 'lastSy
 /**
  * Add pending sync items for a specific type
  */
-export const addPendingSyncItems = (type: keyof Omit<SimpleSyncStatus, 'lastSync'>, count: number): SimpleSyncStatus => {
+export const addPendingSyncItems = (type: keyof Omit<SimpleSyncStatus, 'lastSync' | 'syncError'>, count: number): SimpleSyncStatus => {
   const currentStatus = getSyncStatus();
-  const currentCount = currentStatus[type] || 0;
+  // Make sure we're working with numbers by using Number() to convert any potential string values
+  const currentCount = Number(currentStatus[type] || 0);
   
   return updateSyncStatus({
     [type]: currentCount + count

@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Expense } from '@/lib/types/expense.types';
-import { ExpenseCategory } from '@/lib/types/error.types';
+import { SyncableExpense } from '@/lib/types/sync.types';
 import { storeExpense, getStoredExpenses } from '@/lib/data/expenseService';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
 const Expenses = () => {
+  // Convert SyncableExpense to Expense in state
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [description, setDescription] = useState<string>('');
   const [amount, setAmount] = useState<number | null>(0);
@@ -27,7 +28,15 @@ const Expenses = () => {
   useEffect(() => {
     const fetchExpenses = async () => {
       const storedExpenses = await getStoredExpenses();
-      setExpenses(storedExpenses);
+      // Convert SyncableExpense[] to Expense[]
+      const expensesForState = storedExpenses.map(expense => ({
+        id: expense.id,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date,
+        category: expense.category
+      }));
+      setExpenses(expensesForState);
     };
 
     fetchExpenses();
@@ -89,7 +98,15 @@ const Expenses = () => {
 
       // Refresh expenses list
       const updatedExpenses = await getStoredExpenses();
-      setExpenses(updatedExpenses);
+      // Convert SyncableExpense[] to Expense[]
+      const expensesForState = updatedExpenses.map(expense => ({
+        id: expense.id,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date,
+        category: expense.category
+      }));
+      setExpenses(expensesForState);
     } else {
       toast({
         variant: "destructive",

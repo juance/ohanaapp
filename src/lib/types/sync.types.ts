@@ -41,7 +41,7 @@ export interface SyncableExpense {
   description: string;
   amount: number;
   date: string;
-  category?: string;
+  category: string; // Making this required to match Expense type
   pendingSync: boolean;
   synced?: boolean;
 }

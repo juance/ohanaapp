@@ -8,7 +8,12 @@ export const getExpenses = (): SyncableExpense[] => {
   try {
     const expenses = localStorage.getItem('expenses');
     if (expenses) {
-      return JSON.parse(expenses);
+      const parsedExpenses = JSON.parse(expenses);
+      // Ensure all expenses have the required category field
+      return parsedExpenses.map((expense: any) => ({
+        ...expense,
+        category: expense.category || 'other' // Set default category if missing
+      }));
     }
     return [];
   } catch (e) {
