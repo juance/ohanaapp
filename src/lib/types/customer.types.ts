@@ -9,6 +9,7 @@ export interface Customer {
   freeValets?: number;
   lastVisit?: string;
   valetsCount?: number; // Added this property that is referenced in components
+  phone?: string; // For compatibility with database fields
 }
 
 export interface CustomerData {

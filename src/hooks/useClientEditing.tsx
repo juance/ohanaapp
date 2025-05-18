@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
 

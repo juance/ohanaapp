@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { ClientVisit, Customer, convertCustomerToClientVisit } from '@/lib/types';
+import { ClientVisit, Customer } from '@/lib/types';
+import { convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CLIENT_STORAGE_KEY } from '@/lib/constants/storageKeys';
 import { logError } from '@/lib/errorService';

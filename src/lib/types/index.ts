@@ -9,10 +9,10 @@ export * from './auth'; // Add the export from auth.ts
 export type { 
   Ticket, 
   PaymentMethod, 
-  LaundryService, 
-  LaundryOption, 
   DryCleaningItem, 
-  TicketService 
+  TicketService,
+  LaundryOption,
+  LaundryService
 } from './ticket.types';
 
 // Customer types
