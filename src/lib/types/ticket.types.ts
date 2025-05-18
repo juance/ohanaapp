@@ -35,7 +35,7 @@ export interface DryCleaningItem {
 }
 
 export interface LaundryOption {
-  id?: string;
+  id?: string; // Made optional to match usage
   name: string;
   optionType: string;
   type?: string; // For backwards compatibility

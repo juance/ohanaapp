@@ -13,12 +13,19 @@ export interface ErrorContext {
 }
 
 export interface SystemError {
-  id?: string;
+  id: string;
   message: string;
+  error_message?: string; // Added for backward compatibility
   level: ErrorLevel;
   stack?: string;
+  error_stack?: string; // Added for backward compatibility
   context?: ErrorContext;
+  error_context?: any; // Added for backward compatibility
   resolved?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  timestamp?: string; // Added for backward compatibility
+  user_id?: string; // Added for backward compatibility
+  component?: string; // Added for backward compatibility
+  browser_info?: any; // Added for backward compatibility
 }

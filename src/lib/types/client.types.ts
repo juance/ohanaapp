@@ -13,8 +13,8 @@ export interface Customer {
   visitCount?: number;
   loyaltyPoints?: number;
   hasFreeValet?: boolean;
-  freeValets?: number;
-  valetsCount?: number;
+  freeValets?: number; // Added to match usage in components
+  valetsCount?: number; // Added to match usage in components
   valets_redeemed?: number;
 }
 

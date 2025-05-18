@@ -37,6 +37,9 @@ export * from './sync.types';
 // Inventory types
 export * from './inventory.types';
 
+// Inventory UI types
+export * from './inventory-ui.types';
+
 // Metrics types
 export type {
   DailyMetrics,
@@ -56,9 +59,6 @@ export type {
   Expense,
   ExpenseCategory
 } from './expense.types';
-
-// Inventory UI types
-export * from './inventory-ui.types';
 
 // Laundry types
 export * from './laundry.types';

@@ -52,19 +52,22 @@ export interface SyncableExpense {
   date: string;
   createdAt: string;
   pendingSync?: boolean;
-  synced?: boolean;
+  synced?: boolean; // Added missing property
 }
 
 export interface SyncableTicket {
   id: string;
   ticketNumber: string;
-  clientName: string;
-  phoneNumber: string;
+  clientName?: string; // Made optional
+  phoneNumber?: string; // Made optional
   total: number;
+  totalPrice?: number;
   status: string;
   paymentMethod: string;
-  date: string;
+  date?: string; // Made optional
   isPaid: boolean;
   createdAt: string;
   pendingSync?: boolean;
+  customerId?: string;
+  deliveredDate?: string;
 }

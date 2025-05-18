@@ -26,3 +26,9 @@ export interface UserData {
   role?: string;
   name?: string;
 }
+
+// Add the UserWithPassword interface used in UserDialog
+export interface UserWithPassword extends Omit<User, 'id'> {
+  id?: string;
+  password: string;
+}
