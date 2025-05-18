@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit } from '@/lib/types';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

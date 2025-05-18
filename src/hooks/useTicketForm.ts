@@ -11,6 +11,9 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
   // New state for paid in advance option
   const [isPaidInAdvance, setIsPaidInAdvance] = useState<boolean>(false);
   
+  // Add state for free valet dialog
+  const [showFreeValetDialog, setShowFreeValetDialog] = useState<boolean>(false);
+  
   // Import all smaller hooks
   const customerForm = useCustomerForm();
   const valetForm = useValetForm();
@@ -71,6 +74,10 @@ export const useTicketForm = (onTicketGenerated?: (ticket: Ticket, options: Laun
     // Paid in advance option
     isPaidInAdvance,
     setIsPaidInAdvance,
+    
+    // Free valet dialog state
+    showFreeValetDialog,
+    setShowFreeValetDialog,
     
     // Form submission
     handleSubmit

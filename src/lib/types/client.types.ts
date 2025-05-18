@@ -8,5 +8,7 @@ export interface ClientVisit {
   lastVisit?: string;
   totalSpent?: number;
   valetsCount?: number;
-  loyaltyPoints?: number; // Add this for compatibility
+  loyaltyPoints?: number;
+  visitFrequency?: string;
+  lastVisitDate?: string;
 }

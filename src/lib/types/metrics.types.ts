@@ -1,41 +1,22 @@
 
-// Types for dashboard metrics
-
-export interface DailyMetrics {
-  date: string;
-  totalSales: number;
+export interface BaseMetrics {
+  totalRevenue: number;
   ticketCount: number;
-  expenses?: number;
-  profit?: number;
+  averageTicketValue: number;
+  valetCount: number;
+  dryCleaningCount: number;
 }
 
-export interface WeeklyMetrics {
+export interface DailyMetrics extends BaseMetrics {
+  date: string;
+}
+
+export interface WeeklyMetrics extends BaseMetrics {
   weekStart: string;
   weekEnd: string;
-  totalSales: number;
-  ticketCount: number;
-  expenses?: number;
-  profit?: number;
-  dailyMetrics?: DailyMetrics[];
 }
 
-export interface MonthlyMetrics {
+export interface MonthlyMetrics extends BaseMetrics {
   month: string;
   year: number;
-  totalSales: number;
-  ticketCount: number;
-  expenses?: number;
-  profit?: number;
-  weeklyMetrics?: WeeklyMetrics[];
-}
-
-export interface DashboardMetrics {
-  dailyMetrics: DailyMetrics[];
-  weeklyMetrics: WeeklyMetrics[];
-  monthlyMetrics: MonthlyMetrics[];
-  topClients?: {
-    clientName: string;
-    totalSpent: number;
-    visitCount: number;
-  }[];
 }
