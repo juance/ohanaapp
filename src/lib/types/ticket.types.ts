@@ -1,5 +1,5 @@
 
-// Add payment method types if not already defined
+// Payment method types
 export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'cuentaDni' | 'transfer' | string;
 
 export interface Ticket {
@@ -9,7 +9,7 @@ export interface Ticket {
   clientName?: string;
   phoneNumber?: string;
   total: number;
-  totalPrice: number; // Add this property
+  totalPrice: number; // Adding this explicitly
   status: string;
   paymentMethod: PaymentMethod;
   date: string;
@@ -19,10 +19,11 @@ export interface Ticket {
   items?: DryCleaningItem[];
   valetQuantity?: number;
   deliveredDate?: string;
-  basketTicketNumber?: string; // Add this property
-  services?: TicketService[]; // Add this property
+  basketTicketNumber?: string; // Adding this property
+  services?: TicketService[]; // Adding this property
   laundryOptions?: LaundryOption[];
-  dryCleaningItems?: DryCleaningItem[]; // Add this property
+  dryCleaningItems?: DryCleaningItem[]; // Adding this property
+  usesFreeValet?: boolean;
 }
 
 export interface DryCleaningItem {

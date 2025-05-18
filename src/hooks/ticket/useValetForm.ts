@@ -4,23 +4,32 @@ import { LaundryOption } from '@/lib/types';
 
 export const useValetForm = () => {
   const [valetQuantity, setValetQuantity] = useState<number>(1);
-  const [useFreeValet, setUseFreeValet] = useState<boolean>(false);
-  
-  // Laundry options state
   const [separateByColor, setSeparateByColor] = useState<boolean>(false);
   const [delicateDry, setDelicateDry] = useState<boolean>(false);
   const [stainRemoval, setStainRemoval] = useState<boolean>(false);
   const [bleach, setBleach] = useState<boolean>(false);
   const [noFragrance, setNoFragrance] = useState<boolean>(false);
   const [noDry, setNoDry] = useState<boolean>(false);
+  const [useFreeValet, setUseFreeValet] = useState<boolean>(false);
 
-  // Get selected laundry options in array format
+  // Function to reset all valet form values
+  const resetValetForm = () => {
+    setValetQuantity(1);
+    setSeparateByColor(false);
+    setDelicateDry(false);
+    setStainRemoval(false);
+    setBleach(false);
+    setNoFragrance(false);
+    setNoDry(false);
+    setUseFreeValet(false);
+  };
+
+  // Function to get all selected laundry options
   const getSelectedLaundryOptions = (): LaundryOption[] => {
     const options: LaundryOption[] = [];
     
     if (separateByColor) {
       options.push({
-        id: 'color',
         name: 'Separar por color',
         optionType: 'preference',
         selected: true
@@ -29,7 +38,6 @@ export const useValetForm = () => {
     
     if (delicateDry) {
       options.push({
-        id: 'delicate',
         name: 'Secado delicado',
         optionType: 'preference',
         selected: true
@@ -38,7 +46,6 @@ export const useValetForm = () => {
     
     if (stainRemoval) {
       options.push({
-        id: 'stain',
         name: 'Quitar manchas',
         optionType: 'preference',
         selected: true
@@ -47,8 +54,7 @@ export const useValetForm = () => {
     
     if (bleach) {
       options.push({
-        id: 'bleach',
-        name: 'Usar blanqueador',
+        name: 'Usar lavandina',
         optionType: 'preference',
         selected: true
       });
@@ -56,7 +62,6 @@ export const useValetForm = () => {
     
     if (noFragrance) {
       options.push({
-        id: 'no-fragrance',
         name: 'Sin fragancia',
         optionType: 'preference',
         selected: true
@@ -65,8 +70,7 @@ export const useValetForm = () => {
     
     if (noDry) {
       options.push({
-        id: 'no-dry',
-        name: 'Sin secar',
+        name: 'No secar',
         optionType: 'preference',
         selected: true
       });
@@ -75,22 +79,9 @@ export const useValetForm = () => {
     return options;
   };
 
-  const resetValetForm = () => {
-    setValetQuantity(1);
-    setUseFreeValet(false);
-    setSeparateByColor(false);
-    setDelicateDry(false);
-    setStainRemoval(false);
-    setBleach(false);
-    setNoFragrance(false);
-    setNoDry(false);
-  };
-
   return {
     valetQuantity,
     setValetQuantity,
-    useFreeValet,
-    setUseFreeValet,
     separateByColor,
     setSeparateByColor,
     delicateDry,
@@ -103,7 +94,9 @@ export const useValetForm = () => {
     setNoFragrance,
     noDry,
     setNoDry,
-    getSelectedLaundryOptions,
-    resetValetForm
+    useFreeValet,
+    setUseFreeValet,
+    resetValetForm,
+    getSelectedLaundryOptions
   };
 };

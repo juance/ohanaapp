@@ -1,17 +1,14 @@
 
-export type Role = 'admin' | 'operator' | 'client';
-
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-  phoneNumber?: string;
-  role: Role;
-  requiresPasswordChange?: boolean;
+// Basic auth interfaces for backward compatibility
+export interface AuthState {
+  user: UserData | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
-export interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
+export interface UserData {
+  id: string;
+  email?: string;
+  role?: string;
+  name?: string;
 }

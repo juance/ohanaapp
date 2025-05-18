@@ -1,19 +1,18 @@
 
-export interface Customer {
-  id: string;
-  name: string;
-  phoneNumber: string;
-  email?: string;
-  loyaltyPoints?: number;
-  visitCount?: number;
-  freeValets?: number;
-  lastVisit?: string;
-  valetsCount?: number; // Added this property that is referenced in components
-  phone?: string; // For compatibility with database fields
+// Re-export from client.types.ts for backward compatibility
+export { ClientVisit, Customer, convertCustomerToClientVisit } from './client.types';
+
+// Additional customer-specific types
+export interface CustomerStats {
+  visitCount: number;
+  lastVisit: string | null;
+  averageSpend: number;
+  totalSpent: number;
 }
 
-export interface CustomerData {
+export interface CustomerPreference {
+  id: string;
+  customerId: string;
   name: string;
-  phoneNumber: string;
-  email?: string;
+  value: string;
 }

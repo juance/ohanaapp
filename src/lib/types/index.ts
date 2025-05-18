@@ -3,7 +3,6 @@
 
 // Auth types
 export * from './auth.types';
-export * from './auth'; // Add the export from auth.ts
 
 // Ticket types
 export type { 
@@ -38,7 +37,7 @@ export * from './metrics.types';
 export * from './menu.types';
 
 // Client types
-export type { ClientVisit } from './client.types';
+export * from './client.types';
 
 // Feedback types
 export type { CustomerFeedback } from './feedback.types';
@@ -56,4 +55,4 @@ export * from './inventory-ui.types';
 export * from './laundry.types';
 
 // Utils
-export { convertCustomerToClientVisit } from '../utils/customerUtils';
+export { convertCustomerToClientVisit } from './client.types';

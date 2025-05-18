@@ -9,6 +9,12 @@ export interface SimpleSyncStatus {
   timestamp: string;
   status: 'success' | 'error' | 'in-progress';
   message?: string;
+  lastSync?: string;
+  syncError?: string | null;
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
 }
 
 export interface SyncResult {
