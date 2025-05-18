@@ -49,8 +49,10 @@ export const useTicketSubmission = (
 
       // Prepare laundry options - convert strings to LaundryOption objects
       const laundryOptions = selectedLaundryOptions.map(option => ({
+        id: String(Math.random()),
         name: option,
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       })) as LaundryOption[];
 
       // Store the ticket using a single object parameter

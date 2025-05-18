@@ -24,7 +24,7 @@ export const formatTicketData = (
     basketTicketNumber: ticketData.basket_ticket_number || '',
     services: mapDryCleaningItemsToServices(dryCleaningItems),
     valetQuantity: ticketData.valet_quantity || 0,
-    // Agregar explícitamente dryCleaningItems para acceso directo
+    // Add dryCleaningItems for direct access
     dryCleaningItems: dryCleaningItems
   };
 };
@@ -35,15 +35,15 @@ export const formatTicketData = (
 export const mapDryCleaningItemsToServices = (
   items: DryCleaningItem[]
 ): TicketService[] => {
-  // Si no hay elementos o está vacío, devolver array vacío
+  // If no items or empty, return empty array
   if (!items || items.length === 0) {
     return [];
   }
   
-  // Mapear los items a servicios
+  // Map items to services
   return items.map(item => ({
     id: item.id,
-    name: item.name || 'Servicio',  // Proporcionar un nombre por defecto si es vacío
+    name: item.name || 'Servicio',  // Provide default name if empty
     price: item.price || 0,
     quantity: item.quantity || 1
   }));

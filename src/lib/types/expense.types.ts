@@ -1,16 +1,19 @@
 
-/**
- * Represents an expense entry
- */
 export interface Expense {
   id: string;
-  description: string;
   amount: number;
   date: string;
+  description: string;
   category: string;
+  created_at?: string;
 }
 
-/**
- * Standard expense categories
- */
-export type ExpenseCategory = 'utilities' | 'rent' | 'supplies' | 'salary' | 'marketing' | 'maintenance' | 'other';
+export type ExpenseCategory = 
+  | 'utilities'
+  | 'rent'
+  | 'supplies'
+  | 'maintenance'
+  | 'equipment'
+  | 'marketing'
+  | 'salaries'
+  | 'other';

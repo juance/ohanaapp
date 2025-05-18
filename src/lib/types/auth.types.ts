@@ -1,17 +1,3 @@
 
-export type Role = 'admin' | 'staff' | 'manager' | 'operator' | 'client';
-
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-  phoneNumber?: string;
-  role: Role;
-  requiresPasswordChange?: boolean;
-}
-
-export interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: string | null;
-}
+// Define the Role type to match what's used in AuthContext
+export type Role = 'admin' | 'operator' | 'client';

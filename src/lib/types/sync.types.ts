@@ -1,98 +1,50 @@
 
-/**
- * Basic sync status information
- */
-export interface SimpleSyncStatus {
-  tickets: number;
-  expenses: number;
-  clients: number;
-  feedback: number;
-  lastSync: string | null;
-  syncError?: string | null;
-}
-
-/**
- * Result of a sync operation
- */
 export interface SyncResult {
-  tickets: number;
-  expenses: number;
-  clients: number;
-  feedback: number;
-  timestamp: Date;
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
   success: boolean;
   error?: string;
 }
 
-/**
- * Comprehensive sync options
- */
-export interface SyncOptions {
-  force?: boolean;
-  types?: ('tickets' | 'expenses' | 'clients' | 'feedback')[];
-  onProgress?: (progress: number) => void;
+export interface SimpleSyncStatus {
+  lastSync: string | null;
+  syncError: string | null;
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
 }
 
-/**
- * Expense data with sync status
- */
+export interface SyncableItem {
+  id: string;
+  pendingSync?: boolean;
+}
+
 export interface SyncableExpense {
   id: string;
-  description: string;
   amount: number;
   date: string;
-  category: string; // Making this required to match Expense type
-  pendingSync: boolean;
-  synced?: boolean;
+  description: string;
+  category?: string;
+  pendingSync?: boolean;
+  created_at?: string;
 }
 
-/**
- * Customer feedback data with sync status
- */
-export interface SyncableCustomerFeedback {
+export interface SyncableClient {
   id: string;
-  customerName: string;
+  name: string;
+  phoneNumber: string;
+  email?: string;
+  pendingSync?: boolean;
+}
+
+export interface SyncableFeedback {
+  id: string;
   customerId?: string;
+  customerName: string;
   rating: number;
   comment: string;
-  createdAt: string;
-  source?: string;
-  pendingSync: boolean;
-  pendingDelete?: boolean;
-}
-
-/**
- * Ticket data with sync status
- */
-export interface SyncableTicket {
-  id: string;
-  ticketNumber: string;
-  total: number;
-  totalPrice?: number;
-  paymentMethod: string;
-  status: string;
-  isPaid: boolean;
-  createdAt: string;
-  pendingSync: boolean;
-  customerId?: string;
-  deliveredDate?: string;
-  date: string;
-  synced?: boolean;
-}
-
-/**
- * Client data with sync status
- */
-export interface LocalClient {
-  id?: string;
-  clientId?: string;
-  clientName: string;
-  name?: string;
-  phoneNumber: string;
-  phone?: string;
-  loyaltyPoints: number;
-  freeValets: number;
-  valetsCount: number;
-  lastVisit?: string;
-  pendingSync: boolean;
+  pendingSync?: boolean;
 }

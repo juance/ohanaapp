@@ -8,6 +8,7 @@ export interface LaundryOption {
   price?: number; // Added price as optional
   ticketId?: string;
   createdAt?: string;
+  selected?: boolean;
 }
 
 export interface LaundryService {

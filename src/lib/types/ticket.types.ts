@@ -41,12 +41,15 @@ export interface LaundryOption {
   price?: number;
   ticketId?: string;
   createdAt?: string;
+  selected?: boolean;
 }
 
 export interface LaundryService {
   id: string;
   name: string;
   price: number;
+  optionType: string;
+  quantity?: number;
 }
 
 export interface TicketService {

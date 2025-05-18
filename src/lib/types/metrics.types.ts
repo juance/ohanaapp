@@ -1,52 +1,29 @@
 
-// Metrics types
-
 export interface DailyMetrics {
-  salesByHour: Record<string, number>;
+  date: string;
   totalSales: number;
+  ticketCount: number;
+  averageTicketValue: number;
   valetCount: number;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  paidTickets?: number;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems: Record<string, number>;
+  dryCleaningCount: number;
 }
 
 export interface WeeklyMetrics {
-  salesByDay: Record<string, number>;
-  salesByWeek: Record<string, number>;
+  weekStartDate: string;
+  weekEndDate: string;
   totalSales: number;
-  valetCount: number;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  paidTickets?: number;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems: Record<string, number>;
+  ticketCount: number;
+  averageTicketValue: number;
+  topSellingServices: Array<{name: string, count: number}>;
 }
 
 export interface MonthlyMetrics {
-  salesByDay: Record<string, number>;
-  salesByWeek?: Record<string, number>;
+  month: string;
+  year: number;
   totalSales: number;
-  valetCount: number;
-  paymentMethods: {
-    cash: number;
-    debit: number;
-    mercadopago: number;
-    cuentaDni: number;
-  };
-  paidTickets?: number;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems: Record<string, number>;
+  totalExpenses: number;
+  profit: number;
+  ticketCount: number;
+  customerCount: number;
+  repeatCustomerRate: number;
 }

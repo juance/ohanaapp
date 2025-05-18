@@ -1,9 +1,8 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { Role } from '@/lib/types/auth.types';
 
-export type Role = 'admin' | 'operator' | 'client';
-
-interface User {
+export interface User {
   id: string;
   name: string;
   email?: string;
@@ -12,11 +11,11 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
   loading: boolean;
-  checkUserPermission: (roles: Role[]) => boolean;
+  error: Error | null;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  checkUserPermission: (allowedRoles: Role[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,70 +23,89 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Check for existing user session
-    const checkUserSession = async () => {
+    // Check if there's a saved user session in localStorage
+    const savedUser = localStorage.getItem('authUser');
+    if (savedUser) {
       try {
-        // For now, we'll use localStorage for demo purposes
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error("Error checking user session:", error);
-      } finally {
-        setLoading(false);
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse saved user:', e);
+        localStorage.removeItem('authUser');
       }
-    };
-
-    checkUserSession();
+    }
+    setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string): Promise<boolean> => {
+  const login = async (email: string, password: string) => {
     try {
-      // Simulate login success - in a real app, this would call an authentication API
-      const mockUser: User = {
-        id: "1",
-        name: "Admin User",
-        email: email,
-        role: "admin"
-      };
+      setLoading(true);
+      setError(null);
       
-      setUser(mockUser);
-      localStorage.setItem('currentUser', JSON.stringify(mockUser));
-      return true;
-    } catch (error) {
-      console.error("Login error:", error);
-      return false;
+      // Mock authentication for demonstration purposes
+      // In a real app, this would call your auth API
+      if (email === 'admin@example.com' && password === 'password') {
+        const userData: User = {
+          id: '1',
+          name: 'Admin User',
+          email,
+          role: 'admin'
+        };
+        
+        setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
+        return;
+      }
+      
+      if (email === 'operator@example.com' && password === 'password') {
+        const userData: User = {
+          id: '2',
+          name: 'Operator User',
+          email,
+          role: 'operator'
+        };
+        
+        setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
+        return;
+      }
+      
+      if (email === 'client@example.com' && password === 'password') {
+        const userData: User = {
+          id: '3',
+          name: 'Client User',
+          email,
+          role: 'client'
+        };
+        
+        setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
+        return;
+      }
+      
+      throw new Error('Invalid credentials');
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const logout = async (): Promise<void> => {
-    try {
-      setUser(null);
-      localStorage.removeItem('currentUser');
-    } catch (error) {
-      console.error("Logout error:", error);
-    }
+  const logout = async () => {
+    setUser(null);
+    localStorage.removeItem('authUser');
   };
 
-  const checkUserPermission = (roles: Role[]): boolean => {
+  const checkUserPermission = (allowedRoles: Role[]): boolean => {
     if (!user) return false;
-    return roles.includes(user.role);
+    return allowedRoles.includes(user.role);
   };
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        login,
-        logout,
-        isAuthenticated: !!user,
-        loading,
-        checkUserPermission
-      }}
-    >
+    <AuthContext.Provider value={{ user, loading, error, login, logout, checkUserPermission }}>
       {children}
     </AuthContext.Provider>
   );
@@ -95,8 +113,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
+  
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 };

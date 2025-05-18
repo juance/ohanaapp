@@ -36,6 +36,9 @@ export * from './metrics.types';
 // Menu types
 export * from './menu.types';
 
+// Client types
+export type { ClientVisit } from './client.types';
+
 // Feedback types
 export type { CustomerFeedback } from './feedback.types';
 
