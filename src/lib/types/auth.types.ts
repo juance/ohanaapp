@@ -18,3 +18,11 @@ export interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
 }
+
+// For backward compatibility with auth.ts file
+export interface UserData {
+  id: string;
+  email?: string;
+  role?: string;
+  name?: string;
+}

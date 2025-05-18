@@ -5,9 +5,9 @@ export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'cuent
 export interface Ticket {
   id: string;
   ticketNumber: string;
+  clientName: string;
   customerName?: string;
-  clientName?: string;
-  phoneNumber?: string;
+  phoneNumber: string;
   total: number;
   totalPrice: number;
   status: string;

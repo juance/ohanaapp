@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { LaundryOption } from '@/lib/types/ticket.types';
 
@@ -31,8 +32,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Separar por color',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     
@@ -40,8 +40,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Secado delicado',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     
@@ -49,8 +48,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Remoción de manchas',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     
@@ -58,8 +56,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Blanqueador',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     
@@ -67,8 +64,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Sin fragancia',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     
@@ -76,8 +72,7 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Sin secado',
-        optionType: 'preference',
-        selected: true
+        optionType: 'preference'
       });
     }
     

@@ -5,7 +5,6 @@ export interface CustomerFeedback {
   customerName: string;
   rating: number;
   comment: string;
+  createdAt: string;
   source?: string;
-  created_at?: string;
-  createdAt?: string; // Adding this for compatibility
 }
