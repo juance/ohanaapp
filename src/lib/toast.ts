@@ -1,91 +1,47 @@
 
-import { toast as sonnerToast } from "sonner";
+import { toast as sonnerToast } from '@/components/ui/toast';
 
-// Define toast interface
-export interface ToastProps {
+type ToastVariant = 'default' | 'destructive' | 'success';
+
+interface ToastOptions {
   title?: string;
   description?: string;
-  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
-  [key: string]: any;
+  variant?: ToastVariant;
+  duration?: number;
 }
 
-// Create a toast function that properly handles objects and strings
-function toastFunction(props: ToastProps | string) {
-  if (typeof props === 'string') {
-    return sonnerToast(props);
-  }
-  
-  const { title, description, variant, ...rest } = props;
-
-  if (variant === 'destructive') {
-    return sonnerToast.error(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'success') {
-    return sonnerToast.success(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'warning') {
-    return sonnerToast.warning(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'info') {
-    return sonnerToast.info(title || '', {
-      description,
-      ...rest
-    });
-  }
-
-  return sonnerToast(title || '', {
-    description,
-    ...rest
+export const toast = (options: ToastOptions) => {
+  return sonnerToast({
+    ...options,
+    duration: options.duration || 3000,
   });
-}
+};
 
-// Create toast object with the function as default and helper methods
-export const toast = Object.assign(toastFunction, {
-  success: (message: string | ToastProps) => {
-    if (typeof message === 'string') {
-      return sonnerToast.success(message);
-    }
-    return sonnerToast.success(message.title || '', {
-      description: message.description,
-      ...message
-    });
-  },
-  error: (message: string | ToastProps) => {
-    if (typeof message === 'string') {
-      return sonnerToast.error(message);
-    }
-    return sonnerToast.error(message.title || '', {
-      description: message.description,
-      ...message
-    });
-  },
-  warning: (message: string | ToastProps) => {
-    if (typeof message === 'string') {
-      return sonnerToast.warning(message);
-    }
-    return sonnerToast.warning(message.title || '', {
-      description: message.description,
-      ...message
-    });
-  },
-  info: (message: string | ToastProps) => {
-    if (typeof message === 'string') {
-      return sonnerToast.info(message);
-    }
-    return sonnerToast.info(message.title || '', {
-      description: message.description,
-      ...message
-    });
-  },
-  loading: (title: string, options?: Omit<ToastProps, 'title'>) => {
-    return sonnerToast.loading(title, options);
-  }
-});
+// Add utility methods for common toast patterns
+toast.success = (message: string, options: Omit<ToastOptions, 'description' | 'variant'> = {}) => {
+  return toast({
+    ...options,
+    title: options.title || 'Éxito',
+    description: message,
+    variant: 'success',
+  });
+};
+
+toast.error = (message: string, options: Omit<ToastOptions, 'description' | 'variant'> = {}) => {
+  return toast({
+    ...options,
+    title: options.title || 'Error',
+    description: message,
+    variant: 'destructive',
+  });
+};
+
+toast.info = (message: string, options: Omit<ToastOptions, 'description'> = {}) => {
+  return toast({
+    ...options,
+    title: options.title || 'Información',
+    description: message,
+  });
+};
 
 export default toast;

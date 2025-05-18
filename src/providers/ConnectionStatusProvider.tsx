@@ -1,63 +1,33 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { syncAllData } from '@/lib/data/sync/comprehensiveSync';
-import { SimpleSyncStatus } from '@/lib/types/sync.types';
-import { getSyncStatus } from '@/lib/data/sync/syncStatusService';
-import { dispatchConnectionStatusEvent } from '@/lib/notificationService';
-
-type ConnectionStatus = 'online' | 'offline';
-type SyncStatus = 'synced' | 'syncing' | 'error' | 'pending';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface ConnectionContextType {
-  connectionStatus: ConnectionStatus;
-  syncStatus: SyncStatus;
-  pendingSyncCount: number;
-  lastSyncedAt: Date | null;
-  syncData: () => Promise<void>;
+  isOnline: boolean;
+  lastChecked: Date | null;
+  checkConnection: () => Promise<boolean>;
 }
 
 const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
 
-export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('online');
-  const [syncStatus, setSyncStatus] = useState<SyncStatus>('synced');
-  const [pendingSyncCount, setPendingSyncCount] = useState<number>(0);
-  const [lastSyncedAt, setLastSyncedAt] = useState<Date | null>(null);
+export const useConnection = (): ConnectionContextType => {
+  const context = useContext(ConnectionContext);
+  if (context === undefined) {
+    throw new Error('useConnection must be used within a ConnectionStatusProvider');
+  }
+  return context;
+};
 
-  // Monitor online/offline status
+export const ConnectionStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+
+  // Check if the browser is online or offline
   useEffect(() => {
-    const handleOnline = () => {
-      setConnectionStatus('online');
-      dispatchConnectionStatusEvent(true, pendingSyncCount);
-    };
-    
-    const handleOffline = () => {
-      setConnectionStatus('offline');
-      dispatchConnectionStatusEvent(false, pendingSyncCount);
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-
-    // Initialize sync status from storage
-    const storedStatus = getSyncStatus();
-    if (storedStatus.lastSync) {
-      setLastSyncedAt(new Date(storedStatus.lastSync));
-    }
-    
-    // Calculate pending sync items
-    const totalPending = 
-      (storedStatus.tickets || 0) + 
-      (storedStatus.expenses || 0) + 
-      (storedStatus.clients || 0) + 
-      (storedStatus.feedback || 0);
-      
-    setPendingSyncCount(totalPending);
-    
-    // Perform initial sync if online
-    if (navigator.onLine && totalPending > 0) {
-      syncData();
-    }
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -65,40 +35,49 @@ export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> =
     };
   }, []);
 
-  // Real sync function that uses the comprehensive sync implementation
-  const syncData = async () => {
-    if (connectionStatus === 'offline' || syncStatus === 'syncing') {
-      return;
-    }
-    
+  // Function to manually check connection by pinging a resource
+  const checkConnection = async (): Promise<boolean> => {
     try {
-      setSyncStatus('syncing');
+      // Try to fetch a small resource to verify actual internet connectivity
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
       
-      // Use the real syncAllData implementation
-      const syncResult = await syncAllData();
+      const response = await fetch('/ping.txt', {
+        method: 'HEAD',
+        signal: controller.signal,
+        cache: 'no-store'
+      });
       
-      // Update the sync status
-      const totalSynced = 
-        syncResult.tickets + 
-        syncResult.expenses + 
-        syncResult.clients + 
-        syncResult.feedback;
-        
-      setPendingSyncCount(Math.max(0, pendingSyncCount - totalSynced));
-      setLastSyncedAt(syncResult.timestamp);
-      setSyncStatus(totalSynced > 0 ? 'synced' : 'pending');
+      clearTimeout(timeoutId);
+      setIsOnline(response.ok);
+      setLastChecked(new Date());
+      return response.ok;
     } catch (error) {
-      console.error('Sync error:', error);
-      setSyncStatus('error');
+      console.log('Connection check failed:', error);
+      setIsOnline(false);
+      setLastChecked(new Date());
+      return false;
     }
   };
 
-  const value = {
-    connectionStatus,
-    syncStatus,
-    pendingSyncCount,
-    lastSyncedAt,
-    syncData
+  // Initial connection check
+  useEffect(() => {
+    checkConnection();
+  }, []);
+
+  // Check connection periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      checkConnection();
+    }, 30000); // Check every 30 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const value: ConnectionContextType = {
+    isOnline,
+    lastChecked,
+    checkConnection
   };
 
   return (
@@ -106,12 +85,4 @@ export const ConnectionStatusProvider: React.FC<{ children: React.ReactNode }> =
       {children}
     </ConnectionContext.Provider>
   );
-};
-
-export const useConnection = () => {
-  const context = useContext(ConnectionContext);
-  if (context === undefined) {
-    throw new Error('useConnection must be used within a ConnectionStatusProvider');
-  }
-  return context;
 };

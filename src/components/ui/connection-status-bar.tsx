@@ -1,92 +1,93 @@
 
 import React from 'react';
+import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { useConnection } from '@/providers/ConnectionStatusProvider';
-import { DataStatusIndicator } from './data-status-indicator';
-import { Button } from './button';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
-interface ConnectionStatusBarProps {
-  variant?: 'compact' | 'full';
+type ConnectionStatusBarProps = {
+  /** Renders a more compact version of the connection status bar */
+  variant?: 'default' | 'compact';
   className?: string;
-}
+};
 
-export function ConnectionStatusBar({ 
-  variant = 'full',
-  className 
-}: ConnectionStatusBarProps) {
-  const { 
-    connectionStatus, 
-    syncStatus, 
-    pendingSyncCount, 
-    lastSyncedAt,
-    syncData
-  } = useConnection();
-
-  // Map our app status to the DataStatusIndicator status
-  let displayStatus: 'synchronized' | 'offline' | 'syncing' | 'error';
+/**
+ * Connection Status Bar component that shows the current online/offline status
+ * and provides a button to manually check the connection.
+ */
+export const ConnectionStatusBar: React.FC<ConnectionStatusBarProps> = ({
+  variant = 'default',
+  className
+}) => {
+  const { isOnline, lastChecked, checkConnection } = useConnection();
+  const [isChecking, setIsChecking] = React.useState(false);
   
-  if (connectionStatus === 'offline') {
-    displayStatus = 'offline';
-  } else if (syncStatus === 'syncing') {
-    displayStatus = 'syncing';
-  } else if (syncStatus === 'error') {
-    displayStatus = 'error';
-  } else {
-    displayStatus = 'synchronized';
-  }
-
-  const handleSync = () => {
-    syncData();
+  const handleCheckConnection = async () => {
+    setIsChecking(true);
+    await checkConnection();
+    setIsChecking(false);
   };
 
-  // For compact variant
   if (variant === 'compact') {
     return (
-      <div className={`flex items-center ${className}`}>
-        <DataStatusIndicator 
-          status={displayStatus} 
-          pendingCount={pendingSyncCount}
-          onClick={handleSync}
-          size="sm"
-        />
+      <div className={cn(
+        "flex items-center text-xs rounded-md border px-2 py-1",
+        isOnline ? "bg-green-50 border-green-200 text-green-700" : "bg-amber-50 border-amber-200 text-amber-700",
+        className
+      )}>
+        <span className="mr-1">
+          {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+        </span>
+        <span>{isOnline ? "En línea" : "Fuera de línea"}</span>
       </div>
     );
   }
-
-  // Full variant
+  
   return (
-    <div className={`w-full border rounded-lg p-3 shadow-sm ${className}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <DataStatusIndicator 
-            status={displayStatus} 
-            pendingCount={pendingSyncCount}
-            showLabel
-          />
-          
-          {lastSyncedAt && (
-            <span className="text-xs text-gray-500">
-              Última sincronización: {formatDistanceToNow(lastSyncedAt, { addSuffix: true, locale: es })}
-            </span>
+    <div className={cn(
+      "flex items-center justify-between rounded-md border p-2.5",
+      isOnline ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200",
+      className
+    )}>
+      <div className="flex items-center gap-2">
+        <div className={cn(
+          "rounded-full p-1.5",
+          isOnline ? "bg-green-100" : "bg-amber-100"
+        )}>
+          {isOnline ? (
+            <Wifi className={cn("h-4 w-4", "text-green-600")} />
+          ) : (
+            <WifiOff className={cn("h-4 w-4", "text-amber-600")} />
           )}
         </div>
         
-        <Button
-          size="sm"
-          variant={pendingSyncCount > 0 ? "default" : "outline"}
-          onClick={handleSync}
-          disabled={connectionStatus === 'offline' || syncStatus === 'syncing'}
-        >
-          {syncStatus === 'syncing' ? 'Sincronizando...' : 'Sincronizar ahora'}
-        </Button>
+        <div>
+          <div className={cn(
+            "text-sm font-medium",
+            isOnline ? "text-green-700" : "text-amber-700"
+          )}>
+            {isOnline ? "Conectado" : "Sin conexión"}
+          </div>
+          {lastChecked && (
+            <div className="text-xs text-gray-500">
+              Última comprobación: {lastChecked.toLocaleTimeString()}
+            </div>
+          )}
+        </div>
       </div>
       
-      {pendingSyncCount > 0 && (
-        <div className="mt-2 text-sm text-amber-600">
-          {pendingSyncCount} {pendingSyncCount === 1 ? 'item pendiente' : 'items pendientes'} de sincronización
-        </div>
-      )}
+      <button
+        onClick={handleCheckConnection}
+        disabled={isChecking}
+        className={cn(
+          "flex items-center gap-1 rounded border px-2 py-1 text-xs transition-colors",
+          isOnline 
+            ? "border-green-300 bg-green-100 text-green-700 hover:bg-green-200" 
+            : "border-amber-300 bg-amber-100 text-amber-700 hover:bg-amber-200"
+        )}
+      >
+        <RefreshCw className={cn("h-3 w-3", isChecking && "animate-spin")} />
+        Verificar
+      </button>
     </div>
   );
-}
+};

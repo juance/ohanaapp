@@ -1,4 +1,7 @@
 
+/**
+ * Represents an expense entry
+ */
 export interface Expense {
   id: string;
   description: string;
@@ -7,4 +10,7 @@ export interface Expense {
   category: string;
 }
 
-export type ExpenseCategory = 'supplies' | 'services' | 'maintenance' | 'other';
+/**
+ * Standard expense categories
+ */
+export type ExpenseCategory = 'utilities' | 'rent' | 'supplies' | 'salary' | 'marketing' | 'maintenance' | 'other';

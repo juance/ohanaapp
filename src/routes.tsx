@@ -11,28 +11,13 @@ import Clients from './pages/Clients';
 import Feedback from './pages/Feedback';
 import Analysis from './pages/Analysis';
 import NotFound from './pages/NotFound';
-
-// Admin placeholder pages
-const AdminPage = () => (
-  <div className="container mx-auto p-6">
-    <h1 className="text-2xl font-bold mb-4">Administración</h1>
-    <p>Esta página está en construcción.</p>
-  </div>
-);
-
-const InventoryPage = () => (
-  <div className="container mx-auto p-6">
-    <h1 className="text-2xl font-bold mb-4">Inventario</h1>
-    <p>Esta página está en construcción.</p>
-  </div>
-);
-
-const MetricsPage = () => (
-  <div className="container mx-auto p-6">
-    <h1 className="text-2xl font-bold mb-4">Métricas</h1>
-    <p>Esta página está en construcción.</p>
-  </div>
-);
+import Expenses from './pages/Expenses';
+import Metrics from './pages/Metrics';
+import Administration from './pages/Administration';
+import Inventory from './pages/Inventory';
+import Loyalty from './pages/Loyalty';
+import Tickets from './pages/Tickets';
+import PickupOrders from './pages/PickupOrders';
 
 export const AppRoutes = () => {
   return (
@@ -44,9 +29,13 @@ export const AppRoutes = () => {
       <Route path="/clients" element={<Clients />} />
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/analysis" element={<Analysis />} />
-      <Route path="/admin" element={<AdminPage />} />
-      <Route path="/inventory" element={<InventoryPage />} />
-      <Route path="/metrics" element={<MetricsPage />} />
+      <Route path="/expenses" element={<Expenses />} />
+      <Route path="/metrics" element={<Metrics />} />
+      <Route path="/admin" element={<Administration />} />
+      <Route path="/inventory" element={<Inventory />} />
+      <Route path="/loyalty" element={<Loyalty />} />
+      <Route path="/tickets" element={<Tickets />} />
+      <Route path="/pickup" element={<PickupOrders />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
