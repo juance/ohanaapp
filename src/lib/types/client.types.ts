@@ -13,7 +13,6 @@ export interface ClientVisit {
   lastVisitDate?: string;
 }
 
-// Add any helper types or functions related to clients
 export interface Customer {
   id: string;
   name?: string;

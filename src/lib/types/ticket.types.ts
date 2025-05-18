@@ -9,7 +9,7 @@ export interface Ticket {
   clientName?: string;
   phoneNumber?: string;
   total: number;
-  totalPrice: number; // Adding this explicitly
+  totalPrice: number;
   status: string;
   paymentMethod: PaymentMethod;
   date: string;
@@ -19,10 +19,10 @@ export interface Ticket {
   items?: DryCleaningItem[];
   valetQuantity?: number;
   deliveredDate?: string;
-  basketTicketNumber?: string; // Adding this property
-  services?: TicketService[]; // Adding this property
+  basketTicketNumber?: string;
+  services?: TicketService[];
   laundryOptions?: LaundryOption[];
-  dryCleaningItems?: DryCleaningItem[]; // Adding this property
+  dryCleaningItems?: DryCleaningItem[];
   usesFreeValet?: boolean;
 }
 

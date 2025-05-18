@@ -1,5 +1,5 @@
 
-import { User, Role } from './types/auth';
+import { User, Role } from './types/auth.types';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
 

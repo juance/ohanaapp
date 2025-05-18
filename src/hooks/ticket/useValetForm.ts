@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { LaundryOption } from '@/lib/types';
+import { LaundryOption } from '@/lib/types/ticket.types';
 
 export const useValetForm = () => {
   const [valetQuantity, setValetQuantity] = useState<number>(1);
@@ -24,12 +23,13 @@ export const useValetForm = () => {
     setUseFreeValet(false);
   };
 
-  // Function to get all selected laundry options
+  // Get the selected laundry options
   const getSelectedLaundryOptions = (): LaundryOption[] => {
     const options: LaundryOption[] = [];
     
     if (separateByColor) {
       options.push({
+        id: String(Math.random()),
         name: 'Separar por color',
         optionType: 'preference',
         selected: true
@@ -38,6 +38,7 @@ export const useValetForm = () => {
     
     if (delicateDry) {
       options.push({
+        id: String(Math.random()),
         name: 'Secado delicado',
         optionType: 'preference',
         selected: true
@@ -46,7 +47,8 @@ export const useValetForm = () => {
     
     if (stainRemoval) {
       options.push({
-        name: 'Quitar manchas',
+        id: String(Math.random()),
+        name: 'Remoción de manchas',
         optionType: 'preference',
         selected: true
       });
@@ -54,7 +56,8 @@ export const useValetForm = () => {
     
     if (bleach) {
       options.push({
-        name: 'Usar lavandina',
+        id: String(Math.random()),
+        name: 'Blanqueador',
         optionType: 'preference',
         selected: true
       });
@@ -62,6 +65,7 @@ export const useValetForm = () => {
     
     if (noFragrance) {
       options.push({
+        id: String(Math.random()),
         name: 'Sin fragancia',
         optionType: 'preference',
         selected: true
@@ -70,7 +74,8 @@ export const useValetForm = () => {
     
     if (noDry) {
       options.push({
-        name: 'No secar',
+        id: String(Math.random()),
+        name: 'Sin secado',
         optionType: 'preference',
         selected: true
       });

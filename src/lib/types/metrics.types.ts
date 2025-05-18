@@ -1,22 +1,31 @@
 
-export interface BaseMetrics {
-  totalRevenue: number;
-  ticketCount: number;
-  averageTicketValue: number;
-  valetCount: number;
-  dryCleaningCount: number;
-}
-
-export interface DailyMetrics extends BaseMetrics {
+// Basic metrics interfaces
+export interface DailyMetrics {
   date: string;
+  revenue: number;
+  tickets: number;
+  clients: number;
 }
 
-export interface WeeklyMetrics extends BaseMetrics {
-  weekStart: string;
-  weekEnd: string;
+export interface WeeklyMetrics {
+  week: string;
+  revenue: number;
+  tickets: number;
+  clients: number;
 }
 
-export interface MonthlyMetrics extends BaseMetrics {
+export interface MonthlyMetrics {
   month: string;
-  year: number;
+  revenue: number;
+  tickets: number;
+  clients: number;
+}
+
+export interface MetricsData {
+  daily: DailyMetrics[];
+  weekly: WeeklyMetrics[];
+  monthly: MonthlyMetrics[];
+  totalRevenue: number;
+  totalTickets: number;
+  totalClients: number;
 }

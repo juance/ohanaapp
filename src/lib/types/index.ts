@@ -17,6 +17,13 @@ export type {
 // Customer types
 export * from './customer.types';
 
+// Client types
+export type {
+  ClientVisit,
+  Customer
+} from './client.types';
+export { convertCustomerToClientVisit } from './client.types';
+
 // Error types
 export type { 
   ErrorLevel,
@@ -31,13 +38,15 @@ export * from './sync.types';
 export * from './inventory.types';
 
 // Metrics types
-export * from './metrics.types';
+export type {
+  DailyMetrics,
+  WeeklyMetrics,
+  MonthlyMetrics,
+  MetricsData
+} from './metrics.types';
 
 // Menu types
 export * from './menu.types';
-
-// Client types
-export * from './client.types';
 
 // Feedback types
 export type { CustomerFeedback } from './feedback.types';
@@ -53,6 +62,3 @@ export * from './inventory-ui.types';
 
 // Laundry types
 export * from './laundry.types';
-
-// Utils
-export { convertCustomerToClientVisit } from './client.types';

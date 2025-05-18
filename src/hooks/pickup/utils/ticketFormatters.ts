@@ -1,5 +1,5 @@
 
-import { Ticket, LaundryOption, DryCleaningItem, TicketService } from '@/lib/types';
+import { Ticket, DryCleaningItem, TicketService } from '@/lib/types/ticket.types';
 
 /**
  * Maps database ticket data to Ticket format

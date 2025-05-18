@@ -43,7 +43,7 @@ export interface SyncResult {
   };
 }
 
-// Add the SyncableTicket interface
+// SyncableTicket interface for ticket syncing
 export interface SyncableTicket {
   id: string;
   ticketNumber: string;
@@ -57,4 +57,15 @@ export interface SyncableTicket {
   customerId?: string;
   date: string;
   deliveredDate?: string;
+}
+
+// SyncableExpense interface for expense syncing
+export interface SyncableExpense {
+  id: string;
+  amount: number;
+  category: string;
+  description: string;
+  date: string;
+  createdAt: string;
+  pendingSync: boolean;
 }
