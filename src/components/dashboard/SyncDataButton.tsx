@@ -40,20 +40,16 @@ export const SyncDataButton = () => {
         (mappedResult.feedback || 0);
       
       if (totalSynced > 0) {
-        toast({
-          title: `Sincronización completa: ${totalSynced} elementos sincronizados`,
-          description: `Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`
+        toast.success(`Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`, {
+          title: `Sincronización completa: ${totalSynced} elementos sincronizados`
         });
       } else {
-        toast({
-          title: 'No hay datos nuevos para sincronizar'
-        });
+        toast.info('No hay datos nuevos para sincronizar');
       }
     } catch (error) {
       console.error('Error during sync:', error);
-      toast({
-        title: "Error durante la sincronización",
-        description: 'Por favor intente nuevamente'
+      toast.error('Por favor intente nuevamente', {
+        title: "Error durante la sincronización"
       });
     } finally {
       setIsSyncing(false);

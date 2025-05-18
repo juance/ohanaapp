@@ -1,5 +1,5 @@
 
-import { toast as sonnerToast } from '@/components/ui/toast';
+import { toast as sonnerToast } from "sonner";
 
 type ToastVariant = 'default' | 'destructive' | 'success';
 
@@ -8,12 +8,25 @@ interface ToastOptions {
   description?: string;
   variant?: ToastVariant;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
+  onDismiss?: () => void;
 }
 
 export const toast = (options: ToastOptions) => {
-  return sonnerToast({
-    ...options,
+  // Map our variant to sonner's built-in types
+  const type = options.variant === 'destructive' ? 'error' : 
+               options.variant === 'success' ? 'success' : undefined;
+  
+  return sonnerToast(options.title || '', {
+    description: options.description,
     duration: options.duration || 3000,
+    action: options.action,
+    onDismiss: options.onDismiss,
+    // Use type for built-in variants
+    ...(type ? { type } : {})
   });
 };
 
@@ -41,6 +54,14 @@ toast.info = (message: string, options: Omit<ToastOptions, 'description'> = {}) 
     ...options,
     title: options.title || 'Información',
     description: message,
+  });
+};
+
+// Add warning method to match with the GitHubSyncButton usage
+toast.warning = (message: string, options: Omit<ToastOptions, 'description' | 'variant'> = {}) => {
+  return sonnerToast.warning(options.title || 'Advertencia', {
+    description: message,
+    duration: options.duration || 3000,
   });
 };
 

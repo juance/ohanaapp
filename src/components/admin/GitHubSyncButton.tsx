@@ -38,10 +38,7 @@ export const GitHubSyncButton: React.FC<GitHubSyncButtonProps> = ({ onSyncComple
       }
     } catch (error) {
       console.error('Error during GitHub sync:', error);
-      toast({
-        title: "Error durante la sincronización",
-        description: 'No se pudo conectar con el repositorio de GitHub'
-      });
+      toast.error('No se pudo conectar con el repositorio de GitHub');
     } finally {
       setIsSyncing(false);
     }

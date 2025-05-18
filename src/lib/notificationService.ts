@@ -25,10 +25,12 @@ const PRIORITY_DURATIONS = {
 };
 
 // Map notification types to toast variants
-const getVariant = (type: NotificationType): 'default' | 'destructive' | undefined => {
+const getVariant = (type: NotificationType): 'default' | 'destructive' | 'success' => {
   switch (type) {
     case 'error':
       return 'destructive';
+    case 'success':
+      return 'success';
     default:
       return 'default';
   }
@@ -49,6 +51,28 @@ export const notify = ({
   // Determine duration based on priority if not explicitly set
   const finalDuration = duration || PRIORITY_DURATIONS[priority];
   
+  // Use specialized methods for certain types
+  if (type === 'warning' && toast.warning) {
+    toast.warning(description, { title, duration: finalDuration });
+    return;
+  }
+  
+  if (type === 'success' && toast.success) {
+    toast.success(description, { title, duration: finalDuration });
+    return;
+  }
+  
+  if (type === 'error' && toast.error) {
+    toast.error(description, { title, duration: finalDuration });
+    return;
+  }
+  
+  if (type === 'info' && toast.info) {
+    toast.info(description, { title, duration: finalDuration });
+    return;
+  }
+  
+  // Fallback to standard toast
   toast({
     title,
     description,
