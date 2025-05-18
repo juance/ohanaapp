@@ -1,26 +1,24 @@
 
-import React from "react";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { HomeIcon, FrownIcon } from 'lucide-react';
 
 const NotFound = () => {
-  // Get current path without using useLocation hook
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : "unknown-route";
-
-  // Log the error on component mount
-  React.useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      pathname
-    );
-  }, [pathname]);
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Página no encontrada</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Volver al inicio
-        </a>
+        <div className="mb-4">
+          <FrownIcon className="h-12 w-12 text-blue-500 mx-auto" />
+        </div>
+        <h1 className="text-3xl font-bold mb-2">Página no encontrada</h1>
+        <p className="text-gray-600 mb-6">La página que estás buscando no existe o ha sido movida.</p>
+        <Button asChild>
+          <Link to="/" className="flex items-center gap-2">
+            <HomeIcon className="h-4 w-4" />
+            Volver al Inicio
+          </Link>
+        </Button>
       </div>
     </div>
   );
