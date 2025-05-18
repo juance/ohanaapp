@@ -85,10 +85,10 @@ export const SupabaseConnectionTest = () => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Server className="h-5 w-5" />
-          Prueba de Conexión Supabase
+          Prueba de Conexión Supabase - Proyecto Ohana
         </CardTitle>
         <CardDescription>
-          Verifica la conexión a tu proyecto de Supabase
+          Verifica la conexión a tu proyecto de Supabase "Ohana"
         </CardDescription>
       </CardHeader>
       <CardContent>

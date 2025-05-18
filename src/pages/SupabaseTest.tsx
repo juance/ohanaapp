@@ -56,7 +56,7 @@ const SupabaseTest = () => {
               <ArrowLeft className="h-4 w-4" />
               Volver al Inicio
             </Button>
-            <h1 className="text-2xl font-bold">Diagnóstico de Supabase</h1>
+            <h1 className="text-2xl font-bold">Diagnóstico de Supabase (Ohana)</h1>
             <div className="w-24"></div> {/* Spacer para mantener el título centrado */}
           </div>
 
@@ -96,20 +96,20 @@ const SupabaseTest = () => {
             </div>
             
             <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-md">
-              <h2 className="text-xl font-semibold text-amber-700 mb-2">Información sobre el error "This project does not exist"</h2>
+              <h2 className="text-xl font-semibold text-amber-700 mb-2">Información sobre la migración a Ohana</h2>
               <p className="text-amber-800 mb-3">
-                Si estás viendo el error "This project does not exist" en el panel de control de Supabase,
-                podría deberse a alguna de las siguientes razones:
+                Se han creado las siguientes tablas en el nuevo proyecto de Supabase "Ohana":
               </p>
               <ul className="list-disc pl-5 space-y-2 text-amber-800">
-                <li>El proyecto ha sido eliminado de tu cuenta de Supabase</li>
-                <li>No tienes permisos para acceder al proyecto</li>
-                <li>Estás intentando acceder con una URL incorrecta</li>
-                <li>El proyecto está en pausa o ha sido suspendido</li>
+                <li>customers: Para almacenar información de clientes</li>
+                <li>tickets: Para los tickets de servicio</li>
+                <li>ticket_sequence: Para la secuencia de números de ticket</li>
+                <li>dry_cleaning_items: Para los artículos de tintorería</li>
+                <li>ticket_laundry_options: Para las opciones de lavandería</li>
+                <li>expenses: Para registrar gastos</li>
               </ul>
               <p className="mt-3 text-amber-800">
-                Si la aplicación sigue funcionando a pesar de este error, es posible que solo sea un problema
-                de acceso al panel de control pero la API siga funcionando correctamente.
+                También se han creado las funciones necesarias y los índices para mejorar el rendimiento de las consultas.
               </p>
             </div>
 
@@ -119,6 +119,15 @@ const SupabaseTest = () => {
                 Enlaces útiles
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <a 
+                  href="https://app.supabase.com"
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline flex items-center"
+                >
+                  <span className="mr-1">Panel de Supabase</span>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
                 <a 
                   href="https://app.supabase.com/project/ebbarmqwvxkxqbzmkiby/editor" 
                   target="_blank" 
