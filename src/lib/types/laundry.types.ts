@@ -5,7 +5,7 @@ export interface LaundryOption {
   optionType: string;
   option_type?: string; // For backwards compatibility
   type?: string; // For backwards compatibility
-  price?: number; // Added price as optional
+  price?: number;
   ticketId?: string;
   createdAt?: string;
   selected?: boolean;

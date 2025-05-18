@@ -9,7 +9,7 @@ export interface Ticket {
   clientName?: string;
   phoneNumber?: string;
   total: number;
-  totalPrice: number; // Change to required since it's used in many components
+  totalPrice: number; // Add this property
   status: string;
   paymentMethod: PaymentMethod;
   date: string;
@@ -19,10 +19,10 @@ export interface Ticket {
   items?: DryCleaningItem[];
   valetQuantity?: number;
   deliveredDate?: string;
-  basketTicketNumber?: string; // Keep this as it's referenced in components
-  services?: TicketService[]; // Add this as it's referenced in components
+  basketTicketNumber?: string; // Add this property
+  services?: TicketService[]; // Add this property
   laundryOptions?: LaundryOption[];
-  dryCleaningItems?: DryCleaningItem[]; // Add this as it's referenced in components
+  dryCleaningItems?: DryCleaningItem[]; // Add this property
 }
 
 export interface DryCleaningItem {

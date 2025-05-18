@@ -14,4 +14,17 @@ export interface SyncResult {
     updatedCount?: number;
     errorCount?: number;
   };
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
+}
+
+export interface SimpleSyncStatus {
+  lastSync: string | null;
+  syncError?: string | null;
+  tickets?: number;
+  expenses?: number;
+  clients?: number;
+  feedback?: number;
 }
