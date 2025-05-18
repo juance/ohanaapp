@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Navbar } from '@/components/ui/navbar';
+import Navbar from '@/components/Navbar';
 import { useNavigate } from 'react-router-dom';
 
 const Index = () => {
