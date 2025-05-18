@@ -52,6 +52,7 @@ export interface SyncableExpense {
   date: string;
   createdAt: string;
   pendingSync?: boolean;
+  synced?: boolean;
 }
 
 export interface SyncableTicket {

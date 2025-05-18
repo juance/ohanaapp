@@ -1,16 +1,25 @@
 
+// Define the expense type
+
 export interface Expense {
   id: string;
-  amount: number;
-  category: string;
   description: string;
+  amount: number;
   date: string;
-  createdAt: string;
+  category: string;
+  createdAt?: string;
   pendingSync?: boolean;
+  synced?: boolean;
 }
 
-export interface ExpenseCategory {
-  id: string;
-  name: string;
-  description?: string;
-}
+export type ExpenseCategory = 
+  | 'rent'
+  | 'utilities'
+  | 'supplies'
+  | 'equipment'
+  | 'maintenance'
+  | 'marketing'
+  | 'salaries'
+  | 'taxes'
+  | 'insurance'
+  | 'other';

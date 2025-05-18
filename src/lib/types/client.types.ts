@@ -13,6 +13,9 @@ export interface Customer {
   visitCount?: number;
   loyaltyPoints?: number;
   hasFreeValet?: boolean;
+  freeValets?: number;
+  valetsCount?: number;
+  valets_redeemed?: number;
 }
 
 // Client visit interface for tracking customer interactions
@@ -27,6 +30,16 @@ export interface ClientVisit {
   total: number;
   isPaid: boolean;
   pendingSync?: boolean;
+  // Backward compatibility fields
+  clientName?: string;
+  visitCount?: number;
+  freeValets?: number;
+  totalSpent?: number;
+  loyaltyPoints?: number;
+  visitFrequency?: string;
+  lastVisit?: string;
+  lastVisitDate?: string;
+  valetsCount?: number;
 }
 
 // Helper function to convert from Customer to ClientVisit
@@ -39,5 +52,10 @@ export const convertCustomerToClientVisit = (customer: Customer): ClientVisit =>
     visitDate: customer.lastVisit || new Date().toISOString(),
     total: 0,
     isPaid: false,
+    clientName: customer.name,
+    visitCount: customer.visitCount || 0,
+    freeValets: customer.freeValets || 0,
+    loyaltyPoints: customer.loyaltyPoints || 0,
+    valetsCount: customer.valetsCount || 0
   };
 };

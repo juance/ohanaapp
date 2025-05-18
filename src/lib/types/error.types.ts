@@ -1,29 +1,24 @@
 
-export type ErrorLevel = 'info' | 'warning' | 'error' | 'critical';
+// Error types for system-wide error handling
+
+export type ErrorLevel = 'info' | 'warning' | 'error' | 'fatal';
 
 export interface ErrorContext {
-  route?: string;
-  user?: string;
+  userId?: string;
+  requestUrl?: string;
   action?: string;
-  data?: any;
+  timestamp?: string;
+  component?: string;
+  additionalData?: Record<string, any>;
 }
 
 export interface SystemError {
   id?: string;
   message: string;
   level: ErrorLevel;
-  timestamp: string;
-  context?: ErrorContext;
   stack?: string;
+  context?: ErrorContext;
   resolved?: boolean;
-  // Adding properties that are referenced in components
-  error_message?: string;
-  error_context?: any;
-  error_stack?: string;
-  component?: string;
-  user_id?: string;
-  browser_info?: {
-    userAgent?: string;
-    platform?: string;
-  };
+  createdAt?: string;
+  updatedAt?: string;
 }
