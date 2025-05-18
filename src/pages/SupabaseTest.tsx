@@ -24,8 +24,10 @@ const SupabaseTest = () => {
     
     for (const tableName of requiredTables) {
       try {
+        // Use a type assertion to tell TypeScript that tableName is a valid table name
+        // This is safe because we know these are valid table names in our schema
         const { count, error } = await supabase
-          .from(tableName)
+          .from(tableName as any)
           .select('*', { count: 'exact', head: true });
         
         tableStatus[tableName] = !error;
