@@ -6,16 +6,16 @@ export interface AuthState {
   isLoading: boolean;
 }
 
-// Definir el tipo Role que será utilizado en toda la aplicación
+// Define the Role type that will be used throughout the application
 export type Role = 'admin' | 'operator' | 'staff' | 'client';
 
-// Definir la interfaz User completa
+// Define the complete User interface
 export interface User {
   id: string;
   name: string;
   email?: string;
   phoneNumber?: string;
-  phone_number?: string; // Para compatibilidad con API
+  phone_number?: string; // For API compatibility
   role: Role;
   requiresPasswordChange?: boolean;
   created_at?: Date;
@@ -29,7 +29,7 @@ export interface UserData {
   name?: string;
 }
 
-// Asegurarse que estas interfaces están correctamente exportadas
+// Make sure these interfaces are properly exported
 export interface LoginCredentials {
   phoneNumber: string;
   password: string;

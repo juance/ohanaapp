@@ -89,11 +89,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Eliminar la sesión del usuario
+      // Remove the user session
       setUser(null);
       localStorage.removeItem('authUser');
       
-      // Redirigir a la página de autenticación (se manejará por el protected route)
+      // Redirect to the authentication page (will be handled by the protected route)
       window.location.href = '/auth';
       
       return Promise.resolve();

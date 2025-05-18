@@ -1,61 +1,56 @@
 
-// Define types for metrics data
-
 export interface DailyMetrics {
   date: string;
-  ticketsCount: number;
-  revenue: number;
-  averageTicketValue: number;
-  salesByHour: { hour: number; count: number; revenue: number }[];
-  paidTickets?: number; // Added missing property
-  
-  // Legacy properties for backward compatibility
-  totalSales?: number;
-  valetCount?: number;
-  paymentMethods?: Record<string, number>;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems?: Record<string, number>;
+  total: number;
+  count: number;
+  valetsCount: number;
+  dryCleaningCount: number;
+  totalValets: number;
+  totalDryCleaning: number;
+  valetPercentage: number;
+  dryCleaningPercentage: number;
+  salesByDay: { day: string; total: number }[];
 }
 
 export interface WeeklyMetrics {
-  weekStartDate: string;
-  weekEndDate: string;
-  ticketsCount: number;
-  revenue: number;
-  averageTicketValue: number;
-  salesByDay: { day: string; count: number; revenue: number }[];
-  salesByWeek?: { week: string; count: number; revenue: number }[]; // Added missing property
-  
-  // Legacy properties for backward compatibility
-  totalSales?: number;
-  valetCount?: number;
-  paymentMethods?: Record<string, number>;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems?: Record<string, number>;
+  startDate: string;
+  endDate: string;
+  total: number;
+  count: number;
+  valetsCount: number;
+  dryCleaningCount: number;
+  totalValets: number;
+  totalDryCleaning: number;
+  valetPercentage: number;
+  dryCleaningPercentage: number;
+  salesByDay: { day: string; total: number }[];
 }
 
 export interface MonthlyMetrics {
   month: string;
   year: number;
-  ticketsCount: number;
-  revenue: number;
-  averageTicketValue: number;
-  salesByDay: { day: number; count: number; revenue: number }[];
-  paidTickets?: number; // Added missing property
-  
-  // Legacy properties for backward compatibility
-  totalSales?: number;
-  valetCount?: number;
-  paymentMethods?: Record<string, number>;
-  totalRevenue?: number;
-  totalTickets?: number;
-  dryCleaningItems?: Record<string, number>;
+  total: number;
+  count: number;
+  valetsCount: number;
+  dryCleaningCount: number;
+  totalValets: number;
+  totalDryCleaning: number;
+  valetPercentage: number;
+  dryCleaningPercentage: number;
+  salesByDay: { day: string; total: number }[];
+  salesByWeek: { week: string; total: number }[];
 }
 
-export interface MetricsData {
-  daily: DailyMetrics[];
-  weekly: WeeklyMetrics[];
-  monthly: MonthlyMetrics[];
+export interface CustomerMetrics {
+  totalCustomers: number;
+  newCustomers: number;
+  returningCustomers: number;
+  loyaltyProgram: number;
+}
+
+export interface MetricsResponse {
+  daily: DailyMetrics;
+  weekly: WeeklyMetrics;
+  monthly: MonthlyMetrics;
+  customers: CustomerMetrics;
 }

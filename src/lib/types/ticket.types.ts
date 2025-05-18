@@ -1,68 +1,50 @@
 
-// Payment method types
-export type PaymentMethod = 'cash' | 'debit' | 'credit' | 'mercadopago' | 'cuenta_dni' | 'transfer' | string;
-
-export interface Ticket {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  customerName?: string;
-  phoneNumber: string;
-  total: number;
-  totalPrice: number;
-  status: 'pending' | 'processing' | 'ready' | 'delivered' | 'canceled' | string;
-  paymentMethod: PaymentMethod;
-  date: string;
-  isPaid: boolean;
-  createdAt: string;
-  customerId?: string;
-  items?: DryCleaningItem[];
-  valetQuantity?: number; // Make sure this exists
-  deliveredDate?: string;
-  basketTicketNumber?: string;
-  services?: TicketService[];
-  laundryOptions?: LaundryOption[];
-  dryCleaningItems?: DryCleaningItem[];
-  usesFreeValet?: boolean;
-}
+export type PaymentMethod = 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni';
 
 export interface DryCleaningItem {
   id: string;
   name: string;
   price: number;
   quantity: number;
-  ticketId?: string;
 }
 
-// Make sure LaundryOption interface matches the one used everywhere
+export interface Ticket {
+  id: string;
+  ticketNumber: string;
+  clientName: string;
+  phoneNumber: string;
+  total: number;
+  totalPrice: number;
+  paymentMethod: PaymentMethod;
+  status: string;
+  isPaid: boolean;
+  createdAt: string;
+  date: string;
+  deliveredDate?: string;
+  valetQuantity: number;
+  customerId?: string;
+  dryCleaningItems?: DryCleaningItem[];
+  laundryOptions?: LaundryOption[];
+  customer?: {
+    name: string;
+    phone?: string;
+  };
+}
+
 export interface LaundryOption {
-  id?: string; // Optional to be compatible with both versions
-  name: string;
+  id?: string;
+  name: string; 
   optionType: string;
-  type?: string; // For backwards compatibility
-  price?: number;
-  ticketId?: string;
-  createdAt?: string;
-  selected?: boolean;
+  value?: boolean;
 }
 
 export interface LaundryService {
   id: string;
   name: string;
   price: number;
-  optionType: string;
   description?: string;
-  quantity?: number;
 }
 
-export interface TicketService {
-  id?: string;
-  name: string;
-  price: number;
-  quantity: number;
-}
-
-// Add TicketFormState interface for useTicketForm.ts
 export interface TicketFormState {
   customerName: string;
   phoneNumber: string;
