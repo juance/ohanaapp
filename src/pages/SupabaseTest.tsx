@@ -2,15 +2,19 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Database, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Database, ExternalLink, RefreshCw, AlertCircle, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { SupabaseConnectionTest } from '@/components/admin/SupabaseConnectionTest';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/lib/toast';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 
 const SupabaseTest = () => {
   const navigate = useNavigate();
   const [tablesStatus, setTablesStatus] = useState<Record<string, boolean>>({});
   const [isCheckingTables, setIsCheckingTables] = useState(false);
+  const [overallHealth, setOverallHealth] = useState<number>(0);
 
   // Lista expandida de tablas requeridas, incluyendo las nuevas
   const requiredTables = [
@@ -33,6 +37,7 @@ const SupabaseTest = () => {
   const checkTablesExistence = async () => {
     setIsCheckingTables(true);
     const tableStatus: Record<string, boolean> = {};
+    let healthScore = 0;
     
     for (const tableName of requiredTables) {
       try {
@@ -43,6 +48,7 @@ const SupabaseTest = () => {
           .select('*', { count: 'exact', head: true });
         
         tableStatus[tableName] = !error;
+        if (!error) healthScore += 1;
       } catch (error) {
         console.error(`Error checking table ${tableName}:`, error);
         tableStatus[tableName] = false;
@@ -50,7 +56,56 @@ const SupabaseTest = () => {
     }
     
     setTablesStatus(tableStatus);
+    setOverallHealth((healthScore / requiredTables.length) * 100);
     setIsCheckingTables(false);
+    
+    // Show a toast message with the database health status
+    if (healthScore === requiredTables.length) {
+      toast.success("Todas las tablas requeridas están disponibles");
+    } else {
+      toast.warning(`Faltan ${requiredTables.length - healthScore} tablas requeridas`);
+    }
+  };
+
+  const runDiagnostic = async () => {
+    try {
+      toast.info("Ejecutando diagnóstico completo...");
+      
+      // Verificar la conexión básica antes de continuar
+      const { data: connectionTest, error: connectionError } = await supabase
+        .from('ticket_sequence')
+        .select('last_number')
+        .limit(1);
+        
+      if (connectionError) {
+        toast.error("Error de conexión con la base de datos");
+        return;
+      }
+      
+      // Ejecutar verificación de tablas
+      await checkTablesExistence();
+      
+      // Verificar las funciones SQL esenciales
+      try {
+        const { data: funcTest, error: funcError } = await supabase
+          .rpc('get_column_exists', {
+            table_name: 'tickets',
+            column_name: 'id'
+          });
+          
+        if (funcError) {
+          toast.error("Error verificando funciones RPC");
+        } else {
+          toast.success("Funciones RPC verificadas correctamente");
+        }
+      } catch (error) {
+        console.error("Error verificando RPC:", error);
+        toast.error("Error verificando funciones RPC");
+      }
+    } catch (error) {
+      console.error("Error en diagnóstico:", error);
+      toast.error("Error ejecutando diagnóstico");
+    }
   };
 
   return (
@@ -73,6 +128,46 @@ const SupabaseTest = () => {
           </div>
 
           <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-semibold mb-2 flex items-center">
+                <Database className="h-5 w-5 mr-2" />
+                Salud General de la Base de Datos
+              </h2>
+              
+              <div className="mt-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Estado de las tablas:</span>
+                  <span className="text-sm font-medium">{Math.round(overallHealth)}%</span>
+                </div>
+                <Progress value={overallHealth} className="h-2" />
+                
+                <div className="flex justify-between mt-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={checkTablesExistence}
+                    disabled={isCheckingTables}
+                    className="flex items-center gap-1"
+                  >
+                    {isCheckingTables && <RefreshCw className="h-3 w-3 animate-spin" />}
+                    <RefreshCw className={`h-3 w-3 ${isCheckingTables ? 'hidden' : ''}`} />
+                    Verificar tablas
+                  </Button>
+                  
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={runDiagnostic}
+                    disabled={isCheckingTables}
+                    className="flex items-center gap-1"
+                  >
+                    {isCheckingTables && <RefreshCw className="h-3 w-3 animate-spin" />}
+                    Diagnóstico completo
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
             <SupabaseConnectionTest />
             
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -89,17 +184,38 @@ const SupabaseTest = () => {
                 <div className="space-y-2">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {requiredTables.map(tableName => (
-                      <div key={tableName} className="flex items-center p-2 border rounded-md">
-                        <div className={`w-3 h-3 rounded-full mr-2 ${tablesStatus[tableName] ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <div 
+                        key={tableName} 
+                        className={`flex items-center p-2 border rounded-md ${
+                          tablesStatus[tableName] 
+                            ? 'border-green-200 bg-green-50 dark:bg-green-900/20' 
+                            : 'border-red-200 bg-red-50 dark:bg-red-900/20'
+                        }`}
+                      >
+                        {tablesStatus[tableName] ? (
+                          <Check className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-500 mr-2 flex-shrink-0" />
+                        )}
                         <span className="font-medium">{tableName}</span>
-                        <span className="ml-auto text-sm text-gray-500">
+                        <span className={`ml-auto text-sm ${
+                          tablesStatus[tableName] 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
                           {tablesStatus[tableName] ? 'Disponible' : 'No disponible'}
                         </span>
                       </div>
                     ))}
                   </div>
                   <div className="mt-4">
-                    <Button onClick={checkTablesExistence} size="sm">
+                    <Button 
+                      onClick={checkTablesExistence} 
+                      size="sm" 
+                      disabled={isCheckingTables}
+                      className="flex items-center gap-1"
+                    >
+                      {isCheckingTables && <RefreshCw className="h-3 w-3 animate-spin" />}
                       Actualizar estado de tablas
                     </Button>
                   </div>
