@@ -21,3 +21,8 @@ path = "/reset_counters"
 name = "reset_loyalty_points"
 verify_jwt = false
 path = "/reset_loyalty_points"
+
+[[functions]]
+name = "test_connection"
+verify_jwt = false
+path = "/test_connection"
