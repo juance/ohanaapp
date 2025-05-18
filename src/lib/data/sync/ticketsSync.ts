@@ -1,12 +1,12 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SyncableTicket } from '@/lib/types/sync.types';
-import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
+import { TICKETS_STORAGE_KEY } from '@/lib/constants/storageKeys';
 
 // Get tickets from local storage
 const getLocalTickets = (): SyncableTicket[] => {
   try {
-    const ticketsJSON = localStorage.getItem(STORAGE_KEYS.TICKETS);
+    const ticketsJSON = localStorage.getItem(TICKETS_STORAGE_KEY);
     return ticketsJSON ? JSON.parse(ticketsJSON) : [];
   } catch (error) {
     console.error('Error getting local tickets:', error);
@@ -17,7 +17,7 @@ const getLocalTickets = (): SyncableTicket[] => {
 // Save tickets to local storage
 const saveLocalTickets = (tickets: SyncableTicket[]): void => {
   try {
-    localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(tickets));
+    localStorage.setItem(TICKETS_STORAGE_KEY, JSON.stringify(tickets));
   } catch (error) {
     console.error('Error saving local tickets:', error);
   }

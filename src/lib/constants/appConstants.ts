@@ -31,7 +31,7 @@ export const TICKET_TYPE = {
 };
 
 /**
- * Constants for storage keys
+ * Constants for storage keys - For backward compatibility
  */
 export const STORAGE_KEYS = {
   TICKETS: 'tickets',

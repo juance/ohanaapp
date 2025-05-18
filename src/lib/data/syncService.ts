@@ -1,5 +1,12 @@
 
-import { STORAGE_KEYS, EXPENSES_STORAGE_KEY, FEEDBACK_STORAGE_KEY, TICKETS_STORAGE_KEY } from '@/lib/constants/storageKeys';
+import { 
+  USER_STORAGE_KEY, 
+  TOKEN_STORAGE_KEY, 
+  TICKETS_STORAGE_KEY, 
+  EXPENSES_STORAGE_KEY, 
+  FEEDBACK_STORAGE_KEY, 
+  CUSTOMERS_STORAGE_KEY 
+} from '@/lib/constants/storageKeys';
 
 /**
  * Resetea todos los datos locales almacenados
@@ -10,7 +17,7 @@ export const resetLocalData = (): { [key: string]: boolean } => {
     EXPENSES_STORAGE_KEY,
     FEEDBACK_STORAGE_KEY,
     TICKETS_STORAGE_KEY,
-    'clientData',
+    CUSTOMERS_STORAGE_KEY,
     'metricsData',
     'syncStatus'
   ];
