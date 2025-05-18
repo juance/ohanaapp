@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { InventoryItem as InventoryItemType } from '@/lib/types';
+import { InventoryItem as InventoryItemType } from '@/lib/types/inventory.types'; // Updated import path
 import { Edit, Trash, Check, X } from 'lucide-react';
 
 interface InventoryItemProps {

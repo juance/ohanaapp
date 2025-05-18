@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { LaundryOption, Ticket } from '@/lib/types';
@@ -15,6 +14,49 @@ import { FreeValetDialog } from './FreeValetDialog';
 
 interface TicketFormContainerProps {
   onTicketGenerated?: (ticket: Ticket, options: LaundryOption[]) => void;
+}
+
+interface TicketFormState {
+  customerName: string;
+  setCustomerName: React.Dispatch<React.SetStateAction<string>>;
+  phoneNumber: string;
+  setPhoneNumber: React.Dispatch<React.SetStateAction<string>>;
+  valetQuantity: number;
+  setValetQuantity: React.Dispatch<React.SetStateAction<number>>;
+  totalPrice: number;
+  setTotalPrice: React.Dispatch<React.SetStateAction<number>>;
+  paymentMethod: string;
+  handlePaymentMethodChange: (method: string) => void;
+  separateByColor: boolean;
+  setSeparateByColor: React.Dispatch<React.SetStateAction<boolean>>;
+  delicateDry: boolean;
+  setDelicateDry: React.Dispatch<React.SetStateAction<boolean>>;
+  stainRemoval: boolean;
+  setStainRemoval: React.Dispatch<React.SetStateAction<boolean>>;
+  bleach: boolean;
+  setBleach: React.Dispatch<React.SetStateAction<boolean>>;
+  noFragrance: boolean;
+  setNoFragrance: React.Dispatch<React.SetStateAction<boolean>>;
+  noDry: boolean;
+  setNoDry: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedDryCleaningItems: string[];
+  setSelectedDryCleaningItems: React.Dispatch<React.SetStateAction<string[]>>;
+  lookupPhone: string;
+  setLookupPhone: React.Dispatch<React.SetStateAction<string>>;
+  date: string;
+  setDate: React.Dispatch<React.SetStateAction<string>>;
+  activeTab: string;
+  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
+  foundCustomer: string;
+  setFoundCustomer: React.Dispatch<React.SetStateAction<string>>;
+  useFreeValet: boolean;
+  setUseFreeValet: React.Dispatch<React.SetStateAction<boolean>>;
+  showFreeValetDialog: boolean;
+  setShowFreeValetDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  isPaidInAdvance: boolean;
+  setIsPaidInAdvance: React.Dispatch<React.SetStateAction<boolean>>;
+  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  resetCustomerForm: () => void;
 }
 
 export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
@@ -59,7 +101,8 @@ export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
     setShowFreeValetDialog,
     isPaidInAdvance,
     setIsPaidInAdvance,
-    handleSubmit
+    handleSubmit,
+    resetCustomerForm
   } = useTicketForm(onTicketGenerated);
 
   const { handleCustomerLookup } = useCustomerLookup(
@@ -151,3 +194,5 @@ export const TicketFormContainer: React.FC<TicketFormContainerProps> = ({
     </Card>
   );
 };
+
+export default TicketFormContainer;

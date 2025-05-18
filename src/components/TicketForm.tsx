@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import ClientInfo from './ticket/form/ClientInfo';
 import ServicesSection from './ticket/form/ServicesSection';
@@ -7,7 +6,7 @@ import LaundryOptionsSection from './ticket/form/LaundryOptionsSection';
 import PaymentSection from './ticket/form/PaymentSection';
 import TicketFormFooter from './ticket/form/TicketFormFooter';
 import { useTicketFormLogic } from './ticket/form/useTicketFormLogic';
-import { PaymentMethod } from '@/lib/types';
+import { PaymentMethod } from '@/lib/types/ticket.types'; // Updated import path
 
 interface PaymentMethodOption {
   id: string;

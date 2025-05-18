@@ -3,6 +3,7 @@
 
 // Auth types
 export * from './auth.types';
+export * from './auth'; // Add the export from auth.ts
 
 // Ticket types
 export type { 
@@ -42,8 +43,17 @@ export type { ClientVisit } from './client.types';
 // Feedback types
 export type { CustomerFeedback } from './feedback.types';
 
-// Expense types - avoiding duplicate export
+// Expense types
 export type { 
   Expense,
   ExpenseCategory
 } from './expense.types';
+
+// Inventory UI types
+export * from './inventory-ui.types';
+
+// Laundry types
+export * from './laundry.types';
+
+// Utils
+export { convertCustomerToClientVisit } from '../utils/customerUtils';

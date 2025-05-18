@@ -1,20 +1,18 @@
 
 export interface MenuItem {
   id: string;
-  title: string;
+  label: string;
   href: string;
-  icon?: React.ElementType;
-  disabled?: boolean;
-  external?: boolean;
-  badge?: string | number;
+  icon?: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   roles?: string[];
+  children?: MenuItem[];
 }
 
 export interface MenuSection {
-  title: string;
+  title?: string;
   items: MenuItem[];
 }
 
-export interface SidebarConfig {
+export interface MenuProps {
   sections: MenuSection[];
 }

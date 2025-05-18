@@ -7,4 +7,5 @@ export interface ClientVisit {
   freeValets: number;
   lastVisit?: string;
   totalSpent?: number;
+  valetsCount?: number; // Add this for compatibility
 }
