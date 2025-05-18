@@ -1,56 +1,40 @@
 
+// Create this file if it doesn't exist
 export interface DailyMetrics {
-  date: string;
-  total: number;
-  count: number;
-  valetsCount: number;
-  dryCleaningCount: number;
-  totalValets: number;
-  totalDryCleaning: number;
-  valetPercentage: number;
-  dryCleaningPercentage: number;
-  salesByDay: { day: string; total: number }[];
+  totalSales: number;
+  salesByHour: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>; // Added this property
+  valetCount: number;
 }
 
 export interface WeeklyMetrics {
-  startDate: string;
-  endDate: string;
-  total: number;
-  count: number;
-  valetsCount: number;
-  dryCleaningCount: number;
-  totalValets: number;
-  totalDryCleaning: number;
-  valetPercentage: number;
-  dryCleaningPercentage: number;
-  salesByDay: { day: string; total: number }[];
+  totalSales: number;
+  salesByDay: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>; // Added this property
+  valetCount: number;
 }
 
 export interface MonthlyMetrics {
-  month: string;
-  year: number;
-  total: number;
-  count: number;
-  valetsCount: number;
-  dryCleaningCount: number;
-  totalValets: number;
-  totalDryCleaning: number;
-  valetPercentage: number;
-  dryCleaningPercentage: number;
-  salesByDay: { day: string; total: number }[];
-  salesByWeek: { week: string; total: number }[];
-}
-
-export interface CustomerMetrics {
-  totalCustomers: number;
-  newCustomers: number;
-  returningCustomers: number;
-  loyaltyProgram: number;
-}
-
-export interface MetricsResponse {
-  daily: DailyMetrics;
-  weekly: WeeklyMetrics;
-  monthly: MonthlyMetrics;
-  customers: CustomerMetrics;
+  totalSales: number;
+  salesByWeek: Record<string, number>;
+  paymentMethods: {
+    cash: number;
+    debit: number;
+    mercadopago: number;
+    cuentaDni: number;
+  };
+  dryCleaningItems: Record<string, number>; // Added this property
+  valetCount: number;
 }

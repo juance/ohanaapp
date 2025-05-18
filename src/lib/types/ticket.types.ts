@@ -8,9 +8,18 @@ export interface DryCleaningItem {
   quantity: number;
 }
 
+// Define a TicketService type that was missing
+export interface TicketService {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 export interface Ticket {
   id: string;
   ticketNumber: string;
+  basketTicketNumber?: string; // Added this property
   clientName: string;
   phoneNumber: string;
   total: number;
@@ -25,6 +34,7 @@ export interface Ticket {
   customerId?: string;
   dryCleaningItems?: DryCleaningItem[];
   laundryOptions?: LaundryOption[];
+  services?: TicketService[]; // Added this property
   customer?: {
     name: string;
     phone?: string;
@@ -36,6 +46,7 @@ export interface LaundryOption {
   name: string; 
   optionType: string;
   value?: boolean;
+  selected?: boolean; // Added this property for compatibility
 }
 
 export interface LaundryService {

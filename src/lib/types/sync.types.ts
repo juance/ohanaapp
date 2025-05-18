@@ -10,6 +10,7 @@ export interface SyncResult {
   clients: SyncStats;
   inventory: SyncStats;
   feedback: SyncStats;
+  expenses: SyncStats; // Added this property
 }
 
 export interface LocalClient {
@@ -28,5 +29,27 @@ export interface SyncableCustomerFeedback {
   rating: number;
   comment: string;
   source?: string;
+  created_at?: string;
+}
+
+// Add SimpleSyncStatus that was missing
+export interface SimpleSyncStatus {
+  timestamp: string;
+  status: 'success' | 'error' | 'pending';
+  tickets?: number;
+  clients?: number;
+  expenses?: number;
+  feedback?: number;
+  lastSync: string;
+  syncError: string | null;
+}
+
+// Add SyncableExpense that was missing
+export interface SyncableExpense {
+  id?: string;
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
   created_at?: string;
 }

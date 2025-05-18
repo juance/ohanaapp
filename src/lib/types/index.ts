@@ -41,4 +41,4 @@ export * from './expense.types';
 export * from './laundry.types';
 
 // Legacy types - include the old types.ts file for backward compatibility
-export * from '../types';
+// export * from '../types';
