@@ -9,6 +9,7 @@ import {
 import { ConnectionStatusBar } from './ui/connection-status-bar';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from '@/hooks/use-toast';
 
 interface NavLinkProps {
   to: string;
@@ -44,7 +45,21 @@ const Navbar = () => {
   const closeMenu = () => setIsOpen(false);
 
   const handleLogout = async () => {
-    await logout();
+    try {
+      await logout();
+      // No necesitamos redireccionar manualmente, el logout lo hará
+      toast({
+        title: "Sesión cerrada",
+        description: "Has cerrado sesión correctamente",
+      });
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo cerrar la sesión",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

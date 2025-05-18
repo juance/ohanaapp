@@ -1,13 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Role } from '@/lib/types/auth.types';
-
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-  role: Role;
-}
+import { Role, User } from '@/lib/types/auth.types';
 
 interface AuthContextType {
   user: User | null;
@@ -95,13 +88,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = async () => {
-    setUser(null);
-    localStorage.removeItem('authUser');
+    try {
+      // Eliminar la sesión del usuario
+      setUser(null);
+      localStorage.removeItem('authUser');
+      
+      // Redirigir a la página de autenticación (se manejará por el protected route)
+      window.location.href = '/auth';
+      
+      return Promise.resolve();
+    } catch (error) {
+      console.error('Error during logout:', error);
+      return Promise.reject(error);
+    }
   };
 
   const checkUserPermission = (allowedRoles: Role[]): boolean => {
     if (!user) return false;
-    return allowedRoles.includes(user.role);
+    return allowedRoles.includes(user.role as Role);
   };
 
   return (

@@ -1,25 +1,27 @@
 
-// Define the Role type to match what's used in AuthContext
-export type Role = 'admin' | 'operator' | 'client' | 'staff';
-
-// Define the User interface
-export interface User {
-  id: string;
-  name: string;
-  email?: string;
-  phoneNumber?: string;
-  role: Role;
-  requiresPasswordChange?: boolean;
-}
-
-// Basic auth interfaces for backward compatibility
+// Basic auth interfaces 
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
 
-// For backward compatibility with auth.ts file
+// Definir el tipo Role que será utilizado en toda la aplicación
+export type Role = 'admin' | 'operator' | 'staff' | 'client';
+
+// Definir la interfaz User completa
+export interface User {
+  id: string;
+  name: string;
+  email?: string;
+  phoneNumber?: string;
+  phone_number?: string; // Para compatibilidad con API
+  role: Role;
+  requiresPasswordChange?: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 export interface UserData {
   id: string;
   email?: string;
@@ -27,8 +29,14 @@ export interface UserData {
   name?: string;
 }
 
-// Add the UserWithPassword interface used in UserDialog
-export interface UserWithPassword extends Omit<User, 'id'> {
-  id?: string;
+// Asegurarse que estas interfaces están correctamente exportadas
+export interface LoginCredentials {
+  phoneNumber: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  name: string;
+  phoneNumber: string;
   password: string;
 }

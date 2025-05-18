@@ -7,7 +7,7 @@ import {
   MessageSquare, Home, Package
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Role } from '@/lib/types';  // Updated import
+import { Role } from '@/lib/types/auth.types';  // Importar desde la ubicación correcta
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
@@ -38,8 +38,13 @@ const MobileNav: React.FC = () => {
   ];
 
   const handleLogout = async () => {
-    await logout();
-    setOpen(false);
+    try {
+      await logout();
+      setOpen(false);
+      // No necesitamos redireccionar manualmente, el logout lo hará
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   };
 
   // Filter nav items based on user role

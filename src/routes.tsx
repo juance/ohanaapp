@@ -18,6 +18,9 @@ import Inventory from './pages/Inventory';
 import Loyalty from './pages/Loyalty';
 import Tickets from './pages/Tickets';
 import PickupOrders from './pages/PickupOrders';
+import Auth from './pages/Auth';
+import UserTickets from './pages/UserTickets';
+import AdminTools from './pages/AdminTools';
 
 export const AppRoutes = () => {
   return (
@@ -32,10 +35,13 @@ export const AppRoutes = () => {
       <Route path="/expenses" element={<Expenses />} />
       <Route path="/metrics" element={<Metrics />} />
       <Route path="/admin" element={<Administration />} />
+      <Route path="/admin/tools" element={<AdminTools />} />
       <Route path="/inventory" element={<Inventory />} />
       <Route path="/loyalty" element={<Loyalty />} />
       <Route path="/tickets" element={<Tickets />} />
       <Route path="/pickup" element={<PickupOrders />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/user-tickets" element={<UserTickets />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

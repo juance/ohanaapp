@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { User, Role } from '@/lib/types/auth';
+import { User, Role } from '@/lib/types/auth.types';
 import bcrypt from 'bcryptjs';
 
 export interface UserWithPassword extends Omit<User, 'id'> {
