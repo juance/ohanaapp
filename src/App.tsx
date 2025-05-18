@@ -14,6 +14,8 @@ import { Toaster } from './components/ui/toaster';
 import { ThemeProvider } from './providers/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { ConnectionStatusProvider } from './providers/ConnectionStatusProvider';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Create a client
 const queryClient = new QueryClient();
@@ -28,23 +30,29 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <QueryClientProvider client={queryClient}>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/tickets" element={<Tickets />} />
-            <Route path="/loyalty" element={<Loyalty />} />
-            <Route path="/expenses" element={<Expenses />} />
-            <Route path="/pickup" element={<PickupOrders />} />
-            <Route path="/diagnostics" element={<Diagnostics />} />
-            <Route path="/supabase-test" element={<SupabaseTest />} />
-          </Routes>
-          <ReactQueryDevtools initialIsOpen={false} />
-          <Toaster />
-        </QueryClientProvider>
-      </ThemeProvider>
-    </Router>
+    <React.StrictMode>
+      <AuthProvider>
+        <ConnectionStatusProvider>
+          <Router>
+            <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+              <QueryClientProvider client={queryClient}>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/tickets" element={<Tickets />} />
+                  <Route path="/loyalty" element={<Loyalty />} />
+                  <Route path="/expenses" element={<Expenses />} />
+                  <Route path="/pickup" element={<PickupOrders />} />
+                  <Route path="/diagnostics" element={<Diagnostics />} />
+                  <Route path="/supabase-test" element={<SupabaseTest />} />
+                </Routes>
+                <ReactQueryDevtools initialIsOpen={false} />
+                <Toaster />
+              </QueryClientProvider>
+            </ThemeProvider>
+          </Router>
+        </ConnectionStatusProvider>
+      </AuthProvider>
+    </React.StrictMode>
   );
 }
 
