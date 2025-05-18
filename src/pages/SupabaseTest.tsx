@@ -12,7 +12,19 @@ const SupabaseTest = () => {
   const [tablesStatus, setTablesStatus] = useState<Record<string, boolean>>({});
   const [isCheckingTables, setIsCheckingTables] = useState(false);
 
-  const requiredTables = ['customers', 'tickets', 'ticket_sequence', 'dry_cleaning_items', 'ticket_laundry_options'];
+  // Lista expandida de tablas requeridas, incluyendo las nuevas
+  const requiredTables = [
+    'customers', 
+    'tickets', 
+    'ticket_sequence', 
+    'dry_cleaning_items', 
+    'ticket_laundry_options',
+    'expenses',
+    'inventory_items',
+    'analytics_data',
+    'customer_feedback',
+    'dashboard_stats'
+  ];
 
   useEffect(() => {
     checkTablesExistence();
@@ -107,6 +119,10 @@ const SupabaseTest = () => {
                 <li>dry_cleaning_items: Para los artículos de tintorería</li>
                 <li>ticket_laundry_options: Para las opciones de lavandería</li>
                 <li>expenses: Para registrar gastos</li>
+                <li>inventory_items: Para gestionar el inventario</li>
+                <li>analytics_data: Para métricas y análisis de datos</li>
+                <li>customer_feedback: Para comentarios de clientes</li>
+                <li>dashboard_stats: Para estadísticas del dashboard</li>
               </ul>
               <p className="mt-3 text-amber-800">
                 También se han creado las funciones necesarias y los índices para mejorar el rendimiento de las consultas.
