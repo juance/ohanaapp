@@ -45,5 +45,5 @@ export type { CustomerFeedback } from './feedback.types';
 // Expense types - avoiding duplicate export
 export type { 
   Expense,
-  // Exclude ExpenseCategory as it's already exported from error.types
+  ExpenseCategory
 } from './expense.types';

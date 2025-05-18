@@ -8,6 +8,7 @@ export interface Customer {
   visitCount?: number;
   freeValets?: number;
   lastVisit?: string;
+  valetsCount?: number; // Added this property that is referenced in components
 }
 
 export interface CustomerData {

@@ -7,4 +7,5 @@ export interface CustomerFeedback {
   comment: string;
   source?: string;
   created_at?: string;
+  createdAt?: string; // Adding this for compatibility
 }

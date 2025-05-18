@@ -16,4 +16,14 @@ export interface SystemError {
   context?: ErrorContext;
   stack?: string;
   resolved?: boolean;
+  // Adding properties that are referenced in components
+  error_message?: string;
+  error_context?: any;
+  error_stack?: string;
+  component?: string;
+  user_id?: string;
+  browser_info?: {
+    userAgent?: string;
+    platform?: string;
+  };
 }
