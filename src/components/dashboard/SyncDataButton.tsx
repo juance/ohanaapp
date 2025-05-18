@@ -24,7 +24,6 @@ export const SyncDataButton = () => {
       // Create a SyncStatus object from the result
       const mappedResult: SimpleSyncStatus = {
         lastSync: new Date().toISOString(),
-        syncInProgress: false,
         syncError: null,
         tickets: result.tickets,
         expenses: result.expenses,
