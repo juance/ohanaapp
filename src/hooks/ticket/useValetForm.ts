@@ -32,7 +32,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Separar por color',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     
@@ -40,7 +41,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Secado delicado',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     
@@ -48,7 +50,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Remoción de manchas',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     
@@ -56,7 +59,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Blanqueador',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     
@@ -64,7 +68,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Sin fragancia',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     
@@ -72,7 +77,8 @@ export const useValetForm = () => {
       options.push({
         id: String(Math.random()),
         name: 'Sin secado',
-        optionType: 'preference'
+        optionType: 'preference',
+        selected: true
       });
     }
     

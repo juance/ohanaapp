@@ -10,7 +10,7 @@ export interface Ticket {
   phoneNumber: string;
   total: number;
   totalPrice: number;
-  status: string;
+  status: 'pending' | 'processing' | 'ready' | 'delivered' | 'canceled' | string;
   paymentMethod: PaymentMethod;
   date: string;
   isPaid: boolean;

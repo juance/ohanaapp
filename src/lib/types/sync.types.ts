@@ -1,65 +1,17 @@
 
-export interface SyncStatus {
-  lastSync: string;
-  syncInProgress: boolean;
-  error: string | null;
-}
-
-export interface SimpleSyncStatus {
-  timestamp: string;
-  status: 'success' | 'error' | 'in-progress';
-  message?: string;
-  lastSync?: string;
-  syncError?: string | null;
-  tickets?: number;
-  expenses?: number;
-  clients?: number;
-  feedback?: number;
-}
-
+// Basic types for synchronization
 export interface SyncResult {
-  status: 'success' | 'error' | 'partial';
-  message: string;
-  timestamp: string;
-  tickets: {
-    added: number;
-    updated: number;
-    failed: number;
-  };
-  expenses: {
-    added: number;
-    updated: number;
-    failed: number;
-  };
-  clients: {
-    added: number;
-    updated: number;
-    failed: number;
-  };
-  feedback: {
-    added: number;
-    updated: number;
-    failed: number;
-  };
+  success: boolean;
+  message?: string;
+  data?: any;
+  error?: any;
 }
 
-// SyncableTicket interface for ticket syncing
-export interface SyncableTicket {
+export interface SyncableItem {
   id: string;
-  ticketNumber: string;
-  total: number;
-  totalPrice: number;
-  paymentMethod: string;
-  status: string;
-  isPaid: boolean;
-  createdAt: string;
-  pendingSync: boolean;
-  customerId?: string;
-  date: string;
-  deliveredDate?: string;
+  pendingSync?: boolean;
 }
 
-// SyncableExpense interface for expense syncing
 export interface SyncableExpense {
   id: string;
   amount: number;
@@ -67,5 +19,19 @@ export interface SyncableExpense {
   description: string;
   date: string;
   createdAt: string;
-  pendingSync: boolean;
+  pendingSync?: boolean;
+}
+
+export interface SyncableTicket {
+  id: string;
+  ticketNumber: string;
+  clientName: string;
+  phoneNumber: string;
+  total: number;
+  status: string;
+  paymentMethod: string;
+  date: string;
+  isPaid: boolean;
+  createdAt: string;
+  pendingSync?: boolean;
 }

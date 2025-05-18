@@ -138,7 +138,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
           </CardHeader>
           <CardContent className={isMobile ? 'px-3 py-2' : ''}>
             <p className="text-xs md:text-sm text-gray-700">{item.comment}</p>
-            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.created_at}</p>
+            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.createdAt}</p>
           </CardContent>
         </Card>
       ))}
