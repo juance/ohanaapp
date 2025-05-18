@@ -13,7 +13,7 @@ import { initErrorService } from './lib/errorService';
 import { Toaster } from './components/ui/toaster';
 import { ThemeProvider } from './providers/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query/devtools';
+import { ReactQueryDevtools } from '@tanstack/react-query';
 
 // Create a client
 const queryClient = new QueryClient();
