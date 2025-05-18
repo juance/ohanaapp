@@ -42,3 +42,19 @@ export interface SyncResult {
     failed: number;
   };
 }
+
+// Add the SyncableTicket interface
+export interface SyncableTicket {
+  id: string;
+  ticketNumber: string;
+  total: number;
+  totalPrice: number;
+  paymentMethod: string;
+  status: string;
+  isPaid: boolean;
+  createdAt: string;
+  pendingSync: boolean;
+  customerId?: string;
+  date: string;
+  deliveredDate?: string;
+}
