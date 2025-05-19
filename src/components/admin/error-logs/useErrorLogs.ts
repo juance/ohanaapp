@@ -15,11 +15,11 @@ export const useErrorLogs = () => {
     setLoading(true);
     try {
       const fetchedErrors = await getErrors();
-      // Convert to the proper SystemError type from error.types.ts
+      // Convert to the proper SystemError type from error.types.ts and handle enum differences
       const typedErrors: SystemError[] = fetchedErrors.map(error => ({
         ...error,
-        // Ensure the level property is correctly typed
-        level: error.level as SystemError['level']
+        // Map the error level values from errorService.ts to error.types.ts
+        level: mapErrorLevel(error.level),
       }));
       setErrors(typedErrors);
     } catch (error) {
@@ -29,6 +29,20 @@ export const useErrorLogs = () => {
       setLoading(false);
     }
   }, []);
+
+  // Helper function to map between different ErrorLevel enum formats
+  const mapErrorLevel = (level: any): SystemError['level'] => {
+    if (!level) return undefined;
+    
+    // Convert from errorService.ErrorLevel to error.types.ErrorLevel
+    switch(level) {
+      case 'INFO': return 'INFO';
+      case 'WARNING': return 'WARNING';
+      case 'ERROR': return 'error'; // Note the case difference
+      case 'CRITICAL': return 'critical';
+      default: return level as SystemError['level']; // Fallback
+    }
+  };
 
   const handleResolveError = useCallback(async (errorId: string) => {
     try {

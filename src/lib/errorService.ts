@@ -13,11 +13,12 @@ export interface SystemError {
   level?: ErrorLevel;
 }
 
+// Aligned with the ErrorLevel enum in error.types.ts for better compatibility
 export enum ErrorLevel {
   INFO = 'INFO',
   WARNING = 'WARNING',
-  ERROR = 'ERROR',
-  CRITICAL = 'CRITICAL'
+  ERROR = 'error',
+  CRITICAL = 'critical'
 }
 
 export const initErrorService = () => {

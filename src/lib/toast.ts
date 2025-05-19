@@ -37,6 +37,7 @@ const toastFn = (message: string | ToastOptions) => {
     if (variant === 'success') {
       sonnerToast.success(title || '', { description, duration, action, ...rest });
     } else if (variant === 'destructive' || variant === 'error') {
+      // Fixed comparison by checking both 'destructive' and 'error'
       sonnerToast.error(title || '', { description, duration, action, ...rest });
     } else if (variant === 'warning') {
       sonnerToast.warning(title || '', { description, duration, action, ...rest });
