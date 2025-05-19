@@ -1,10 +1,40 @@
+
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
-import { Ticket } from '@/lib/types';
+import { Ticket, PaymentMethod } from '@/lib/types';
 import { handleTicketPrint as printTicket } from '@/utils/printUtils';
 import { getTicketOptions } from '@/lib/ticket/ticketServiceCore';
 import { formatTicketData } from '../utils/ticketFormatters';
+
+/**
+ * Format payment method for display
+ */
+const formatPaymentMethod = (method: PaymentMethod | string): string => {
+  switch (method) {
+    case 'cash': return 'Efectivo';
+    case 'debit': return 'Débito';
+    case 'credit': return 'Crédito';
+    case 'mercado_pago': return 'Mercado Pago';
+    case 'cuenta_dni': return 'Cuenta DNI';
+    case 'transfer': return 'Transferencia';
+    default: return method || 'No especificado';
+  }
+};
+
+/**
+ * Format ticket status for display
+ */
+const formatStatus = (status: string): string => {
+  switch (status) {
+    case 'pending': return 'Pendiente';
+    case 'in_progress': return 'En proceso';
+    case 'completed': return 'Completado';
+    case 'delivered': return 'Entregado';
+    case 'canceled': return 'Cancelado';
+    default: return status || 'No especificado';
+  }
+};
 
 /**
  * Hook for ticket printing operations
@@ -38,7 +68,7 @@ const useTicketPrintOperations = () => {
       const ticket = formatTicketData(ticketData);
 
       // Print the ticket
-      printTicket(ticket, laundryOptions);
+      printTicket(ticket);
       
     } catch (err: any) {
       console.error("Error printing ticket:", err);
@@ -85,7 +115,10 @@ const useTicketPrintOperations = () => {
         total: typeof total === 'number' ? `$${total.toFixed(2)}` : `$${total}`,
         isPaid: isPaid ? 'Pagado' : 'Pendiente',
         paymentMethod: formatPaymentMethod(paymentMethod),
-        status: formatStatus(status)
+        status: formatStatus(status),
+        // Add these required properties
+        totalPrice: ticket.totalPrice,
+        createdAt: ticket.createdAt
       };
 
       return ticketData;
@@ -102,4 +135,5 @@ const useTicketPrintOperations = () => {
   };
 };
 
+// Export as default to match the import in usePickupTicketOperations
 export default useTicketPrintOperations;

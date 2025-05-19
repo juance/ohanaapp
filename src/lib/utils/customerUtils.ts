@@ -1,6 +1,6 @@
 
 import { Customer } from '../types';
-import { ClientVisit } from '../types';
+import { ClientVisit } from '../types/client.types';
 
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
   return {
@@ -8,7 +8,7 @@ export const convertCustomerToClientVisit = (customer: Customer): ClientVisit =>
     customerId: customer.id,
     customerName: customer.name,
     clientName: customer.name || 'Sin nombre',
-    phoneNumber: customer.phone || customer.phone_number,
+    phoneNumber: customer.phone || customer.phone_number || '',
     visitDate: customer.last_visit || customer.lastVisit || new Date().toISOString(),
     total: 0,
     isPaid: false,

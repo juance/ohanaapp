@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Customer } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 
 export function useFreeValet() {
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ export function useFreeValet() {
         throw new Error('Customer information is missing');
       }
 
-      if (!customer.freeValets || customer.freeValets <= 0) {
+      if (!customer.free_valets || customer.free_valets <= 0) {
         throw new Error('No free valets available for this customer');
       }
 
@@ -25,8 +25,8 @@ export function useFreeValet() {
       const { error: updateError } = await supabase
         .from('customers')
         .update({
-          free_valets: Math.max((customer.freeValets || 0) - 1, 0),
-          valets_redeemed: (customer.valetsRedeemed || 0) + 1
+          free_valets: Math.max((customer.free_valets || 0) - 1, 0),
+          valets_redeemed: (customer.valets_redeemed || 0) + 1
         })
         .eq('id', customer.id);
 

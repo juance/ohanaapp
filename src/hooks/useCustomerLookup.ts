@@ -22,11 +22,11 @@ export const useCustomerLookup = (
 
       if (customer) {
         setCustomerName(customer.name);
-        setPhoneNumber(customer.phoneNumber || customer.phone || ''); // Use phoneNumber or phone property
+        setPhoneNumber(customer.phone || customer.phone_number || ''); // Use snake_case properties
         setFoundCustomer(customer);
 
         // Si el cliente tiene valets gratis, mostrar la opción
-        if (customer.freeValets && customer.freeValets > 0 && activeTab === 'valet') {
+        if (customer.free_valets && customer.free_valets > 0 && activeTab === 'valet') {
           setShowFreeValetDialog(true);
         } else {
           setUseFreeValet(false);

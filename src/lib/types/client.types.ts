@@ -27,7 +27,7 @@ export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
     id: customer.id,
     customerId: customer.id,
     customerName: customer.name,
-    phoneNumber: customer.phone || customer.phone_number,
+    phoneNumber: customer.phone || customer.phone_number || customer.phoneNumber,
     visitDate: customer.last_visit || customer.lastVisit || new Date().toISOString(),
     total: 0,
     isPaid: false,
@@ -39,3 +39,6 @@ export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
     valetsCount: customer.valets_count || customer.valetsCount || 0
   };
 }
+
+// Make it clear we're exporting both the type and the function
+export { convertCustomerToClientVisit as convertCustomerToClientVisitFn };

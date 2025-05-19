@@ -12,4 +12,4 @@ export type { CustomerFeedback, FeedbackSource } from '@/lib/types/feedback.type
 export type { InventoryItemWithTimestamp, InventoryItemFormState, InventoryItemProps } from '@/lib/types/inventory-ui.types';
 
 // Export the utility function
-export { convertCustomerToClientVisit } from '@/lib/types/client.types';
+export { convertCustomerToClientVisit } from '@/lib/utils/customerUtils';

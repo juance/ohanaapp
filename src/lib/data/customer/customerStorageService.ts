@@ -19,7 +19,7 @@ export const storeCustomer = (customer: Partial<Customer>): Customer | null => {
     
     // Find if customer exists
     const existingIndex = customers.findIndex(c => c.id === customer.id || 
-      (c.phone === customer.phone || c.phoneNumber === customer.phoneNumber));
+      (c.phone === customer.phone || c.phone_number === customer.phone_number));
     
     let updatedCustomer: Customer;
     
@@ -28,8 +28,8 @@ export const storeCustomer = (customer: Partial<Customer>): Customer | null => {
       updatedCustomer = {
         ...customers[existingIndex],
         ...customer,
-        phone: customer.phone || customer.phoneNumber || customers[existingIndex].phone,
-        phoneNumber: customer.phoneNumber || customer.phone || customers[existingIndex].phoneNumber
+        phone: customer.phone || customer.phone_number || customers[existingIndex].phone,
+        phone_number: customer.phone_number || customer.phone || customers[existingIndex].phone_number
       } as Customer;
       
       customers[existingIndex] = updatedCustomer;
@@ -38,14 +38,14 @@ export const storeCustomer = (customer: Partial<Customer>): Customer | null => {
       updatedCustomer = {
         id: customer.id || crypto.randomUUID(),
         name: customer.name || '',
-        phone: customer.phone || customer.phoneNumber || '',
-        phoneNumber: customer.phoneNumber || customer.phone || '',
-        loyaltyPoints: customer.loyaltyPoints || 0,
-        valetsCount: customer.valetsCount || 0,
-        freeValets: customer.freeValets || 0,
-        lastVisit: customer.lastVisit || new Date().toISOString(),
-        valetsRedeemed: customer.valetsRedeemed || 0,
-        createdAt: customer.createdAt || new Date().toISOString()
+        phone: customer.phone || customer.phone_number || '',
+        phone_number: customer.phone_number || customer.phone || '',
+        loyalty_points: customer.loyalty_points || 0,
+        valets_count: customer.valets_count || 0,
+        free_valets: customer.free_valets || 0,
+        last_visit: customer.last_visit || new Date().toISOString(),
+        valets_redeemed: customer.valets_redeemed || 0,
+        created_at: customer.created_at || new Date().toISOString()
       };
       
       customers.push(updatedCustomer);
@@ -76,14 +76,14 @@ export const getCustomersFromLocalStorage = (): Customer[] => {
     return customers.map((customer: any) => ({
       id: customer.id,
       name: customer.name,
-      phoneNumber: customer.phoneNumber,
       phone: customer.phone,
-      valetsCount: customer.valetsCount || 0,
-      freeValets: customer.freeValets || 0,
-      lastVisit: customer.lastVisit,
-      loyaltyPoints: customer.loyaltyPoints || 0,
-      createdAt: customer.createdAt,
-      valetsRedeemed: customer.valetsRedeemed || 0
+      phone_number: customer.phone_number || customer.phone,
+      valets_count: customer.valets_count || 0,
+      free_valets: customer.free_valets || 0,
+      last_visit: customer.last_visit,
+      loyalty_points: customer.loyalty_points || 0,
+      created_at: customer.created_at,
+      valets_redeemed: customer.valets_redeemed || 0
     }));
   } catch (error) {
     console.error('Error parsing customers from localStorage:', error);
@@ -98,7 +98,7 @@ export const getCustomersFromLocalStorage = (): Customer[] => {
  */
 export const getCustomerByPhone = (phone: string): Customer | null => {
   const customers = getCustomersFromLocalStorage();
-  return customers.find(c => c.phone === phone || c.phoneNumber === phone) || null;
+  return customers.find(c => c.phone === phone || c.phone_number === phone) || null;
 };
 
 /**
@@ -125,7 +125,7 @@ export const updateCustomerLastVisit = async (customerId: string, date: string):
     const customerIndex = customers.findIndex(c => c.id === customerId);
     
     if (customerIndex >= 0) {
-      customers[customerIndex].lastVisit = date;
+      customers[customerIndex].last_visit = date;
       localStorage.setItem(CUSTOMERS_STORAGE_KEY, JSON.stringify(customers));
     }
   } catch (error) {

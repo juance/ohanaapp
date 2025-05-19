@@ -2,7 +2,7 @@
 import { useTicketDeliveryOperations } from './operations/useTicketDeliveryOperations';
 import { useTicketCancellationOperations } from './operations/useTicketCancellationOperations';
 import { useTicketPaymentOperations } from './operations/useTicketPaymentOperations';
-import { useTicketPrintOperations } from './operations/useTicketPrintOperations';
+import useTicketPrintOperations from './operations/useTicketPrintOperations';
 import { useTicketNotificationOperations } from './operations/useTicketNotificationOperations';
 
 /**

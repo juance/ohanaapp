@@ -11,6 +11,10 @@ export interface CustomerFeedback {
   created_at: string;
   pendingSync?: boolean;
   pendingDelete?: boolean;
+  // Add camelCase aliases for consistency
+  customerId?: string;
+  customerName?: string;
+  createdAt?: string;
 }
 
 // Helper functions to convert between snake_case and camelCase

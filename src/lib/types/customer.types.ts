@@ -15,10 +15,13 @@ export interface Customer {
   valets_redeemed?: number;
   last_reset_date?: string;
   // Add these aliases for consistent property access
-  valetsCount?: number;
-  freeValets?: number;
-  loyaltyPoints?: number;
-  lastVisit?: string;
+  phoneNumber?: string; // Alias for phone or phone_number
+  valetsCount?: number; // Alias for valets_count
+  freeValets?: number; // Alias for free_valets
+  loyaltyPoints?: number; // Alias for loyalty_points
+  lastVisit?: string; // Alias for last_visit
+  createdAt?: string; // Alias for created_at
+  valetsRedeemed?: number; // Alias for valets_redeemed
 }
 
 export interface CustomerWithStats extends Customer {
