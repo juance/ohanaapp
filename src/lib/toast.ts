@@ -12,16 +12,19 @@ interface ToastOptions {
     label: string;
     onClick: () => void;
   };
+  onDismiss?: () => void; // Added to support usage in notificationService.ts
+  items?: any; // Added to support usage in ticketServiceCore.ts
+  [key: string]: any; // Allow any additional properties
 }
 
 // Define the toast function with methods type
 interface ToastFunction {
   (message: string | ToastOptions): void;
-  default: (message: string | ToastOptions) => void;
-  success: (message: string | ToastOptions) => void;
-  error: (message: string | ToastOptions) => void;
-  warning: (message: string | ToastOptions) => void;
-  info: (message: string | ToastOptions) => void;
+  default: (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => void;
+  success: (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => void;
+  error: (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => void;
+  warning: (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => void;
+  info: (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => void;
 }
 
 // Create the base toast function
@@ -29,18 +32,18 @@ const toastFn = (message: string | ToastOptions) => {
   if (typeof message === 'string') {
     sonnerToast(message);
   } else {
-    const { title, description, variant, duration, action } = message;
+    const { title, description, variant, duration, action, ...rest } = message;
     
     if (variant === 'success') {
-      sonnerToast.success(title || '', { description, duration, action });
+      sonnerToast.success(title || '', { description, duration, action, ...rest });
     } else if (variant === 'destructive' || variant === 'error') {
-      sonnerToast.error(title || '', { description, duration, action });
+      sonnerToast.error(title || '', { description, duration, action, ...rest });
     } else if (variant === 'warning') {
-      sonnerToast.warning(title || '', { description, duration, action });
+      sonnerToast.warning(title || '', { description, duration, action, ...rest });
     } else if (variant === 'info') {
-      sonnerToast.info(title || '', { description, duration, action });
+      sonnerToast.info(title || '', { description, duration, action, ...rest });
     } else {
-      sonnerToast(title || '', { description, duration, action });
+      sonnerToast(title || '', { description, duration, action, ...rest });
     }
   }
 };
@@ -48,65 +51,53 @@ const toastFn = (message: string | ToastOptions) => {
 // Create the complete toast object with methods
 const toast = toastFn as ToastFunction;
 
-// Attach the helper methods
-toast.default = (message: string | ToastOptions) => {
+// Attach the helper methods that support both calling styles:
+// - toast.success("message")
+// - toast.success("title", { description: "message" })
+toast.default = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
-    sonnerToast(message);
+    sonnerToast(message, options || {});
   } else {
-    sonnerToast(message.title || '', { 
-      description: message.description,
-      duration: message.duration,
-      action: message.action
-    });
+    const { title, ...rest } = message;
+    sonnerToast(title || '', rest);
   }
 };
 
-toast.success = (message: string | ToastOptions) => {
+toast.success = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
-    sonnerToast.success(message);
+    sonnerToast.success(message, options || {});
   } else {
-    sonnerToast.success(message.title || '', { 
-      description: message.description,
-      duration: message.duration,
-      action: message.action
-    });
+    const { title, ...rest } = message;
+    sonnerToast.success(title || '', rest);
   }
 };
 
-toast.error = (message: string | ToastOptions) => {
+toast.error = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
-    sonnerToast.error(message);
+    sonnerToast.error(message, options || {});
   } else {
-    sonnerToast.error(message.title || '', { 
-      description: message.description,
-      duration: message.duration,
-      action: message.action
-    });
+    const { title, ...rest } = message;
+    sonnerToast.error(title || '', rest);
   }
 };
 
-toast.warning = (message: string | ToastOptions) => {
+toast.warning = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
-    sonnerToast.warning(message);
+    sonnerToast.warning(message, options || {});
   } else {
-    sonnerToast.warning(message.title || '', { 
-      description: message.description,
-      duration: message.duration,
-      action: message.action
-    });
+    const { title, ...rest } = message;
+    sonnerToast.warning(title || '', rest);
   }
 };
 
-toast.info = (message: string | ToastOptions) => {
+toast.info = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
-    sonnerToast.info(message);
+    sonnerToast.info(message, options || {});
   } else {
-    sonnerToast.info(message.title || '', { 
-      description: message.description,
-      duration: message.duration,
-      action: message.action
-    });
+    const { title, ...rest } = message;
+    sonnerToast.info(title || '', rest);
   }
 };
 
 export { toast };
+export type { ToastOptions };

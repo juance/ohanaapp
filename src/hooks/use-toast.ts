@@ -2,75 +2,13 @@
 "use client";
 
 import React from "react";
-import { toast as sonnerToast } from "sonner";
+import { toast, ToastOptions } from "@/lib/toast";
 
-export interface ToastProps {
-  title?: string;
-  description?: string;
-  variant?: 'default' | 'destructive' | 'success' | 'warning' | 'info';
-  [key: string]: any;
-}
-
-// Create a toast function that properly handles the variant
-export const toast = (props: ToastProps | string) => {
-  // Handle string case
-  if (typeof props === 'string') {
-    return sonnerToast(props);
-  }
-  
-  // Handle object case
-  const { title, description, variant, ...rest } = props;
-
-  if (variant === 'destructive') {
-    return sonnerToast.error(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'success') {
-    return sonnerToast.success(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'warning') {
-    return sonnerToast.warning(title || '', {
-      description,
-      ...rest
-    });
-  } else if (variant === 'info') {
-    return sonnerToast.info(title || '', {
-      description,
-      ...rest
-    });
-  }
-
-  return sonnerToast(title || '', {
-    description,
-    ...rest
-  });
-};
-
-// Add helper methods
-toast.success = (title: string, options?: Omit<ToastProps, 'title'>) => {
-  return sonnerToast.success(title, options);
-};
-
-toast.error = (title: string, options?: Omit<ToastProps, 'title'>) => {
-  return sonnerToast.error(title, options);
-};
-
-toast.info = (title: string, options?: Omit<ToastProps, 'title'>) => {
-  return sonnerToast.info(title, options);
-};
-
-toast.warning = (title: string, options?: Omit<ToastProps, 'title'>) => {
-  return sonnerToast.warning(title, options);
-};
-
-toast.loading = (title: string, options?: Omit<ToastProps, 'title'>) => {
-  return sonnerToast.loading(title, options);
-};
-
-// Export a simplified useToast function that doesn't use React.useState
+// Create a simplified useToast function that returns the toast function
 export function useToast() {
   return { toast };
 }
+
+// Re-export the toast function for convenience
+export { toast };
+export type { ToastOptions };

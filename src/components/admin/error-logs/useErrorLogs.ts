@@ -1,98 +1,68 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { getErrors, clearErrors, resolveError, deleteError, clearResolvedErrors } from '@/lib/errorService';
-import { toast } from "@/lib/toast";
+import { useState, useCallback } from 'react';
+import { getAllErrors, markErrorAsResolved, deleteError } from '@/lib/errorService';
 import { SystemError } from '@/lib/types/error.types';
+import { toast } from '@/lib/toast';
 
 export const useErrorLogs = () => {
   const [errors, setErrors] = useState<SystemError[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('all');
-  const [isClearing, setIsClearing] = useState(false);
-  const [isClearingResolved, setIsClearingResolved] = useState(false);
 
-  const loadErrors = useCallback(async () => {
-    setIsLoading(true);
+  const fetchErrors = useCallback(async () => {
+    setLoading(true);
     try {
-      const systemErrors = await getErrors();
-      setErrors(systemErrors);
+      const fetchedErrors = await getAllErrors();
+      // Convert to the proper SystemError type from error.types.ts
+      const typedErrors: SystemError[] = fetchedErrors.map(error => ({
+        ...error,
+        // Ensure the level property is correctly typed
+        level: error.level as SystemError['level']
+      }));
+      setErrors(typedErrors);
     } catch (error) {
-      console.error("Error loading error logs:", error);
-      toast.error("No se pudieron cargar los registros de errores.");
+      console.error('Error fetching errors:', error);
+      toast.error('Error al cargar los registros de errores');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadErrors();
-  }, [loadErrors]);
-
-  const handleClearErrors = async () => {
-    setIsClearing(true);
+  const handleMarkAsResolved = useCallback(async (errorId: string) => {
     try {
-      await clearErrors();
-      setErrors([]);
-      toast.success("Los registros de errores han sido limpiados exitosamente.");
+      await markErrorAsResolved(errorId);
+      // Update local state
+      setErrors(prevErrors =>
+        prevErrors.map(error =>
+          error.id === errorId ? { ...error, resolved: true } : error
+        )
+      );
+      toast.success('Error marcado como resuelto');
     } catch (error) {
-      console.error("Error clearing error logs:", error);
-      toast.error("No se pudieron limpiar los registros de errores.");
-    } finally {
-      setIsClearing(false);
+      console.error('Error marking as resolved:', error);
+      toast.error('Error al marcar como resuelto');
     }
-  };
+  }, []);
 
-  const handleClearResolvedErrors = async () => {
-    setIsClearingResolved(true);
-    try {
-      await clearResolvedErrors();
-      loadErrors(); // Recargar errores
-      toast.success("Se han eliminado los registros de errores resueltos.");
-    } catch (error) {
-      console.error("Error clearing resolved error logs:", error);
-      toast.error("No se pudieron limpiar los registros de errores resueltos.");
-    } finally {
-      setIsClearingResolved(false);
-    }
-  };
-
-  const handleResolveError = async (errorId: string) => {
-    try {
-      await resolveError(errorId);
-      // Actualizar el estado local
-      setErrors(errors.map(error =>
-        error.id === errorId ? { ...error, resolved: true } : error
-      ));
-      toast.success("El error ha sido marcado como resuelto.");
-    } catch (error) {
-      console.error("Error resolving error log:", error);
-      toast.error("No se pudo marcar el error como resuelto.");
-    }
-  };
-
-  const handleDeleteError = async (errorId: string) => {
+  const handleDeleteError = useCallback(async (errorId: string) => {
     try {
       await deleteError(errorId);
-      // Actualizar el estado local
-      setErrors(errors.filter(error => error.id !== errorId));
-      toast.success("El error ha sido eliminado correctamente.");
+      // Remove from local state
+      setErrors(prevErrors => prevErrors.filter(error => error.id !== errorId));
+      toast.success('Error eliminado correctamente');
     } catch (error) {
-      console.error("Error deleting error log:", error);
-      toast.error("No se pudo eliminar el error.");
+      console.error('Error deleting error:', error);
+      toast.error('Error al eliminar el registro');
     }
-  };
+  }, []);
 
   return {
     errors,
-    isLoading,
+    loading,
     activeTab,
-    isClearing,
-    isClearingResolved,
     setActiveTab,
-    loadErrors,
-    handleClearErrors,
-    handleClearResolvedErrors,
-    handleResolveError,
-    handleDeleteError,
+    fetchErrors,
+    handleMarkAsResolved,
+    handleDeleteError
   };
 };

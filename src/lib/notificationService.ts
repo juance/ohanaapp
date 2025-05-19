@@ -1,4 +1,5 @@
-import { toast } from '@/lib/toast';
+
+import { toast, ToastOptions } from '@/lib/toast';
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
 export type NotificationType = 'info' | 'success' | 'warning' | 'error';
@@ -51,23 +52,39 @@ export const notify = ({
   const finalDuration = duration || PRIORITY_DURATIONS[priority];
   
   // Use specialized methods for certain types
-  if (type === 'warning' && toast.warning) {
-    toast.warning(description, { title, duration: finalDuration });
+  if (type === 'warning') {
+    toast.warning({
+      title,
+      description,
+      duration: finalDuration
+    });
     return;
   }
   
-  if (type === 'success' && toast.success) {
-    toast.success(description, { title, duration: finalDuration });
+  if (type === 'success') {
+    toast.success({
+      title,
+      description,
+      duration: finalDuration
+    });
     return;
   }
   
-  if (type === 'error' && toast.error) {
-    toast.error(description, { title, duration: finalDuration });
+  if (type === 'error') {
+    toast.error({
+      title,
+      description,
+      duration: finalDuration
+    });
     return;
   }
   
-  if (type === 'info' && toast.info) {
-    toast.info(description, { title, duration: finalDuration });
+  if (type === 'info') {
+    toast.info({
+      title,
+      description,
+      duration: finalDuration
+    });
     return;
   }
   
@@ -181,10 +198,8 @@ export const dispatchSyncCompletedEvent = (itemCount: number) => {
 };
 
 export const showToast = (message: string, options: ToastOptions = {}) => {
-  // Remove any action property if it exists
-  const { action, ...validOptions } = options as any;
   toast({
     title: message,
-    ...validOptions
+    ...options
   });
 };
