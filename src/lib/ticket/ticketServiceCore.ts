@@ -103,7 +103,7 @@ export const createTicket = async (ticketData: {
   }
 };
 
-// Get ticket services (dry cleaning items and laundry options)
+// Get ticket services (dry cleaning items)
 export const getTicketServices = async (ticketId: string): Promise<any[]> => {
   if (!ticketId) return [];
   
@@ -225,12 +225,12 @@ export const getFullTicket = async (ticketId: string): Promise<Ticket | null> =>
       createdAt: option.created_at
     })) || [];
     
-    // Return the complete ticket with all data
+    // Return the complete ticket with all data - using type assertion to handle adding dryCleaningItems
     return {
       ...baseTicket,
-      items: formattedItems,
+      dryCleaningItems: formattedItems,
       laundryOptions: formattedOptions
-    };
+    } as Ticket;
   } catch (error) {
     console.error('Error in getFullTicket:', error);
     return null;

@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
-import { convertCustomerToClientVisit } from '@/lib/types/customer.types';
 import { calculateVisitFrequency } from '@/lib/customer/frequencyUtils';
 
 /**
@@ -200,13 +199,19 @@ export const getClientVisits = async (): Promise<ClientVisit[]> => {
     return data.map((customer: any) => ({
       id: customer.id,
       clientName: customer.name,
-      phoneNumber: customer.phone,
+      customerName: customer.name,
+      customerId: customer.id, 
+      phoneNumber: customer.phone || '',
       visitCount: customer.valets_count || 0,
-      lastVisitDate: customer.last_visit,
-      lastVisit: customer.last_visit,
+      lastVisitDate: customer.last_visit || '',
+      lastVisit: customer.last_visit || '',
+      visitDate: customer.last_visit || new Date().toISOString(),
+      total: 0,
+      isPaid: false,
       loyaltyPoints: customer.loyalty_points || 0,
       freeValets: customer.free_valets || 0,
-      valetsCount: customer.valets_count || 0
+      valetsCount: customer.valets_count || 0,
+      visitFrequency: calculateVisitFrequency(customer.last_visit)
     }));
   } catch (error) {
     console.error('Error fetching client visits:', error);
@@ -313,13 +318,19 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     const result: ClientVisit[] = data.map(customer => ({
       id: customer.id,
       clientName: customer.name,
-      phoneNumber: customer.phone,
+      customerName: customer.name,
+      customerId: customer.id,
+      phoneNumber: customer.phone || '',
       visitCount: customer.valets_count || 0,
       lastVisit: customer.last_visit || '',
+      lastVisitDate: customer.last_visit || '',
+      visitDate: customer.last_visit || new Date().toISOString(),
       loyaltyPoints: customer.loyalty_points || 0,
       freeValets: customer.free_valets || 0,
       valetsCount: customer.valets_count || 0,
-      visitFrequency: calculateVisitFrequency(customer.last_visit)
+      visitFrequency: calculateVisitFrequency(customer.last_visit),
+      total: 0,
+      isPaid: false
     }));
 
     return result;

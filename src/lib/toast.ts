@@ -12,9 +12,9 @@ interface ToastOptions {
     label: string;
     onClick: () => void;
   };
-  onDismiss?: () => void; // Added to support usage in notificationService.ts
-  items?: any; // Added to support usage in ticketServiceCore.ts
-  [key: string]: any; // Allow any additional properties
+  onDismiss?: () => void;
+  items?: any;
+  [key: string]: any;
 }
 
 // Define the toast function with methods type
@@ -37,7 +37,6 @@ const toastFn = (message: string | ToastOptions) => {
     if (variant === 'success') {
       sonnerToast.success(title || '', { description, duration, action, ...rest });
     } else if (variant === 'destructive' || variant === 'error') {
-      // Using type guard to fix type error
       sonnerToast.error(title || '', { description, duration, action, ...rest });
     } else if (variant === 'warning') {
       sonnerToast.warning(title || '', { description, duration, action, ...rest });
@@ -52,9 +51,7 @@ const toastFn = (message: string | ToastOptions) => {
 // Create the complete toast object with methods
 const toast = toastFn as ToastFunction;
 
-// Attach the helper methods that support both calling styles:
-// - toast.success("message")
-// - toast.success("title", { description: "message" })
+// Attach the helper methods
 toast.default = (message: string | ToastOptions, options?: Omit<ToastOptions, 'title'>) => {
   if (typeof message === 'string') {
     sonnerToast(message, options || {});

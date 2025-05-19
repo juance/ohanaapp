@@ -78,11 +78,13 @@ export const testSync = async (): Promise<{ success: boolean, results: any }> =>
     
     // 3. Run sync
     const syncResult = await syncAllData();
+    
+    // Ensure we handle the syncResult values correctly by extracting numeric values
     results.syncResults = {
-      tickets: syncResult.tickets,
-      expenses: syncResult.expenses,
-      clients: syncResult.clients,
-      feedback: syncResult.feedback
+      tickets: typeof syncResult.tickets === 'number' ? syncResult.tickets : 0,
+      expenses: typeof syncResult.expenses === 'number' ? syncResult.expenses : 0,
+      clients: typeof syncResult.clients === 'number' ? syncResult.clients : 0,
+      feedback: typeof syncResult.feedback === 'number' ? syncResult.feedback : 0
     };
     
     // 4. Check final state
@@ -113,7 +115,6 @@ export const testSync = async (): Promise<{ success: boolean, results: any }> =>
     };
   } catch (error) {
     console.error('Error during sync test:', error);
-    // Fixed: Return a type-compliant object without the 'error' property
     return {
       success: false,
       results
