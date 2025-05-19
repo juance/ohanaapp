@@ -40,11 +40,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
+      // Check for superuser credentials
+      if (phone === '1123989718' && password === 'Juance001') {
+        const userData: User = {
+          id: '1',
+          name: 'Superusuario',
+          phoneNumber: phone,
+          role: 'admin'
+        };
+        
+        setUser(userData);
+        localStorage.setItem('authUser', JSON.stringify(userData));
+        
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${userData.name}`,
+        });
+        
+        return;
+      }
+      
       // Mock authentication for demonstration purposes
       // In a real app, this would call your auth API
       if (phone === '1123989718' && password === 'password') {
         const userData: User = {
-          id: '1',
+          id: '2',
           name: 'Admin User',
           phoneNumber: phone,
           role: 'admin'
