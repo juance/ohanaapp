@@ -49,3 +49,40 @@ export const formatTicketServices = (services?: TicketService[]): string => {
     `${service.name} (${service.quantity}) - $${service.price}`
   ).join(', ');
 };
+
+/**
+ * Format ticket data for display and printing
+ * This replaces missing formatTicketData references
+ */
+export const formatTicketData = (ticket: Ticket) => {
+  return {
+    id: ticket.id,
+    ticketNumber: ticket.ticketNumber,
+    basketTicketNumber: ticket.basketTicketNumber,
+    clientName: ticket.clientName,
+    phoneNumber: ticket.phoneNumber,
+    date: formatTicketDate(ticket.date),
+    deliveredDate: ticket.deliveredDate ? formatTicketDate(ticket.deliveredDate) : 'Pendiente',
+    valetQuantity: ticket.valetQuantity,
+    services: formatTicketServices(ticket.services),
+    total: ticket.total.toLocaleString(),
+    isPaid: ticket.isPaid ? 'Si' : 'No',
+    paymentMethod: formatPaymentMethod(ticket.paymentMethod),
+    status: ticket.status
+  };
+};
+
+/**
+ * Format payment method for display
+ */
+const formatPaymentMethod = (method?: string): string => {
+  if (!method) return 'No especificado';
+  
+  switch (method) {
+    case 'cash': return 'Efectivo';
+    case 'debit': return 'Tarjeta de débito';
+    case 'mercadopago': return 'Mercado Pago';
+    case 'cuenta_dni': return 'Cuenta DNI';
+    default: return method;
+  }
+};

@@ -8,7 +8,7 @@ export interface DryCleaningItem {
   quantity: number;
 }
 
-// Define a TicketService type that was missing
+// Interfaz TicketService completa
 export interface TicketService {
   id: string;
   name: string;
@@ -19,7 +19,7 @@ export interface TicketService {
 export interface Ticket {
   id: string;
   ticketNumber: string;
-  basketTicketNumber?: string; // Added this property
+  basketTicketNumber?: string; // Propiedad añadida para compatibilidad
   clientName: string;
   phoneNumber: string;
   total: number;
@@ -34,7 +34,7 @@ export interface Ticket {
   customerId?: string;
   dryCleaningItems?: DryCleaningItem[];
   laundryOptions?: LaundryOption[];
-  services?: TicketService[]; // Added this property
+  services?: TicketService[]; // Propiedad añadida para compatibilidad
   customer?: {
     name: string;
     phone?: string;
@@ -47,7 +47,7 @@ export interface LaundryOption {
   name: string; 
   optionType: string;
   value?: boolean;
-  selected?: boolean; // Added this property for compatibility
+  selected?: boolean; // Propiedad añadida para compatibilidad con useValetForm
 }
 
 export interface LaundryService {

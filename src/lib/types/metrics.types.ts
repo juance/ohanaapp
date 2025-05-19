@@ -9,7 +9,7 @@ export interface DailyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>;
+  dryCleaningItems: Record<string, number>; // Añadido para resolver errores en useChartData
   valetCount: number;
   ticketsCount?: number;
   revenue?: number;
@@ -27,7 +27,7 @@ export interface WeeklyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>;
+  dryCleaningItems: Record<string, number>; // Añadido para resolver errores en useChartData
   valetCount: number;
   ticketsCount?: number;
   revenue?: number;
@@ -47,7 +47,7 @@ export interface MonthlyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>;
+  dryCleaningItems: Record<string, number>; // Añadido para resolver errores en useChartData
   valetCount: number;
   ticketsCount?: number;
   revenue?: number;

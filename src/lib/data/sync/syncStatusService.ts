@@ -1,68 +1,49 @@
 
 import { SimpleSyncStatus } from '@/lib/types/sync.types';
 
-// Default empty sync status
-const DEFAULT_SYNC_STATUS: SimpleSyncStatus = {
-  timestamp: new Date().toISOString(),
-  status: 'success',
-  tickets: 0,
-  expenses: 0,
-  clients: 0,
-  feedback: 0,
-  lastSync: null
-};
-
-/**
- * Get the current sync status from local storage
- */
+// Get the current sync status from localStorage
 export const getSyncStatus = (): SimpleSyncStatus => {
   try {
-    const storedStatus = localStorage.getItem('sync_status');
-    return storedStatus ? JSON.parse(storedStatus) : DEFAULT_SYNC_STATUS;
-  } catch (e) {
-    console.error('Error reading sync status:', e);
-    return DEFAULT_SYNC_STATUS;
+    const syncStatusStr = localStorage.getItem('syncStatus');
+    if (syncStatusStr) {
+      return JSON.parse(syncStatusStr);
+    }
+    
+    // Default sync status if none exists
+    return {
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      tickets: 0,
+      expenses: 0,
+      clients: 0,
+      feedback: 0,
+      inventory: 0,
+      lastSync: null,
+      syncError: null // Añadido syncError para satisfacer la interfaz
+    };
+  } catch (error) {
+    console.error('Error loading sync status:', error);
+    return {
+      timestamp: new Date().toISOString(),
+      status: 'error',
+      tickets: 0,
+      expenses: 0,
+      clients: 0,
+      feedback: 0,
+      inventory: 0,
+      lastSync: null,
+      syncError: 'Error loading sync status'
+    };
   }
 };
 
-/**
- * Update the sync status in local storage
- */
-export const updateSyncStatus = (status: Partial<SimpleSyncStatus>): SimpleSyncStatus => {
+// Update sync status in localStorage
+export const updateSyncStatus = (update: Partial<SimpleSyncStatus>): void => {
   try {
     const currentStatus = getSyncStatus();
-    const newStatus = { ...currentStatus, ...status };
-    localStorage.setItem('sync_status', JSON.stringify(newStatus));
-    return newStatus;
-  } catch (e) {
-    console.error('Error updating sync status:', e);
-    return getSyncStatus();
+    const updatedStatus = { ...currentStatus, ...update };
+    localStorage.setItem('syncStatus', JSON.stringify(updatedStatus));
+  } catch (error) {
+    console.error('Error updating sync status:', error);
   }
-};
-
-/**
- * Clear pending sync items for a specific type
- */
-export const clearPendingSyncItems = (type: keyof Pick<SimpleSyncStatus, 'tickets' | 'expenses' | 'clients' | 'feedback'>, count: number): SimpleSyncStatus => {
-  const currentStatus = getSyncStatus();
-  // Make sure we're working with numbers by using Number() to convert any potential string values
-  const currentCount = Number(currentStatus[type] || 0);
-  
-  return updateSyncStatus({
-    [type]: Math.max(0, currentCount - count),
-    lastSync: new Date().toISOString()
-  });
-};
-
-/**
- * Add pending sync items for a specific type
- */
-export const addPendingSyncItems = (type: keyof Pick<SimpleSyncStatus, 'tickets' | 'expenses' | 'clients' | 'feedback'>, count: number): SimpleSyncStatus => {
-  const currentStatus = getSyncStatus();
-  // Make sure we're working with numbers by using Number() to convert any potential string values
-  const currentCount = Number(currentStatus[type] || 0);
-  
-  return updateSyncStatus({
-    [type]: currentCount + count
-  });
 };

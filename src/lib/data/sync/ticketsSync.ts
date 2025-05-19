@@ -85,7 +85,7 @@ const mapServerTicketToLocal = (serverTicket: any): SyncableTicket => {
 };
 
 // Sync tickets with the server
-export const syncTickets = async (): Promise<number> => {
+export const syncTickets = async (): Promise<{added: number, updated: number, failed: number}> => {
   try {
     let syncedCount = 0;
     
@@ -169,9 +169,17 @@ export const syncTickets = async (): Promise<number> => {
       saveLocalTickets(updatedLocalTickets);
     }
     
-    return syncedCount;
+    return {
+      added: syncedCount,
+      updated: remoteTickets.length,
+      failed: 0
+    };
   } catch (error) {
     console.error('Error in syncTickets:', error);
-    return 0;
+    return {
+      added: 0,
+      updated: 0,
+      failed: 1
+    };
   }
 };

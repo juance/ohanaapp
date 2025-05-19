@@ -28,28 +28,41 @@ export const syncAllData = async (
       expenses: { added: 0, updated: 0, failed: 0 },
       clients: { added: 0, updated: 0, failed: 0 },
       feedback: { added: 0, updated: 0, failed: 0 },
+      inventory: { added: 0, updated: 0, failed: 0 }, // Añadido para satisfacer SyncResult
       timestamp: new Date(),
       success: false
     };
 
     // Sync tickets (25% of progress)
     const ticketsResult = await syncTickets();
-    result.tickets = ticketsResult;
+    // Convertir el resultado numérico a SyncStats
+    result.tickets = typeof ticketsResult === 'number' 
+      ? { added: ticketsResult, updated: 0, failed: 0 }
+      : ticketsResult;
     options.onProgress?.(25);
 
     // Sync expenses (50% of progress)
     const expensesResult = await syncExpenses();
-    result.expenses = expensesResult;
+    // Convertir el resultado numérico a SyncStats
+    result.expenses = typeof expensesResult === 'number'
+      ? { added: expensesResult, updated: 0, failed: 0 }
+      : expensesResult;
     options.onProgress?.(50);
     
     // Sync clients (75% of progress)
     const clientsResult = await syncClients();
-    result.clients = clientsResult;
+    // Convertir el resultado numérico a SyncStats
+    result.clients = typeof clientsResult === 'number'
+      ? { added: clientsResult, updated: 0, failed: 0 }
+      : clientsResult;
     options.onProgress?.(75);
     
     // Sync feedback (100% of progress)
     const feedbackResult = await syncFeedback();
-    result.feedback = feedbackResult;
+    // Convertir el resultado numérico a SyncStats
+    result.feedback = typeof feedbackResult === 'number'
+      ? { added: feedbackResult, updated: 0, failed: 0 }
+      : feedbackResult;
     options.onProgress?.(100);
 
     // Update with successful sync
@@ -75,6 +88,7 @@ export const syncAllData = async (
       expenses: { added: 0, updated: 0, failed: 0 },
       clients: { added: 0, updated: 0, failed: 0 },
       feedback: { added: 0, updated: 0, failed: 0 },
+      inventory: { added: 0, updated: 0, failed: 0 }, // Añadido para satisfacer SyncResult
       timestamp: new Date(),
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error during sync'

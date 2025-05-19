@@ -1,7 +1,7 @@
 
 import { Customer } from './customer.types';
 
-// Interface specifically for client display in the UI
+// Interfaz para ClientVisit con todos los campos requeridos
 export interface ClientVisit {
   id: string;
   customerId: string;
@@ -18,10 +18,11 @@ export interface ClientVisit {
   valetsCount?: number;
   visitFrequency?: string;
   lastVisitDate?: string;
+  clientId?: string; // Añadido para compatibilidad
 }
 
-// Function to convert a Customer to ClientVisit
-export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
+// Función para convertir un Customer a ClientVisit
+export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
   return {
     id: customer.id,
     customerId: customer.id,
@@ -37,4 +38,4 @@ export const convertCustomerToClientVisit = (customer: Customer): ClientVisit =>
     freeValets: customer.free_valets || customer.freeValets || 0,
     valetsCount: customer.valets_count || customer.valetsCount || 0
   };
-};
+}

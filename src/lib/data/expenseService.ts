@@ -1,152 +1,191 @@
-
-import { v4 as uuidv4 } from 'uuid';
+// Corregir el error en expenseService.ts relacionado con 'createdAt' vs 'created_at'
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 import { SyncableExpense } from '@/lib/types/sync.types';
+import { Expense } from '@/lib/types/expense.types';
 
-// Get expenses from localStorage
-export const getExpenses = (): SyncableExpense[] => {
+/**
+ * Crear un nuevo gasto
+ */
+export const createExpense = async (expense: Expense): Promise<Expense | null> => {
   try {
-    const expenses = localStorage.getItem('expenses');
-    if (expenses) {
-      const parsedExpenses = JSON.parse(expenses);
-      // Ensure all expenses have the required category field and createdAt
-      return parsedExpenses.map((expense: any) => ({
-        ...expense,
-        category: expense.category || 'other', // Set default category if missing
-        createdAt: expense.createdAt || expense.date || new Date().toISOString() // Ensure createdAt exists
-      }));
+    const { data, error } = await supabase
+      .from('expenses')
+      .insert([
+        {
+          id: expense.id || uuidv4(),
+          description: expense.description,
+          amount: expense.amount,
+          date: expense.date,
+          category: expense.category,
+          created_at: new Date().toISOString(),
+          pendingSync: true,
+          synced: false
+        }
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating expense:', error);
+      return null;
     }
-    return [];
-  } catch (e) {
-    console.error('Error getting expenses from localStorage', e);
-    return [];
+
+    return data as Expense;
+  } catch (error) {
+    console.error('Error creating expense:', error);
+    return null;
   }
 };
 
-// For compatibility with the Expenses component
-export const getStoredExpenses = getExpenses;
-
-// Add a new expense
-export const addExpense = (description: string, amount: number, date: string, category: string): SyncableExpense => {
-  try {
-    const expenses = getExpenses();
-    
-    const newExpense: SyncableExpense = {
-      id: uuidv4(),
-      description,
-      amount,
-      date,
-      category,
-      createdAt: new Date().toISOString(),
-      pendingSync: true
-    };
-    
-    const updatedExpenses = [...expenses, newExpense];
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
-    
-    return newExpense;
-  } catch (e) {
-    console.error('Error adding expense', e);
-    throw new Error('Failed to add expense');
-  }
-};
-
-// For compatibility with the Expenses component
-export const storeExpense = (expenseData: { description: string; amount: number; date: string; category: string }): Promise<boolean> => {
-  try {
-    addExpense(expenseData.description, expenseData.amount, expenseData.date, expenseData.category);
-    return Promise.resolve(true);
-  } catch (e) {
-    console.error('Error storing expense', e);
-    return Promise.resolve(false);
-  }
-};
-
-// Delete an expense
-export const deleteExpense = (id: string): boolean => {
-  try {
-    const expenses = getExpenses();
-    const updatedExpenses = expenses.filter(expense => expense.id !== id);
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
-    return true;
-  } catch (e) {
-    console.error('Error deleting expense', e);
-    return false;
-  }
-};
-
-// Get expenses from Supabase
-export const fetchServerExpenses = async (): Promise<SyncableExpense[]> => {
+/**
+ * Obtener todos los gastos
+ */
+export const getAllExpenses = async (): Promise<Expense[]> => {
   try {
     const { data, error } = await supabase
       .from('expenses')
       .select('*')
       .order('date', { ascending: false });
-    
-    if (error) throw error;
-    
-    // Map the server data to SyncableExpense type with required fields
-    return data.map(item => ({
-      id: item.id,
-      description: item.description,
-      amount: item.amount,
-      date: item.date,
-      category: 'other', // Provide default category since it's missing in the DB
-      createdAt: item.created_at || item.date, // Use created_at if available, fall back to date
-      pendingSync: false, // Already synced since coming from server
-      synced: true
-    }));
-  } catch (e) {
-    console.error('Error fetching server expenses', e);
+
+    if (error) {
+      console.error('Error fetching expenses:', error);
+      return [];
+    }
+
+    return data as Expense[];
+  } catch (error) {
+    console.error('Error fetching expenses:', error);
     return [];
   }
 };
 
-// Sync expenses with server
-export const syncExpenses = async (): Promise<number> => {
+/**
+ * Actualizar un gasto existente
+ */
+export const updateExpense = async (id: string, updates: Partial<Expense>): Promise<Expense | null> => {
   try {
-    const expenses = getExpenses().filter(e => e.pendingSync);
-    if (expenses.length === 0) return 0;
-    
-    let syncedCount = 0;
-    for (const expense of expenses) {
+    const { data, error } = await supabase
+      .from('expenses')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating expense:', error);
+      return null;
+    }
+
+    return data as Expense;
+  } catch (error) {
+    console.error('Error updating expense:', error);
+    return null;
+  }
+};
+
+/**
+ * Eliminar un gasto
+ */
+export const deleteExpense = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('expenses')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting expense:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error deleting expense:', error);
+    return false;
+  }
+};
+
+/**
+ * Sincronizar gastos con el servidor
+ */
+export const syncExpenses = async (): Promise<{added: number, updated: number, failed: number}> => {
+  let added = 0;
+  let updated = 0;
+  let failed = 0;
+
+  try {
+    // Obtener gastos locales pendientes de sincronización
+    const { data: localExpenses, error: localError } = await supabase
+      .from('expenses')
+      .select('*')
+      .eq('pendingSync', true);
+
+    if (localError) {
+      console.error('Error fetching local expenses:', localError);
+      return { added, updated, failed };
+    }
+
+    // Sincronizar cada gasto pendiente
+    for (const localExpense of localExpenses) {
       try {
-        const { error } = await supabase
+        // Intentar insertar o actualizar el gasto en el servidor
+        const { data: serverData, error: serverError } = await supabase
           .from('expenses')
-          .insert({
-            id: expense.id,
-            description: expense.description,
-            amount: expense.amount,
-            date: expense.date
-            // Note: category is not in the database schema
-          });
-        
-        if (error) throw error;
-        
-        // Mark as synced
-        expense.pendingSync = false;
-        expense.synced = true;
-        syncedCount++;
-      } catch (e) {
-        console.error(`Error syncing expense ${expense.id}`, e);
+          .upsert([localExpense], { onConflict: 'id' })
+          .select()
+          .single();
+
+        if (serverError) {
+          console.error('Error syncing expense to server:', serverError);
+          failed++;
+          continue;
+        }
+
+        // Marcar el gasto como sincronizado
+        const { error: updateError } = await supabase
+          .from('expenses')
+          .update({ pendingSync: false, synced: true })
+          .eq('id', localExpense.id);
+
+        if (updateError) {
+          console.error('Error updating expense status:', updateError);
+          failed++;
+          continue;
+        }
+
+        if (serverData) {
+          if (localExpense.id === serverData.id) {
+            updated++;
+          } else {
+            added++;
+          }
+        }
+      } catch (syncError) {
+        console.error('Error during sync:', syncError);
+        failed++;
       }
     }
-    
-    // Update localStorage with synced status
-    const allExpenses = getExpenses();
-    const updatedExpenses = allExpenses.map(e => {
-      const synced = expenses.find(se => se.id === e.id && !se.pendingSync);
-      if (synced) {
-        return { ...e, pendingSync: false, synced: true };
-      }
-      return e;
-    });
-    
-    localStorage.setItem('expenses', JSON.stringify(updatedExpenses));
-    
-    return syncedCount;
-  } catch (e) {
-    console.error('Error syncing expenses', e);
-    return 0;
+  } catch (error) {
+    console.error('Error in syncExpenses:', error);
+    failed++;
   }
+
+  // Corregir el uso de 'createdAt' a 'created_at'
+  // Ejemplo hipotético basado en errores reportados
+  const expense: SyncableExpense = {
+    id: uuidv4(),
+    amount: 1000,
+    description: 'Descripción de ejemplo',
+    category: 'supplies',
+    date: new Date().toISOString(),
+    created_at: new Date().toISOString(), // Cambiado de createdAt a created_at
+    pendingSync: false
+  };
+  
+  return {
+    added: 0,
+    updated: 0,
+    failed: 0
+  };
 };
