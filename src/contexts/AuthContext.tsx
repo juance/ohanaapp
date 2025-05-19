@@ -1,6 +1,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
+import { toast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
@@ -51,6 +52,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         setUser(userData);
         localStorage.setItem('authUser', JSON.stringify(userData));
+        
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${userData.name}`,
+        });
+        
         return;
       }
       
@@ -64,6 +71,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         setUser(userData);
         localStorage.setItem('authUser', JSON.stringify(userData));
+        
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${userData.name}`,
+        });
+        
         return;
       }
       
@@ -77,12 +90,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         setUser(userData);
         localStorage.setItem('authUser', JSON.stringify(userData));
+        
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: `Bienvenido, ${userData.name}`,
+        });
+        
         return;
       }
       
-      throw new Error('Invalid credentials');
+      throw new Error('Credenciales inválidas');
     } catch (err) {
       setError(err as Error);
+      toast({
+        variant: "destructive",
+        title: "Error de inicio de sesión",
+        description: (err as Error).message || 'Error al iniciar sesión'
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -94,6 +118,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Remove the user session
       setUser(null);
       localStorage.removeItem('authUser');
+      
+      toast({
+        title: "Sesión finalizada",
+        description: "Has cerrado sesión correctamente"
+      });
       
       // Redirect to the authentication page (will be handled by the protected route)
       window.location.href = '/auth';
@@ -125,8 +154,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));
       
+      toast({
+        title: "Registro exitoso",
+        description: `Bienvenido, ${userData.name}`,
+      });
+      
     } catch (err) {
       setError(err as Error);
+      toast({
+        variant: "destructive",
+        title: "Error de registro",
+        description: (err as Error).message || 'Error al registrar usuario'
+      });
       throw err;
     } finally {
       setLoading(false);
@@ -151,12 +190,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(updatedUser);
         localStorage.setItem('authUser', JSON.stringify(updatedUser));
         
+        toast({
+          title: "Contraseña actualizada",
+          description: "Tu contraseña ha sido cambiada exitosamente"
+        });
+        
         return Promise.resolve();
       }
       
-      throw new Error('No user is logged in');
+      throw new Error('No hay usuario conectado');
     } catch (err) {
       setError(err as Error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (err as Error).message || 'Error al cambiar la contraseña'
+      });
       throw err;
     } finally {
       setLoading(false);

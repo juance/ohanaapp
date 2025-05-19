@@ -41,6 +41,11 @@ const Auth = () => {
     e.preventDefault();
 
     if (!loginPhone || !loginPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor complete todos los campos"
+      });
       return;
     }
 
@@ -49,6 +54,7 @@ const Auth = () => {
       // Navigation will be handled by the redirect above when user state updates
     } catch (err) {
       // Error is handled in the login function
+      console.error("Error de inicio de sesión:", err);
     }
   };
 
@@ -57,6 +63,11 @@ const Auth = () => {
     setPasswordError('');
 
     if (!registerName || !registerPhone || !registerPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Por favor complete todos los campos"
+      });
       return;
     }
 
@@ -80,6 +91,7 @@ const Auth = () => {
       if (err.message && err.message.includes('contraseña')) {
         setPasswordError(err.message);
       }
+      console.error("Error de registro:", err);
     }
   };
 
@@ -110,12 +122,12 @@ const Auth = () => {
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
                   <Input
-                    type="tel"
-                    placeholder="Número de teléfono"
+                    type="text"
+                    placeholder="Correo electrónico"
                     value={loginPhone}
                     onChange={(e) => setLoginPhone(e.target.value)}
                     required
-                    autoComplete="tel"
+                    autoComplete="email"
                   />
                 </div>
                 <div className="space-y-2">

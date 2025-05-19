@@ -1,9 +1,10 @@
+
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { login } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
 
 const AuthForm = () => {
@@ -11,27 +12,20 @@ const AuthForm = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
     try {
-      const user = await login(email, password);
-      // Save user to localStorage for persistence
-      localStorage.setItem('user', JSON.stringify(user));
-      
-      toast({
-        title: "Success",
-        description: `Welcome back, ${user.name}`
-      });
-      
+      await login(email, password);
       navigate('/dashboard');
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: 'Please check your credentials and try again'
+        description: 'Por favor verifica tus credenciales e intenta de nuevo'
       });
     } finally {
       setIsLoading(false);
@@ -41,9 +35,9 @@ const AuthForm = () => {
   return (
     <Card className="w-full max-w-md animate-scale-in overflow-hidden shadow-lg sm:rounded-2xl">
       <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-center text-2xl font-semibold tracking-tight">Sign In</CardTitle>
+        <CardTitle className="text-center text-2xl font-semibold tracking-tight">Iniciar Sesión</CardTitle>
         <CardDescription className="text-center text-sm text-muted-foreground">
-          Enter your credentials to access your account
+          Ingresa tus credenciales para acceder a tu cuenta
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -52,7 +46,7 @@ const AuthForm = () => {
             <Input
               id="email"
               type="email"
-              placeholder="Email"
+              placeholder="Correo electrónico"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -63,7 +57,7 @@ const AuthForm = () => {
             <Input
               id="password"
               type="password"
-              placeholder="Password"
+              placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -85,20 +79,20 @@ const AuthForm = () => {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Signing In...
+                Iniciando Sesión...
               </span>
             ) : (
-              'Sign In'
+              'Iniciar Sesión'
             )}
           </Button>
         </form>
       </CardContent>
       <CardFooter className="flex flex-col space-y-4 text-center">
         <div className="text-xs text-muted-foreground">
-          <p className="mb-2">Demo Accounts:</p>
+          <p className="mb-2">Cuentas de demostración:</p>
           <p>Admin: admin@example.com / password</p>
-          <p>Cashier: cashier@example.com / password</p>
-          <p>Operator: operator@example.com / password</p>
+          <p>Cajero: cashier@example.com / password</p>
+          <p>Operador: operator@example.com / password</p>
         </div>
       </CardFooter>
     </Card>
