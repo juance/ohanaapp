@@ -21,7 +21,10 @@ export enum ErrorLevel {
   CRITICAL = 'critical'
 }
 
-export const initErrorService = () => {
+/**
+ * Initialize the error service
+ */
+export const initErrorService = (): void => {
   // Initialize error service
   console.log('Error service initialized');
 };
