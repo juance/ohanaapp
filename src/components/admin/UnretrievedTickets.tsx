@@ -15,7 +15,10 @@ export const UnretrievedTickets = () => {
   // Fetch tickets that are ready but not delivered
   const { data, isLoading, error } = useQuery({
     queryKey: ['unretrieved-tickets'],
-    queryFn: getUnretrievedTickets
+    queryFn: async () => {
+      // Default threshold of 7 days
+      return getUnretrievedTickets(7);
+    }
   });
   
   useEffect(() => {
