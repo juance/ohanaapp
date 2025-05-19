@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { DataTable } from '@/components/ui/data-table';
+import { markTicketAsDelivered } from '@/lib/ticketServices';
+import { toast } from '@/lib/toast';
 
 export const UnretrievedTickets = () => {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   
   // Fetch tickets that are ready but not delivered
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['unretrieved-tickets'],
     queryFn: async () => {
       // Default threshold of 7 days
@@ -26,6 +28,19 @@ export const UnretrievedTickets = () => {
       setTickets(data);
     }
   }, [data]);
+
+  const handleMarkAsDelivered = async (ticketId: string) => {
+    try {
+      const success = await markTicketAsDelivered(ticketId);
+      if (success) {
+        toast.success('Ticket marcado como entregado exitosamente');
+        refetch(); // Refresh the list after marking as delivered
+      }
+    } catch (err) {
+      console.error('Error al marcar ticket como entregado:', err);
+      toast.error('Error al marcar el ticket como entregado');
+    }
+  };
   
   const formatDate = (date: string) => {
     if (!date) return 'N/A';
@@ -58,7 +73,11 @@ export const UnretrievedTickets = () => {
     {
       id: 'actions',
       cell: ({ row }: any) => (
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => handleMarkAsDelivered(row.original.id)}
+        >
           Marcar como entregado
         </Button>
       ),
