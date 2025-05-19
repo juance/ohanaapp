@@ -39,6 +39,7 @@ export interface Ticket {
     name: string;
     phone?: string;
   };
+  usesFreeValet?: boolean;
 }
 
 export interface LaundryOption {

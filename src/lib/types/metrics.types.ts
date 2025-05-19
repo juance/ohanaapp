@@ -1,5 +1,5 @@
 
-// Create this file if it doesn't exist
+// Crear este archivo si no existe
 export interface DailyMetrics {
   totalSales: number;
   salesByHour: Record<string, number>;
@@ -9,8 +9,13 @@ export interface DailyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>; // Added this property
+  dryCleaningItems: Record<string, number>;
   valetCount: number;
+  ticketsCount?: number;
+  revenue?: number;
+  totalRevenue?: number;
+  totalTickets?: number;
+  averageTicketValue?: number;
 }
 
 export interface WeeklyMetrics {
@@ -22,8 +27,15 @@ export interface WeeklyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>; // Added this property
+  dryCleaningItems: Record<string, number>;
   valetCount: number;
+  ticketsCount?: number;
+  revenue?: number;
+  totalRevenue?: number;
+  totalTickets?: number;
+  averageTicketValue?: number;
+  weekStartDate?: string;
+  weekEndDate?: string;
 }
 
 export interface MonthlyMetrics {
@@ -35,6 +47,14 @@ export interface MonthlyMetrics {
     mercadopago: number;
     cuentaDni: number;
   };
-  dryCleaningItems: Record<string, number>; // Added this property
+  dryCleaningItems: Record<string, number>;
   valetCount: number;
+  ticketsCount?: number;
+  revenue?: number;
+  totalRevenue?: number;
+  totalTickets?: number;
+  averageTicketValue?: number;
+  month?: string;
+  year?: number;
+  salesByDay?: Record<string, number>;
 }

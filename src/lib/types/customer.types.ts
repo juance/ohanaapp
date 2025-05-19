@@ -3,7 +3,7 @@ export interface Customer {
   id: string;
   name: string;
   phone?: string;
-  phone_number?: string;  // For compatibility with different API formats
+  phone_number?: string;  // Para compatibilidad con diferentes formatos de API
   email?: string;
   valets_count?: number;
   free_valets?: number;
@@ -14,7 +14,7 @@ export interface Customer {
   notes?: string;
   valets_redeemed?: number;
   last_reset_date?: string;
-  // Add these aliases for consistent property access
+  // Añadir estos alias para un acceso coherente a las propiedades
   valetsCount?: number;
   freeValets?: number;
   loyaltyPoints?: number;
@@ -27,7 +27,7 @@ export interface CustomerWithStats extends Customer {
   visitCount?: number;
 }
 
-// Add the ClientVisit interface that was missing proper export
+// Definir correctamente ClientVisit como una interfaz
 export interface ClientVisit {
   id: string;
   customerId: string;
@@ -46,7 +46,7 @@ export interface ClientVisit {
   lastVisitDate?: string;
 }
 
-// Convert this to a normal function instead of a type
+// Convertir esto a una función normal en lugar de un tipo
 export const convertCustomerToClientVisit = (customer: Customer): ClientVisit => {
   return {
     id: customer.id,

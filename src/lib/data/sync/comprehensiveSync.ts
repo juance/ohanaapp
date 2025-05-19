@@ -4,7 +4,7 @@ import { syncTickets } from '@/lib/data/sync/ticketsSync';
 import { syncClients } from '@/lib/data/sync/clientsSync';
 import { syncFeedback } from '@/lib/data/sync/feedbackSync';
 import { updateSyncStatus, getSyncStatus } from './syncStatusService';
-import { SyncResult } from '@/lib/types/sync.types';
+import { SyncResult, SyncStats } from '@/lib/types/sync.types';
 
 /**
  * Perform a comprehensive sync of all data types
@@ -24,28 +24,32 @@ export const syncAllData = async (
 
     // Create result object
     const result: SyncResult = {
-      tickets: 0,
-      expenses: 0,
-      clients: 0,
-      feedback: 0,
+      tickets: { added: 0, updated: 0, failed: 0 },
+      expenses: { added: 0, updated: 0, failed: 0 },
+      clients: { added: 0, updated: 0, failed: 0 },
+      feedback: { added: 0, updated: 0, failed: 0 },
       timestamp: new Date(),
       success: false
     };
 
     // Sync tickets (25% of progress)
-    result.tickets = await syncTickets();
+    const ticketsResult = await syncTickets();
+    result.tickets = ticketsResult;
     options.onProgress?.(25);
 
     // Sync expenses (50% of progress)
-    result.expenses = await syncExpenses();
+    const expensesResult = await syncExpenses();
+    result.expenses = expensesResult;
     options.onProgress?.(50);
     
     // Sync clients (75% of progress)
-    result.clients = await syncClients();
+    const clientsResult = await syncClients();
+    result.clients = clientsResult;
     options.onProgress?.(75);
     
     // Sync feedback (100% of progress)
-    result.feedback = await syncFeedback();
+    const feedbackResult = await syncFeedback();
+    result.feedback = feedbackResult;
     options.onProgress?.(100);
 
     // Update with successful sync
@@ -67,10 +71,10 @@ export const syncAllData = async (
     
     // Return failed result
     return {
-      tickets: 0,
-      expenses: 0,
-      clients: 0,
-      feedback: 0,
+      tickets: { added: 0, updated: 0, failed: 0 },
+      expenses: { added: 0, updated: 0, failed: 0 },
+      clients: { added: 0, updated: 0, failed: 0 },
+      feedback: { added: 0, updated: 0, failed: 0 },
       timestamp: new Date(),
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error during sync'

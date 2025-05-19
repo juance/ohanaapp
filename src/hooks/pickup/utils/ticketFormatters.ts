@@ -1,37 +1,51 @@
 
-import { Ticket } from '@/lib/types/ticket.types';
-import { DryCleaningItem, TicketService } from '@/lib/types/ticket.types';
+import { format } from 'date-fns';
+import { Ticket } from '@/lib/types';
+import { TicketService } from '@/lib/types/ticket.types';
+import { TICKET_STATUS } from '@/lib/constants/appConstants';
 
 /**
- * Formats ticket data from Supabase to match the Ticket interface
+ * Format date string for display in tickets
  */
-export const formatTicketData = (
-  ticketData: any,
-  dryCleaningItems: DryCleaningItem[]
-): Ticket => {
+export const formatTicketDate = (dateString?: string): string => {
+  if (!dateString) return 'N/A';
+  try {
+    const date = new Date(dateString);
+    return format(date, 'dd/MM/yyyy HH:mm');
+  } catch (e) {
+    console.error('Error formatting date:', e);
+    return 'Fecha inválida';
+  }
+};
+
+/**
+ * Create a test ticket for development
+ */
+export const createTestTicket = (): Ticket => {
   return {
-    id: ticketData.id,
-    ticketNumber: ticketData.ticket_number,
-    clientName: ticketData.customers?.name || 'Sin nombre',
-    phoneNumber: ticketData.customers?.phone || ticketData.phone || '',
-    total: ticketData.total || 0,
-    totalPrice: ticketData.total || 0, // Map total to totalPrice for compatibility
-    isPaid: ticketData.is_paid || false,
-    status: ticketData.status || 'pending',
-    paymentMethod: ticketData.payment_method || 'cash',
-    createdAt: ticketData.created_at || new Date().toISOString(),
-    date: ticketData.date || new Date().toISOString(),
-    deliveredDate: ticketData.delivered_date || null,
-    customerId: ticketData.customer_id || null,
-    valetQuantity: ticketData.valet_quantity || 0,
-    basketTicketNumber: ticketData.basket_ticket_number || null,
-    dryCleaningItems: dryCleaningItems,
-    services: dryCleaningItems.map(item => ({
-      id: item.id,
-      name: item.name || 'Servicio',
-      price: item.price || 0,
-      quantity: item.quantity || 1
-    })),
-    usesFreeValet: ticketData.uses_free_valet || false,
+    id: 'test-12345',
+    ticketNumber: 'T-123',
+    clientName: 'Cliente de Prueba',
+    phoneNumber: '123456789',
+    total: 1500,
+    totalPrice: 1500,
+    paymentMethod: 'cash',
+    status: TICKET_STATUS.READY,
+    isPaid: false,
+    createdAt: new Date().toISOString(),
+    date: new Date().toISOString(),
+    valetQuantity: 2,
+    // No usesFreeValet property
   };
+};
+
+/**
+ * Format services for display
+ */
+export const formatTicketServices = (services?: TicketService[]): string => {
+  if (!services || services.length === 0) return 'No hay servicios registrados';
+  
+  return services.map(service => 
+    `${service.name} (${service.quantity}) - $${service.price}`
+  ).join(', ');
 };
