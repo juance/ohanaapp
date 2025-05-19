@@ -148,16 +148,21 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     return customers.map(client => ({
       id: client.id,
       clientId: client.id,
+      customerId: client.id,
       clientName: client.name || 'Cliente sin nombre',
+      customerName: client.name || 'Cliente sin nombre',
       phoneNumber: client.phone || '',
       visitCount: client.valets_count || 0,
       lastVisit: client.last_visit || client.created_at,
-      lastVisitDate: client.last_visit || client.created_at, // Add lastVisitDate field
+      lastVisitDate: client.last_visit || client.created_at,
+      visitDate: client.last_visit || client.created_at,
       loyaltyPoints: client.loyalty_points || 0,
       valetsCount: client.valets_count || 0,
       freeValets: client.free_valets || 0,
       visitFrequency: client.valets_count >= 10 ? 'Frecuente' : 
-                     client.valets_count >= 5 ? 'Regular' : 'Ocasional'
+                     client.valets_count >= 5 ? 'Regular' : 'Ocasional',
+      total: 0,
+      isPaid: false
     }));
   } catch (error) {
     console.error('Error getting client visit frequency:', error);
@@ -172,15 +177,20 @@ export const calculateClientFrequency = (visits: any[]): any[] => {
     return visits.map(client => ({
       id: client.id,
       clientId: client.id,
+      customerId: client.id,
       clientName: client.name,
+      customerName: client.name,
       phoneNumber: client.phone || '',
       visitCount: client.valets_count || 0,
       lastVisit: client.last_visit || '',
       lastVisitDate: client.last_visit || '',
+      visitDate: client.last_visit || '',
       loyaltyPoints: (client.valets_count || 0) * 10,
       valetsCount: client.valets_count || 0,
       freeValets: Math.floor((client.valets_count || 0) / 9),
-      visitFrequency: calculateVisitFrequency(client.last_visit)
+      visitFrequency: calculateVisitFrequency(client.last_visit),
+      total: 0,
+      isPaid: false
     }));
   } catch (error) {
     console.error("Error calculating client frequency:", error);

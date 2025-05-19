@@ -7,7 +7,7 @@ export const convertCustomerToClientVisit = (customer: Customer): ClientVisit =>
   return {
     id: customer.id,
     customerId: customer.id,
-    customerName: customer.name,
+    customerName: customer.name || 'Sin nombre',
     clientName: customer.name || 'Sin nombre',
     phoneNumber: customer.phone || customer.phone_number || '',
     visitDate: lastVisitDate,

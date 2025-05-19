@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkUserPermission: (allowedRoles: Role[]) => boolean;
+  register: (name: string, phone: string, password: string) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -103,13 +105,80 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const register = async (name: string, phone: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Mock registration process
+      // In a real app, this would call your auth API
+      
+      // Create a new user
+      const userData: User = {
+        id: Date.now().toString(),
+        name,
+        phoneNumber: phone,
+        role: 'client'
+      };
+      
+      // Save the user data
+      setUser(userData);
+      localStorage.setItem('authUser', JSON.stringify(userData));
+      
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Mock password change
+      // In a real app, this would call your auth API to validate the old password and set the new one
+      
+      if (user) {
+        // Update user object to indicate password has been changed
+        const updatedUser = {
+          ...user,
+          requiresPasswordChange: false
+        };
+        
+        setUser(updatedUser);
+        localStorage.setItem('authUser', JSON.stringify(updatedUser));
+        
+        return Promise.resolve();
+      }
+      
+      throw new Error('No user is logged in');
+    } catch (err) {
+      setError(err as Error);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const checkUserPermission = (allowedRoles: Role[]): boolean => {
     if (!user) return false;
     return allowedRoles.includes(user.role as Role);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, logout, checkUserPermission }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      error, 
+      login, 
+      logout, 
+      checkUserPermission,
+      register,
+      changePassword
+    }}>
       {children}
     </AuthContext.Provider>
   );

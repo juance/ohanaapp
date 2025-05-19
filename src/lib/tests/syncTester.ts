@@ -4,6 +4,13 @@ import { SyncableTicket } from '@/lib/types/sync.types';
 import { STORAGE_KEYS } from '@/lib/constants/storageKeys';
 import { v4 as uuidv4 } from 'uuid';
 
+interface SyncResults {
+  tickets: number;
+  expenses: number;
+  clients: number;
+  feedback: number;
+}
+
 /**
  * Test utility to verify synchronization functionality
  */

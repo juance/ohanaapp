@@ -20,15 +20,20 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
     // Convertir los datos al formato ClientVisit
     const result: ClientVisit[] = data.map(customer => ({
       id: customer.id,
+      customerId: customer.id,
+      customerName: customer.name || '',
       phoneNumber: customer.phone,
       clientName: customer.name,
       visitCount: customer.valets_count || 0,
       lastVisitDate: customer.last_visit || '',
       lastVisit: customer.last_visit || '',
+      visitDate: customer.last_visit || '',
       valetsCount: customer.valets_count || 0,
       freeValets: customer.free_valets || 0,
       loyaltyPoints: customer.loyalty_points || 0,
-      visitFrequency: calculateFrequency(customer.last_visit)
+      visitFrequency: calculateFrequency(customer.last_visit),
+      total: 0, // Default value for compatibility
+      isPaid: false // Default value for compatibility
     }));
 
     return result;
@@ -66,15 +71,20 @@ export const getClientVisitFrequency = async (): Promise<ClientVisit[]> => {
       // Convert map to array and sort by visit count
       const result: ClientVisit[] = Array.from(clientsMap.entries()).map(([phoneNumber, data]) => ({
         id: data.id,
+        customerId: data.id,
+        customerName: data.name || '',
         phoneNumber,
         clientName: data.name,
         visitCount: data.visits.length,
         lastVisit: data.lastVisit,
         lastVisitDate: data.lastVisit,
+        visitDate: data.lastVisit,
         valetsCount: data.visits.length,
         freeValets: Math.floor(data.visits.length / 9),
         loyaltyPoints: data.visits.length * 10,
-        visitFrequency: calculateFrequency(data.lastVisit)
+        visitFrequency: calculateFrequency(data.lastVisit),
+        total: 0,
+        isPaid: false
       }));
 
       return result.sort((a, b) => b.visitCount - a.visitCount);
