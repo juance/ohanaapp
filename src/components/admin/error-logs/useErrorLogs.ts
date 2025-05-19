@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { getAllErrors, markErrorAsResolved, deleteError } from '@/lib/errorService';
+import { getErrors, resolveError, deleteError, clearErrors, clearResolvedErrors } from '@/lib/errorService';
 import { SystemError } from '@/lib/types/error.types';
 import { toast } from '@/lib/toast';
 
@@ -8,11 +8,13 @@ export const useErrorLogs = () => {
   const [errors, setErrors] = useState<SystemError[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<string>('all');
+  const [isClearing, setIsClearing] = useState<boolean>(false);
+  const [isClearingResolved, setIsClearingResolved] = useState<boolean>(false);
 
-  const fetchErrors = useCallback(async () => {
+  const loadErrors = useCallback(async () => {
     setLoading(true);
     try {
-      const fetchedErrors = await getAllErrors();
+      const fetchedErrors = await getErrors();
       // Convert to the proper SystemError type from error.types.ts
       const typedErrors: SystemError[] = fetchedErrors.map(error => ({
         ...error,
@@ -28,9 +30,9 @@ export const useErrorLogs = () => {
     }
   }, []);
 
-  const handleMarkAsResolved = useCallback(async (errorId: string) => {
+  const handleResolveError = useCallback(async (errorId: string) => {
     try {
-      await markErrorAsResolved(errorId);
+      await resolveError(errorId);
       // Update local state
       setErrors(prevErrors =>
         prevErrors.map(error =>
@@ -56,13 +58,49 @@ export const useErrorLogs = () => {
     }
   }, []);
 
+  const handleClearErrors = useCallback(async () => {
+    setIsClearing(true);
+    try {
+      await clearErrors();
+      setErrors([]);
+      toast.success('Todos los errores han sido eliminados');
+    } catch (error) {
+      console.error('Error clearing errors:', error);
+      toast.error('Error al limpiar los registros');
+    } finally {
+      setIsClearing(false);
+    }
+  }, []);
+
+  const handleClearResolvedErrors = useCallback(async () => {
+    setIsClearingResolved(true);
+    try {
+      await clearResolvedErrors();
+      // Remove resolved errors from state
+      setErrors(prevErrors => prevErrors.filter(error => !error.resolved));
+      toast.success('Errores resueltos eliminados correctamente');
+    } catch (error) {
+      console.error('Error clearing resolved errors:', error);
+      toast.error('Error al eliminar los registros resueltos');
+    } finally {
+      setIsClearingResolved(false);
+    }
+  }, []);
+
   return {
     errors,
     loading,
     activeTab,
+    isLoading: loading,
+    isClearing,
+    isClearingResolved,
     setActiveTab,
-    fetchErrors,
-    handleMarkAsResolved,
-    handleDeleteError
+    fetchErrors: loadErrors,
+    loadErrors,
+    handleMarkAsResolved: handleResolveError,
+    handleResolveError,
+    handleDeleteError,
+    handleClearErrors,
+    handleClearResolvedErrors
   };
 };

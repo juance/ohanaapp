@@ -8,15 +8,13 @@ export * from './auth.types';
 export * from './ticket.types';
 
 // Customer types
-// Modify this to be more specific to avoid ambiguity
-import { ClientVisit as CustomerClientVisit, convertCustomerToClientVisit } from './customer.types';
+// Use more specific imports to avoid ambiguity
+import { convertCustomerToClientVisit } from './customer.types';
 export { 
-  CustomerClientVisit, // Export with renamed type to avoid conflict 
   convertCustomerToClientVisit,
   // Export everything else from customer.types except the conflicting types
   type Customer,
-  type CustomerSearchResult,
-  type CustomerStats
+  type CustomerWithStats
 } from './customer.types';
 
 // Client types

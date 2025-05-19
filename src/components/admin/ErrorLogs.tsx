@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ErrorLogsHeader } from './error-logs/ErrorLogsHeader';
 import { ErrorLogsTabs } from './error-logs/ErrorLogsTabs';
@@ -9,7 +9,7 @@ import { useErrorLogs } from './error-logs/useErrorLogs';
 export const ErrorLogs = () => {
   const {
     errors,
-    isLoading,
+    loading,
     activeTab,
     isClearing,
     isClearingResolved,
@@ -21,12 +21,17 @@ export const ErrorLogs = () => {
     handleDeleteError,
   } = useErrorLogs();
 
+  // Load errors when component mounts
+  useEffect(() => {
+    loadErrors();
+  }, [loadErrors]);
+
   return (
     <Card>
       <CardHeader>
         <ErrorLogsHeader
           errors={errors}
-          isLoading={isLoading}
+          isLoading={loading}
           isClearing={isClearing}
           isClearingResolved={isClearingResolved}
           onRefresh={loadErrors}
@@ -43,7 +48,7 @@ export const ErrorLogs = () => {
           <ErrorLogsList
             errors={errors}
             activeTab={activeTab}
-            isLoading={isLoading}
+            isLoading={loading}
             onResolveError={handleResolveError}
             onDeleteError={handleDeleteError}
           />
