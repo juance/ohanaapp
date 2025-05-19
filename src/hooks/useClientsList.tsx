@@ -33,9 +33,11 @@ export const useClientsList = () => {
         total: 0,
         isPaid: false,
         lastVisit: client.last_visit,
+        lastVisitDate: client.last_visit,
         loyaltyPoints: client.loyalty_points || 0,
         freeValets: client.free_valets || 0,
-        valetsCount: client.valets_count || 0
+        valetsCount: client.valets_count || 0,
+        visitFrequency: calculateFrequency(client.last_visit)
       }));
 
       setClients(mappedClients);
@@ -53,6 +55,20 @@ export const useClientsList = () => {
       setIsLoading(false);
     }
   }, []);
+
+  // Helper function to calculate visit frequency
+  const calculateFrequency = (lastVisit: string | null): string => {
+    if (!lastVisit) return 'N/A';
+    
+    const lastVisitDate = new Date(lastVisit);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - lastVisitDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 7) return 'Semanal';
+    if (diffDays <= 30) return 'Mensual';
+    if (diffDays <= 90) return 'Trimestral';
+    return 'Ocasional';
+  };
 
   // Load clients on initial mount
   useEffect(() => {

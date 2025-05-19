@@ -1,7 +1,7 @@
 
 import { toast as sonnerToast } from "sonner";
 
-type ToastVariant = "default" | "destructive" | "success" | "warning" | "info";
+type ToastVariant = "default" | "destructive" | "success" | "warning" | "info" | "error";
 
 interface ToastOptions {
   title?: string;
@@ -37,7 +37,7 @@ const toastFn = (message: string | ToastOptions) => {
     if (variant === 'success') {
       sonnerToast.success(title || '', { description, duration, action, ...rest });
     } else if (variant === 'destructive' || variant === 'error') {
-      // Fixed comparison by checking both 'destructive' and 'error'
+      // Using type guard to fix type error
       sonnerToast.error(title || '', { description, duration, action, ...rest });
     } else if (variant === 'warning') {
       sonnerToast.warning(title || '', { description, duration, action, ...rest });

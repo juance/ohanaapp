@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { getErrors, resolveError, deleteError, clearErrors, clearResolvedErrors } from '@/lib/errorService';
-import { SystemError } from '@/lib/types/error.types';
+import { SystemError, ErrorLevel } from '@/lib/types/error.types';
 import { toast } from '@/lib/toast';
 
 export const useErrorLogs = () => {
@@ -31,16 +31,18 @@ export const useErrorLogs = () => {
   }, []);
 
   // Helper function to map between different ErrorLevel enum formats
-  const mapErrorLevel = (level: any): SystemError['level'] => {
+  const mapErrorLevel = (level: any): ErrorLevel | undefined => {
     if (!level) return undefined;
     
     // Convert from errorService.ErrorLevel to error.types.ErrorLevel
     switch(level) {
-      case 'INFO': return 'INFO';
-      case 'WARNING': return 'WARNING';
-      case 'ERROR': return 'error'; // Note the case difference
-      case 'CRITICAL': return 'critical';
-      default: return level as SystemError['level']; // Fallback
+      case 'INFO': return ErrorLevel.INFO;
+      case 'WARNING': return ErrorLevel.WARNING_LEGACY;
+      case 'ERROR': 
+      case 'error': return ErrorLevel.ERROR;
+      case 'CRITICAL': 
+      case 'critical': return ErrorLevel.CRITICAL;
+      default: return undefined; // Fallback
     }
   };
 

@@ -30,20 +30,23 @@ export const useCachedClients = () => {
       
       // Convert from database format to ClientVisit format
       const clientVisits: ClientVisit[] = data.map((item: any) => {
+        const lastVisitDate = item.last_visit || new Date().toISOString();
         return {
           id: item.id,
           customerId: item.id,
           customerName: item.name,
           phoneNumber: item.phone,
-          visitDate: item.last_visit || new Date().toISOString(),
+          visitDate: lastVisitDate,
           total: 0,
           isPaid: false,
           clientName: item.name,
           visitCount: item.valets_count || 0,
           lastVisit: item.last_visit,
+          lastVisitDate: lastVisitDate,
           loyaltyPoints: item.loyalty_points || 0,
           freeValets: item.free_valets || 0,
-          valetsCount: item.valets_count || 0
+          valetsCount: item.valets_count || 0,
+          visitFrequency: calculateFrequency(item.last_visit)
         };
       });
       
@@ -58,6 +61,20 @@ export const useCachedClients = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to calculate visit frequency
+  const calculateFrequency = (lastVisit: string | null): string => {
+    if (!lastVisit) return 'N/A';
+    
+    const lastVisitDate = new Date(lastVisit);
+    const now = new Date();
+    const diffDays = Math.floor((now.getTime() - lastVisitDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays <= 7) return 'Semanal';
+    if (diffDays <= 30) return 'Mensual';
+    if (diffDays <= 90) return 'Trimestral';
+    return 'Ocasional';
   };
 
   const invalidateCache = () => {
