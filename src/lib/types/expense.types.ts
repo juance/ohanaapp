@@ -8,6 +8,7 @@ export interface Expense {
   date: string;
   category: string;
   createdAt?: string;
+  created_at?: string; // For compatibility with database format
   pendingSync?: boolean;
   synced?: boolean;
 }

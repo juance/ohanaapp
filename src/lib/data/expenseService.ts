@@ -1,3 +1,4 @@
+
 // Corregir el error en expenseService.ts relacionado con 'createdAt' vs 'created_at'
 import { supabase } from '@/integrations/supabase/client';
 import { v4 as uuidv4 } from 'uuid';
@@ -36,6 +37,33 @@ export const createExpense = async (expense: Expense): Promise<Expense | null> =
     console.error('Error creating expense:', error);
     return null;
   }
+};
+
+/**
+ * Almacenar un gasto
+ * (Alias para createExpense para mantener compatibilidad)
+ */
+export const storeExpense = async (expense: Partial<Expense>): Promise<Expense | null> => {
+  const fullExpense: Expense = {
+    id: expense.id || uuidv4(),
+    description: expense.description || '',
+    amount: expense.amount || 0,
+    date: expense.date || new Date().toISOString(),
+    category: expense.category || 'other',
+    createdAt: expense.createdAt || new Date().toISOString(),
+    pendingSync: true,
+    synced: false
+  };
+  
+  return createExpense(fullExpense);
+};
+
+/**
+ * Obtener todos los gastos almacenados
+ * (Alias para getAllExpenses para mantener compatibilidad)
+ */
+export const getStoredExpenses = async (): Promise<Expense[]> => {
+  return getAllExpenses();
 };
 
 /**
@@ -171,21 +199,9 @@ export const syncExpenses = async (): Promise<{added: number, updated: number, f
     failed++;
   }
 
-  // Corregir el uso de 'createdAt' a 'created_at'
-  // Ejemplo hipotético basado en errores reportados
-  const expense: SyncableExpense = {
-    id: uuidv4(),
-    amount: 1000,
-    description: 'Descripción de ejemplo',
-    category: 'supplies',
-    date: new Date().toISOString(),
-    created_at: new Date().toISOString(), // Cambiado de createdAt a created_at
-    pendingSync: false
-  };
-  
   return {
-    added: 0,
-    updated: 0,
-    failed: 0
+    added,
+    updated,
+    failed
   };
 };
