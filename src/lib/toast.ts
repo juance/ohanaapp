@@ -1,67 +1,54 @@
 
-import { toast as sonnerToast } from 'sonner';
+import { toast as sonnerToast } from "sonner";
 
-interface ToastOptions {
-  title?: string;
-  description?: string;
-  variant?: 'default' | 'destructive' | 'success';
-  duration?: number;
-}
-
-export const toast = (options: ToastOptions | string) => {
-  if (typeof options === 'string') {
-    return sonnerToast(options);
-  }
-
-  const { title, description, variant, duration } = options;
-
-  if (variant === 'destructive') {
-    return sonnerToast.error(title || 'Error', {
+export const toast = {
+  info: (message: string) => 
+    sonnerToast(message, { 
+      position: "top-right", 
+      duration: 4000 
+    }),
+    
+  success: (message: string) => 
+    sonnerToast.success(message, { 
+      position: "top-right", 
+      duration: 4000 
+    }),
+    
+  error: (message: string) => 
+    sonnerToast.error(message, { 
+      position: "top-right", 
+      duration: 6000 
+    }),
+    
+  warning: (message: string) => 
+    sonnerToast.warning(message, { 
+      position: "top-right", 
+      duration: 5000 
+    }),
+    
+  // Generic method accepting options object
+  default: (options: any) => sonnerToast(options),
+  
+  // Method to support legacy format 
+  // (accepts object with title and description)
+  message: (payload: any) => {
+    if (typeof payload === 'string') {
+      return sonnerToast(payload);
+    }
+    
+    const { title, description, ...rest } = payload;
+    return sonnerToast(title, { 
       description,
-      duration
+      ...rest
     });
-  }
+  },
 
-  if (variant === 'success') {
-    return sonnerToast.success(title || 'Success', {
-      description,
-      duration
-    });
-  }
-
-  return sonnerToast(title || '', {
-    description,
-    duration
-  });
+  // Added to match interface used in components
+  promise: sonnerToast.promise,
+  custom: sonnerToast.custom,
+  loading: sonnerToast.loading,
+  dismiss: sonnerToast.dismiss,
 };
 
-// Additional methods for compatibility
-toast.success = (message: string, options?: ToastOptions) => {
-  return sonnerToast.success(options?.title || 'Éxito', {
-    description: message,
-    duration: options?.duration
-  });
-};
-
-toast.error = (message: string, options?: ToastOptions) => {
-  return sonnerToast.error(options?.title || 'Error', {
-    description: message,
-    duration: options?.duration
-  });
-};
-
-toast.info = (message: string, options?: ToastOptions) => {
-  return sonnerToast.info(options?.title || 'Información', {
-    description: message,
-    duration: options?.duration
-  });
-};
-
-toast.warning = (message: string, options?: ToastOptions) => {
-  return sonnerToast.warning(options?.title || 'Advertencia', {
-    description: message,
-    duration: options?.duration
-  });
-};
-
+// Default export for direct access
 export default toast;

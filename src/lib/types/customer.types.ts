@@ -1,4 +1,3 @@
-
 export interface Customer {
   id: string;
   name: string;
@@ -28,4 +27,28 @@ export interface CustomerWithStats extends Customer {
   visitFrequency?: string;
   lastVisitDate?: string;
   visitCount?: number;
+}
+
+// Add the conversion utility that was referenced but not defined
+export const convertCustomerToClientVisit = (customer: any): ClientVisit => {
+  return {
+    id: customer.id || '',
+    customerId: customer.id || '',
+    customerName: customer.name || '',
+    visitDate: customer.lastVisitDate || '',
+    total: 0,
+    isPaid: true,
+    // Add any additional fields required by ClientVisit
+    // that might be missing from the customer object
+  };
+};
+
+// Define ClientVisit interface if it doesn't exist
+export interface ClientVisit {
+  id: string;
+  customerId: string;
+  customerName: string;
+  visitDate: string;
+  total: number;
+  isPaid: boolean;
 }

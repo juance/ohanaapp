@@ -1,3 +1,4 @@
+
 export interface SystemError {
   id: string;
   message: string;
@@ -6,6 +7,10 @@ export interface SystemError {
   timestamp: Date;
   error_context: Record<string, any>;
   resolved: boolean;
+  component?: string;
+  user_id?: string;
+  browser_info?: Record<string, any>;
+  level?: ErrorLevel;
 }
 
 export enum ErrorLevel {
@@ -33,6 +38,36 @@ export const logError = async (error: Error, context: Record<string, any> = {}):
   
   console.error('Logged error:', errorData);
   return errorData.id;
+};
+
+export const getErrors = async (): Promise<SystemError[]> => {
+  // In a real implementation, this would fetch errors from a database or storage
+  console.log('Fetching error logs');
+  // Return mock data for now
+  return [
+    {
+      id: '1',
+      message: 'Example error',
+      error_message: 'This is an example error',
+      error_stack: 'Error: This is an example error\n    at ExampleComponent',
+      timestamp: new Date(),
+      error_context: { page: 'dashboard' },
+      resolved: false,
+      component: 'ExampleComponent',
+      user_id: 'user123',
+      browser_info: { 
+        userAgent: 'Mozilla/5.0', 
+        platform: 'Windows' 
+      },
+      level: ErrorLevel.ERROR
+    }
+  ];
+};
+
+export const clearErrors = async (): Promise<boolean> => {
+  // In a real implementation, this would clear all errors from storage
+  console.log('Clearing all error logs');
+  return true;
 };
 
 export const resolveError = async (errorId: string): Promise<boolean> => {

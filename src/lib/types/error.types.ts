@@ -23,8 +23,10 @@ export enum ErrorLevel {
   MEDIUM = 'medium',
   HIGH = 'high',
   CRITICAL = 'critical',
-  ERROR = 'error', // Añadido para mayor flexibilidad
-  WARNING = 'warning' // Añadido para compatibilidad con errorHandlingService
+  INFO = 'INFO',
+  WARNING = 'WARNING',
+  ERROR = 'error',
+  WARNING_LEGACY = 'warning' // Añadido para compatibilidad con errorHandlingService
 }
 
 export enum ErrorContext {

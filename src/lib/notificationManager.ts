@@ -1,5 +1,4 @@
-
-import { toast } from '@/lib/toast';
+import { toast } from "@/lib/toast";
 
 export enum NotificationType {
   INFO = 'info',
@@ -159,3 +158,12 @@ class NotificationManager {
 
 // Export singleton instance
 export const notificationManager = new NotificationManager();
+
+export const showNotification = (title: string, description: string, variant = "default") => {
+  // Convert object format to string for backward compatibility
+  toast({
+    title,
+    description,
+    variant: variant as any
+  });
+};

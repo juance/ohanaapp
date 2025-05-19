@@ -1,4 +1,3 @@
-
 import { toast } from '@/lib/toast';
 
 export type NotificationPriority = 'low' | 'medium' | 'high';
@@ -179,4 +178,13 @@ export const dispatchSyncCompletedEvent = (itemCount: number) => {
       detail: { itemCount }
     })
   );
+};
+
+export const showToast = (message: string, options: ToastOptions = {}) => {
+  // Remove any action property if it exists
+  const { action, ...validOptions } = options as any;
+  toast({
+    title: message,
+    ...validOptions
+  });
 };
