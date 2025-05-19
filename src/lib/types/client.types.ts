@@ -18,7 +18,7 @@ export interface ClientVisit {
   valetsCount?: number;
   visitFrequency?: string;
   lastVisitDate?: string;
-  clientId?: string; // Añadido para compatibilidad
+  clientId?: string;
 }
 
 // Función para convertir un Customer a ClientVisit

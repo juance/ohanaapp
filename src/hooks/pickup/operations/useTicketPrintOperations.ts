@@ -36,7 +36,7 @@ export const useTicketPrintOperations = () => {
       const laundryOptions = await getTicketOptions(ticketId);
       
       // Format the ticket data
-      const ticket = formatTicketData(ticketData, dryCleaningItems);
+      const ticket = formatTicketData(ticketData);
 
       // Print the ticket
       printTicket(ticket, laundryOptions);

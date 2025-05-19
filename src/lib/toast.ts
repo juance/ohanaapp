@@ -1,5 +1,4 @@
 
-// Añadiendo servicio de toast para compatibilidad con UserDialog
 import { toast as sonnerToast } from 'sonner';
 
 interface ToastOptions {
@@ -46,6 +45,13 @@ toast.error = (message: string, options?: ToastOptions) => {
 
 toast.info = (message: string, options?: ToastOptions) => {
   return sonnerToast.info(options?.title || 'Información', {
+    description: message,
+    duration: options?.duration
+  });
+};
+
+toast.warning = (message: string, options?: ToastOptions) => {
+  return sonnerToast.warning(options?.title || 'Advertencia', {
     description: message,
     duration: options?.duration
   });

@@ -1,4 +1,3 @@
-
 import { User, Role } from './types/auth.types';
 import { toast } from '@/hooks/use-toast';
 import bcrypt from 'bcryptjs';
@@ -18,8 +17,6 @@ export const login = (phoneNumber: string, password: string): Promise<User> => {
   return new Promise((resolve, reject) => {
     // Simulate API call
     setTimeout(() => {
-      // Nota: Las credenciales de emergencia se han eliminado por seguridad
-      // Ahora todas las autenticaciones pasan por la base de datos
       // Demo users for testing
       if (phoneNumber === 'admin@example.com' && password === 'password') {
         resolve({
@@ -27,21 +24,21 @@ export const login = (phoneNumber: string, password: string): Promise<User> => {
           name: 'Admin User',
           email: 'admin@example.com',
           role: 'admin',
-        });
+        } as User);
       } else if (phoneNumber === 'cashier@example.com' && password === 'password') {
         resolve({
           id: '2',
           name: 'Cashier User',
           email: 'cashier@example.com',
           role: 'staff',
-        });
+        } as User);
       } else if (phoneNumber === 'operator@example.com' && password === 'password') {
         resolve({
           id: '3',
           name: 'Operator User',
           email: 'operator@example.com',
           role: 'staff',
-        });
+        } as User);
       } else if (phoneNumber.startsWith('+') && checkTemporaryPassword(phoneNumber, password)) {
         // Phone login with temporary password
         const userData = getTempPasswordUserData(phoneNumber);
@@ -126,9 +123,6 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
         user: userData,
         isTemp: true
       };
-
-      // In a real app, this would send a WhatsApp message
-      console.log(`[WhatsApp] To: ${phoneNumber}, Message: Tu contraseña temporal es: ${tempPassword}`);
 
       // Show success toast (just for demo)
       toast({

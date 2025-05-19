@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Role } from '@/lib/types/auth';
-import { UserWithPassword, createUser, updateUser } from '@/lib/userService';
+import { User, Role, UserWithPassword } from '@/lib/types/auth.types';
+import { createUser, updateUser } from '@/lib/userService';
 import { toast } from '@/lib/toast';
 import { validatePassword, PasswordStrength, getPasswordStrengthColor } from '@/lib/passwordValidator';
 

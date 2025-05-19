@@ -1,11 +1,12 @@
 
+export type FeedbackSource = 'admin' | 'web' | 'app' | 'external';
+
 export interface CustomerFeedback {
-  id: string;
-  customerName: string;
-  customerId?: string;
+  id?: string;
+  customer_id?: string;
+  customer_name: string;
   rating: number;
   comment: string;
-  createdAt: string;
-  source?: 'in_store' | 'client_portal' | string;
-  pendingSync?: boolean;
+  source?: FeedbackSource;
+  created_at?: string;
 }

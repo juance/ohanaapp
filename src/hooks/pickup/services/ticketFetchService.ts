@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, DryCleaningItem } from '@/lib/types';
 import { formatTicketData } from '../utils/ticketFormatters';
@@ -37,7 +36,7 @@ export const fetchTicketData = async (ticketId: string): Promise<Ticket | null> 
       quantity: item.quantity || 1
     }));
 
-    return formatTicketData(ticketData, processedItems);
+    return formatTicketData(ticketData);
   } catch (error) {
     console.error("Error fetching ticket data:", error);
     return null;

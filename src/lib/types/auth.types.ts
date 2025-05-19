@@ -2,14 +2,17 @@
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Extendiendo User para incluir campos adicionales
-export interface User extends SupabaseUser {
+export interface User extends Partial<SupabaseUser> {
+  id: string;
   role?: Role;
   name?: string;
   avatar_url?: string;
-  phoneNumber?: string; // Añadido para compatibilidad con UserDialog y UserManagement
+  phoneNumber?: string;
+  email?: string;
+  requiresPasswordChange?: boolean;
 }
 
-export type Role = 'admin' | 'operator' | 'client' | 'staff'; // Añadido 'staff' para compatibilidad con lib/auth.ts
+export type Role = 'admin' | 'operator' | 'client' | 'staff';
 
 export interface AuthState {
   user: User | null;
@@ -33,7 +36,7 @@ export interface UserWithPassword {
   id?: string;
   name: string;
   email: string;
-  phoneNumber: string; // Añadido para compatibilidad con UserDialog
+  phoneNumber: string;
   role: Role;
   password: string;
 }

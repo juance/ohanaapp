@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { User, Role } from '@/lib/types/auth';
+import { User, Role } from '@/lib/types/auth.types';
 import { getAllUsers, deleteUser } from '@/lib/userService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
