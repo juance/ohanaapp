@@ -121,24 +121,32 @@ const Auth = () => {
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Input
-                    type="text"
-                    placeholder="Correo electrónico"
-                    value={loginPhone}
-                    onChange={(e) => setLoginPhone(e.target.value)}
-                    required
-                    autoComplete="email"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="tel"
+                      placeholder="Número de teléfono"
+                      value={loginPhone}
+                      onChange={(e) => setLoginPhone(e.target.value)}
+                      required
+                      autoComplete="tel"
+                      className="pl-10"
+                    />
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Input
-                    type="password"
-                    placeholder="Contraseña"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                    autoComplete="current-password"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="password"
+                      placeholder="Contraseña"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                      autoComplete="current-password"
+                      className="pl-10"
+                    />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 <Button
                   type="button"
@@ -161,52 +169,66 @@ const Auth = () => {
             <form onSubmit={handleRegister}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Input
-                    type="text"
-                    placeholder="Nombre completo"
-                    value={registerName}
-                    onChange={(e) => setRegisterName(e.target.value)}
-                    required
-                    autoComplete="name"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="text"
+                      placeholder="Nombre completo"
+                      value={registerName}
+                      onChange={(e) => setRegisterName(e.target.value)}
+                      required
+                      autoComplete="name"
+                      className="pl-10"
+                    />
+                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Input
-                    type="tel"
-                    placeholder="Número de teléfono"
-                    value={registerPhone}
-                    onChange={(e) => setRegisterPhone(e.target.value)}
-                    required
-                    autoComplete="tel"
-                  />
+                  <div className="relative">
+                    <Input
+                      type="tel"
+                      placeholder="Número de teléfono"
+                      value={registerPhone}
+                      onChange={(e) => setRegisterPhone(e.target.value)}
+                      required
+                      autoComplete="tel"
+                      className="pl-10"
+                    />
+                    <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Input
-                    type="password"
-                    placeholder="Contraseña (mínimo 8 caracteres)"
-                    value={registerPassword}
-                    onChange={(e) => {
-                      setRegisterPassword(e.target.value);
-                      setPasswordError('');
-                    }}
-                    required
-                    autoComplete="new-password"
-                    className={passwordError ? 'border-red-500' : ''}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="password"
+                      placeholder="Contraseña (mínimo 8 caracteres)"
+                      value={registerPassword}
+                      onChange={(e) => {
+                        setRegisterPassword(e.target.value);
+                        setPasswordError('');
+                      }}
+                      required
+                      autoComplete="new-password"
+                      className={`pl-10 ${passwordError ? 'border-red-500' : ''}`}
+                    />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Input
-                    type="password"
-                    placeholder="Confirmar contraseña"
-                    value={registerPasswordConfirm}
-                    onChange={(e) => {
-                      setRegisterPasswordConfirm(e.target.value);
-                      setPasswordError('');
-                    }}
-                    required
-                    autoComplete="new-password"
-                    className={passwordError ? 'border-red-500' : ''}
-                  />
+                  <div className="relative">
+                    <Input
+                      type="password"
+                      placeholder="Confirmar contraseña"
+                      value={registerPasswordConfirm}
+                      onChange={(e) => {
+                        setRegisterPasswordConfirm(e.target.value);
+                        setPasswordError('');
+                      }}
+                      required
+                      autoComplete="new-password"
+                      className={`pl-10 ${passwordError ? 'border-red-500' : ''}`}
+                    />
+                    <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-500" />
+                  </div>
                 </div>
                 {passwordError && (
                   <div className="text-red-500 text-sm flex items-center gap-1">

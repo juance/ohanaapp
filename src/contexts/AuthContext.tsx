@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   error: Error | null;
-  login: (email: string, password: string) => Promise<void>;
+  login: (phone: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   checkUserPermission: (allowedRoles: Role[]) => boolean;
   register: (name: string, phone: string, password: string) => Promise<void>;
@@ -35,18 +35,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (phone: string, password: string) => {
     try {
       setLoading(true);
       setError(null);
       
       // Mock authentication for demonstration purposes
       // In a real app, this would call your auth API
-      if (email === 'admin@example.com' && password === 'password') {
+      if (phone === '1123989718' && password === 'password') {
         const userData: User = {
           id: '1',
           name: 'Admin User',
-          email,
+          phoneNumber: phone,
           role: 'admin'
         };
         
@@ -61,11 +61,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      if (email === 'operator@example.com' && password === 'password') {
+      if (phone === '0987654321' && password === 'password') {
         const userData: User = {
           id: '2',
           name: 'Operator User',
-          email,
+          phoneNumber: phone,
           role: 'operator'
         };
         
@@ -80,11 +80,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      if (email === 'client@example.com' && password === 'password') {
+      if (phone === '5555555555' && password === 'password') {
         const userData: User = {
           id: '3',
           name: 'Client User',
-          email,
+          phoneNumber: phone,
           role: 'client'
         };
         

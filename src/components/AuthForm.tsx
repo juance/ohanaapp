@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { Phone } from 'lucide-react';
 
 const AuthForm = () => {
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,7 +20,7 @@ const AuthForm = () => {
     setIsLoading(true);
     
     try {
-      await login(email, password);
+      await login(phone, password);
       navigate('/dashboard');
     } catch (error) {
       toast({
@@ -43,15 +44,18 @@ const AuthForm = () => {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Input
-              id="email"
-              type="email"
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="h-12 rounded-xl px-4 transition-all duration-200 focus-visible:ring-laundry-500"
-            />
+            <div className="relative">
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="Número de teléfono"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required
+                className="h-12 rounded-xl pl-10 px-4 transition-all duration-200 focus-visible:ring-laundry-500"
+              />
+              <Phone className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+            </div>
           </div>
           <div className="space-y-2">
             <Input
@@ -90,9 +94,9 @@ const AuthForm = () => {
       <CardFooter className="flex flex-col space-y-4 text-center">
         <div className="text-xs text-muted-foreground">
           <p className="mb-2">Cuentas de demostración:</p>
-          <p>Admin: admin@example.com / password</p>
-          <p>Cajero: cashier@example.com / password</p>
-          <p>Operador: operator@example.com / password</p>
+          <p>Admin: 1123989718 / password</p>
+          <p>Operador: 0987654321 / password</p>
+          <p>Cliente: 5555555555 / password</p>
         </div>
       </CardFooter>
     </Card>
