@@ -4,7 +4,7 @@ import { toast as sonnerToast } from 'sonner';
 interface ToastOptions {
   title?: string;
   description?: string;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success';
   duration?: number;
 }
 
@@ -22,13 +22,20 @@ export const toast = (options: ToastOptions | string) => {
     });
   }
 
+  if (variant === 'success') {
+    return sonnerToast.success(title || 'Success', {
+      description,
+      duration
+    });
+  }
+
   return sonnerToast(title || '', {
     description,
     duration
   });
 };
 
-// Métodos adicionales para compatibilidad
+// Additional methods for compatibility
 toast.success = (message: string, options?: ToastOptions) => {
   return sonnerToast.success(options?.title || 'Éxito', {
     description: message,

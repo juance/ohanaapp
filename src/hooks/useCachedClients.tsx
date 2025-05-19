@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from 'react';
 import { ClientVisit, Customer } from '@/lib/types';
-import { convertCustomerToClientVisit } from '@/lib/types';
 import { supabase } from '@/integrations/supabase/client';
 import { CLIENT_STORAGE_KEY } from '@/lib/constants/storageKeys';
 import { logError } from '@/lib/errorService';
@@ -30,21 +29,22 @@ export const useCachedClients = () => {
       if (error) throw error;
       
       // Convert from database format to ClientVisit format
-      const clientVisits = data.map((item: any) => {
-        // Map database fields to Customer type
-        const customer: Customer = {
+      const clientVisits: ClientVisit[] = data.map((item: any) => {
+        return {
           id: item.id,
-          name: item.name,
-          phone: item.phone,
-          phoneNumber: item.phone, // For compatibility
-          valetsCount: item.valets_count || 0,
-          freeValets: item.free_valets || 0,
+          customerId: item.id,
+          customerName: item.name,
+          phoneNumber: item.phone,
+          visitDate: item.last_visit || new Date().toISOString(),
+          total: 0,
+          isPaid: false,
+          clientName: item.name,
+          visitCount: item.valets_count || 0,
+          lastVisit: item.last_visit,
           loyaltyPoints: item.loyalty_points || 0,
-          lastVisit: item.last_visit || '',
-          valetsRedeemed: item.valets_redeemed || 0,
-          createdAt: item.created_at
+          freeValets: item.free_valets || 0,
+          valetsCount: item.valets_count || 0
         };
-        return convertCustomerToClientVisit(customer);
       });
       
       // Update state and cache

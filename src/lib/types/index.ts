@@ -37,5 +37,5 @@ export * from './feedback.types';
 // Expense types
 export * from './expense.types';
 
-// Laundry types
-export * from './laundry.types';
+// Laundry types - resolve ambiguity by not re-exporting from here
+// export * from './laundry.types';

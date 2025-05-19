@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +58,7 @@ const UserFeedbackForm: React.FC<UserFeedbackFormProps> = ({
     try {
       // Pass only the required fields for feedback
       const result = await addFeedback({
-        customerName,
+        customer_name: customerName,
         rating,
         comment,
         source: 'client_portal' // Indicar que el comentario viene del portal de clientes

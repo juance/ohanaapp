@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ClientVisit, convertCustomerToClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
 import { logError } from '@/lib/errorService';
 
@@ -24,9 +24,14 @@ export const useClientsList = () => {
 
       const mappedClients: ClientVisit[] = data.map(client => ({
         id: client.id,
+        customerId: client.id,
+        customerName: client.name,
         clientName: client.name,
         phoneNumber: client.phone,
         visitCount: client.valets_count || 0,
+        visitDate: client.last_visit || new Date().toISOString(),
+        total: 0,
+        isPaid: false,
         lastVisit: client.last_visit,
         loyaltyPoints: client.loyalty_points || 0,
         freeValets: client.free_valets || 0,

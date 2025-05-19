@@ -1,6 +1,6 @@
 
 import { v4 as uuidv4 } from 'uuid';
-import { CustomerFeedback } from '@/lib/types';
+import { CustomerFeedback } from '@/lib/types/feedback.types';
 import { getFeedbackFromStorage, saveFeedbackToStorage } from './storage/feedbackStorageService';
 import { getFeedbackFromDb, createFeedbackInDb, deleteFeedbackFromDb } from './db/feedbackDbService';
 import { calculateAverageRating, filterFeedbackByRating, findFeedbackById } from './analysis/feedbackAnalysisService';
@@ -40,15 +40,15 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 };
 
 export const addFeedback = async (
-  feedbackData: Omit<CustomerFeedback, 'id' | 'createdAt' | 'pendingSync'>
+  feedbackData: Omit<CustomerFeedback, 'id' | 'created_at' | 'pendingSync'>
 ): Promise<CustomerFeedback> => {
   const newFeedback: CustomerFeedback = {
     id: uuidv4(),
-    customerName: feedbackData.customerName,
+    customer_name: feedbackData.customer_name,
     rating: feedbackData.rating,
     comment: feedbackData.comment,
     source: feedbackData.source || 'admin',
-    createdAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
     pendingSync: true
   };
 

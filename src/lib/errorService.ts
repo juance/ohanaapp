@@ -1,34 +1,38 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { SystemError } from './types/error.types';
 import { v4 as uuidv4 } from 'uuid';
 import { ensureSupabaseSession } from '@/lib/auth/supabaseAuth';
 
-export const logError = async (error: Error | string | unknown, context: Record<string, any> = {}) => {
+export const logError = async (error: Error | string | unknown, contextData: Record<string, unknown> = {}): Promise<string | null> => {
   try {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
-
-    const systemError: SystemError = {
+    const errorStack = error instanceof Error ? error.stack : '';
+    const timestamp = new Date();
+    const errorObj: SystemError = {
       id: uuidv4(),
-      message: errorMessage, // Add this field
-      error_message: errorMessage,
-      error_stack: errorStack,
-      timestamp: new Date(),
-      error_context: context,
-      resolved: false
+      message: errorMessage,
+      error_message: errorMessage, // For backwards compatibility
+      stack: errorStack,
+      error_stack: errorStack, // For backwards compatibility
+      timestamp: timestamp,
+      context: contextData,
+      error_context: contextData, // For backwards compatibility
+      resolved: false,
+      browserInfo: getBrowserInfo(),
+      browser_info: getBrowserInfo(), // For backwards compatibility
+      level: ErrorLevel.ERROR
     };
 
     // En modo de desarrollo, solo registramos los errores en la consola
     // para evitar problemas con las políticas de seguridad de Supabase
     if (import.meta.env.DEV) {
       console.log('Error registrado (modo desarrollo):', {
-        ...systemError,
+        ...errorObj,
         browser_info: getBrowserInfo(),
-        component: context.component,
-        user_id: context.userId
+        component: contextData.component,
+        user_id: contextData.userId
       });
-      return systemError;
+      return errorObj.id;
     }
 
     // En producción, intentamos registrar el error en Supabase
@@ -41,19 +45,19 @@ export const logError = async (error: Error | string | unknown, context: Record<
         const { data: session } = await supabase.auth.getSession();
         if (!session?.session?.user) {
           console.warn('No se pudo registrar el error en Supabase: Usuario no autenticado');
-          return systemError;
+          return errorObj.id;
         }
 
         const { error: insertError } = await supabase
           .from('error_logs')
           .insert({
-            error_message: systemError.error_message,
-            error_stack: systemError.error_stack,
-            error_context: JSON.stringify(systemError.error_context),
-            resolved: systemError.resolved,
-            id: systemError.id,
+            error_message: errorObj.error_message,
+            error_stack: errorObj.error_stack,
+            error_context: JSON.stringify(errorObj.error_context),
+            resolved: errorObj.resolved,
+            id: errorObj.id,
             browser_info: JSON.stringify(getBrowserInfo()),
-            component: context.component,
+            component: contextData.component,
             user_id: session.session.user.id // Usar el ID del usuario autenticado
           });
 
@@ -67,7 +71,7 @@ export const logError = async (error: Error | string | unknown, context: Record<
       console.warn('No se pudo registrar el error en Supabase: No hay sesión activa');
     }
 
-    return systemError;
+    return errorObj.id;
   } catch (err) {
     console.error('Error logging error:', err);
     return null;

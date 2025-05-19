@@ -1,7 +1,7 @@
 
 import { Customer } from './customer.types';
 
-// Interfaz para ClientVisit con todos los campos requeridos
+// Interface for ClientVisit with all required fields
 export interface ClientVisit {
   id: string;
   customerId: string;
@@ -21,7 +21,7 @@ export interface ClientVisit {
   clientId?: string;
 }
 
-// Función para convertir un Customer a ClientVisit
+// Function to convert a Customer to ClientVisit
 export function convertCustomerToClientVisit(customer: Customer): ClientVisit {
   return {
     id: customer.id,

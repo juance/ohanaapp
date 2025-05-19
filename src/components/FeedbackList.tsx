@@ -116,7 +116,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
             <div className="flex justify-between items-start">
               <div>
                 <div className="flex items-center gap-2">
-                  <CardTitle className="text-base md:text-lg">{item.customerName}</CardTitle>
+                  <CardTitle className="text-base md:text-lg">{item.customer_name}</CardTitle>
                   {item.source === 'client_portal' && (
                     <div className="flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
                       <MessageSquare className="h-3 w-3 mr-1" />
@@ -138,7 +138,7 @@ const FeedbackList = ({ refreshTrigger }: { refreshTrigger: number }) => {
           </CardHeader>
           <CardContent className={isMobile ? 'px-3 py-2' : ''}>
             <p className="text-xs md:text-sm text-gray-700">{item.comment}</p>
-            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.createdAt}</p>
+            <p className="text-xs text-gray-500 mt-1 md:mt-2">Fecha: {item.created_at}</p>
           </CardContent>
         </Card>
       ))}

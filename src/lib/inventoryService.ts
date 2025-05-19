@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
 import { InventoryItem } from '@/lib/types';
@@ -111,18 +110,33 @@ export const deleteInventoryItem = async (itemId: string): Promise<boolean> => {
 };
 
 // Add a new inventory item (alias to maintain compatibility)
-export const addInventoryItem = async (
-  name: string, 
-  quantity: number, 
-  threshold?: number,
-  unit?: string,
-  notes?: string
-): Promise<InventoryItem | null> => {
-  return createInventoryItem({
-    name,
-    quantity,
-    threshold,
-    unit,
-    notes
-  });
+export const addInventoryItem = async (item: Partial<InventoryItem>): Promise<InventoryItem | null> => {
+  try {
+    const { data: insertedItems, error } = await supabase
+      .from('inventory_items')
+      .insert({
+        name: item.name,
+        quantity: item.quantity || 0,
+        unit: item.unit || 'unidad',
+        notes: item.notes,
+        threshold: item.threshold || 5,
+        createdAt: new Date().toISOString() // Use camelCase to match the InventoryItem type
+      })
+      .select();
+
+    if (error) throw error;
+
+    return {
+      id: insertedItems[0].id,
+      name: insertedItems[0].name,
+      quantity: insertedItems[0].quantity,
+      threshold: insertedItems[0].threshold,
+      unit: insertedItems[0].unit,
+      notes: insertedItems[0].notes,
+      created_at: insertedItems[0].created_at
+    };
+  } catch (error) {
+    console.error('Error adding inventory item:', error);
+    return null;
+  }
 };

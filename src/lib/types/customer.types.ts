@@ -3,7 +3,7 @@ export interface Customer {
   id: string;
   name: string;
   phone?: string;
-  phone_number?: string;  // Para compatibilidad con diferentes formatos de API
+  phone_number?: string;  // For compatibility with different API formats
   email?: string;
   valets_count?: number;
   free_valets?: number;
@@ -14,7 +14,7 @@ export interface Customer {
   notes?: string;
   valets_redeemed?: number;
   last_reset_date?: string;
-  // Añadir estos alias para un acceso coherente a las propiedades
+  // Add these aliases for consistent property access
   valetsCount?: number;
   freeValets?: number;
   loyaltyPoints?: number;

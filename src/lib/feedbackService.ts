@@ -1,8 +1,7 @@
-
 import { getFromLocalStorage, saveToLocalStorage } from './data/coreUtils';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '@/integrations/supabase/client';
-import { CustomerFeedback } from './types';
+import { CustomerFeedback } from './types/feedback.types';
 
 const FEEDBACK_STORAGE_KEY = 'customer_feedback';
 
@@ -22,11 +21,11 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
     // Map to our application format
     const feedbackData: CustomerFeedback[] = data.map(item => ({
       id: item.id,
-      customerName: item.customer_name,
+      customer_name: item.customer_name,
       rating: item.rating,
       comment: item.comment,
       source: item.source || 'admin', // Si no tiene origen, asumimos que es del admin
-      createdAt: item.created_at,
+      created_at: item.created_at,
       pendingSync: false
     }));
 
@@ -64,13 +63,6 @@ export const getAllFeedback = async (): Promise<CustomerFeedback[]> => {
 
 /**
  * Delete feedback by ID
- *
- * This function deletes feedback from both Supabase and local storage.
- * If the device is offline, it will mark the feedback for deletion and
- * attempt to delete it from Supabase when the device comes back online.
- *
- * @param id - The ID of the feedback to delete
- * @returns A promise that resolves to true if the deletion was successful, false otherwise
  */
 export const deleteFeedback = async (id: string): Promise<boolean> => {
   try {
@@ -145,14 +137,14 @@ export const deleteFeedback = async (id: string): Promise<boolean> => {
 /**
  * Add new feedback
  */
-export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' | 'pendingSync'>): CustomerFeedback => {
+export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'created_at' | 'pendingSync'>): CustomerFeedback => {
   const newFeedback: CustomerFeedback = {
     id: uuidv4(),
-    customerName: feedback.customerName,
+    customer_name: feedback.customer_name,
     rating: feedback.rating,
     comment: feedback.comment,
     source: feedback.source || 'admin', // Por defecto, asumimos que viene del admin
-    createdAt: new Date().toISOString(),
+    created_at: new Date().toISOString(),
     pendingSync: true // Mark for sync
   };
 
@@ -171,11 +163,11 @@ export const addFeedback = (feedback: Omit<CustomerFeedback, 'id' | 'createdAt' 
       .from('customer_feedback')
       .insert({
         id: newFeedback.id,
-        customer_name: newFeedback.customerName,
+        customer_name: newFeedback.customer_name,
         rating: newFeedback.rating,
         comment: newFeedback.comment,
         ...(newFeedback.source ? { source: newFeedback.source } : {}), // Solo incluir source si existe
-        created_at: newFeedback.createdAt
+        created_at: newFeedback.created_at
       })
       .then(({ error }) => {
         if (!error) {

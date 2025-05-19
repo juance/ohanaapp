@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { ClientVisit } from '@/lib/types/customer.types';
+import { ClientVisit } from '@/lib/types';
 
 export const useClientFiltering = (clients: ClientVisit[]) => {
   const [filteredClients, setFilteredClients] = useState<ClientVisit[]>([]);
@@ -18,8 +18,8 @@ export const useClientFiltering = (clients: ClientVisit[]) => {
     const lowercaseQuery = searchQuery.toLowerCase();
     const filtered = clients.filter(client => {
       return (
-        client.clientName.toLowerCase().includes(lowercaseQuery) ||
-        client.phoneNumber.toLowerCase().includes(lowercaseQuery)
+        client.clientName?.toLowerCase().includes(lowercaseQuery) ||
+        client.phoneNumber?.toLowerCase().includes(lowercaseQuery)
       );
     });
 

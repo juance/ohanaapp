@@ -60,7 +60,7 @@ const FeedbackForm = ({ onFeedbackAdded }: { onFeedbackAdded: () => void }) => {
     try {
       // Pass only the required fields for feedback
       const result = await addFeedback({
-        customerName,
+        customer_name: customerName,
         rating,
         comment,
         source: 'admin' // Indicar que el comentario viene del panel de administración

@@ -1,6 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import { CustomerFeedback } from '@/lib/types';
-import { FeedbackSource } from '@/lib/types/feedback.types';
+import { CustomerFeedback, FeedbackSource } from '@/lib/types/feedback.types';
 
 export const getFeedbackFromDb = async (): Promise<CustomerFeedback[]> => {
   try {
@@ -13,11 +13,12 @@ export const getFeedbackFromDb = async (): Promise<CustomerFeedback[]> => {
 
     return data.map(item => ({
       id: item.id,
-      customerName: item.customer_name,
+      customer_id: item.customer_id,
+      customer_name: item.customer_name,
       rating: item.rating,
       comment: item.comment,
       source: item.source as FeedbackSource || 'admin',
-      createdAt: item.created_at,
+      created_at: item.created_at,
       pendingSync: false
     }));
   } catch (error) {
@@ -32,11 +33,11 @@ export const createFeedbackInDb = async (feedback: CustomerFeedback): Promise<bo
       .from('customer_feedback')
       .insert({
         id: feedback.id,
-        customer_name: feedback.customerName,
+        customer_name: feedback.customer_name,
         rating: feedback.rating,
         comment: feedback.comment,
         source: feedback.source,
-        created_at: feedback.createdAt
+        created_at: feedback.created_at
       });
 
     return !error;

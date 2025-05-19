@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
@@ -10,7 +9,7 @@ import { formatTicketData } from '../utils/ticketFormatters';
 /**
  * Hook for ticket printing operations
  */
-export const useTicketPrintOperations = () => {
+const useTicketPrintOperations = () => {
   /**
    * Print ticket functionality
    */
@@ -47,5 +46,60 @@ export const useTicketPrintOperations = () => {
     }
   }, []);
 
-  return { handlePrintTicket };
+  const prepareTicketForPrint = async (ticket: Ticket): Promise<any> => {
+    try {
+      // Extract basic ticket info
+      const {
+        id,
+        ticketNumber,
+        clientName,
+        phoneNumber,
+        date,
+        deliveredDate,
+        valetQuantity,
+        total,
+        isPaid,
+        paymentMethod,
+        status
+      } = ticket;
+
+      // Handle services display
+      const services = Array.isArray(ticket.services) 
+        ? ticket.services.map(s => `${s.name} (${s.quantity})`).join(', ')
+        : '';
+
+      // Add a basket ticket number if needed
+      const basketTicketNumber = 'BT-' + ticketNumber;
+
+      // Format the data for printing
+      const ticketData = {
+        id,
+        ticketNumber,
+        basketTicketNumber,
+        clientName,
+        phoneNumber,
+        date,
+        deliveredDate: deliveredDate || '',
+        valetQuantity,
+        services,
+        total: typeof total === 'number' ? `$${total.toFixed(2)}` : `$${total}`,
+        isPaid: isPaid ? 'Pagado' : 'Pendiente',
+        paymentMethod: formatPaymentMethod(paymentMethod),
+        status: formatStatus(status)
+      };
+
+      return ticketData;
+    } catch (error) {
+      console.error('Error preparing ticket for print:', error);
+      toast.error('Error al preparar el ticket para imprimir');
+      return null;
+    }
+  };
+
+  return {
+    handlePrintTicket,
+    prepareTicketForPrint
+  };
 };
+
+export default useTicketPrintOperations;
