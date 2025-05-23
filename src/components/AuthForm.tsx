@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
 import { Phone } from 'lucide-react';
 
 const AuthForm = () => {
@@ -20,9 +20,11 @@ const AuthForm = () => {
     setIsLoading(true);
     
     try {
+      console.log(`Intentando iniciar sesión con: ${phone}`);
       await login(phone, password);
       navigate('/dashboard');
     } catch (error) {
+      console.error('Error de inicio de sesión:', error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -95,7 +97,7 @@ const AuthForm = () => {
         <div className="text-xs text-muted-foreground">
           <p className="mb-2">Cuentas de demostración:</p>
           <p><strong>Superusuario:</strong> 1123989718 / Juance001</p>
-          <p>Admin: 1123989718 / password</p>
+          <p>Admin: 1234567890 / password</p>
           <p>Operador: 0987654321 / password</p>
           <p>Cliente: 5555555555 / password</p>
         </div>

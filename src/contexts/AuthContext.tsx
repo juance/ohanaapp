@@ -1,7 +1,9 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/lib/toast';
+import { authenticateUser, registerUser, requestPasswordReset, hasPermission } from '@/lib/authService';
+import { logError } from '@/lib/errorService';
 
 interface AuthContextType {
   user: User | null;
@@ -11,6 +13,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   checkUserPermission: (allowedRoles: Role[]) => boolean;
   register: (name: string, phone: string, password: string) => Promise<void>;
+  requestPasswordReset: (phone: string) => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
 }
 
@@ -22,13 +25,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Check if there's a saved user session in localStorage
+    // Verificar si hay una sesión guardada en localStorage
     const savedUser = localStorage.getItem('authUser');
     if (savedUser) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (e) {
-        console.error('Failed to parse saved user:', e);
+        console.error('Error al analizar usuario guardado:', e);
         localStorage.removeItem('authUser');
       }
     }
@@ -40,93 +43,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Check for superuser credentials
-      if (phone === '1123989718' && password === 'Juance001') {
-        const userData: User = {
-          id: '1',
-          name: 'Superusuario',
-          phoneNumber: phone,
-          role: 'admin'
-        };
-        
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-        
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: `Bienvenido, ${userData.name}`,
-        });
-        
-        return;
-      }
+      // Autenticar usuario con el servicio
+      const userData = await authenticateUser(phone, password);
       
-      // Mock authentication for demonstration purposes
-      // In a real app, this would call your auth API
-      if (phone === '1123989718' && password === 'password') {
-        const userData: User = {
-          id: '2',
-          name: 'Admin User',
-          phoneNumber: phone,
-          role: 'admin'
-        };
-        
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-        
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: `Bienvenido, ${userData.name}`,
-        });
-        
-        return;
-      }
+      // Guardar usuario en estado y localStorage
+      setUser(userData);
+      localStorage.setItem('authUser', JSON.stringify(userData));
       
-      if (phone === '0987654321' && password === 'password') {
-        const userData: User = {
-          id: '2',
-          name: 'Operator User',
-          phoneNumber: phone,
-          role: 'operator'
-        };
-        
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-        
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: `Bienvenido, ${userData.name}`,
-        });
-        
-        return;
-      }
+      // Mostrar mensaje de éxito
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: `Bienvenido, ${userData.name}`,
+      });
       
-      if (phone === '5555555555' && password === 'password') {
-        const userData: User = {
-          id: '3',
-          name: 'Client User',
-          phoneNumber: phone,
-          role: 'client'
-        };
-        
-        setUser(userData);
-        localStorage.setItem('authUser', JSON.stringify(userData));
-        
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: `Bienvenido, ${userData.name}`,
-        });
-        
-        return;
-      }
-      
-      throw new Error('Credenciales inválidas');
     } catch (err) {
       setError(err as Error);
+      
+      // Registrar error
+      await logError(err as Error, { 
+        context: 'auth', 
+        action: 'login',
+        phone 
+      });
+      
+      // Mostrar mensaje de error
       toast({
         variant: "destructive",
         title: "Error de inicio de sesión",
         description: (err as Error).message || 'Error al iniciar sesión'
       });
+      
       throw err;
     } finally {
       setLoading(false);
@@ -135,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Remove the user session
+      // Eliminar sesión
       setUser(null);
       localStorage.removeItem('authUser');
       
@@ -144,12 +90,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Has cerrado sesión correctamente"
       });
       
-      // Redirect to the authentication page (will be handled by the protected route)
+      // Redirigir a página de autenticación 
       window.location.href = '/auth';
       
       return Promise.resolve();
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Error durante cierre de sesión:', error);
       return Promise.reject(error);
     }
   };
@@ -159,18 +105,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Mock registration process
-      // In a real app, this would call your auth API
+      // Registrar nuevo usuario
+      const userData = await registerUser(name, phone, password);
       
-      // Create a new user
-      const userData: User = {
-        id: Date.now().toString(),
-        name,
-        phoneNumber: phone,
-        role: 'client'
-      };
-      
-      // Save the user data
+      // Guardar usuario en estado y localStorage
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));
       
@@ -181,11 +119,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
     } catch (err) {
       setError(err as Error);
+      
+      // Registrar error
+      await logError(err as Error, { 
+        context: 'auth', 
+        action: 'register',
+        phone 
+      });
+      
       toast({
         variant: "destructive",
         title: "Error de registro",
         description: (err as Error).message || 'Error al registrar usuario'
       });
+      
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestResetPassword = async (phone: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await requestPasswordReset(phone);
+      
+    } catch (err) {
+      setError(err as Error);
+      
+      // Registrar error
+      await logError(err as Error, { 
+        context: 'auth', 
+        action: 'requestPasswordReset',
+        phone 
+      });
+      
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: (err as Error).message || 'Error al solicitar cambio de contraseña'
+      });
+      
       throw err;
     } finally {
       setLoading(false);
@@ -197,11 +173,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Mock password change
-      // In a real app, this would call your auth API to validate the old password and set the new one
-      
+      // En producción, aquí verificaríamos y cambiaríamos la contraseña
       if (user) {
-        // Update user object to indicate password has been changed
+        // Actualizar usuario para indicar que ha cambiado la contraseña
         const updatedUser = {
           ...user,
           requiresPasswordChange: false
@@ -233,8 +207,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const checkUserPermission = (allowedRoles: Role[]): boolean => {
-    if (!user) return false;
-    return allowedRoles.includes(user.role as Role);
+    return hasPermission(user, allowedRoles);
   };
 
   return (
@@ -246,6 +219,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout, 
       checkUserPermission,
       register,
+      requestPasswordReset: requestResetPassword,
       changePassword
     }}>
       {children}
@@ -257,7 +231,7 @@ export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth debe usarse dentro de un AuthProvider');
   }
   
   return context;
