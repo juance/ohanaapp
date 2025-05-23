@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
 import { toast } from '@/lib/toast';
 import { authenticateUser, registerUser, requestPasswordReset, hasPermission } from '@/lib/authService';
