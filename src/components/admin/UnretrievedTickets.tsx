@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUnretrievedTickets, markTicketAsDelivered } from '@/lib/ticketServices';
@@ -16,8 +17,8 @@ export const UnretrievedTickets = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['unretrieved-tickets'],
     queryFn: async () => {
-      // Default threshold of 7 days
-      return getUnretrievedTickets(7);
+      // Call without arguments since the function doesn't expect any
+      return getUnretrievedTickets();
     }
   });
   
