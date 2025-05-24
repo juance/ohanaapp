@@ -1,106 +1,91 @@
 
 import React from 'react';
-import { Route, Routes } from 'react-router-dom';
-import { AuthProvider } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import AuthForm from '@/components/AuthForm';
+import Layout from '@/components/Layout';
 
-// Import pages
-import Index from './pages/Index';
-import Dashboard from './pages/Dashboard';
-import SupabaseTest from './pages/SupabaseTest';
-import DeliveredOrders from './pages/DeliveredOrders';
-import Clients from './pages/Clients';
-import Feedback from './pages/Feedback';
-import Analysis from './pages/Analysis';
-import NotFound from './pages/NotFound';
-import Expenses from './pages/Expenses';
-import Metrics from './pages/Metrics';
-import Administration from './pages/Administration';
-import Inventory from './pages/Inventory';
-import Loyalty from './pages/Loyalty';
-import Tickets from './pages/Tickets';
-import PickupOrders from './pages/PickupOrders';
-import Auth from './pages/Auth';
-import UserTickets from './pages/UserTickets';
-import AdminTools from './pages/AdminTools';
+// Lazy load components for better performance
+const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
+const Tickets = React.lazy(() => import('@/pages/Tickets'));
+const Orders = React.lazy(() => import('@/pages/Orders'));
+const Clients = React.lazy(() => import('@/pages/Clients'));
+const Analytics = React.lazy(() => import('@/pages/Analytics'));
+const AdminPage = React.lazy(() => import('@/pages/Admin'));
 
-export const AppRoutes = () => {
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+// Auth Route Component
+const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+  
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
+export const AppRoutes: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      <Route path="/supabase-test" element={<SupabaseTest />} />
-      <Route path="/delivered" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <DeliveredOrders />
-        </ProtectedRoute>
-      } />
-      <Route path="/clients" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Clients />
-        </ProtectedRoute>
-      } />
-      <Route path="/feedback" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Feedback />
-        </ProtectedRoute>
-      } />
-      <Route path="/analysis" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <Analysis />
-        </ProtectedRoute>
-      } />
-      <Route path="/expenses" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Expenses />
-        </ProtectedRoute>
-      } />
-      <Route path="/metrics" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <Metrics />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <Administration />
-        </ProtectedRoute>
-      } />
-      <Route path="/admin/tools" element={
-        <ProtectedRoute allowedRoles={['admin']}>
-          <AdminTools />
-        </ProtectedRoute>
-      } />
-      <Route path="/inventory" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Inventory />
-        </ProtectedRoute>
-      } />
-      <Route path="/loyalty" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Loyalty />
-        </ProtectedRoute>
-      } />
-      <Route path="/tickets" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <Tickets />
-        </ProtectedRoute>
-      } />
-      <Route path="/pickup" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator']}>
-          <PickupOrders />
-        </ProtectedRoute>
-      } />
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/user-tickets" element={
-        <ProtectedRoute allowedRoles={['admin', 'operator', 'client']}>
-          <UserTickets />
-        </ProtectedRoute>
-      } />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <React.Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <Routes>
+        {/* Auth Route */}
+        <Route path="/auth" element={
+          <AuthRoute>
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <AuthForm />
+            </div>
+          </AuthRoute>
+        } />
+        
+        {/* Protected Routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="tickets" element={<Tickets />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="clients" element={<Clients />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="admin" element={<AdminPage />} />
+        </Route>
+        
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </React.Suspense>
   );
 };

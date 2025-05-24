@@ -1,88 +1,89 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { checkSupabaseConnection } from '@/lib/supabaseAuthService';
 
-interface ConnectionContextType {
+interface ConnectionStatus {
   isOnline: boolean;
+  supabaseConnected: boolean;
   lastChecked: Date | null;
-  checkConnection: () => Promise<boolean>;
 }
 
-const ConnectionContext = createContext<ConnectionContextType | undefined>(undefined);
+interface ConnectionStatusContextType {
+  status: ConnectionStatus;
+  checkConnection: () => Promise<void>;
+}
 
-export const useConnection = (): ConnectionContextType => {
-  const context = useContext(ConnectionContext);
-  if (context === undefined) {
-    throw new Error('useConnection must be used within a ConnectionStatusProvider');
-  }
-  return context;
-};
+const ConnectionStatusContext = createContext<ConnectionStatusContextType | undefined>(undefined);
 
-export const ConnectionStatusProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-  const [lastChecked, setLastChecked] = useState<Date | null>(null);
+export const ConnectionStatusProvider = ({ children }: { children: ReactNode }) => {
+  const [status, setStatus] = useState<ConnectionStatus>({
+    isOnline: navigator.onLine,
+    supabaseConnected: false,
+    lastChecked: null
+  });
 
-  // Check if the browser is online or offline
+  const checkConnection = async () => {
+    try {
+      const supabaseConnected = await checkSupabaseConnection();
+      setStatus({
+        isOnline: navigator.onLine,
+        supabaseConnected,
+        lastChecked: new Date()
+      });
+    } catch (error) {
+      console.error('Error checking connections:', error);
+      setStatus(prev => ({
+        ...prev,
+        supabaseConnected: false,
+        lastChecked: new Date()
+      }));
+    }
+  };
+
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    // Check initial connection
+    checkConnection();
+
+    // Listen for online/offline events
+    const handleOnline = () => {
+      setStatus(prev => ({ ...prev, isOnline: true }));
+      checkConnection();
+    };
+
+    const handleOffline = () => {
+      setStatus(prev => ({ 
+        ...prev, 
+        isOnline: false, 
+        supabaseConnected: false 
+      }));
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // Periodic connection check (every 5 minutes)
+    const interval = setInterval(checkConnection, 5 * 60 * 1000);
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      clearInterval(interval);
     };
   }, []);
 
-  // Function to manually check connection by pinging a resource
-  const checkConnection = async (): Promise<boolean> => {
-    try {
-      // Try to fetch a small resource to verify actual internet connectivity
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-      
-      const response = await fetch('/ping.txt', {
-        method: 'HEAD',
-        signal: controller.signal,
-        cache: 'no-store'
-      });
-      
-      clearTimeout(timeoutId);
-      setIsOnline(response.ok);
-      setLastChecked(new Date());
-      return response.ok;
-    } catch (error) {
-      console.log('Connection check failed:', error);
-      setIsOnline(false);
-      setLastChecked(new Date());
-      return false;
-    }
-  };
-
-  // Initial connection check
-  useEffect(() => {
-    checkConnection();
-  }, []);
-
-  // Check connection periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      checkConnection();
-    }, 30000); // Check every 30 seconds
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  const value: ConnectionContextType = {
-    isOnline,
-    lastChecked,
-    checkConnection
-  };
-
   return (
-    <ConnectionContext.Provider value={value}>
+    <ConnectionStatusContext.Provider value={{ status, checkConnection }}>
       {children}
-    </ConnectionContext.Provider>
+    </ConnectionStatusContext.Provider>
   );
+};
+
+export const useConnectionStatus = (): ConnectionStatusContextType => {
+  const context = useContext(ConnectionStatusContext);
+  
+  if (context === undefined) {
+    throw new Error('useConnectionStatus debe usarse dentro de un ConnectionStatusProvider');
+  }
+  
+  return context;
 };

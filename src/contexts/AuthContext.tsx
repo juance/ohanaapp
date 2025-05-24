@@ -2,7 +2,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
 import { toast } from '@/lib/toast';
-import { authenticateUser, registerUser, requestPasswordReset, hasPermission } from '@/lib/authService';
+import { 
+  authenticateUser, 
+  registerUser, 
+  requestPasswordReset, 
+  hasPermission,
+  checkSupabaseConnection 
+} from '@/lib/supabaseAuthService';
 import { logError } from '@/lib/errorService';
 
 interface AuthContextType {
@@ -25,17 +31,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    // Verificar si hay una sesión guardada en localStorage
-    const savedUser = localStorage.getItem('authUser');
-    if (savedUser) {
+    const initializeAuth = async () => {
       try {
-        setUser(JSON.parse(savedUser));
-      } catch (e) {
-        console.error('Error al analizar usuario guardado:', e);
-        localStorage.removeItem('authUser');
+        // Verificar conexión a Supabase
+        const isConnected = await checkSupabaseConnection();
+        if (!isConnected) {
+          console.warn('No se pudo conectar a Supabase, usando modo local');
+        }
+        
+        // Verificar sesión guardada
+        const savedUser = localStorage.getItem('authUser');
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            setUser(parsedUser);
+            console.log('Sesión restaurada:', parsedUser.name);
+          } catch (e) {
+            console.error('Error al restaurar sesión:', e);
+            localStorage.removeItem('authUser');
+          }
+        }
+      } catch (error) {
+        console.error('Error inicializando autenticación:', error);
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = async (phone: string, password: string) => {
@@ -43,37 +66,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Autenticar usuario con el servicio
       const userData = await authenticateUser(phone, password);
       
-      // Guardar usuario en estado y localStorage
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));
       
-      // Mostrar mensaje de éxito
       toast({
         title: "Inicio de sesión exitoso",
         description: `Bienvenido, ${userData.name}`,
       });
       
     } catch (err) {
-      setError(err as Error);
+      const error = err as Error;
+      setError(error);
       
-      // Registrar error
-      await logError(err as Error, { 
+      await logError(error, { 
         context: 'auth', 
         action: 'login',
         phone 
       });
       
-      // Mostrar mensaje de error
       toast({
         variant: "destructive",
         title: "Error de inicio de sesión",
-        description: (err as Error).message || 'Error al iniciar sesión'
+        description: error.message || 'Error al iniciar sesión'
       });
       
-      throw err;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -81,7 +100,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
-      // Eliminar sesión
       setUser(null);
       localStorage.removeItem('authUser');
       
@@ -90,13 +108,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         description: "Has cerrado sesión correctamente"
       });
       
-      // Redirigir a página de autenticación 
       window.location.href = '/auth';
       
-      return Promise.resolve();
     } catch (error) {
       console.error('Error durante cierre de sesión:', error);
-      return Promise.reject(error);
+      throw error;
     }
   };
 
@@ -105,10 +121,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(true);
       setError(null);
       
-      // Registrar nuevo usuario
       const userData = await registerUser(name, phone, password);
       
-      // Guardar usuario en estado y localStorage
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));
       
@@ -118,10 +132,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       
     } catch (err) {
-      setError(err as Error);
+      const error = err as Error;
+      setError(error);
       
-      // Registrar error
-      await logError(err as Error, { 
+      await logError(error, { 
         context: 'auth', 
         action: 'register',
         phone 
@@ -130,10 +144,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({
         variant: "destructive",
         title: "Error de registro",
-        description: (err as Error).message || 'Error al registrar usuario'
+        description: error.message || 'Error al registrar usuario'
       });
       
-      throw err;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -147,10 +161,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await requestPasswordReset(phone);
       
     } catch (err) {
-      setError(err as Error);
+      const error = err as Error;
+      setError(error);
       
-      // Registrar error
-      await logError(err as Error, { 
+      await logError(error, { 
         context: 'auth', 
         action: 'requestPasswordReset',
         phone 
@@ -159,23 +173,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: (err as Error).message || 'Error al solicitar cambio de contraseña'
+        description: error.message || 'Error al solicitar cambio de contraseña'
       });
       
-      throw err;
+      throw error;
     } finally {
       setLoading(false);
     }
   };
 
-  const changePassword = async (oldPassword: string, newPassword: string) => {
+  const changePasswordHandler = async (oldPassword: string, newPassword: string) => {
     try {
       setLoading(true);
       setError(null);
       
-      // En producción, aquí verificaríamos y cambiaríamos la contraseña
-      if (user) {
-        // Actualizar usuario para indicar que ha cambiado la contraseña
+      if (!user) {
+        throw new Error('No hay usuario conectado');
+      }
+      
+      // En producción, verificar contraseña actual aquí
+      const success = await changePassword(user.id, oldPassword, newPassword);
+      
+      if (success) {
         const updatedUser = {
           ...user,
           requiresPasswordChange: false
@@ -188,19 +207,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           title: "Contraseña actualizada",
           description: "Tu contraseña ha sido cambiada exitosamente"
         });
-        
-        return Promise.resolve();
       }
       
-      throw new Error('No hay usuario conectado');
     } catch (err) {
-      setError(err as Error);
+      const error = err as Error;
+      setError(error);
+      
       toast({
         variant: "destructive",
         title: "Error",
-        description: (err as Error).message || 'Error al cambiar la contraseña'
+        description: error.message || 'Error al cambiar la contraseña'
       });
-      throw err;
+      
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -220,7 +239,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       checkUserPermission,
       register,
       requestPasswordReset: requestResetPassword,
-      changePassword
+      changePassword: changePasswordHandler
     }}>
       {children}
     </AuthContext.Provider>

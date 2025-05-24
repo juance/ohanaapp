@@ -1,18 +1,15 @@
 
-import { User as SupabaseUser } from '@supabase/supabase-js';
+export type Role = 'admin' | 'operator' | 'client';
 
-// Extendiendo User para incluir campos adicionales
-export interface User extends Partial<SupabaseUser> {
+export interface User {
   id: string;
-  role?: Role;
-  name?: string;
-  avatar_url?: string;
-  phoneNumber?: string;
+  name: string;
+  phoneNumber: string;
+  role: Role;
   email?: string;
+  createdAt?: string;
   requiresPasswordChange?: boolean;
 }
-
-export type Role = 'admin' | 'operator' | 'client' | 'staff';
 
 export interface AuthState {
   user: User | null;
@@ -20,23 +17,14 @@ export interface AuthState {
   error: Error | null;
 }
 
-export interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  error: Error | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<void>;
-  updateProfile: (data: Partial<User>) => Promise<void>;
+export interface LoginCredentials {
+  phoneNumber: string;
+  password: string;
 }
 
-// Interfaz para UserWithPassword usada en UserDialog
-export interface UserWithPassword {
-  id?: string;
+export interface RegisterData {
   name: string;
-  email: string;
   phoneNumber: string;
-  role: Role;
   password: string;
+  email?: string;
 }

@@ -1,90 +1,80 @@
 
-export interface SystemError {
-  id: string;
-  message: string;
-  error_message: string;
-  error_stack: string;
-  timestamp: Date;
-  error_context: Record<string, any>;
-  resolved: boolean;
+import { supabase } from '@/integrations/supabase/client';
+
+export interface ErrorContext {
+  context?: string;
+  action?: string;
+  phone?: string;
   component?: string;
-  user_id?: string;
-  browser_info?: Record<string, any>;
-  level?: ErrorLevel;
+  userId?: string;
+  [key: string]: any;
 }
 
-// Aligned with the ErrorLevel enum in error.types.ts for better compatibility
-export enum ErrorLevel {
-  INFO = 'INFO',
-  WARNING = 'WARNING',
-  ERROR = 'error',
-  CRITICAL = 'critical'
-}
-
-/**
- * Initialize the error service
- */
-export const initErrorService = (): void => {
-  // Initialize error service
-  console.log('Error service initialized');
-};
-
-export const logError = async (error: Error, context: Record<string, any> = {}): Promise<string> => {
-  const errorData = {
-    id: Date.now().toString(),
-    message: error.message,
-    error_message: error.message,
-    error_stack: error.stack || '',
-    timestamp: new Date(),
-    error_context: context,
-    resolved: false
-  };
-  
-  console.error('Logged error:', errorData);
-  return errorData.id;
-};
-
-export const getErrors = async (): Promise<SystemError[]> => {
-  // In a real implementation, this would fetch errors from a database or storage
-  console.log('Fetching error logs');
-  // Return mock data for now
-  return [
-    {
-      id: '1',
-      message: 'Example error',
-      error_message: 'This is an example error',
-      error_stack: 'Error: This is an example error\n    at ExampleComponent',
-      timestamp: new Date(),
-      error_context: { page: 'dashboard' },
-      resolved: false,
-      component: 'ExampleComponent',
-      user_id: 'user123',
-      browser_info: { 
-        userAgent: 'Mozilla/5.0', 
-        platform: 'Windows' 
+export const logError = async (
+  error: Error, 
+  context: ErrorContext = {}
+): Promise<void> => {
+  try {
+    const errorLog = {
+      error_message: error.message,
+      error_stack: error.stack || '',
+      component: context.component || 'unknown',
+      error_context: {
+        ...context,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        url: window.location.href
       },
-      level: ErrorLevel.ERROR
+      user_id: context.userId || null,
+      browser_info: {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform
+      }
+    };
+    
+    // Intentar guardar en Supabase
+    const { error: dbError } = await supabase
+      .from('error_logs')
+      .insert(errorLog);
+    
+    if (dbError) {
+      console.error('Error guardando log en base de datos:', dbError);
+      // Fallback a localStorage
+      const localErrors = JSON.parse(localStorage.getItem('errorLogs') || '[]');
+      localErrors.push({
+        ...errorLog,
+        id: Date.now().toString(),
+        created_at: new Date().toISOString()
+      });
+      localStorage.setItem('errorLogs', JSON.stringify(localErrors.slice(-50))); // Mantener solo los últimos 50
     }
-  ];
+    
+  } catch (logError) {
+    console.error('Error en sistema de logging:', logError);
+    // Último recurso: solo console
+    console.error('Error original:', error);
+    console.error('Contexto:', context);
+  }
 };
 
-export const clearErrors = async (): Promise<boolean> => {
-  // In a real implementation, this would clear all errors from storage
-  console.log('Clearing all error logs');
-  return true;
-};
-
-export const resolveError = async (errorId: string): Promise<boolean> => {
-  console.log('Resolving error:', errorId);
-  return true;
-};
-
-export const deleteError = async (errorId: string): Promise<boolean> => {
-  console.log('Deleting error:', errorId);
-  return true;
-};
-
-export const clearResolvedErrors = async (): Promise<boolean> => {
-  console.log('Clearing resolved errors');
-  return true;
+export const getErrorLogs = async (): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('error_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    if (error) {
+      console.error('Error fetching error logs:', error);
+      // Fallback a localStorage
+      return JSON.parse(localStorage.getItem('errorLogs') || '[]');
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('Error in getErrorLogs:', error);
+    return JSON.parse(localStorage.getItem('errorLogs') || '[]');
+  }
 };
