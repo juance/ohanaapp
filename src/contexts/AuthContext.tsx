@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
 import { toast } from '@/lib/toast';
@@ -7,7 +6,8 @@ import {
   registerUser, 
   requestPasswordReset, 
   hasPermission,
-  checkSupabaseConnection 
+  checkSupabaseConnection,
+  changePassword
 } from '@/lib/supabaseAuthService';
 import { logError } from '@/lib/errorService';
 
@@ -191,7 +191,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         throw new Error('No hay usuario conectado');
       }
       
-      // En producción, verificar contraseña actual aquí
+      // Use the imported function from supabaseAuthService
       const success = await changePassword(user.id, oldPassword, newPassword);
       
       if (success) {

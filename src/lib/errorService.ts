@@ -10,6 +10,19 @@ export interface ErrorContext {
   [key: string]: any;
 }
 
+export interface SystemError {
+  id: string;
+  error_message: string;
+  error_stack?: string;
+  timestamp: string;
+  error_context?: Record<string, any>;
+  resolved: boolean;
+  component?: string;
+  user_id?: string;
+  browser_info?: Record<string, any>;
+  created_at?: string;
+}
+
 export const logError = async (
   error: Error, 
   context: ErrorContext = {}
@@ -33,32 +46,29 @@ export const logError = async (
       }
     };
     
-    // Intentar guardar en Supabase
     const { error: dbError } = await supabase
       .from('error_logs')
       .insert(errorLog);
     
     if (dbError) {
       console.error('Error guardando log en base de datos:', dbError);
-      // Fallback a localStorage
       const localErrors = JSON.parse(localStorage.getItem('errorLogs') || '[]');
       localErrors.push({
         ...errorLog,
         id: Date.now().toString(),
         created_at: new Date().toISOString()
       });
-      localStorage.setItem('errorLogs', JSON.stringify(localErrors.slice(-50))); // Mantener solo los últimos 50
+      localStorage.setItem('errorLogs', JSON.stringify(localErrors.slice(-50)));
     }
     
   } catch (logError) {
     console.error('Error en sistema de logging:', logError);
-    // Último recurso: solo console
     console.error('Error original:', error);
     console.error('Contexto:', context);
   }
 };
 
-export const getErrorLogs = async (): Promise<any[]> => {
+export const getErrorLogs = async (): Promise<SystemError[]> => {
   try {
     const { data, error } = await supabase
       .from('error_logs')
@@ -68,7 +78,6 @@ export const getErrorLogs = async (): Promise<any[]> => {
     
     if (error) {
       console.error('Error fetching error logs:', error);
-      // Fallback a localStorage
       return JSON.parse(localStorage.getItem('errorLogs') || '[]');
     }
     
@@ -77,4 +86,78 @@ export const getErrorLogs = async (): Promise<any[]> => {
     console.error('Error in getErrorLogs:', error);
     return JSON.parse(localStorage.getItem('errorLogs') || '[]');
   }
+};
+
+export const getErrors = async (): Promise<SystemError[]> => {
+  return getErrorLogs();
+};
+
+export const resolveError = async (errorId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .update({ resolved: true })
+      .eq('id', errorId);
+    
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error resolving error:', error);
+    throw error;
+  }
+};
+
+export const deleteError = async (errorId: string): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .eq('id', errorId);
+    
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error deleting error:', error);
+    throw error;
+  }
+};
+
+export const clearErrors = async (): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all records
+    
+    if (error) {
+      throw error;
+    }
+    
+    localStorage.removeItem('errorLogs');
+  } catch (error) {
+    console.error('Error clearing errors:', error);
+    throw error;
+  }
+};
+
+export const clearResolvedErrors = async (): Promise<void> => {
+  try {
+    const { error } = await supabase
+      .from('error_logs')
+      .delete()
+      .eq('resolved', true);
+    
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error clearing resolved errors:', error);
+    throw error;
+  }
+};
+
+export const initErrorService = (): void => {
+  console.log('Error service initialized');
 };

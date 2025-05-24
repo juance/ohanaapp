@@ -7,12 +7,20 @@ export interface Ticket {
   clientName: string;
   phoneNumber: string;
   totalPrice: number;
+  total: number;
   status: string;
   createdAt: string;
   customerId?: string;
+  paymentMethod: string;
+  isPaid: boolean;
+  date: string;
+  valetQuantity: number;
+  customer?: {
+    name: string;
+    phone?: string;
+  };
 }
 
-// Obtener tickets no retirados
 export const getUnretrievedTickets = async (daysSinceReady: number = 7): Promise<Ticket[]> => {
   try {
     const cutoffDate = new Date();
@@ -27,6 +35,10 @@ export const getUnretrievedTickets = async (daysSinceReady: number = 7): Promise
         status,
         created_at,
         customer_id,
+        payment_method,
+        is_paid,
+        date,
+        valet_quantity,
         customers(name, phone)
       `)
       .eq('status', 'ready')
@@ -44,9 +56,15 @@ export const getUnretrievedTickets = async (daysSinceReady: number = 7): Promise
       clientName: ticket.customers?.name || 'Cliente no especificado',
       phoneNumber: ticket.customers?.phone || '',
       totalPrice: ticket.total || 0,
+      total: ticket.total || 0,
       status: ticket.status,
       createdAt: ticket.created_at,
-      customerId: ticket.customer_id
+      customerId: ticket.customer_id,
+      paymentMethod: ticket.payment_method || 'cash',
+      isPaid: ticket.is_paid || false,
+      date: ticket.date || ticket.created_at,
+      valetQuantity: ticket.valet_quantity || 0,
+      customer: ticket.customers
     }));
     
   } catch (error) {
@@ -55,7 +73,6 @@ export const getUnretrievedTickets = async (daysSinceReady: number = 7): Promise
   }
 };
 
-// Marcar ticket como entregado
 export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -78,7 +95,6 @@ export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> 
   }
 };
 
-// Obtener estadísticas de tickets
 export const getTicketStats = async () => {
   try {
     const { data, error } = await supabase

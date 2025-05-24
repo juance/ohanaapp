@@ -1,41 +1,28 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import { Toaster } from './components/ui/toaster';
+import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ErrorBoundary } from './components/ErrorBoundary';
-import { initErrorService } from './lib/errorService';
-import { AuthProvider } from './contexts/AuthContext';
+import { Toaster } from 'sonner';
+import App from './App';
+import './index.css';
 
-// Configure the query client
-const queryClient = new QueryClient();
-
-// Initialize error service
-initErrorService();
-
-// Make sure the document is fully loaded before rendering
-document.addEventListener('DOMContentLoaded', () => {
-  const rootElement = document.getElementById('root');
-  
-  if (!rootElement) {
-    console.error('Root element "root" not found');
-    return;
-  }
-  
-  const root = ReactDOM.createRoot(rootElement);
-  
-  root.render(
-    <React.StrictMode>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <App />
-            <Toaster />
-          </AuthProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </React.StrictMode>
-  );
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
 });
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <App />
+        <Toaster />
+      </QueryClientProvider>
+    </BrowserRouter>
+  </React.StrictMode>
+);

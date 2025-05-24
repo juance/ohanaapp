@@ -11,6 +11,10 @@ export interface User {
   requiresPasswordChange?: boolean;
 }
 
+export interface UserWithPassword extends Omit<User, 'id' | 'createdAt'> {
+  password: string;
+}
+
 export interface AuthState {
   user: User | null;
   loading: boolean;

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -18,10 +17,8 @@ export const SyncDataButton = () => {
     toast.info('Iniciando sincronización de datos...');
     
     try {
-      // Call the synchronization function
       const result = await syncAllData();
       
-      // Create a SyncStatus object from the result
       const mappedResult: SimpleSyncStatus = {
         timestamp: new Date().toISOString(),
         status: 'success',
@@ -42,17 +39,16 @@ export const SyncDataButton = () => {
         (mappedResult.feedback || 0);
       
       if (totalSynced > 0) {
-        toast.success(`Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`, {
-          title: `Sincronización completa: ${totalSynced} elementos sincronizados`
-        });
+        toast.success(
+          `Sincronización completa: ${totalSynced} elementos sincronizados`,
+          `Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`
+        );
       } else {
         toast.info('No hay datos nuevos para sincronizar');
       }
     } catch (error) {
       console.error('Error during sync:', error);
-      toast.error('Por favor intente nuevamente', {
-        title: "Error durante la sincronización"
-      });
+      toast.error("Error durante la sincronización", "Por favor intente nuevamente");
     } finally {
       setIsSyncing(false);
     }

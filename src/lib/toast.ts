@@ -1,7 +1,7 @@
 
 import { toast as sonnerToast } from 'sonner';
 
-interface ToastOptions {
+export interface ToastOptions {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
@@ -29,7 +29,6 @@ export const toast = (options: ToastOptions | string) => {
   }
 };
 
-// Exportar métodos específicos para facilidad de uso
 toast.success = (title: string, description?: string) => {
   sonnerToast.success(title, { description });
 };

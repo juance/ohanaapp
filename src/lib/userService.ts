@@ -1,120 +1,99 @@
 
-// Creando servicio de usuarios para compatibilidad con UserDialog y UserManagement
 import { supabase } from '@/integrations/supabase/client';
-import { User, Role, UserWithPassword } from '@/lib/types/auth.types';
+import { User, UserWithPassword } from '@/lib/types/auth.types';
 
-/**
- * Obtiene todos los usuarios del sistema
- */
-export async function getAllUsers(): Promise<User[]> {
+export const getAllUsers = async (): Promise<User[]> => {
   try {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('name');
-
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('get_all_users');
     
-    return data as User[];
+    if (error) {
+      throw error;
+    }
+    
+    return (data || []).map((user: any) => ({
+      id: user.id,
+      name: user.name,
+      phoneNumber: user.phone_number,
+      role: user.role,
+      email: user.email,
+      createdAt: user.created_at
+    }));
   } catch (error) {
-    console.error('Error al obtener usuarios:', error);
+    console.error('Error fetching users:', error);
     throw error;
   }
-}
+};
 
-/**
- * Crea un nuevo usuario
- * @param userData Datos del nuevo usuario
- */
-export async function createUser(userData: UserWithPassword): Promise<User> {
+export const createUser = async (userData: UserWithPassword): Promise<User> => {
   try {
-    // Validar datos
-    if (!userData.name || !userData.phoneNumber || !userData.role || !userData.password) {
-      throw new Error('Faltan datos requeridos');
-    }
-
-    // Crear usuario en la tabla users
-    const { data, error } = await supabase
-      .from('users')
-      .insert({
-        name: userData.name,
-        phone_number: userData.phoneNumber,
-        email: userData.email || null,
-        role: userData.role,
-        password: userData.password // Idealmente debería estar hasheada
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('create_user', {
+      user_name: userData.name,
+      user_phone: userData.phoneNumber,
+      user_password: userData.password,
+      user_role: userData.role,
+      user_email: userData.email || null
+    });
     
-    return data as User;
-  } catch (error) {
-    console.error('Error al crear usuario:', error);
-    throw error;
-  }
-}
-
-/**
- * Actualiza un usuario existente
- * @param id ID del usuario a actualizar
- * @param userData Nuevos datos del usuario
- */
-export async function updateUser(id: string, userData: UserWithPassword): Promise<User> {
-  try {
-    // Validar datos
-    if (!userData.name || !userData.phoneNumber || !userData.role) {
-      throw new Error('Faltan datos requeridos');
+    if (error) {
+      throw error;
     }
-
-    const updateData: any = {
-      name: userData.name,
-      phone_number: userData.phoneNumber,
-      email: userData.email || null,
-      role: userData.role
+    
+    const newUser = data[0];
+    return {
+      id: newUser.id,
+      name: newUser.name,
+      phoneNumber: newUser.phone_number,
+      role: newUser.role,
+      email: newUser.email,
+      createdAt: newUser.created_at
     };
-
-    // Solo actualizar la contraseña si se proporciona
-    if (userData.password) {
-      updateData.password = userData.password; // Idealmente debería estar hasheada
-    }
-
-    // Actualizar usuario
-    const { data, error } = await supabase
-      .from('users')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    return data as User;
   } catch (error) {
-    console.error('Error al actualizar usuario:', error);
+    console.error('Error creating user:', error);
     throw error;
   }
-}
+};
 
-/**
- * Elimina un usuario
- * @param id ID del usuario a eliminar
- */
-export async function deleteUser(id: string): Promise<void> {
+export const updateUser = async (userId: string, userData: Partial<UserWithPassword>): Promise<User> => {
   try {
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    const { data, error } = await supabase.rpc('update_user', {
+      user_id: userId,
+      user_name: userData.name,
+      user_phone: userData.phoneNumber,
+      user_email: userData.email || null,
+      user_role: userData.role,
+      user_password: userData.password || null
+    });
+    
+    if (error) {
+      throw error;
+    }
+    
+    const updatedUser = data[0];
+    return {
+      id: updatedUser.id,
+      name: updatedUser.name,
+      phoneNumber: updatedUser.phone_number,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      createdAt: updatedUser.created_at
+    };
   } catch (error) {
-    console.error('Error al eliminar usuario:', error);
+    console.error('Error updating user:', error);
     throw error;
   }
-}
+};
 
-/**
- * Interfaz exportada para compatibilidad con componentes existentes
- */
-export type { UserWithPassword };
+export const deleteUser = async (userId: string): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc('delete_user', {
+      user_id: userId
+    });
+    
+    if (error) {
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    throw error;
+  }
+};

@@ -87,3 +87,6 @@ export const useConnectionStatus = (): ConnectionStatusContextType => {
   
   return context;
 };
+
+// Alias for backward compatibility
+export const useConnection = useConnectionStatus;
