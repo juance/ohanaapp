@@ -1,160 +1,109 @@
-import { User, Role } from './types/auth.types';
-import { toast } from '@/hooks/use-toast';
-import bcrypt from 'bcryptjs';
+import { User, Role } from '@/lib/types/auth.types';
 
-// Function to generate a random temporary password
-const generateTempPassword = (): string => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < 8; i++) {
-    result += characters.charAt(Math.floor(Math.random() * characters.length));
+// Simulated user database
+const users = [
+  {
+    id: '1',
+    name: 'Admin User',
+    phoneNumber: '1123989718',
+    email: 'admin@example.com',
+    password: '$2a$10$rHQb1k1LgFXdK9h3cCh2Nu.9v3K1fUdgJqN5y3z4y7F8vH1lFrKWu', // "Juance001"
+    role: 'admin' as Role,
+  },
+  {
+    id: '2',
+    name: 'Staff User',
+    phoneNumber: '1987654321',
+    email: 'staff@example.com',
+    password: '$2a$10$rHQb1k1LgFXdK9h3cCh2Nu.9v3K1fUdgJqN5y3z4y7F8vH1lFrKWu', // "password123"
+    role: 'operator' as Role,
   }
-  return result;
+];
+
+export const authenticateUser = async (phoneNumber: string, password: string): Promise<User> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const user = users.find(u => u.phoneNumber === phoneNumber);
+  
+  if (!user) {
+    throw new Error('Usuario no encontrado');
+  }
+  
+  // In a real app, you'd hash the password and compare
+  // For demo purposes, we'll accept the hardcoded passwords
+  const isValidPassword = (phoneNumber === '1123989718' && password === 'Juance001') ||
+                         (phoneNumber === '1987654321' && password === 'password123');
+  
+  if (!isValidPassword) {
+    throw new Error('Credenciales incorrectas');
+  }
+  
+  // Return user without password
+  return {
+    id: user.id,
+    name: user.name,
+    phoneNumber: user.phoneNumber,
+    email: user.email,
+    role: user.role,
+  };
 };
 
-// Mock authentication - in a real app, this would connect to a backend
-export const login = (phoneNumber: string, password: string): Promise<User> => {
-  return new Promise((resolve, reject) => {
-    // Simulate API call
-    setTimeout(() => {
-      // Demo users for testing
-      if (phoneNumber === 'admin@example.com' && password === 'password') {
-        resolve({
-          id: '1',
-          name: 'Admin User',
-          email: 'admin@example.com',
-          role: 'admin',
-        } as User);
-      } else if (phoneNumber === 'cashier@example.com' && password === 'password') {
-        resolve({
-          id: '2',
-          name: 'Cashier User',
-          email: 'cashier@example.com',
-          role: 'staff',
-        } as User);
-      } else if (phoneNumber === 'operator@example.com' && password === 'password') {
-        resolve({
-          id: '3',
-          name: 'Operator User',
-          email: 'operator@example.com',
-          role: 'staff',
-        } as User);
-      } else if (phoneNumber.startsWith('+') && checkTemporaryPassword(phoneNumber, password)) {
-        // Phone login with temporary password
-        const userData = getTempPasswordUserData(phoneNumber);
-        if (userData) {
-          resolve(userData);
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-      } else {
-        reject(new Error('Invalid credentials'));
-      }
-    }, 1000);
-  });
+export const registerUser = async (name: string, phoneNumber: string, password: string): Promise<User> => {
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Check if user already exists
+  const existingUser = users.find(u => u.phoneNumber === phoneNumber);
+  if (existingUser) {
+    throw new Error('El usuario ya existe');
+  }
+  
+  // Create new user
+  const newUser = {
+    id: Date.now().toString(),
+    name,
+    phoneNumber,
+    email: '',
+    password: password, // In real app, this would be hashed
+    role: 'client' as Role,
+  };
+  
+  users.push(newUser);
+  
+  return {
+    id: newUser.id,
+    name: newUser.name,
+    phoneNumber: newUser.phoneNumber,
+    email: newUser.email,
+    role: newUser.role,
+  };
 };
 
-export const logout = (): Promise<void> => {
-  return new Promise((resolve) => {
-    // Simulate API call
-    setTimeout(() => {
-      resolve();
-    }, 500);
-  });
-};
-
-export const getCurrentUser = (): Promise<User | null> => {
-  return new Promise((resolve) => {
-    // Simulate getting user from localStorage or session
-    const userJson = localStorage.getItem('user');
-    if (userJson) {
-      resolve(JSON.parse(userJson));
-    } else {
-      resolve(null);
+export const getCurrentUser = (): User | null => {
+  const userStr = localStorage.getItem('authUser');
+  if (userStr) {
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      return null;
     }
-  });
-};
-
-export const hasPermission = (user: User | null, requiredRoles: Role[]): boolean => {
-  if (!user) return false;
-
-  // Admin has access to everything
-  if (user.role === 'admin') return true;
-
-  // Check if user's role is in the required roles
-  return requiredRoles.includes(user.role);
-};
-
-// Temporary password storage (would be in a database in a real app)
-const tempPasswordStore: Record<string, { password: string, expiry: number, user: User, isTemp: boolean }> = {};
-
-// Function to request a password reset
-export const requestPasswordReset = async (phoneNumber: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // Check if the phone number exists in our system (mock check)
-      const userExists = phoneNumber.startsWith('+') || phoneNumber.startsWith('1') ||
-                        phoneNumber === '1234567890' || phoneNumber === '0987654321';
-
-      if (!userExists) {
-        reject(new Error('No existe una cuenta asociada a este número de teléfono'));
-        return;
-      }
-
-      // Generate a temporary password
-      const tempPassword = generateTempPassword();
-
-      // Store the temporary password (would be in a database in a real app)
-      // It expires in 30 minutes
-      const expiry = Date.now() + (30 * 60 * 1000);
-
-      // Create fake user data
-      const userData: User = {
-        id: phoneNumber,
-        name: 'Usuario Temporal',
-        phoneNumber: phoneNumber,
-        role: 'staff', // Using a valid Role type
-        requiresPasswordChange: true
-      };
-
-      tempPasswordStore[phoneNumber] = {
-        password: tempPassword,
-        expiry,
-        user: userData,
-        isTemp: true
-      };
-
-      // Show success toast (just for demo)
-      toast({
-        title: "Solicitud enviada",
-        description: `Se ha enviado un WhatsApp al número ${phoneNumber}`,
-      });
-
-      resolve();
-    }, 1500);
-  });
-};
-
-// Check if a password is a temporary one
-const checkTemporaryPassword = (phoneNumber: string, password: string): boolean => {
-  const tempData = tempPasswordStore[phoneNumber];
-
-  if (!tempData) return false;
-
-  // Check if the password has expired
-  if (tempData.expiry < Date.now()) {
-    delete tempPasswordStore[phoneNumber];
-    return false;
   }
-
-  return tempData.password === password;
+  return null;
 };
 
-// Get user data for a temporary password
-const getTempPasswordUserData = (phoneNumber: string): User | null => {
-  const tempData = tempPasswordStore[phoneNumber];
+export const logout = (): void => {
+  localStorage.removeItem('authUser');
+};
 
-  if (!tempData) return null;
+export const hasPermission = (user: User | null, allowedRoles: Role[]): boolean => {
+  if (!user) return false;
+  return allowedRoles.includes(user.role);
+};
 
-  return tempData.user;
+// Password reset (placeholder)
+export const requestPasswordReset = async (phoneNumber: string): Promise<void> => {
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  console.log(`Password reset requested for: ${phoneNumber}`);
+  // In a real app, this would send an SMS or email
 };

@@ -11,6 +11,8 @@ interface ConnectionStatus {
 interface ConnectionStatusContextType {
   status: ConnectionStatus;
   checkConnection: () => Promise<void>;
+  isOnline: boolean;
+  lastChecked: Date | null;
 }
 
 const ConnectionStatusContext = createContext<ConnectionStatusContextType | undefined>(undefined);
@@ -71,8 +73,15 @@ export const ConnectionStatusProvider = ({ children }: { children: ReactNode }) 
     };
   }, []);
 
+  const contextValue: ConnectionStatusContextType = {
+    status,
+    checkConnection,
+    isOnline: status.isOnline,
+    lastChecked: status.lastChecked
+  };
+
   return (
-    <ConnectionStatusContext.Provider value={{ status, checkConnection }}>
+    <ConnectionStatusContext.Provider value={contextValue}>
       {children}
     </ConnectionStatusContext.Provider>
   );
@@ -88,5 +97,4 @@ export const useConnectionStatus = (): ConnectionStatusContextType => {
   return context;
 };
 
-// Alias for backward compatibility
 export const useConnection = useConnectionStatus;

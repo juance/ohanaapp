@@ -157,7 +157,3 @@ export const clearResolvedErrors = async (): Promise<void> => {
     throw error;
   }
 };
-
-export const initErrorService = (): void => {
-  console.log('Error service initialized');
-};

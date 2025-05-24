@@ -1,123 +1,95 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Ticket } from '@/lib/types/ticket.types';
 
-export interface Ticket {
-  id: string;
-  ticketNumber: string;
-  clientName: string;
-  phoneNumber: string;
-  totalPrice: number;
-  total: number;
-  status: string;
-  createdAt: string;
-  customerId?: string;
-  paymentMethod: string;
-  isPaid: boolean;
-  date: string;
-  valetQuantity: number;
-  customer?: {
+// Types
+export interface TicketWithCustomer extends Ticket {
+  customer: {
     name: string;
     phone?: string;
   };
 }
 
-export const getUnretrievedTickets = async (daysSinceReady: number = 7): Promise<Ticket[]> => {
+export const getUnretrievedTickets = async (): Promise<TicketWithCustomer[]> => {
   try {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - daysSinceReady);
-    
-    const { data: tickets, error } = await supabase
+    const { data, error } = await supabase
       .from('tickets')
       .select(`
-        id,
-        ticket_number,
-        total,
-        status,
-        created_at,
-        customer_id,
-        payment_method,
-        is_paid,
-        date,
-        valet_quantity,
-        customers(name, phone)
+        *,
+        customers!inner(name, phone_number)
       `)
-      .eq('status', 'ready')
-      .lt('created_at', cutoffDate.toISOString())
-      .eq('is_canceled', false);
-    
+      .in('status', ['pending', 'in_progress']);
+
     if (error) {
       console.error('Error fetching unretrieved tickets:', error);
       throw error;
     }
-    
-    return (tickets || []).map(ticket => ({
+
+    if (!data) return [];
+
+    return data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
-      clientName: ticket.customers?.name || 'Cliente no especificado',
-      phoneNumber: ticket.customers?.phone || '',
-      totalPrice: ticket.total || 0,
-      total: ticket.total || 0,
+      clientName: ticket.customers?.name || ticket.client_name,
+      phoneNumber: ticket.customers?.phone_number || ticket.phone_number,
+      totalPrice: ticket.total_price,
+      total: ticket.total_price,
       status: ticket.status,
       createdAt: ticket.created_at,
       customerId: ticket.customer_id,
-      paymentMethod: ticket.payment_method || 'cash',
+      paymentMethod: ticket.payment_method as 'cash' | 'card' | 'transfer' | 'pending',
       isPaid: ticket.is_paid || false,
-      date: ticket.date || ticket.created_at,
+      date: ticket.created_at,
       valetQuantity: ticket.valet_quantity || 0,
-      customer: ticket.customers
+      customer: {
+        name: ticket.customers?.name || ticket.client_name || 'Cliente no encontrado',
+        phone: ticket.customers?.phone_number || ticket.phone_number
+      }
     }));
-    
   } catch (error) {
     console.error('Error in getUnretrievedTickets:', error);
     throw error;
   }
 };
 
-export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('tickets')
-      .update({
-        status: 'delivered',
-        delivered_date: new Date().toISOString()
-      })
-      .eq('id', ticketId);
-    
-    if (error) {
-      console.error('Error marking ticket as delivered:', error);
-      throw error;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error in markTicketAsDelivered:', error);
-    return false;
-  }
-};
-
-export const getTicketStats = async () => {
+export const getAllTickets = async (): Promise<TicketWithCustomer[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('status, total, created_at')
-      .eq('is_canceled', false);
-    
+      .select(`
+        *,
+        customers(name, phone_number)
+      `)
+      .order('created_at', { ascending: false });
+
     if (error) {
-      console.error('Error fetching ticket stats:', error);
+      console.error('Error fetching all tickets:', error);
       throw error;
     }
-    
-    const stats = {
-      total: data?.length || 0,
-      pending: data?.filter(t => t.status === 'pending').length || 0,
-      ready: data?.filter(t => t.status === 'ready').length || 0,
-      delivered: data?.filter(t => t.status === 'delivered').length || 0,
-      totalRevenue: data?.reduce((sum, t) => sum + (t.total || 0), 0) || 0
-    };
-    
-    return stats;
+
+    if (!data) return [];
+
+    return data.map((ticket: any) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || ticket.client_name,
+      phoneNumber: ticket.customers?.phone_number || ticket.phone_number,
+      totalPrice: ticket.total_price,
+      total: ticket.total_price,
+      status: ticket.status,
+      createdAt: ticket.created_at,
+      customerId: ticket.customer_id,
+      paymentMethod: ticket.payment_method as 'cash' | 'card' | 'transfer' | 'pending',
+      isPaid: ticket.is_paid || false,
+      date: ticket.created_at,
+      valetQuantity: ticket.valet_quantity || 0,
+      customer: {
+        name: ticket.customers?.name || ticket.client_name || 'Cliente no encontrado',
+        phone: ticket.customers?.phone_number || ticket.phone_number
+      }
+    }));
   } catch (error) {
-    console.error('Error in getTicketStats:', error);
+    console.error('Error in getAllTickets:', error);
     throw error;
   }
 };
