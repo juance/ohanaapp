@@ -10,6 +10,21 @@ export interface TicketWithCustomer extends Ticket {
   };
 }
 
+// Helper function to map payment methods
+const mapPaymentMethod = (method: string | null): 'cash' | 'debit' | 'mercadopago' | 'cuenta_dni' => {
+  switch (method) {
+    case 'debit':
+      return 'debit';
+    case 'mercadopago':
+      return 'mercadopago';
+    case 'cuenta_dni':
+      return 'cuenta_dni';
+    case 'cash':
+    default:
+      return 'cash';
+  }
+};
+
 export const getUnretrievedTickets = async (): Promise<TicketWithCustomer[]> => {
   try {
     const { data, error } = await supabase
@@ -37,7 +52,7 @@ export const getUnretrievedTickets = async (): Promise<TicketWithCustomer[]> => 
       status: ticket.status,
       createdAt: ticket.created_at,
       customerId: ticket.customer_id,
-      paymentMethod: ticket.payment_method as 'cash' | 'card' | 'transfer' | 'pending',
+      paymentMethod: mapPaymentMethod(ticket.payment_method),
       isPaid: ticket.is_paid || false,
       date: ticket.created_at,
       valetQuantity: ticket.valet_quantity || 0,
@@ -79,7 +94,7 @@ export const getAllTickets = async (): Promise<TicketWithCustomer[]> => {
       status: ticket.status,
       createdAt: ticket.created_at,
       customerId: ticket.customer_id,
-      paymentMethod: ticket.payment_method as 'cash' | 'card' | 'transfer' | 'pending',
+      paymentMethod: mapPaymentMethod(ticket.payment_method),
       isPaid: ticket.is_paid || false,
       date: ticket.created_at,
       valetQuantity: ticket.valet_quantity || 0,
@@ -91,5 +106,29 @@ export const getAllTickets = async (): Promise<TicketWithCustomer[]> => {
   } catch (error) {
     console.error('Error in getAllTickets:', error);
     throw error;
+  }
+};
+
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ 
+        status: 'delivered',
+        delivered_date: new Date().toISOString(),
+        is_paid: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+      
+    if (error) {
+      console.error('Error marking ticket as delivered:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error in markTicketAsDelivered:', error);
+    return false;
   }
 };

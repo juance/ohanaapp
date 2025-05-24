@@ -12,6 +12,7 @@ export interface ErrorContext {
 
 export interface SystemError {
   id: string;
+  message: string;
   error_message: string;
   error_stack?: string;
   timestamp: string;
@@ -81,16 +82,17 @@ export const getErrorLogs = async (): Promise<SystemError[]> => {
       return JSON.parse(localStorage.getItem('errorLogs') || '[]');
     }
     
-    return data || [];
+    return (data || []).map(item => ({
+      ...item,
+      message: item.error_message
+    }));
   } catch (error) {
     console.error('Error in getErrorLogs:', error);
     return JSON.parse(localStorage.getItem('errorLogs') || '[]');
   }
 };
 
-export const getErrors = async (): Promise<SystemError[]> => {
-  return getErrorLogs();
-};
+export const getErrors = getErrorLogs;
 
 export const resolveError = async (errorId: string): Promise<void> => {
   try {

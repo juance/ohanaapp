@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { getErrors, resolveError, deleteError, clearErrors, clearResolvedErrors } from '@/lib/errorService';
-import { SystemError, ErrorLevel } from '@/lib/types/error.types';
+import { SystemError } from '@/lib/errorService';
 import { toast } from '@/lib/toast';
 
 export const useErrorLogs = () => {
@@ -15,13 +15,7 @@ export const useErrorLogs = () => {
     setLoading(true);
     try {
       const fetchedErrors = await getErrors();
-      // Convert to the proper SystemError type from error.types.ts and handle enum differences
-      const typedErrors: SystemError[] = fetchedErrors.map(error => ({
-        ...error,
-        // Map the error level values from errorService.ts to error.types.ts
-        level: mapErrorLevel(error.level),
-      }));
-      setErrors(typedErrors);
+      setErrors(fetchedErrors);
     } catch (error) {
       console.error('Error fetching errors:', error);
       toast.error('Error al cargar los registros de errores');
@@ -29,22 +23,6 @@ export const useErrorLogs = () => {
       setLoading(false);
     }
   }, []);
-
-  // Helper function to map between different ErrorLevel enum formats
-  const mapErrorLevel = (level: any): ErrorLevel | undefined => {
-    if (!level) return undefined;
-    
-    // Convert from errorService.ErrorLevel to error.types.ErrorLevel
-    switch(level) {
-      case 'INFO': return ErrorLevel.INFO;
-      case 'WARNING': return ErrorLevel.WARNING_LEGACY;
-      case 'ERROR': 
-      case 'error': return ErrorLevel.ERROR;
-      case 'CRITICAL': 
-      case 'critical': return ErrorLevel.CRITICAL;
-      default: return undefined; // Fallback
-    }
-  };
 
   const handleResolveError = useCallback(async (errorId: string) => {
     try {

@@ -1,3 +1,4 @@
+
 import { toast } from "@/lib/toast";
 
 export enum NotificationType {
@@ -58,7 +59,7 @@ class NotificationManager {
     this.notifyListeners();
     
     // También mostrar como toast si la aplicación está abierta
-    toast[type]({
+    toast({
       title,
       description: message
     });
