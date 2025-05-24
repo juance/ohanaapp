@@ -12,6 +12,8 @@ import { toast } from '@/lib/toast';
 export const UnretrievedTickets = () => {
   const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
   
+  console.log('UnretrievedTickets component mounting...');
+  
   // Fetch tickets that are ready but not delivered
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['unretrieved-tickets'],
@@ -20,7 +22,7 @@ export const UnretrievedTickets = () => {
       try {
         const result = await getUnretrievedTickets();
         console.log('Fetched tickets:', result);
-        return result;
+        return result || [];
       } catch (err) {
         console.error('Error fetching unretrieved tickets:', err);
         throw err;
@@ -31,7 +33,7 @@ export const UnretrievedTickets = () => {
   useEffect(() => {
     if (data) {
       console.log('Setting tickets data:', data);
-      setTickets(data);
+      setTickets(Array.isArray(data) ? data : []);
     }
   }, [data]);
 
