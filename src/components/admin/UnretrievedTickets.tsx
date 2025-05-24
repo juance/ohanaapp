@@ -1,9 +1,9 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets } from '@/lib/dataService';
+import { getUnretrievedTickets } from '@/lib/ticketServices';
 import { markTicketAsDelivered } from '@/lib/ticketServices';
-import { Ticket } from '@/lib/types';
+import { TicketWithCustomer } from '@/lib/ticketServices';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -12,29 +12,40 @@ import { DataTable } from '@/components/ui/data-table';
 import { toast } from '@/lib/toast';
 
 export const UnretrievedTickets = () => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
   
   // Fetch tickets that are ready but not delivered
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['unretrieved-tickets'],
     queryFn: async () => {
-      // Call without arguments since the function doesn't expect any
-      return getUnretrievedTickets();
+      console.log('Fetching unretrieved tickets...');
+      try {
+        const result = await getUnretrievedTickets();
+        console.log('Fetched tickets:', result);
+        return result;
+      } catch (err) {
+        console.error('Error fetching unretrieved tickets:', err);
+        throw err;
+      }
     }
   });
   
   useEffect(() => {
     if (data) {
+      console.log('Setting tickets data:', data);
       setTickets(data);
     }
   }, [data]);
 
   const handleMarkAsDelivered = async (ticketId: string) => {
     try {
+      console.log('Marking ticket as delivered:', ticketId);
       const success = await markTicketAsDelivered(ticketId);
       if (success) {
         toast.success('Ticket marcado como entregado exitosamente');
         refetch(); // Refresh the list after marking as delivered
+      } else {
+        toast.error('Error al marcar el ticket como entregado');
       }
     } catch (err) {
       console.error('Error al marcar ticket como entregado:', err);
@@ -44,7 +55,12 @@ export const UnretrievedTickets = () => {
   
   const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return format(new Date(date), 'dd MMM yyyy', { locale: es });
+    try {
+      return format(new Date(date), 'dd MMM yyyy', { locale: es });
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return 'Fecha inválida';
+    }
   };
   
   const columns = [
@@ -55,10 +71,12 @@ export const UnretrievedTickets = () => {
     {
       accessorKey: 'clientName',
       header: 'Cliente',
+      cell: ({ row }: any) => row.original.customer?.name || row.original.clientName || 'Sin nombre',
     },
     {
       accessorKey: 'phoneNumber',
       header: 'Teléfono',
+      cell: ({ row }: any) => row.original.customer?.phone || row.original.phoneNumber || 'Sin teléfono',
     },
     {
       accessorKey: 'createdAt',
@@ -68,7 +86,7 @@ export const UnretrievedTickets = () => {
     {
       accessorKey: 'totalPrice',
       header: 'Importe',
-      cell: ({ row }: any) => `$${row.original.totalPrice.toLocaleString()}`,
+      cell: ({ row }: any) => `$${(row.original.totalPrice || 0).toLocaleString()}`,
     },
     {
       id: 'actions',
@@ -100,6 +118,7 @@ export const UnretrievedTickets = () => {
   }
 
   if (error) {
+    console.error('Query error:', error);
     return (
       <Card>
         <CardHeader>
@@ -107,7 +126,7 @@ export const UnretrievedTickets = () => {
         </CardHeader>
         <CardContent>
           <div className="rounded-md bg-red-50 p-4 text-red-800">
-            Error al cargar los tickets no retirados
+            Error al cargar los tickets no retirados: {error instanceof Error ? error.message : 'Error desconocido'}
           </div>
         </CardContent>
       </Card>
