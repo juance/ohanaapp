@@ -37,8 +37,8 @@ describe('TicketAnalyticsService', () => {
     });
     mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
-    // Simular una llamada básica
-    const result = await mockSupabaseClient.from('tickets').select('*').gte('created_at', '2024-01-01').lte('created_at', '2024-01-02');
+    // Simular una llamada básica usando el mock builder
+    const result = await mockBuilder.select('*').gte('created_at', '2024-01-01').lte('created_at', '2024-01-02');
     
     expect(result.data).toHaveLength(1);
     expect(result.data[0].total).toBe(100);

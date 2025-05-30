@@ -44,3 +44,13 @@ console.warn = (...args) => {
 
 // Configuración global para timeouts
 jest.setTimeout(10000);
+
+// Asegurar que las funciones de testing estén disponibles
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+      toHaveClass(className: string): R;
+    }
+  }
+}

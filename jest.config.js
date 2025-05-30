@@ -75,5 +75,11 @@ export default {
     'ts-jest': {
       useESM: true
     }
-  }
+  },
+
+  // Configuración adicional para resolver problemas de importación
+  preset: 'ts-jest/presets/default-esm',
+  transformIgnorePatterns: [
+    "node_modules/(?!(.*\\.mjs$|@testing-library))"
+  ]
 };
