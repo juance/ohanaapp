@@ -15,9 +15,9 @@ import {
   Package2,
   MessageSquare,
   TrendingUp,
-  Clock
+  Clock,
+  Home
 } from 'lucide-react';
-import Layout from '@/components/Layout';
 
 const Index = () => {
   const menuItems = [
@@ -25,7 +25,7 @@ const Index = () => {
       title: 'Dashboard',
       description: 'Panel de control principal',
       href: '/dashboard',
-      icon: BarChart3,
+      icon: Home,
       color: 'bg-blue-500'
     },
     {
@@ -79,7 +79,7 @@ const Index = () => {
     },
     {
       title: 'Métricas',
-      description: 'Ver estadísticas y rendimiento',
+      description: 'Panel completo de análisis y KPIs',
       href: '/metrics',
       icon: TrendingUp,
       color: 'bg-cyan-500'
@@ -115,47 +115,45 @@ const Index = () => {
   ];
 
   return (
-    <Layout>
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-blue-600 mb-4">
-            Lavandería Ohana
-          </h1>
-          <p className="text-xl text-gray-600">
-            Sistema de Gestión Integral
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {menuItems.map((item) => (
-            <Card key={item.href} className="hover:shadow-lg transition-shadow duration-200">
-              <CardHeader className="pb-3">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${item.color} text-white`}>
-                    <item.icon className="h-6 w-6" />
-                  </div>
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-600 mb-4">{item.description}</p>
-                <Link to={item.href}>
-                  <Button className="w-full">
-                    Acceder
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <div className="mt-8 text-center">
-          <p className="text-gray-500 text-sm">
-            © 2025 Lavandería Ohana - Sistema de Gestión
-          </p>
-        </div>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-blue-600 mb-4">
+          Lavandería Ohana
+        </h1>
+        <p className="text-xl text-gray-600">
+          Sistema de Gestión Integral
+        </p>
       </div>
-    </Layout>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {menuItems.map((item) => (
+          <Card key={item.href} className="hover:shadow-lg transition-shadow duration-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${item.color} text-white`}>
+                  <item.icon className="h-6 w-6" />
+                </div>
+                <CardTitle className="text-lg">{item.title}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">{item.description}</p>
+              <Link to={item.href}>
+                <Button className="w-full">
+                  Acceder
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      <div className="mt-8 text-center">
+        <p className="text-gray-500 text-sm">
+          © 2025 Lavandería Ohana - Sistema de Gestión
+        </p>
+      </div>
+    </div>
   );
 };
 

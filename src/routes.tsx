@@ -3,7 +3,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthForm from '@/components/AuthForm';
-import Layout from '@/components/Layout';
+import { ModernLayout } from '@/components/ModernLayout';
 
 // Lazy load components for better performance
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
@@ -14,13 +14,13 @@ const DeliveredOrders = React.lazy(() => import('@/pages/DeliveredOrders'));
 const Clients = React.lazy(() => import('@/pages/Clients'));
 const Analytics = React.lazy(() => import('@/pages/Analytics'));
 const TrendAnalysis = React.lazy(() => import('@/pages/TrendAnalysis'));
-const AdminPage = React.lazy(() => import('@/pages/Admin'));
+const AdminPage = React.lazy(() => import('@/pages/AdminPage'));
 const Index = React.lazy(() => import('@/pages/Index'));
 const Inventory = React.lazy(() => import('@/pages/Inventory'));
 const Loyalty = React.lazy(() => import('@/pages/Loyalty'));
 const Expenses = React.lazy(() => import('@/pages/Expenses'));
 const Feedback = React.lazy(() => import('@/pages/Feedback'));
-const Metrics = React.lazy(() => import('@/pages/Metrics'));
+const MetricsPage = React.lazy(() => import('@/pages/MetricsPage'));
 const TicketAnalysis = React.lazy(() => import('@/pages/TicketAnalysis'));
 
 // Protected Route Component
@@ -39,7 +39,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/auth" replace />;
   }
   
-  return <>{children}</>;
+  return <ModernLayout>{children}</ModernLayout>;
 };
 
 // Auth Route Component
@@ -147,7 +147,7 @@ export const AppRoutes: React.FC = () => {
         
         <Route path="/metrics" element={
           <ProtectedRoute>
-            <Metrics />
+            <MetricsPage />
           </ProtectedRoute>
         } />
         
