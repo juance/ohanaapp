@@ -1,87 +1,63 @@
 
 import { TicketAnalytics } from '@/lib/analytics/interfaces';
-import { format } from 'date-fns';
 
-/**
- * Processes raw ticket data into analytics format
- * @param tickets Raw ticket data from Supabase
- * @param dryCleaningItems Dry cleaning items data from Supabase
- * @returns Processed analytics data
- */
-export const processTicketAnalyticsData = (tickets: any[], dryCleaningItems: any[], newCustomers: any[] = []): TicketAnalytics => {
-  // Prepare the analytics object with default values
-  const analytics: TicketAnalytics = {
-    totalTickets: tickets.length,
-    totalRevenue: 0,
-    averageTicketValue: 0,
-    ticketsByStatus: {
-      pending: 0,
-      processing: 0,
-      ready: 0,
-      delivered: 0
-    },
-    revenueByMonth: [],
-    itemTypeDistribution: {},
-    paymentMethodDistribution: {},
-    freeValets: 0,
-    paidTickets: 0,
-    newCustomers: newCustomers.length
+export const processTicketAnalyticsData = (tickets: any[], dryCleaningItems: any[]): TicketAnalytics => {
+  const totalTickets = tickets.length;
+  const totalRevenue = tickets.reduce((sum, ticket) => sum + (ticket.total || 0), 0);
+  const averageTicketValue = totalTickets > 0 ? totalRevenue / totalTickets : 0;
+
+  const ticketsByStatus = tickets.reduce((acc, ticket) => {
+    const status = ticket.status || 'pending';
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {
+    pending: 0,
+    processing: 0,
+    ready: 0,
+    delivered: 0
+  });
+
+  const paymentMethodDistribution = tickets.reduce((acc, ticket) => {
+    const method = ticket.payment_method || 'No especificado';
+    acc[method] = (acc[method] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const itemTypeDistribution = dryCleaningItems.reduce((acc, item) => {
+    acc[item.name] = (acc[item.name] || 0) + item.quantity;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const revenueByMonth = tickets.reduce((acc, ticket) => {
+    const date = new Date(ticket.created_at);
+    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    
+    const existing = acc.find(item => item.month === monthKey);
+    if (existing) {
+      existing.revenue += ticket.total || 0;
+    } else {
+      acc.push({
+        month: monthKey,
+        revenue: ticket.total || 0
+      });
+    }
+    
+    return acc;
+  }, [] as Array<{ month: string; revenue: number }>);
+
+  const freeValets = tickets.filter(ticket => ticket.total === 0 && ticket.valet_quantity > 0).length;
+  const paidTickets = tickets.filter(ticket => ticket.is_paid).length;
+
+  return {
+    totalTickets,
+    averageTicketValue,
+    totalRevenue,
+    ticketsByStatus,
+    topServices: [],
+    revenueByMonth,
+    itemTypeDistribution,
+    paymentMethodDistribution,
+    freeValets,
+    paidTickets
   };
-  
-  // Initialize objects to track distributions
-  const revenueByMonthMap: Record<string, number> = {};
-  
-  // Process each ticket
-  tickets.forEach(ticket => {
-    // Add to total revenue
-    analytics.totalRevenue += Number(ticket.total || 0);
-    
-    // Increment ticket status count
-    if (ticket.status && analytics.ticketsByStatus) {
-      const status = ticket.status as keyof typeof analytics.ticketsByStatus;
-      analytics.ticketsByStatus[status] = (analytics.ticketsByStatus[status] || 0) + 1;
-    }
-    
-    // Track payment methods
-    if (ticket.payment_method) {
-      analytics.paymentMethodDistribution[ticket.payment_method] = 
-        (analytics.paymentMethodDistribution[ticket.payment_method] || 0) + 1;
-    }
-    
-    // Track paid tickets
-    if (ticket.is_paid) {
-      analytics.paidTickets = (analytics.paidTickets || 0) + 1;
-    }
-    
-    // Track free valets from ticket customers
-    if (ticket.customers?.free_valets) {
-      analytics.freeValets = (analytics.freeValets || 0) + ticket.customers.free_valets;
-    }
-    
-    // Add to revenue by month
-    const month = format(new Date(ticket.created_at), 'yyyy-MM');
-    revenueByMonthMap[month] = (revenueByMonthMap[month] || 0) + Number(ticket.total || 0);
-  });
-  
-  // Process dry cleaning items
-  dryCleaningItems.forEach(item => {
-    // Track item type distribution
-    if (item.name) {
-      analytics.itemTypeDistribution[item.name] = 
-        (analytics.itemTypeDistribution[item.name] || 0) + Number(item.quantity || 1);
-    }
-  });
-  
-  // Calculate average ticket value
-  analytics.averageTicketValue = analytics.totalTickets > 0 
-    ? analytics.totalRevenue / analytics.totalTickets 
-    : 0;
-  
-  // Convert revenue by month map to array format
-  analytics.revenueByMonth = Object.entries(revenueByMonthMap).map(([month, revenue]) => ({
-    month,
-    revenue
-  })).sort((a, b) => a.month.localeCompare(b.month));
-  
-  return analytics;
 };

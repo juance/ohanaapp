@@ -1,46 +1,23 @@
-
-import { toast as sonnerToast } from 'sonner';
-
-export interface ToastOptions {
+interface ToastProps {
   title?: string;
   description?: string;
   variant?: 'default' | 'destructive';
-  duration?: number;
 }
 
-export const toast = (options: ToastOptions | string) => {
-  if (typeof options === 'string') {
-    sonnerToast(options);
+export const toast = (props: ToastProps | string) => {
+  if (typeof props === 'string') {
+    console.log('Toast:', props);
     return;
   }
-
-  const { title, description, variant = 'default', duration = 4000 } = options;
   
-  if (variant === 'destructive') {
-    sonnerToast.error(title || 'Error', {
-      description,
-      duration
-    });
-  } else {
-    sonnerToast.success(title || 'Éxito', {
-      description,
-      duration
-    });
-  }
+  const { title, description, variant = 'default' } = props;
+  console.log(`Toast [${variant}]:`, title, description);
+  
+  // En una implementación real, esto sería conectado a un sistema de toasts
+  // Por ahora solo logueamos a la consola
 };
 
-toast.success = (title: string, description?: string) => {
-  sonnerToast.success(title, { description });
-};
-
-toast.error = (title: string, description?: string) => {
-  sonnerToast.error(title, { description });
-};
-
-toast.info = (title: string, description?: string) => {
-  sonnerToast(title, { description });
-};
-
-toast.warning = (title: string, description?: string) => {
-  sonnerToast.warning(title, { description });
-};
+// Métodos de conveniencia
+toast.success = (message: string) => toast({ title: 'Éxito', description: message });
+toast.error = (message: string) => toast({ title: 'Error', description: message, variant: 'destructive' });
+toast.info = (message: string) => toast({ title: 'Info', description: message });

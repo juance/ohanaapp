@@ -1,39 +1,26 @@
 
-import { Download, RefreshCw, Users, Star } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { toast } from '@/lib/toast';
-import { format } from 'date-fns';
-import { Link } from 'react-router-dom';
+import { Download, Printer } from 'lucide-react';
 
 interface ActionButtonsProps {
-  onExportData: () => void;
+  onExportData: () => Promise<void>;
 }
 
-const ActionButtons = ({ onExportData }: ActionButtonsProps) => {
-  return (
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <Button variant="outline" onClick={() => window.location.reload()}>
-        <RefreshCw className="mr-2 h-4 w-4" />
-        Actualizar
-      </Button>
+const ActionButtons: React.FC<ActionButtonsProps> = ({ onExportData }) => {
+  const handlePrint = () => {
+    window.print();
+  };
 
-      <Button variant="outline" onClick={onExportData}>
-        <Download className="mr-2 h-4 w-4" />
+  return (
+    <div className="flex gap-2">
+      <Button onClick={onExportData} variant="outline" size="sm" className="flex items-center gap-2">
+        <Download className="h-4 w-4" />
         Exportar
       </Button>
-
-      <Link to="/clients">
-        <Button variant="outline">
-          <Users className="mr-2 h-4 w-4" />
-          Gestionar Clientes
-        </Button>
-      </Link>
-
-      <Button variant="default" asChild>
-        <Link to="/loyalty">
-          <Star className="mr-2 h-4 w-4" />
-          Programa de Fidelidad
-        </Link>
+      <Button onClick={handlePrint} variant="outline" size="sm" className="flex items-center gap-2">
+        <Printer className="h-4 w-4" />
+        Imprimir
       </Button>
     </div>
   );

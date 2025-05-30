@@ -1,71 +1,59 @@
 
-import React from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 interface DateRangeSelectorProps {
   from: Date;
   to: Date;
   onUpdate: (from: Date, to: Date) => void;
-  minDate?: Date;
-  className?: string;
 }
 
-const DateRangeSelector = ({ from, to, onUpdate, minDate, className }: DateRangeSelectorProps) => {
-  const isMobile = useIsMobile();
-  
-  // Calcular fecha mínima predeterminada (90 días atrás)
-  const defaultMinDate = new Date();
-  defaultMinDate.setDate(defaultMinDate.getDate() - 90);
-  
-  // Usar la fecha mínima proporcionada o la predeterminada
-  const effectiveMinDate = minDate || defaultMinDate;
+const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({ from, to, onUpdate }) => {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className={className}>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" className="w-full justify-start text-left sm:w-auto">
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {from ? (
-              to ? (
-                <>
-                  {format(from, 'dd/MM/yy', { locale: es })} -{' '}
-                  {format(to, 'dd/MM/yy', { locale: es })}
-                </>
-              ) : (
-                format(from, 'PP', { locale: es })
-              )
-            ) : (
-              <span>Seleccionar rango</span>
-            )}
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" className="w-auto justify-start text-left font-normal">
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {format(from, "dd MMM", { locale: es })} - {format(to, "dd MMM yyyy", { locale: es })}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-4" align="end">
+        <div className="space-y-4">
+          <div className="text-sm font-medium">Seleccionar período</div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-medium text-gray-600">Desde</label>
+              <Calendar
+                mode="single"
+                selected={from}
+                onSelect={(date) => date && onUpdate(date, to)}
+                className="rounded-md border"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-gray-600">Hasta</label>
+              <Calendar
+                mode="single"
+                selected={to}
+                onSelect={(date) => date && onUpdate(from, date)}
+                className="rounded-md border"
+                disabled={(date) => date < from}
+              />
+            </div>
+          </div>
+          <Button size="sm" onClick={() => setIsOpen(false)} className="w-full">
+            Aplicar
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="end">
-          <Calendar
-            initialFocus
-            mode="range"
-            defaultMonth={from}
-            selected={{
-              from: from,
-              to: to,
-            }}
-            onSelect={(range) => {
-              if (range?.from && range?.to) {
-                onUpdate(range.from, range.to);
-              }
-            }}
-            numberOfMonths={isMobile ? 1 : 2}
-            fromDate={effectiveMinDate} // Permitir seleccionar desde la fecha mínima
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 };
 

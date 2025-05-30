@@ -24,12 +24,48 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
   }
 };
 
+// Función para verificar contraseñas de demostración
+const verifyDemoPassword = (phoneNumber: string, password: string): boolean => {
+  const demoCredentials = {
+    '1123989718': 'Juance001',  // Superusuario
+    '1234567890': 'password',   // Admin
+    '0987654321': 'password',   // Operador
+    '5555555555': 'password'    // Cliente
+  };
+  
+  return demoCredentials[phoneNumber as keyof typeof demoCredentials] === password;
+};
+
 // Autenticar usuario con la tabla users
 export const authenticateUser = async (phoneNumber: string, password: string): Promise<User> => {
   try {
     console.log(`Autenticando usuario: ${phoneNumber}`);
     
-    // Buscar usuario por teléfono usando RPC function
+    // Primero verificar credenciales de demostración
+    if (verifyDemoPassword(phoneNumber, password)) {
+      // Crear usuarios de demostración si no existen
+      const demoUsers = {
+        '1123989718': { name: 'Superusuario', role: 'admin', email: 'super@demo.com' },
+        '1234567890': { name: 'Administrador', role: 'admin', email: 'admin@demo.com' },
+        '0987654321': { name: 'Operador', role: 'operator', email: 'operator@demo.com' },
+        '5555555555': { name: 'Cliente', role: 'client', email: 'client@demo.com' }
+      };
+      
+      const userData = demoUsers[phoneNumber as keyof typeof demoUsers];
+      
+      console.log(`Autenticación de demostración exitosa para: ${phoneNumber}`);
+      
+      return {
+        id: `demo-${phoneNumber}`,
+        name: userData.name,
+        phoneNumber: phoneNumber,
+        role: userData.role as Role,
+        email: userData.email,
+        createdAt: new Date().toISOString()
+      };
+    }
+
+    // Si no es credencial de demostración, buscar en la base de datos
     const { data: userData, error } = await supabase
       .rpc('get_user_by_phone', { phone: phoneNumber });
     
@@ -40,7 +76,7 @@ export const authenticateUser = async (phoneNumber: string, password: string): P
     
     const user = userData[0];
     
-    // Verificar contraseña (en producción debería usar bcrypt)
+    // Verificar contraseña simple (en producción usar bcrypt)
     if (user.password !== password) {
       console.error('Contraseña incorrecta');
       throw new Error('Credenciales inválidas');
@@ -99,7 +135,6 @@ export const registerUser = async (name: string, phoneNumber: string, password: 
   }
 };
 
-// Solicitar reset de contraseña
 export const requestPasswordReset = async (phoneNumber: string): Promise<void> => {
   try {
     const { data, error } = await supabase
@@ -117,14 +152,12 @@ export const requestPasswordReset = async (phoneNumber: string): Promise<void> =
   }
 };
 
-// Verificar permisos
 export const hasPermission = (user: User | null, requiredRoles: Role[]): boolean => {
   if (!user) return false;
   if (user.role === 'admin') return true;
   return requiredRoles.includes(user.role);
 };
 
-// Cambiar contraseña
 export const changePassword = async (
   userId: string, 
   currentPassword: string, 

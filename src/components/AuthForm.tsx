@@ -97,9 +97,9 @@ const AuthForm = () => {
         <div className="text-xs text-muted-foreground">
           <p className="mb-2">Cuentas de demostración:</p>
           <p><strong>Superusuario:</strong> 1123989718 / Juance001</p>
-          <p>Admin: 1234567890 / password</p>
-          <p>Operador: 0987654321 / password</p>
-          <p>Cliente: 5555555555 / password</p>
+          <p><strong>Admin:</strong> 1234567890 / password</p>
+          <p><strong>Operador:</strong> 0987654321 / password</p>
+          <p><strong>Cliente:</strong> 5555555555 / password</p>
         </div>
       </CardFooter>
     </Card>

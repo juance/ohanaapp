@@ -1,170 +1,95 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { format, subDays } from 'date-fns';
 import { TicketAnalytics } from './interfaces';
 
-/**
- * Fetch tickets and their details within a date range
- */
 export const fetchTicketsInDateRange = async (startDate: Date, endDate: Date) => {
-  console.log('Fetching tickets from', startDate.toISOString(), 'to', endDate.toISOString());
-  
   try {
-    // Get tickets within the specified date range
-    const { data: tickets = [], error: ticketsError } = await supabase
+    const { data: tickets, error } = await supabase
       .from('tickets')
       .select(`
         *,
-        customers (id, name, phone, valets_count, free_valets)
+        customers(*),
+        dry_cleaning_items(*)
       `)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
-      .order('created_at', { ascending: false });
-      
-    if (ticketsError) {
-      console.error('Error fetching tickets:', ticketsError);
-      throw ticketsError;
-    }
-    
-    // Get dry cleaning items for these tickets
-    const ticketIds = tickets.map(t => t.id);
-    
-    const { data: dryCleaningItems = [], error: itemsError } = await supabase
-      .from('dry_cleaning_items')
-      .select('*')
-      .in('ticket_id', ticketIds);
-      
-    if (itemsError) {
-      console.error('Error fetching dry cleaning items:', itemsError);
-      throw itemsError;
-    }
-    
-    // Fetch new customers in the date range
-    const { data: newCustomers = [], error: customersError } = await supabase
-      .from('customers')
-      .select('id')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
-    
-    if (customersError) {
-      console.error('Error fetching new customers:', customersError);
-    }
-    
-    return { tickets, dryCleaningItems, newCustomers };
-  } catch (error) {
-    console.error('Error in fetchTicketsInDateRange:', error);
-    return { tickets: [], dryCleaningItems: [], newCustomers: [] };
-  }
-};
+      .eq('is_canceled', false);
 
-/**
- * Export analytics data to CSV format
- */
-export const exportAnalyticsToCSV = async (analytics: TicketAnalytics): Promise<void> => {
-  try {
-    // Convert analytics data to CSV format
-    const headers = [
-      'Total Tickets',
-      'Average Ticket Value',
-      'Total Revenue',
-      'Tickets Ready',
-      'Top Payment Method',
-      'Top Item Type',
-      'New Customers',
-    ];
-    
-    // Get top payment method
-    let topPaymentMethod = '';
-    let maxCount = 0;
-    
-    for (const [method, count] of Object.entries(analytics.paymentMethodDistribution)) {
-      if (count > maxCount) {
-        maxCount = count;
-        topPaymentMethod = method;
-      }
-    }
-    
-    // Get top item type
-    let topItemType = '';
-    maxCount = 0;
-    
-    for (const [type, count] of Object.entries(analytics.itemTypeDistribution)) {
-      if (count > maxCount) {
-        maxCount = count;
-        topItemType = type;
-      }
-    }
-    
-    const values = [
-      analytics.totalTickets.toString(),
-      `$${analytics.averageTicketValue.toFixed(2)}`,
-      `$${analytics.totalRevenue.toFixed(2)}`,
-      analytics.ticketsByStatus?.ready?.toString() || '0',
-      topPaymentMethod,
-      topItemType,
-      analytics.newCustomers?.toString() || '0',
-    ];
-    
-    // Create CSV content
-    let csv = headers.join(',') + '\n';
-    csv += values.join(',');
-    
-    // Create and download the CSV file
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `analytics_${format(new Date(), 'yyyy-MM-dd')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    if (error) throw error;
+
+    const { data: dryCleaningItems } = await supabase
+      .from('dry_cleaning_items')
+      .select('*');
+
+    return {
+      tickets: tickets || [],
+      dryCleaningItems: dryCleaningItems || []
+    };
   } catch (error) {
-    console.error('Error exporting analytics to CSV:', error);
+    console.error('Error fetching tickets:', error);
     throw error;
   }
 };
 
-/**
- * Calculate ticket analytics using Supabase server function
- */
 export const calculateTicketAnalytics = async (startDate: Date, endDate: Date): Promise<TicketAnalytics | null> => {
   try {
-    // Use the server-side function to calculate metrics
-    const { data, error } = await supabase.rpc(
-      'calculate_ticket_metrics',
-      { start_date: startDate.toISOString(), end_date: endDate.toISOString() }
-    );
+    const { data, error } = await supabase
+      .rpc('calculate_ticket_metrics', {
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString()
+      });
 
-    if (error) {
-      console.error('Error calculating ticket analytics:', error);
-      throw error;
-    }
+    if (error) throw error;
 
-    // Parse and type-cast the response properly
     if (data) {
-      // Cast to unknown first, then to TicketAnalytics
-      const result = data as unknown as TicketAnalytics;
-      
-      // Additionally fetch new customers data which the RPC might not include
-      const { data: newCustomers = [], error: customersError } = await supabase
-        .from('customers')
-        .select('id')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
-      
-      if (customersError) {
-        console.error('Error fetching new customers:', customersError);
-      } else {
-        // Add new customers data to the analytics
-        result.newCustomers = newCustomers.length;
-      }
-      
-      return result;
+      return {
+        totalTickets: data.totalTickets || 0,
+        averageTicketValue: data.averageTicketValue || 0,
+        totalRevenue: data.totalRevenue || 0,
+        ticketsByStatus: data.ticketsByStatus || {
+          pending: 0,
+          processing: 0,
+          ready: 0,
+          delivered: 0
+        },
+        topServices: [],
+        revenueByMonth: data.revenueByMonth || [],
+        itemTypeDistribution: data.itemTypeDistribution || {},
+        paymentMethodDistribution: data.paymentMethodDistribution || {},
+        freeValets: 0,
+        paidTickets: data.totalTickets || 0
+      };
     }
 
     return null;
   } catch (error) {
-    console.error('Error in calculateTicketAnalytics:', error);
+    console.error('Error calculating analytics:', error);
     return null;
+  }
+};
+
+export const exportAnalyticsToCSV = async (analytics: TicketAnalytics) => {
+  try {
+    const csvData = [
+      ['Métrica', 'Valor'],
+      ['Total de Tickets', analytics.totalTickets.toString()],
+      ['Valor Promedio de Ticket', analytics.averageTicketValue.toString()],
+      ['Ingresos Totales', analytics.totalRevenue.toString()],
+      ['Tickets Pendientes', analytics.ticketsByStatus.pending.toString()],
+      ['Tickets Listos', analytics.ticketsByStatus.ready.toString()],
+      ['Tickets Entregados', analytics.ticketsByStatus.delivered.toString()]
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'analytics.csv';
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error exporting analytics:', error);
+    throw error;
   }
 };
