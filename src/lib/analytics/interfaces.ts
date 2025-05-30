@@ -22,6 +22,7 @@ export interface TicketAnalytics {
   paymentMethodDistribution: Record<string, number>;
   freeValets: number;
   paidTickets: number;
+  newCustomers?: number;
 }
 
 export interface DateRange {

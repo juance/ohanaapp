@@ -4,22 +4,19 @@ import { toast } from '@/lib/toast';
 export interface NotificationOptions {
   title: string;
   description?: string;
-  duration?: number;
 }
 
 export const showNotification = (options: NotificationOptions): void => {
   toast({
     title: options.title,
-    description: options.description,
-    duration: options.duration
+    description: options.description
   });
 };
 
 export const showSuccessNotification = (title: string, description?: string): void => {
   toast({
     title,
-    description,
-    duration: 4000
+    description
   });
 };
 
@@ -27,23 +24,21 @@ export const showErrorNotification = (title: string, description?: string): void
   toast({
     title,
     description,
-    duration: 5000
+    variant: 'destructive'
   });
 };
 
 export const showInfoNotification = (title: string, description?: string): void => {
   toast({
     title,
-    description,
-    duration: 4000
+    description
   });
 };
 
 export const showWarningNotification = (title: string, description?: string): void => {
   toast({
     title,
-    description,
-    duration: 4000
+    description
   });
 };
 
@@ -51,16 +46,14 @@ export const showWarningNotification = (title: string, description?: string): vo
 export const notifyTicketReady = (ticketNumber: string, customerName: string): void => {
   toast({
     title: 'Ticket Listo',
-    description: `El ticket ${ticketNumber} de ${customerName} está listo para recoger`,
-    duration: 6000
+    description: `El ticket ${ticketNumber} de ${customerName} está listo para recoger`
   });
 };
 
 export const notifyTicketDelivered = (ticketNumber: string): void => {
   toast({
     title: 'Ticket Entregado',
-    description: `El ticket ${ticketNumber} ha sido entregado exitosamente`,
-    duration: 4000
+    description: `El ticket ${ticketNumber} ha sido entregado exitosamente`
   });
 };
 
@@ -72,16 +65,14 @@ export const notifyPaymentReceived = (amount: number, method: string): void => {
   
   toast({
     title: 'Pago Recibido',
-    description: `Se recibió un pago de ${formattedAmount} vía ${method}`,
-    duration: 4000
+    description: `Se recibió un pago de ${formattedAmount} vía ${method}`
   });
 };
 
 export const notifyNewCustomer = (customerName: string): void => {
   toast({
     title: 'Nuevo Cliente',
-    description: `Se registró un nuevo cliente: ${customerName}`,
-    duration: 4000
+    description: `Se registró un nuevo cliente: ${customerName}`
   });
 };
 

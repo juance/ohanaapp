@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -40,15 +41,14 @@ export const SyncDataButton = () => {
       
       if (totalSynced > 0) {
         toast.success(
-          `Sincronización completa: ${totalSynced} elementos sincronizados`,
-          `Tickets: ${mappedResult.tickets || 0}, Clientes: ${mappedResult.clients || 0}, Gastos: ${mappedResult.expenses || 0}, Feedback: ${mappedResult.feedback || 0}`
+          `Sincronización completa: ${totalSynced} elementos sincronizados`
         );
       } else {
         toast.info('No hay datos nuevos para sincronizar');
       }
     } catch (error) {
       console.error('Error during sync:', error);
-      toast.error("Error durante la sincronización", "Por favor intente nuevamente");
+      toast.error("Error durante la sincronización");
     } finally {
       setIsSyncing(false);
     }
