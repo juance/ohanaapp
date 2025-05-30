@@ -1,5 +1,5 @@
 
-import { render, screen } from './utils/test-utils';
+import { render, screen } from '@testing-library/react';
 import App from '../App';
 
 // Mock de react-router-dom para evitar errores de navegación
