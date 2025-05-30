@@ -8,12 +8,20 @@ import Layout from '@/components/Layout';
 // Lazy load components for better performance
 const Dashboard = React.lazy(() => import('@/pages/Dashboard'));
 const Tickets = React.lazy(() => import('@/pages/Tickets'));
-const Orders = React.lazy(() => import('@/pages/Orders'));
+const Orders = React.lazy(() => import('@/pages/PendingOrders'));
+const PickupOrders = React.lazy(() => import('@/pages/PickupOrders'));
+const DeliveredOrders = React.lazy(() => import('@/pages/DeliveredOrders'));
 const Clients = React.lazy(() => import('@/pages/Clients'));
 const Analytics = React.lazy(() => import('@/pages/Analytics'));
 const TrendAnalysis = React.lazy(() => import('@/pages/TrendAnalysis'));
 const AdminPage = React.lazy(() => import('@/pages/Admin'));
 const Index = React.lazy(() => import('@/pages/Index'));
+const Inventory = React.lazy(() => import('@/pages/Inventory'));
+const Loyalty = React.lazy(() => import('@/pages/Loyalty'));
+const Expenses = React.lazy(() => import('@/pages/Expenses'));
+const Feedback = React.lazy(() => import('@/pages/Feedback'));
+const Metrics = React.lazy(() => import('@/pages/Metrics'));
+const TicketAnalysis = React.lazy(() => import('@/pages/TicketAnalysis'));
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -95,9 +103,51 @@ export const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } />
         
+        <Route path="/pickup" element={
+          <ProtectedRoute>
+            <PickupOrders />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/delivered" element={
+          <ProtectedRoute>
+            <DeliveredOrders />
+          </ProtectedRoute>
+        } />
+        
         <Route path="/clients" element={
           <ProtectedRoute>
             <Clients />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/inventory" element={
+          <ProtectedRoute>
+            <Inventory />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/loyalty" element={
+          <ProtectedRoute>
+            <Loyalty />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/expenses" element={
+          <ProtectedRoute>
+            <Expenses />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/feedback" element={
+          <ProtectedRoute>
+            <Feedback />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/metrics" element={
+          <ProtectedRoute>
+            <Metrics />
           </ProtectedRoute>
         } />
         
@@ -110,6 +160,12 @@ export const AppRoutes: React.FC = () => {
         <Route path="/analysis" element={
           <ProtectedRoute>
             <TrendAnalysis />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/ticket-analysis" element={
+          <ProtectedRoute>
+            <TicketAnalysis />
           </ProtectedRoute>
         } />
         

@@ -1,120 +1,221 @@
 
-import React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Clock, CheckCircle, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { usePendingOrdersLogic } from '@/hooks/usePendingOrdersLogic';
+import { Badge } from '@/components/ui/badge';
+import { Phone, ArrowLeft, ArrowRight, WheatIcon } from 'lucide-react';
+import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
+import PaymentMethodDialog from '@/components/orders/PaymentMethodDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Ticket } from '@/lib/types';
+import SearchBar from '@/components/ui/search-bar';
+import { openWhatsApp } from '@/lib/utils/whatsappUtils';
+import OrderCard from '@/components/orders/OrderCard';
+import Layout from '@/components/Layout';
+import Navbar from '@/components/Navbar';
+import MobileNav from '@/components/MobileNav';
 
 const Orders = () => {
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const {
+    pendingTickets,
+    readyTickets,
+    isLoading,
+    handleMarkAsReady,
+    handleTicketDelivered,
+    refetchAllTickets
+  } = usePendingOrdersLogic();
+  
+  const [activeTab, setActiveTab] = useState('pending');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
+  const [ticketToCancelId, setTicketToCancelId] = useState<string | null>(null);
+  const [ticketToChangePayment, setTicketToChangePayment] = useState<Ticket | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  
+  // Filter tickets based on search query
+  const filteredPendingTickets = pendingTickets?.filter(ticket => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    if (searchFilter === 'name') {
+      return ticket.clientName.toLowerCase().includes(query);
+    } else {
+      return ticket.phoneNumber.toLowerCase().includes(query);
+    }
+  }) || [];
+  
+  const filteredReadyTickets = readyTickets?.filter(ticket => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    if (searchFilter === 'name') {
+      return ticket.clientName.toLowerCase().includes(query);
+    } else {
+      return ticket.phoneNumber.toLowerCase().includes(query);
+    }
+  }) || [];
+  
+  const handleCancelTicket = (ticketId: string) => {
+    setTicketToCancelId(ticketId);
+  };
+  
+  const handleChangePaymentMethod = (ticket: Ticket) => {
+    setTicketToChangePayment(ticket);
+  };
+  
+  const handleSendWhatsAppReminder = (ticket: Ticket) => {
+    const message = `Hola! Tu ropa ya está lista para retirar. Ticket #${ticket.ticketNumber}. Gracias por confiar en nosotros!`;
+    openWhatsApp(ticket.phoneNumber, message);
+  };
 
+  const refreshTickets = refetchAllTickets;
+  
+  const handleTicketStatusChange = async (ticketId: string, newStatus: string) => {
+    if (newStatus === 'ready') {
+      await handleMarkAsReady(ticketId);
+    } else if (newStatus === 'delivered') {
+      await handleTicketDelivered(ticketId);
+    }
+  };
+
+  const handleCancelConfirm = async () => {
+    // Handle ticket cancellation logic here
+    // After cancellation:
+    setTicketToCancelId(null);
+    setCancelReason('');
+    refreshTickets();
+  };
+
+  const handleUpdatePaymentMethod = async (method: string) => {
+    // Handle payment method update logic here
+    // After updating:
+    setTicketToChangePayment(null);
+    refreshTickets();
+  };
+
+  const renderOrderCard = (ticket: Ticket) => (
+    <OrderCard
+      key={ticket.id}
+      id={ticket.id}
+      ticketNumber={ticket.ticketNumber}
+      clientName={ticket.clientName}
+      phoneNumber={ticket.phoneNumber}
+      status={ticket.status}
+      createdDate={ticket.createdAt}
+      totalPrice={ticket.totalPrice}
+      isPaid={ticket.isPaid}
+      isSelected={false}
+      onSelect={() => {}}
+      onMarkAsDelivered={ticket.status === 'ready' ? () => handleTicketDelivered(ticket.id) : undefined}
+      onPrint={() => {}}
+      onNotify={() => handleSendWhatsAppReminder(ticket)}
+    />
+  );
+  
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Órdenes</h1>
-          <p className="text-gray-600">Gestiona todas las órdenes de la lavandería</p>
+    <div className="min-h-screen bg-gray-50">
+      <MobileNav />
+      <div className="flex">
+        <Navbar />
+        <div className="flex-1 md:ml-64 pt-16 md:pt-0">
+          <div className="container mx-auto py-6 px-4">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <CardTitle className="text-2xl font-bold">Órdenes</CardTitle>
+                    <p className="text-gray-600">Gestiona todas las órdenes de la lavandería</p>
+                  </div>
+                  <Button onClick={refreshTickets}>Actualizar</Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6">
+                  <SearchBar
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    searchFilter={searchFilter}
+                    setSearchFilter={(filter) => setSearchFilter(filter as 'name' | 'phone')}
+                    placeholder="Buscar por nombre o teléfono..."
+                  />
+                </div>
+                
+                <Tabs value={activeTab} onValueChange={setActiveTab}>
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="pending">
+                      Pendiente <Badge variant="outline" className="ml-2">{filteredPendingTickets.length}</Badge>
+                    </TabsTrigger>
+                    <TabsTrigger value="ready">
+                      Listo para Retirar <Badge variant="outline" className="ml-2">{filteredReadyTickets.length}</Badge>
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="pending" className="space-y-4">
+                    {isLoading ? (
+                      <div className="flex justify-center p-8">
+                        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                      </div>
+                    ) : filteredPendingTickets.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredPendingTickets.map(ticket => renderOrderCard(ticket))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <WheatIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes pendientes</h3>
+                        <p className="mt-1 text-sm text-gray-500">Todas las órdenes están listas para entregar</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                  
+                  <TabsContent value="ready" className="space-y-4">
+                    {isLoading ? (
+                      <div className="flex justify-center p-8">
+                        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full"></div>
+                      </div>
+                    ) : filteredReadyTickets.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredReadyTickets.map(ticket => renderOrderCard(ticket))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <WheatIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No hay órdenes listas</h3>
+                        <p className="mt-1 text-sm text-gray-500">Todas las órdenes están pendientes o ya fueron entregadas</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+            
+            {/* Cancel Ticket Dialog */}
+            {ticketToCancelId && (
+              <CancelTicketDialog
+                open={!!ticketToCancelId}
+                onOpenChange={(open) => {
+                  if (!open) setTicketToCancelId(null);
+                }}
+                cancelReason={cancelReason}
+                setCancelReason={setCancelReason}
+                onCancel={handleCancelConfirm}
+              />
+            )}
+            
+            {/* Change Payment Method Dialog */}
+            {ticketToChangePayment && (
+              <PaymentMethodDialog
+                open={!!ticketToChangePayment}
+                onOpenChange={(open) => {
+                  if (!open) setTicketToChangePayment(null);
+                }}
+                onUpdatePaymentMethod={handleUpdatePaymentMethod}
+              />
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Search Bar */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Buscar órdenes..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline">
-          Filtros
-        </Button>
-      </div>
-
-      {/* Orders Tabs */}
-      <Tabs defaultValue="pending" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="pending" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Pendientes
-          </TabsTrigger>
-          <TabsTrigger value="processing" className="flex items-center gap-2">
-            <Package className="h-4 w-4" />
-            En Proceso
-          </TabsTrigger>
-          <TabsTrigger value="ready" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Listos
-          </TabsTrigger>
-          <TabsTrigger value="delivered" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Entregados
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="pending" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Órdenes Pendientes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Package className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-                <p>No hay órdenes pendientes</p>
-                <p className="text-sm">Las nuevas órdenes aparecerán aquí</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="processing" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Órdenes en Proceso</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Clock className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-                <p>No hay órdenes en proceso</p>
-                <p className="text-sm">Las órdenes que se están procesando aparecerán aquí</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="ready" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Órdenes Listas para Entrega</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <CheckCircle className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-                <p>No hay órdenes listas</p>
-                <p className="text-sm">Las órdenes completadas aparecerán aquí</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="delivered" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Órdenes Entregadas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <CheckCircle className="mx-auto h-12 w-12 mb-4 text-gray-300" />
-                <p>No hay órdenes entregadas hoy</p>
-                <p className="text-sm">El historial de entregas aparecerá aquí</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

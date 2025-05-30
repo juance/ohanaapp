@@ -1,135 +1,161 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardContent, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import Navbar from '@/components/Navbar';
-import { useNavigate } from 'react-router-dom';
+import { 
+  Package, 
+  Users, 
+  BarChart3, 
+  Settings, 
+  DollarSign,
+  Clipboard,
+  FileText,
+  Award,
+  Package2,
+  MessageSquare,
+  TrendingUp,
+  Clock
+} from 'lucide-react';
+import Layout from '@/components/Layout';
 
 const Index = () => {
-  const navigate = useNavigate();
+  const menuItems = [
+    {
+      title: 'Dashboard',
+      description: 'Panel de control principal',
+      href: '/dashboard',
+      icon: BarChart3,
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'Tickets',
+      description: 'Crear y gestionar tickets',
+      href: '/tickets',
+      icon: Clipboard,
+      color: 'bg-green-500'
+    },
+    {
+      title: 'Órdenes',
+      description: 'Gestionar órdenes pendientes y listas',
+      href: '/orders',
+      icon: Package,
+      color: 'bg-purple-500'
+    },
+    {
+      title: 'Órdenes Pendientes',
+      description: 'Ver órdenes que están siendo procesadas',
+      href: '/pickup',
+      icon: Clock,
+      color: 'bg-yellow-500'
+    },
+    {
+      title: 'Órdenes Entregadas',
+      description: 'Historial de órdenes completadas',
+      href: '/delivered',
+      icon: FileText,
+      color: 'bg-emerald-500'
+    },
+    {
+      title: 'Clientes',
+      description: 'Gestionar base de datos de clientes',
+      href: '/clients',
+      icon: Users,
+      color: 'bg-indigo-500'
+    },
+    {
+      title: 'Programa de Fidelidad',
+      description: 'Gestionar puntos y recompensas',
+      href: '/loyalty',
+      icon: Award,
+      color: 'bg-pink-500'
+    },
+    {
+      title: 'Inventario',
+      description: 'Control de productos y suministros',
+      href: '/inventory',
+      icon: Package2,
+      color: 'bg-orange-500'
+    },
+    {
+      title: 'Métricas',
+      description: 'Ver estadísticas y rendimiento',
+      href: '/metrics',
+      icon: TrendingUp,
+      color: 'bg-cyan-500'
+    },
+    {
+      title: 'Análisis de Tickets',
+      description: 'Análisis detallado de tickets',
+      href: '/ticket-analysis',
+      icon: BarChart3,
+      color: 'bg-violet-500'
+    },
+    {
+      title: 'Gastos',
+      description: 'Gestionar gastos operativos',
+      href: '/expenses',
+      icon: DollarSign,
+      color: 'bg-red-500'
+    },
+    {
+      title: 'Comentarios',
+      description: 'Ver feedback de clientes',
+      href: '/feedback',
+      icon: MessageSquare,
+      color: 'bg-teal-500'
+    },
+    {
+      title: 'Administración',
+      description: 'Configuración del sistema',
+      href: '/admin',
+      icon: Settings,
+      color: 'bg-gray-500'
+    }
+  ];
 
   return (
-    <div className="min-h-screen pb-8">
-      <Navbar />
-      
-      <main className="md:ml-64 p-6">
-        <h1 className="text-2xl font-bold mb-6">Bienvenido a Ohana Laundry</h1>
-        
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Dashboard</CardTitle>
-              <CardDescription>Visualiza métricas de ventas y desempeño</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Accede a información resumida del negocio.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/dashboard">Ver Dashboard</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Métricas</CardTitle>
-              <CardDescription>Análisis detallado de tickets</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Analiza el rendimiento de tu negocio.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/metrics">Ver Métricas</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Análisis</CardTitle>
-              <CardDescription>Análisis avanzado</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Analiza tendencias y patrones en tus datos.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/analysis">Ver Análisis</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Órdenes para Recoger</CardTitle>
-              <CardDescription>Gestiona las órdenes listas para recoger</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Visualiza y gestiona las órdenes que están listas para ser recogidas por los clientes.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/pickup-orders">Ver Órdenes</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Crear Ticket</CardTitle>
-              <CardDescription>Crea un nuevo ticket de servicio</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Genera un nuevo ticket para registrar un servicio.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/create-ticket">Crear Ticket</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          <Card className="flex flex-col">
-            <CardHeader>
-              <CardTitle>Clientes</CardTitle>
-              <CardDescription>Administra tus clientes</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow">
-              <p>Visualiza, agrega y edita información de tus clientes.</p>
-            </CardContent>
-            <CardFooter>
-              <Button asChild className="w-full">
-                <Link to="/clients">Ver Clientes</Link>
-              </Button>
-            </CardFooter>
-          </Card>
-          
-          {/* Add diagnostics links */}
-          <div className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-            <h3 className="text-lg font-semibold mb-2">Herramientas de diagnóstico</h3>
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                className="w-full justify-start text-left" 
-                onClick={() => navigate('/diagnostics')}
-              >
-                Diagnosticar sistema
-              </Button>
-              <Button 
-                variant="outline" 
-                className="w-full justify-start text-left" 
-                onClick={() => navigate('/supabase-test')}
-              >
-                Probar conexión Supabase
-              </Button>
-            </div>
-          </div>
+    <Layout>
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-blue-600 mb-4">
+            Lavandería Ohana
+          </h1>
+          <p className="text-xl text-gray-600">
+            Sistema de Gestión Integral
+          </p>
         </div>
-      </main>
-    </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {menuItems.map((item) => (
+            <Card key={item.href} className="hover:shadow-lg transition-shadow duration-200">
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-3">
+                  <div className={`p-2 rounded-lg ${item.color} text-white`}>
+                    <item.icon className="h-6 w-6" />
+                  </div>
+                  <CardTitle className="text-lg">{item.title}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">{item.description}</p>
+                <Link to={item.href}>
+                  <Button className="w-full">
+                    Acceder
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <div className="mt-8 text-center">
+          <p className="text-gray-500 text-sm">
+            © 2025 Lavandería Ohana - Sistema de Gestión
+          </p>
+        </div>
+      </div>
+    </Layout>
   );
 };
 
