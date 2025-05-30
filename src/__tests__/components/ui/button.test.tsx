@@ -1,5 +1,5 @@
 
-import { render, screen, fireEvent } from '../../utils/test-utils';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { Button } from '@/components/ui/button';
 
 describe('Button Component', () => {
