@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { renderHook } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,7 +47,7 @@ describe('useAuth', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     expect(result.current.user).toBeNull();
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.loading).toBe(true);
   });
 
   test('should handle authentication state changes', () => {
@@ -54,7 +55,7 @@ describe('useAuth', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     // Verificar que el hook maneja correctamente el estado inicial
-    expect(typeof result.current.signIn).toBe('function');
-    expect(typeof result.current.signOut).toBe('function');
+    expect(typeof result.current.login).toBe('function');
+    expect(typeof result.current.logout).toBe('function');
   });
 });
