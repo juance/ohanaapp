@@ -11,7 +11,9 @@ const Tickets = React.lazy(() => import('@/pages/Tickets'));
 const Orders = React.lazy(() => import('@/pages/Orders'));
 const Clients = React.lazy(() => import('@/pages/Clients'));
 const Analytics = React.lazy(() => import('@/pages/Analytics'));
+const TrendAnalysis = React.lazy(() => import('@/pages/TrendAnalysis'));
 const AdminPage = React.lazy(() => import('@/pages/Admin'));
+const Index = React.lazy(() => import('@/pages/Index'));
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -45,7 +47,7 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }
   
   if (user) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
   }
   
   return <>{children}</>;
@@ -71,20 +73,54 @@ export const AppRoutes: React.FC = () => {
         {/* Protected Routes */}
         <Route path="/" element={
           <ProtectedRoute>
-            <Layout />
+            <Index />
           </ProtectedRoute>
-        }>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="tickets" element={<Tickets />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="clients" element={<Clients />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="admin" element={<AdminPage />} />
-        </Route>
+        } />
+        
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/tickets" element={
+          <ProtectedRoute>
+            <Tickets />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/orders" element={
+          <ProtectedRoute>
+            <Orders />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/clients" element={
+          <ProtectedRoute>
+            <Clients />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/analysis" element={
+          <ProtectedRoute>
+            <TrendAnalysis />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/admin" element={
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        } />
         
         {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </React.Suspense>
   );
