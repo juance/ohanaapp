@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/dom';
 import '@testing-library/jest-dom';
 import { Button } from '@/components/ui/button';
 
