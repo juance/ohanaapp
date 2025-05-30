@@ -1,5 +1,5 @@
 
-import { mockSupabaseClient } from '../../mocks/supabase';
+import { mockSupabaseClient, createMockQueryBuilder } from '../../mocks/supabase';
 import { createTicket, getFullTicket, cancelTicket } from '@/lib/ticket/ticketServiceCore';
 
 // Mock del cliente Supabase
@@ -23,37 +23,26 @@ jest.mock('@/lib/toast', () => ({
 describe('TicketService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
     // Configurar respuestas mock por defecto
-    mockSupabaseClient.from.mockReturnValue({
-      insert: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({
-            data: { id: 'ticket-123' },
-            error: null,
-          }),
-        }),
-      }),
-      select: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnValue({
-        single: jest.fn().mockResolvedValue({
-          data: {
-            id: 'ticket-123',
-            ticket_number: 'T-001',
-            total: 100,
-            status: 'pending',
-            customers: { id: 'customer-1', name: 'Juan Pérez', phone: '123456789' },
-          },
-          error: null,
-        }),
-      }),
-      update: jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      }),
+    const mockBuilder = createMockQueryBuilder();
+    mockBuilder.single.mockResolvedValue({
+      data: { id: 'ticket-123' },
+      error: null,
     });
+    
+    mockSupabaseClient.from.mockReturnValue(mockBuilder);
   });
 
   describe('createTicket', () => {
     test('should create a ticket successfully', async () => {
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: { id: 'ticket-123' },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
+
       const ticketData = {
         clientName: 'Juan Pérez',
         phoneNumber: '123456789',
@@ -71,16 +60,12 @@ describe('TicketService', () => {
     });
 
     test('should handle creation error', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database error' },
-            }),
-          }),
-        }),
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Database error' },
       });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
       const ticketData = {
         clientName: 'Juan Pérez',
@@ -99,6 +84,19 @@ describe('TicketService', () => {
 
   describe('getFullTicket', () => {
     test('should retrieve a complete ticket', async () => {
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: {
+          id: 'ticket-123',
+          ticket_number: 'T-001',
+          total: 100,
+          status: 'pending',
+          customers: { id: 'customer-1', name: 'Juan Pérez', phone: '123456789' },
+        },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
+
       const result = await getFullTicket('ticket-123');
 
       expect(result).toBeDefined();
@@ -108,16 +106,12 @@ describe('TicketService', () => {
     });
 
     test('should handle ticket not found', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Not found' },
-            }),
-          }),
-        }),
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Not found' },
       });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
       const result = await getFullTicket('non-existent');
       expect(result).toBeNull();
@@ -126,6 +120,10 @@ describe('TicketService', () => {
 
   describe('cancelTicket', () => {
     test('should cancel a ticket successfully', async () => {
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.eq.mockResolvedValue({ error: null });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
+
       const result = await cancelTicket('ticket-123', 'Customer request');
 
       expect(result).toBe(true);
@@ -133,13 +131,11 @@ describe('TicketService', () => {
     });
 
     test('should handle cancel error', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        update: jest.fn().mockReturnValue({
-          eq: jest.fn().mockResolvedValue({
-            error: { message: 'Update failed' },
-          }),
-        }),
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.eq.mockResolvedValue({
+        error: { message: 'Update failed' },
       });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
       const result = await cancelTicket('ticket-123', 'Customer request');
       expect(result).toBe(false);

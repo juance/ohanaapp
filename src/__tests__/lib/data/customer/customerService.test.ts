@@ -1,5 +1,5 @@
 
-import { mockSupabaseClient } from '../../../mocks/supabase';
+import { mockSupabaseClient, createMockQueryBuilder } from '../../../mocks/supabase';
 import { storeCustomer, getCustomerByPhone } from '@/lib/data/customer/customerStorageService';
 
 // Mock del cliente Supabase
@@ -18,32 +18,17 @@ jest.mock('@/lib/toast', () => ({
 describe('CustomerService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Configurar respuestas mock por defecto
-    mockSupabaseClient.from.mockReturnValue({
-      insert: jest.fn().mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({
-            data: { id: 'customer-123', name: 'María González', phone: '987654321' },
-            error: null,
-          }),
-        }),
-      }),
-      select: jest.fn().mockReturnValue({
-        eq: jest.fn().mockReturnValue({
-          single: jest.fn().mockResolvedValue({
-            data: { id: 'customer-123', name: 'María González', phone: '987654321' },
-            error: null,
-          }),
-        }),
-      }),
-      update: jest.fn().mockReturnValue({
-        eq: jest.fn().mockResolvedValue({ error: null }),
-      }),
-    });
   });
 
   describe('storeCustomer', () => {
     test('should create a customer successfully', async () => {
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: { id: 'customer-123', name: 'María González', phone: '987654321' },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
+
       const customerData = {
         name: 'María González',
         phoneNumber: '987654321',
@@ -58,16 +43,12 @@ describe('CustomerService', () => {
     });
 
     test('should handle creation error', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        insert: jest.fn().mockReturnValue({
-          select: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Database error' },
-            }),
-          }),
-        }),
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Database error' },
       });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
       const customerData = {
         name: 'María González',
@@ -81,6 +62,13 @@ describe('CustomerService', () => {
 
   describe('getCustomerByPhone', () => {
     test('should retrieve customer by phone number', async () => {
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: { id: 'customer-123', name: 'María González', phone: '987654321' },
+        error: null,
+      });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
+
       const result = await getCustomerByPhone('987654321');
 
       expect(result).toBeDefined();
@@ -89,16 +77,12 @@ describe('CustomerService', () => {
     });
 
     test('should handle customer not found', async () => {
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          eq: jest.fn().mockReturnValue({
-            single: jest.fn().mockResolvedValue({
-              data: null,
-              error: { message: 'Not found' },
-            }),
-          }),
-        }),
+      const mockBuilder = createMockQueryBuilder();
+      mockBuilder.single.mockResolvedValue({
+        data: null,
+        error: { message: 'Not found' },
       });
+      mockSupabaseClient.from.mockReturnValue(mockBuilder);
 
       const result = await getCustomerByPhone('000000000');
       expect(result).toBeNull();

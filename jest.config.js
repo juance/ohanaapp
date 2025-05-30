@@ -8,6 +8,9 @@ export default {
   transform: {
     "^.+\\.tsx?$": ["ts-jest", {
       useESM: true,
+      tsconfig: {
+        jsx: "react-jsx",
+      },
     }],
   },
   
@@ -65,5 +68,12 @@ export default {
   // Configuración adicional para React Testing Library
   testEnvironmentOptions: {
     customExportConditions: ["node", "node-addons"],
+  },
+  
+  // Configurar globals para Jest
+  globals: {
+    'ts-jest': {
+      useESM: true
+    }
   }
 };

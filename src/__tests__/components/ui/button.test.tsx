@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import { Button } from '@/components/ui/button';
 
 describe('Button Component', () => {
@@ -23,8 +24,16 @@ describe('Button Component', () => {
     expect(button).toHaveClass('bg-destructive');
   });
 
-  // TODO: Agregar más tests para:
-  // - diferentes variantes
-  // - estados disabled
-  // - diferentes tamaños
+  test('applies different sizes correctly', () => {
+    render(<Button size="sm">Small Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toHaveClass('h-9');
+  });
+
+  test('handles disabled state', () => {
+    render(<Button disabled>Disabled Button</Button>);
+    const button = screen.getByRole('button');
+    expect(button).toBeDisabled();
+    expect(button).toHaveClass('disabled:pointer-events-none');
+  });
 });
