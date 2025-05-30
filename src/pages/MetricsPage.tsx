@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download, TrendingUp, TrendingDown, DollarSign, Users, Package, Clock } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { DateFilterButtons } from '@/components/analytics/DateFilterButtons';
+import DateFilterButtons from '@/components/analytics/DateFilterButtons';
 import { DateRange, DateFilterType } from '@/lib/analytics/interfaces';
 import { Loading } from '@/components/ui/loading';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -17,7 +17,7 @@ const MetricsPage = () => {
     to: new Date()
   });
 
-  const { data: dashboardData, isLoading, error } = useDashboardData();
+  const { isLoading, ticketsInRange, incomeInRange, serviceCounts, dryCleaningItems } = useDashboardData();
 
   // Datos simulados para gráficos
   const revenueData = [
@@ -93,7 +93,7 @@ const MetricsPage = () => {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$91,234</div>
+            <div className="text-2xl font-bold">${incomeInRange.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -109,7 +109,7 @@ const MetricsPage = () => {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
+            <div className="text-2xl font-bold">{ticketsInRange.length}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-green-600 flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -121,11 +121,11 @@ const MetricsPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Nuevos Clientes</CardTitle>
+            <CardTitle className="text-sm font-medium">Servicios Valet</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">127</div>
+            <div className="text-2xl font-bold">{serviceCounts.valet}</div>
             <p className="text-xs text-muted-foreground">
               <span className="text-red-600 flex items-center">
                 <TrendingDown className="h-3 w-3 mr-1" />
