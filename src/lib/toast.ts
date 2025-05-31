@@ -1,27 +1,60 @@
 
+import { showToast } from '@/components/ui/toast-container';
+
 interface ToastProps {
   title?: string;
   description?: string;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'success';
 }
 
 export type ToastOptions = ToastProps;
 
 export const toast = (props: ToastProps | string) => {
   if (typeof props === 'string') {
-    console.log('Toast:', props);
+    showToast({
+      title: props,
+      variant: 'default'
+    });
     return;
   }
   
-  const { title, description, variant = 'default' } = props;
-  console.log(`Toast [${variant}]:`, title, description);
-  
-  // En una implementación real, esto sería conectado a un sistema de toasts
-  // Por ahora solo logueamos a la consola
+  const { title = '', description, variant = 'default' } = props;
+  showToast({
+    title,
+    description,
+    variant
+  });
 };
 
 // Métodos de conveniencia
-toast.success = (message: string) => toast({ title: 'Éxito', description: message });
-toast.error = (message: string) => toast({ title: 'Error', description: message, variant: 'destructive' });
-toast.info = (message: string) => toast({ title: 'Info', description: message });
-toast.warning = (message: string) => toast({ title: 'Advertencia', description: message });
+toast.success = (message: string, description?: string) => {
+  showToast({
+    title: message,
+    description,
+    variant: 'success'
+  });
+};
+
+toast.error = (message: string, description?: string) => {
+  showToast({
+    title: message,
+    description,
+    variant: 'destructive'
+  });
+};
+
+toast.info = (message: string, description?: string) => {
+  showToast({
+    title: message,
+    description,
+    variant: 'default'
+  });
+};
+
+toast.warning = (message: string, description?: string) => {
+  showToast({
+    title: message,
+    description,
+    variant: 'default'
+  });
+};

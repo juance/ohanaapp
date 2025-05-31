@@ -18,10 +18,17 @@ import {
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
+import { backupService } from '@/lib/services/backupService';
+import { reportService } from '@/lib/services/reportService';
+import { securityService, SecurityReport } from '@/lib/services/securityService';
+import { cacheService } from '@/lib/cacheService';
+import { toast } from '@/lib/toast';
 
 const AdminPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [isActionLoading, setIsActionLoading] = useState<string | null>(null);
+  const [securityReport, setSecurityReport] = useState<SecurityReport | null>(null);
   const [systemStats, setSystemStats] = useState({
     totalUsers: 0,
     activeTickets: 0,
@@ -65,6 +72,66 @@ const AdminPage = () => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     setIsLoading(false);
+    toast.success('Sistema actualizado correctamente');
+  };
+
+  const handleBackupManual = async () => {
+    setIsActionLoading('backup');
+    try {
+      await backupService.downloadBackup();
+      toast.success('Backup manual completado', 'El archivo se ha descargado a tu dispositivo');
+    } catch (error) {
+      toast.error('Error al crear backup manual');
+    } finally {
+      setIsActionLoading(null);
+    }
+  };
+
+  const handleClearCache = async () => {
+    setIsActionLoading('cache');
+    try {
+      cacheService.clear();
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simular tiempo de limpieza
+      toast.success('Caché del sistema limpiado', 'Todos los datos temporales han sido eliminados');
+    } catch (error) {
+      toast.error('Error al limpiar caché');
+    } finally {
+      setIsActionLoading(null);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    setIsActionLoading('report');
+    try {
+      const report = await reportService.generateSystemReport();
+      if (report) {
+        await reportService.downloadReportAsPDF(report);
+        toast.success('Reporte generado', 'El reporte PDF se ha descargado correctamente');
+      }
+    } catch (error) {
+      toast.error('Error al generar reporte');
+    } finally {
+      setIsActionLoading(null);
+    }
+  };
+
+  const handleSecurityVerification = async () => {
+    setIsActionLoading('security');
+    try {
+      const report = await securityService.runSecurityVerification();
+      if (report) {
+        setSecurityReport(report);
+        const statusText = report.overallStatus === 'secure' ? 'Sistema seguro' 
+          : report.overallStatus === 'warning' ? 'Advertencias encontradas'
+          : 'Problemas críticos detectados';
+        
+        toast.success('Verificación de seguridad completada', statusText);
+      }
+    } catch (error) {
+      toast.error('Error en verificación de seguridad');
+    } finally {
+      setIsActionLoading(null);
+    }
   };
 
   if (error) {
@@ -156,6 +223,45 @@ const AdminPage = () => {
             </Card>
           </div>
 
+          {/* Reporte de Seguridad */}
+          {securityReport && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Shield className="h-5 w-5" />
+                  <span>Reporte de Seguridad</span>
+                  <Badge variant={securityReport.overallStatus === 'secure' ? 'outline' : 'destructive'}>
+                    {securityReport.overallStatus}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{securityReport.summary.passed}</div>
+                    <div className="text-sm text-muted-foreground">Verificaciones Pasadas</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-yellow-600">{securityReport.summary.warnings}</div>
+                    <div className="text-sm text-muted-foreground">Advertencias</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-red-600">{securityReport.summary.failed}</div>
+                    <div className="text-sm text-muted-foreground">Fallos</div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {securityReport.checks.map((check, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 border rounded">
+                      <span>{securityService.getCheckStatusIcon(check.status)} {check.name}</span>
+                      <span className="text-sm text-muted-foreground">{check.message}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Alertas y Notificaciones */}
           <Card>
             <CardHeader>
@@ -239,21 +345,41 @@ const AdminPage = () => {
                 <CardTitle>Acciones Rápidas</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button variant="outline" className="w-full justify-start">
-                  <Database className="h-4 w-4 mr-2" />
-                  Realizar Backup Manual
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleBackupManual}
+                  disabled={isActionLoading === 'backup'}
+                >
+                  <Database className={`h-4 w-4 mr-2 ${isActionLoading === 'backup' ? 'animate-spin' : ''}`} />
+                  {isActionLoading === 'backup' ? 'Creando Backup...' : 'Realizar Backup Manual'}
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Limpiar Cache del Sistema
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleClearCache}
+                  disabled={isActionLoading === 'cache'}
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isActionLoading === 'cache' ? 'animate-spin' : ''}`} />
+                  {isActionLoading === 'cache' ? 'Limpiando Cache...' : 'Limpiar Cache del Sistema'}
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Generar Reporte de Sistema
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleGenerateReport}
+                  disabled={isActionLoading === 'report'}
+                >
+                  <BarChart3 className={`h-4 w-4 mr-2 ${isActionLoading === 'report' ? 'animate-spin' : ''}`} />
+                  {isActionLoading === 'report' ? 'Generando Reporte...' : 'Generar Reporte de Sistema'}
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="h-4 w-4 mr-2" />
-                  Verificar Seguridad
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={handleSecurityVerification}
+                  disabled={isActionLoading === 'security'}
+                >
+                  <Shield className={`h-4 w-4 mr-2 ${isActionLoading === 'security' ? 'animate-spin' : ''}`} />
+                  {isActionLoading === 'security' ? 'Verificando...' : 'Verificar Seguridad'}
                 </Button>
               </CardContent>
             </Card>
