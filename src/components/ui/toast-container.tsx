@@ -23,7 +23,7 @@ export const ToastContainer: React.FC = () => {
 
   useEffect(() => {
     toastContainer = (toast: Omit<Toast, 'id'>) => {
-      const id = Date.now().toString();
+      const id = Math.random().toString(36).substr(2, 9);
       setToasts(prev => [...prev, { ...toast, id }]);
     };
 
@@ -37,16 +37,17 @@ export const ToastContainer: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-0 right-0 p-4 space-y-2 z-50">
+    <div className="fixed top-4 right-4 space-y-2 z-50 pointer-events-none">
       {toasts.map(toast => (
-        <ToastNotification
-          key={toast.id}
-          title={toast.title}
-          description={toast.description}
-          variant={toast.variant}
-          duration={toast.duration}
-          onClose={() => removeToast(toast.id)}
-        />
+        <div key={toast.id} className="pointer-events-auto">
+          <ToastNotification
+            title={toast.title}
+            description={toast.description}
+            variant={toast.variant}
+            duration={toast.duration}
+            onClose={() => removeToast(toast.id)}
+          />
+        </div>
       ))}
     </div>
   );

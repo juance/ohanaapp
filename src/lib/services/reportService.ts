@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
-import jsPDF from 'jspdf';
 
 export interface SystemReport {
   timestamp: string;
@@ -70,6 +69,8 @@ export const reportService = {
 
   async downloadReportAsPDF(report: SystemReport): Promise<void> {
     try {
+      // Dynamic import to avoid bundle issues
+      const { default: jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
       // Título

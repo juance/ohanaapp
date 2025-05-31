@@ -53,7 +53,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
   return (
     <div
       className={`
-        fixed top-4 right-4 max-w-md w-full p-4 border rounded-lg shadow-lg z-50
+        max-w-md w-full p-4 border rounded-lg shadow-lg
         transform transition-all duration-300 ease-in-out
         ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
         ${getVariantStyles()}
@@ -72,7 +72,7 @@ export const ToastNotification: React.FC<ToastNotificationProps> = ({
             setIsVisible(false);
             setTimeout(onClose, 300);
           }}
-          className="text-gray-400 hover:text-gray-600"
+          className="text-gray-400 hover:text-gray-600 flex-shrink-0"
         >
           <X className="h-4 w-4" />
         </button>
