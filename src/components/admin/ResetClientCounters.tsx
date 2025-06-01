@@ -14,22 +14,15 @@ export const ResetClientCounters = () => {
   const handleReset = async () => {
     setIsResetting(true);
     try {
-      const { data, error } = await supabase.functions.invoke("reset_loyalty_points", {});
+      const { data, error } = await supabase.rpc('reset_all_loyalty_points');
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: 'Todos los puntos de fidelidad han sido reiniciados a cero'
-      });
+      toast.success('Puntos de fidelidad reiniciados', `Se reiniciaron los puntos de ${data} clientes`);
       setShowConfirmation(false);
     } catch (error) {
       console.error('Error al reiniciar los puntos de fidelidad:', error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: 'Error al reiniciar los puntos de fidelidad'
-      });
+      toast.error('Error al reiniciar los puntos de fidelidad');
     } finally {
       setIsResetting(false);
     }

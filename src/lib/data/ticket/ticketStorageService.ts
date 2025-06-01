@@ -21,6 +21,8 @@ export const storeTicket = async (
   laundryOptions: LaundryOption[]
 ): Promise<boolean> => {
   try {
+    console.log('Storing ticket with dry cleaning items:', dryCleaningItems);
+    
     // 1. Get or create customer
     let customer = await getCustomerByPhone(customerData.phoneNumber);
     if (!customer) {
@@ -33,6 +35,7 @@ export const storeTicket = async (
 
     // 2. Get next ticket number
     const ticketNumber = await getNextTicketNumber();
+    console.log('Generated ticket number:', ticketNumber);
 
     // 3. Create ticket
     const { data: newTicket, error: ticketError } = await supabase
@@ -53,6 +56,7 @@ export const storeTicket = async (
       .single();
 
     if (ticketError) {
+      console.error('Error creating ticket:', ticketError);
       throw ticketError;
     }
 
@@ -61,29 +65,37 @@ export const storeTicket = async (
     }
 
     const ticketId = newTicket.id;
+    console.log('Created ticket with ID:', ticketId);
 
     // 4. Create dry cleaning items
     if (dryCleaningItems && dryCleaningItems.length > 0) {
+      console.log('Processing dry cleaning items:', dryCleaningItems);
+      
       const dryCleaningItemsToInsert = dryCleaningItems.map(item => ({
         name: item.name,
-        quantity: item.quantity,
-        price: item.price,
+        quantity: item.quantity || 1,
+        price: item.price || 0,
         ticket_id: ticketId
       }));
+
+      console.log('Inserting dry cleaning items:', dryCleaningItemsToInsert);
 
       const { error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
         .insert(dryCleaningItemsToInsert);
 
       if (dryCleaningError) {
+        console.error('Error inserting dry cleaning items:', dryCleaningError);
         throw dryCleaningError;
       }
+      
+      console.log('Successfully inserted dry cleaning items');
     }
 
     // 5. Create laundry options
     if (laundryOptions && laundryOptions.length > 0) {
       const laundryOptionsToInsert = laundryOptions.map(option => ({
-        option_type: option.name,
+        option_type: option.name || option.optionType,
         ticket_id: ticketId
       }));
 
@@ -92,13 +104,14 @@ export const storeTicket = async (
         .insert(laundryOptionsToInsert);
 
       if (laundryError) {
+        console.error('Error inserting laundry options:', laundryError);
         throw laundryError;
       }
     }
 
-    // 6. Si no hay servicios de lavado en seco, crear un servicio por defecto
-    if (!dryCleaningItems || dryCleaningItems.length === 0) {
-      console.log('Creando servicio por defecto para el ticket');
+    // 6. Si no hay servicios de lavado en seco, crear un servicio por defecto solo para valets
+    if ((!dryCleaningItems || dryCleaningItems.length === 0) && ticketData.valetQuantity > 0) {
+      console.log('Creating default valet service for ticket');
       const quantity = ticketData.valetQuantity || 1;
       const price = ticketData.totalPrice / quantity;
 
@@ -112,11 +125,12 @@ export const storeTicket = async (
         });
 
       if (defaultServiceError) {
-        console.error('Error al crear servicio por defecto:', defaultServiceError);
+        console.error('Error creating default service:', defaultServiceError);
         // No lanzamos error para no interrumpir el flujo si falla la creación del servicio por defecto
       }
     }
 
+    console.log('Ticket stored successfully');
     return true;
   } catch (error) {
     console.error('Error storing ticket:', error);

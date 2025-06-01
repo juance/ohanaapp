@@ -1,151 +1,160 @@
 
-import { useState, useEffect, useCallback } from 'react';
-import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  quantity: number;
+  threshold: number;
+  unit: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface InventoryItemFormState {
+  name: string;
+  quantity: number;
+  threshold: number;
+  unit: string;
+  notes: string;
+}
 
 export const useInventory = () => {
-  const [items, setItems] = useState<InventoryItemWithTimestamp[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [items, setItems] = useState<InventoryItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load inventory items
-  const loadItems = useCallback(async () => {
-    setIsLoading(true);
+  const fetchItems = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
         .order('name');
-        
+
       if (error) throw error;
-      
-      if (data) {
-        const formattedItems: InventoryItemWithTimestamp[] = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit || '',
-          threshold: item.threshold || 0,
-          notes: item.notes || '',
-          created_at: item.created_at,
-          // Since updated_at might not exist in the database response, we use created_at as fallback
-          updated_at: item.created_at,
-          // Use created_at for lastUpdated if updated_at is missing
-          lastUpdated: item.created_at
-        }));
-        setItems(formattedItems);
-      }
-    } catch (error) {
-      console.error('Error loading inventory items:', error);
-      toast.error('Error al cargar el inventario');
+
+      const mappedItems: InventoryItem[] = data.map(item => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        threshold: item.threshold || 5,
+        unit: item.unit || 'unidad',
+        notes: item.notes || '',
+        createdAt: item.created_at
+      }));
+
+      setItems(mappedItems);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      toast.error('Error al cargar inventario', errorMessage);
     } finally {
-      setIsLoading(false);
-    }
-  }, []);
-  
-  // Initial load
-  useEffect(() => {
-    loadItems();
-  }, [loadItems]);
-  
-  // Create a new inventory item
-  const createItem = async (item: InventoryItemFormState): Promise<void> => {
-    setIsCreating(true);
-    try {
-      const { error } = await supabase
-        .from('inventory_items')
-        .insert({
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          threshold: item.threshold,
-          notes: item.notes
-        });
-        
-      if (error) throw error;
-      
-      await loadItems();
-      toast.success('Ítem creado correctamente');
-    } catch (error) {
-      console.error('Error creating inventory item:', error);
-      throw error;
-    } finally {
-      setIsCreating(false);
+      setLoading(false);
     }
   };
-  
-  // Update an existing inventory item
-  const updateItem = async (item: InventoryItemWithTimestamp): Promise<void> => {
-    setIsUpdating(true);
+
+  const addItem = async (itemData: InventoryItemFormState) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('inventory_items')
-        .update({
-          name: item.name,
-          quantity: item.quantity,
-          unit: item.unit,
-          threshold: item.threshold,
-          notes: item.notes
-          // Note: We're not adding updated_at here since it appears the database 
-          // might handle this automatically or doesn't have this column
-        })
-        .eq('id', item.id);
-        
+        .insert([{
+          name: itemData.name,
+          quantity: itemData.quantity,
+          threshold: itemData.threshold,
+          unit: itemData.unit,
+          notes: itemData.notes
+        }])
+        .select()
+        .single();
+
       if (error) throw error;
-      
-      await loadItems();
-    } catch (error) {
-      console.error('Error updating inventory item:', error);
-      throw error;
-    } finally {
-      setIsUpdating(false);
+
+      const newItem: InventoryItem = {
+        id: data.id,
+        name: data.name,
+        quantity: data.quantity,
+        threshold: data.threshold || 5,
+        unit: data.unit || 'unidad',
+        notes: data.notes || '',
+        createdAt: data.created_at
+      };
+
+      setItems(prev => [...prev, newItem]);
+      toast.success('Producto agregado correctamente');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      toast.error('Error al agregar producto', errorMessage);
+      throw err;
     }
   };
-  
-  // Delete an inventory item
-  const deleteItem = async (id: string): Promise<void> => {
-    setIsDeleting(true);
+
+  const updateItem = async (id: string, itemData: Partial<InventoryItemFormState>) => {
+    try {
+      const { data, error } = await supabase
+        .from('inventory_items')
+        .update(itemData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const updatedItem: InventoryItem = {
+        id: data.id,
+        name: data.name,
+        quantity: data.quantity,
+        threshold: data.threshold || 5,
+        unit: data.unit || 'unidad',
+        notes: data.notes || '',
+        createdAt: data.created_at
+      };
+
+      setItems(prev => prev.map(item => 
+        item.id === id ? updatedItem : item
+      ));
+      toast.success('Producto actualizado correctamente');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      toast.error('Error al actualizar producto', errorMessage);
+      throw err;
+    }
+  };
+
+  const deleteItem = async (id: string) => {
     try {
       const { error } = await supabase
         .from('inventory_items')
         .delete()
         .eq('id', id);
-        
+
       if (error) throw error;
-      
-      await loadItems();
-    } catch (error) {
-      console.error('Error deleting inventory item:', error);
-      throw error;
-    } finally {
-      setIsDeleting(false);
+
+      setItems(prev => prev.filter(item => item.id !== id));
+      toast.success('Producto eliminado correctamente');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMessage);
+      toast.error('Error al eliminar producto', errorMessage);
+      throw err;
     }
   };
-  
-  // Filter items based on search query
-  const filteredItems = items.filter(item =>
-    searchQuery === '' || 
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.notes?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
+
+  useEffect(() => {
+    fetchItems();
+  }, []);
+
   return {
-    items: filteredItems,
-    isLoading,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    searchQuery,
-    setSearchQuery,
-    createItem,
+    items,
+    loading,
+    error,
+    fetchItems,
+    addItem,
     updateItem,
-    deleteItem,
-    refreshItems: loadItems
+    deleteItem
   };
 };
-
-export default useInventory;

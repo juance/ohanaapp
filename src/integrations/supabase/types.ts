@@ -910,6 +910,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      reset_all_loyalty_points: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       reset_ticket_sequence: {
         Args: Record<PropertyKey, never>
         Returns: undefined
