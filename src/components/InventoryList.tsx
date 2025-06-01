@@ -9,7 +9,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
-import { toast } from '@/lib/toast';
 
 const InventoryList: React.FC = () => {
   const { 
@@ -53,9 +52,9 @@ const InventoryList: React.FC = () => {
 
     try {
       await deleteItem(itemToDelete.id);
-      toast.success('Ítem eliminado correctamente');
+      console.log('Ítem eliminado correctamente');
     } catch (error) {
-      toast.error('Error al eliminar el ítem');
+      console.error('Error al eliminar el ítem:', error);
     } finally {
       setIsDeleteDialogOpen(false);
       setItemToDelete(null);
@@ -64,27 +63,30 @@ const InventoryList: React.FC = () => {
 
   const handleSubmit = async (formData: InventoryItemFormState): Promise<void> => {
     try {
+      console.log('Submitting form data:', formData);
+      
       if (currentItem) {
         // Update existing item - convert to the format expected by updateItem
         const itemToUpdate = {
-          ...currentItem,
+          id: currentItem.id,
           name: formData.name,
           quantity: formData.quantity,
-          unit: formData.unit,
+          unit: formData.unit || 'unidad',
           threshold: formData.threshold || 5,
-          notes: formData.notes
+          notes: formData.notes || '',
+          createdAt: currentItem.createdAt
         };
         await updateItem(itemToUpdate);
-        toast.success('Ítem actualizado correctamente');
+        console.log('Ítem actualizado correctamente');
       } else {
         // Add new item
         await createItem(formData);
-        toast.success('Ítem añadido correctamente');
+        console.log('Ítem añadido correctamente');
       }
       
       setIsFormOpen(false);
     } catch (error) {
-      toast.error('Error al guardar el ítem');
+      console.error('Error al guardar el ítem:', error);
     }
   };
 
@@ -117,7 +119,7 @@ const InventoryList: React.FC = () => {
             initialData={currentItem || {
               name: '',
               quantity: 0,
-              unit: '',
+              unit: 'unidad',
               threshold: 5,
               notes: ''
             }}

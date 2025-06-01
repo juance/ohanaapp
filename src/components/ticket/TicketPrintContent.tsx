@@ -28,7 +28,7 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
           <ul>
             {ticket.services.map((service) => (
               <li key={service.id} className="flex justify-between">
-                <span>{service.name} x {service.quantity || 1}</span>
+                <span>{service.name || 'Servicio'} x {service.quantity || 1}</span>
                 <span>${service.price ? service.price.toLocaleString() : '0'}</span>
               </li>
             ))}
@@ -51,11 +51,6 @@ const TicketPrintContent: React.FC<TicketPrintContentProps> = ({ ticket, selecte
         <p className="font-bold text-right">Total: ${ticket.totalPrice.toLocaleString()}</p>
         <p className="text-right text-sm">Método de pago: {ticket.paymentMethod}</p>
         <p className="text-center mt-4 text-sm">¡Gracias por su preferencia!</p>
-        {ticket.basketTicketNumber && (
-          <p className="text-center font-bold mt-2">
-            Ticket de canasta: #{ticket.basketTicketNumber}
-          </p>
-        )}
       </div>
     </div>
   );

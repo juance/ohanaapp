@@ -27,32 +27,35 @@ export const createTicketForPreview = async (
     console.error('Error getting ticket number for preview:', error);
   }
 
-  // Get a random basket ticket number for preview (will be replaced by the server)
-  const basketNumber = Math.floor(Math.random() * 999) + 1;
-
-  // Format services based on ticket type
+  // Format services based on ticket type with proper names
   const services = activeTab === 'valet'
-    ? [{ id: generateUUID(), name: 'Valet', price: totalPrice, quantity: effectiveValetQuantity }]
+    ? [{ 
+        id: generateUUID(), 
+        name: effectiveValetQuantity > 1 ? 'Valets' : 'Valet', 
+        price: totalPrice, 
+        quantity: effectiveValetQuantity 
+      }]
     : dryCleaningItems.map(item => ({
         id: generateUUID(),
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity
+        name: item.name || 'Servicio de tintorería',
+        price: item.price || 0,
+        quantity: item.quantity || 1
       }));
+
+  console.log('Creating ticket preview with services:', services);
 
   // Create the ticket object
   return {
     id: generateUUID(),
     ticketNumber: ticketNumber,
-    basketTicketNumber: basketNumber.toString(),
     clientName: customerName,
     phoneNumber,
-    total: useFreeValet ? 0 : totalPrice, // Add required total field
+    total: useFreeValet ? 0 : totalPrice,
     services,
     paymentMethod: paymentMethod as any,
     totalPrice: useFreeValet ? 0 : totalPrice,
     status: TICKET_STATUS.READY,
-    date: date.toISOString(), // Add required date field
+    date: date.toISOString(),
     createdAt: date.toISOString(),
     isPaid: isPaidInAdvance,
     deliveredDate: null,

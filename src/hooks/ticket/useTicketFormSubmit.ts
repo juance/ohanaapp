@@ -41,6 +41,13 @@ export const useTicketFormSubmit = (
         isPaidInAdvance
       } = formState;
 
+      console.log('Form state:', {
+        activeTab,
+        selectedDryCleaningItems,
+        valetQuantity,
+        totalPrice
+      });
+
       // Validate form input
       if (!validateTicketInput(
         customerName,
@@ -57,15 +64,27 @@ export const useTicketFormSubmit = (
       // Adjust the valet quantity if using a free one
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
 
-      // Prepare dry cleaning items for tintorería
+      // Prepare dry cleaning items for tintorería with better error handling
       let dryCleaningItemsForTicket: any[] = [];
       if (activeTab === 'tintoreria' && selectedDryCleaningItems?.length > 0) {
         dryCleaningItemsForTicket = selectedDryCleaningItems.map(item => {
           const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
+          const itemName = itemDetails?.name || item.name || 'Servicio de tintorería';
+          const itemQuantity = item.quantity || 1;
+          const itemPrice = (itemDetails?.price || 0) * itemQuantity;
+          
+          console.log('Processing dry cleaning item:', {
+            id: item.id,
+            name: itemName,
+            quantity: itemQuantity,
+            price: itemPrice,
+            itemDetails
+          });
+          
           return {
-            name: itemDetails?.name || item.name || 'Servicio de tintorería',
-            quantity: item.quantity || 1,
-            price: (itemDetails?.price || 0) * (item.quantity || 1)
+            name: itemName,
+            quantity: itemQuantity,
+            price: itemPrice
           };
         });
         console.log('Prepared dry cleaning items for ticket:', dryCleaningItemsForTicket);
@@ -137,6 +156,7 @@ export const useTicketFormSubmit = (
             isPaidInAdvance || false
           );
 
+          console.log('Ticket for print:', ticketForPrint);
           onTicketGenerated(ticketForPrint, getSelectedLaundryOptions());
         }
 
@@ -159,7 +179,7 @@ export const useTicketFormSubmit = (
   return { handleSubmit, isSubmitting };
 };
 
-// Mock data array for dry cleaning items
+// Mock data array for dry cleaning items - actualizar con nombres en español
 const dryCleaningItems = [
   { id: 'shirt', name: 'Camisa', price: 20 },
   { id: 'pants', name: 'Pantalón', price: 25 },

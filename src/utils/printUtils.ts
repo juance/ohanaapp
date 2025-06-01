@@ -16,18 +16,25 @@ const ticketToHtml = (ticket: Ticket, selectedOptions: LaundryOption[] = []): st
     return sum + quantity;
   }, 0);
   
-  // Generate services HTML
-  const servicesHtml = ticket.services.map(service => `
+  // Generate services HTML - fix empty service names
+  const servicesHtml = ticket.services.map(service => {
+    const serviceName = service.name || 'Servicio';
+    const serviceQuantity = ('quantity' in service && typeof service.quantity === 'number') ? service.quantity : 1;
+    const servicePrice = service.price || 0;
+    
+    return `
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
       <div style="display: flex; align-items: center;">
         <div style="width: 16px; height: 16px; border: 1px solid #999; margin-right: 8px; display: flex; align-items: center; justify-content: center; background-color: #3b82f6; color: white;">✓</div>
-        <span>${service.name}</span>
+        <span>${serviceName}</span>
       </div>
-      ${('quantity' in service && typeof service.quantity === 'number' && service.quantity > 1) 
-        ? `<span style="font-size: 14px; font-weight: 500;">x${service.quantity}</span>` 
-        : ''}
+      <div style="display: flex; gap: 8px; align-items: center;">
+        ${serviceQuantity > 1 ? `<span style="font-size: 14px; font-weight: 500;">x${serviceQuantity}</span>` : ''}
+        <span style="font-size: 14px;">$${servicePrice.toLocaleString()}</span>
+      </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
   
   return `
     <div style="font-family: Arial, sans-serif; width: 350px; padding: 20px; background-color: white;">
@@ -41,11 +48,6 @@ const ticketToHtml = (ticket: Ticket, selectedOptions: LaundryOption[] = []): st
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
           <span style="font-weight: bold;">Ticket Número:</span>
           <span>${ticket.ticketNumber || 'N/A'}</span>
-        </div>
-        
-        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <span style="font-weight: bold;">N° Canasto:</span>
-          <span>${ticket.basketTicketNumber || 'N/A'}</span>
         </div>
         
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">

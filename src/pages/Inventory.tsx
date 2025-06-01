@@ -8,7 +8,6 @@ import InventoryList from '@/components/InventoryList';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import InventoryItemForm from '@/components/inventory/InventoryItemForm';
 import { useInventory } from '@/hooks/useInventory';
-import { toast } from '@/lib/toast';
 import { InventoryItemFormState } from '@/lib/types/inventory-ui.types';
 
 const Inventory: React.FC = () => {
@@ -27,12 +26,12 @@ const Inventory: React.FC = () => {
 
   const handleSubmit = async (formData: InventoryItemFormState) => {
     try {
+      console.log('Creating new inventory item:', formData);
       await createItem(formData);
-      toast.success('Producto agregado correctamente');
+      console.log('Producto agregado correctamente');
       setIsFormOpen(false);
     } catch (error) {
       console.error("Error creating inventory item:", error);
-      toast.error('Error al agregar el producto');
     }
   };
 
