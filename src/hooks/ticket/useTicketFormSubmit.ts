@@ -75,12 +75,16 @@ export const useTicketFormSubmit = (
       const success = await storeTicket(
         {
           totalPrice: useFreeValet ? 0 : totalPrice,
+          total: useFreeValet ? 0 : totalPrice,
           paymentMethod: paymentMethod as any,
           valetQuantity: activeTab === 'valet' ? effectiveValetQuantity : 0,
           status: 'pending',
           isPaid: isPaidInAdvance || false,
           customDate: date,
-          isPaidInAdvance: isPaidInAdvance || false
+          date: date.toISOString(),
+          isPaidInAdvance: isPaidInAdvance || false,
+          clientName: customerName,
+          phoneNumber: phoneNumber
         },
         {
           name: customerName,
