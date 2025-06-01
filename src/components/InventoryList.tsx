@@ -65,11 +65,16 @@ const InventoryList: React.FC = () => {
   const handleSubmit = async (formData: InventoryItemFormState): Promise<void> => {
     try {
       if (currentItem) {
-        // Update existing item
-        await updateItem({
+        // Update existing item - convert to the format expected by updateItem
+        const itemToUpdate = {
           ...currentItem,
-          ...formData
-        });
+          name: formData.name,
+          quantity: formData.quantity,
+          unit: formData.unit,
+          threshold: formData.threshold || 5,
+          notes: formData.notes
+        };
+        await updateItem(itemToUpdate);
         toast.success('Ítem actualizado correctamente');
       } else {
         // Add new item
@@ -113,7 +118,7 @@ const InventoryList: React.FC = () => {
               name: '',
               quantity: 0,
               unit: '',
-              threshold: 0,
+              threshold: 5,
               notes: ''
             }}
             isSubmitting={isCreating || isUpdating}

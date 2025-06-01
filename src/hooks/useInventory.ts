@@ -2,23 +2,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/lib/toast';
+import { InventoryItemFormState } from '@/lib/types/inventory-ui.types';
 
 export interface InventoryItem {
   id: string;
   name: string;
   quantity: number;
-  threshold: number;
-  unit: string;
+  threshold?: number;
+  unit?: string;
   notes?: string;
-  createdAt: string;
-}
-
-export interface InventoryItemFormState {
-  name: string;
-  quantity: number;
-  threshold: number;
-  unit: string;
-  notes: string;
+  createdAt?: string;
 }
 
 export const useInventory = () => {
@@ -70,9 +63,9 @@ export const useInventory = () => {
         .insert([{
           name: itemData.name,
           quantity: itemData.quantity,
-          threshold: itemData.threshold,
-          unit: itemData.unit,
-          notes: itemData.notes
+          threshold: itemData.threshold || 5,
+          unit: itemData.unit || 'unidad',
+          notes: itemData.notes || ''
         }])
         .select()
         .single();
@@ -110,9 +103,9 @@ export const useInventory = () => {
         .update({
           name: updatedItem.name,
           quantity: updatedItem.quantity,
-          threshold: updatedItem.threshold,
-          unit: updatedItem.unit,
-          notes: updatedItem.notes
+          threshold: updatedItem.threshold || 5,
+          unit: updatedItem.unit || 'unidad',
+          notes: updatedItem.notes || ''
         })
         .eq('id', updatedItem.id)
         .select()
