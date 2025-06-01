@@ -71,7 +71,7 @@ export const useTicketFormSubmit = (
         console.log('Prepared dry cleaning items for ticket:', dryCleaningItemsForTicket);
       }
 
-      // Store the ticket using storeTicket function
+      // Store the ticket using storeTicket function with correct parameters
       const success = await storeTicket(
         {
           totalPrice: useFreeValet ? 0 : totalPrice,

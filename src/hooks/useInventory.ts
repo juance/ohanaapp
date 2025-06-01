@@ -23,8 +23,13 @@ export interface InventoryItemFormState {
 
 export const useInventory = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
+  const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchItems = async () => {
     try {
@@ -47,6 +52,7 @@ export const useInventory = () => {
       }));
 
       setItems(mappedItems);
+      setFilteredItems(mappedItems);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
@@ -56,8 +62,9 @@ export const useInventory = () => {
     }
   };
 
-  const addItem = async (itemData: InventoryItemFormState) => {
+  const createItem = async (itemData: InventoryItemFormState) => {
     try {
+      setIsCreating(true);
       const { data, error } = await supabase
         .from('inventory_items')
         .insert([{
@@ -83,27 +90,37 @@ export const useInventory = () => {
       };
 
       setItems(prev => [...prev, newItem]);
+      setFilteredItems(prev => [...prev, newItem]);
       toast.success('Producto agregado correctamente');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
       toast.error('Error al agregar producto', errorMessage);
       throw err;
+    } finally {
+      setIsCreating(false);
     }
   };
 
-  const updateItem = async (id: string, itemData: Partial<InventoryItemFormState>) => {
+  const updateItem = async (updatedItem: InventoryItem) => {
     try {
+      setIsUpdating(true);
       const { data, error } = await supabase
         .from('inventory_items')
-        .update(itemData)
-        .eq('id', id)
+        .update({
+          name: updatedItem.name,
+          quantity: updatedItem.quantity,
+          threshold: updatedItem.threshold,
+          unit: updatedItem.unit,
+          notes: updatedItem.notes
+        })
+        .eq('id', updatedItem.id)
         .select()
         .single();
 
       if (error) throw error;
 
-      const updatedItem: InventoryItem = {
+      const updated: InventoryItem = {
         id: data.id,
         name: data.name,
         quantity: data.quantity,
@@ -114,7 +131,10 @@ export const useInventory = () => {
       };
 
       setItems(prev => prev.map(item => 
-        item.id === id ? updatedItem : item
+        item.id === updatedItem.id ? updated : item
+      ));
+      setFilteredItems(prev => prev.map(item => 
+        item.id === updatedItem.id ? updated : item
       ));
       toast.success('Producto actualizado correctamente');
     } catch (err) {
@@ -122,11 +142,14 @@ export const useInventory = () => {
       setError(errorMessage);
       toast.error('Error al actualizar producto', errorMessage);
       throw err;
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const deleteItem = async (id: string) => {
     try {
+      setIsDeleting(true);
       const { error } = await supabase
         .from('inventory_items')
         .delete()
@@ -135,25 +158,46 @@ export const useInventory = () => {
       if (error) throw error;
 
       setItems(prev => prev.filter(item => item.id !== id));
+      setFilteredItems(prev => prev.filter(item => item.id !== id));
       toast.success('Producto eliminado correctamente');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
       setError(errorMessage);
       toast.error('Error al eliminar producto', errorMessage);
       throw err;
+    } finally {
+      setIsDeleting(false);
     }
   };
+
+  // Filter items based on search query
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setFilteredItems(items);
+    } else {
+      const filtered = items.filter(item =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.notes?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    }
+  }, [searchQuery, items]);
 
   useEffect(() => {
     fetchItems();
   }, []);
 
   return {
-    items,
+    items: filteredItems,
     loading,
     error,
+    isCreating,
+    isUpdating,
+    isDeleting,
+    searchQuery,
+    setSearchQuery,
     fetchItems,
-    addItem,
+    createItem,
     updateItem,
     deleteItem
   };

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { InventoryItemWithTimestamp, InventoryItemFormState } from '@/lib/types/inventory-ui.types';
 import InventorySearch from '@/components/inventory/InventorySearch';
 import InventoryTable from '@/components/inventory/InventoryTable';
@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const InventoryList: React.FC = () => {
   const { 
