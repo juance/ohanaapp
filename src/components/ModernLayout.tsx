@@ -1,11 +1,12 @@
 
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { ToastContainer } from '@/components/ui/toast-container';
 
 interface ModernLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export function ModernLayout({ children }: ModernLayoutProps) {
@@ -15,7 +16,7 @@ export function ModernLayout({ children }: ModernLayoutProps) {
         <AppSidebar />
         <SidebarInset className="flex-1">
           <main className="container mx-auto p-6">
-            {children}
+            {children || <Outlet />}
           </main>
         </SidebarInset>
       </div>

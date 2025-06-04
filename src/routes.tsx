@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import ModernLayout from '@/components/ModernLayout';
+import { ModernLayout } from '@/components/ModernLayout';
 import Index from '@/pages/Index';
 import Tickets from '@/pages/Tickets';
 import Orders from '@/pages/Orders';
@@ -20,51 +20,87 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <ModernLayout />,
+    element: <ModernLayout><Index /></ModernLayout>,
     children: [
       {
-        index: true,
-        element: <Index />
-      },
-      {
         path: "tickets",
-        element: <ProtectedRoute><Tickets /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Tickets />
+          </ProtectedRoute>
+        )
       },
       {
         path: "orders",
-        element: <ProtectedRoute><Orders /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Orders />
+          </ProtectedRoute>
+        )
       },
       {
         path: "dashboard",
-        element: <ProtectedRoute><Dashboard /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Dashboard />
+          </ProtectedRoute>
+        )
       },
       {
         path: "clients",
-        element: <ProtectedRoute><Clients /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Clients />
+          </ProtectedRoute>
+        )
       },
       {
         path: "admin",
-        element: <ProtectedRoute><Admin /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin']}>
+            <Admin />
+          </ProtectedRoute>
+        )
       },
       {
         path: "loyalty",
-        element: <ProtectedRoute><Loyalty /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Loyalty />
+          </ProtectedRoute>
+        )
       },
       {
         path: "expenses",
-        element: <ProtectedRoute><Expenses /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Expenses />
+          </ProtectedRoute>
+        )
       },
       {
         path: "inventory",
-        element: <ProtectedRoute><Inventory /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Inventory />
+          </ProtectedRoute>
+        )
       },
       {
         path: "feedback",
-        element: <ProtectedRoute><Feedback /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Feedback />
+          </ProtectedRoute>
+        )
       },
       {
         path: "analytics",
-        element: <ProtectedRoute><Analytics /></ProtectedRoute>
+        element: (
+          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+            <Analytics />
+          </ProtectedRoute>
+        )
       }
     ]
   },
