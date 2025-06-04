@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ModernLayout } from '@/components/ModernLayout';
@@ -16,94 +15,128 @@ import Inventory from '@/pages/Inventory';
 import Feedback from '@/pages/Feedback';
 import Analytics from '@/pages/Analytics';
 import NotFound from '@/pages/NotFound';
+import PickupOrders from '@/pages/PickupOrders';
+import DeliveredOrders from '@/pages/DeliveredOrders';
+import Metrics from '@/pages/Metrics';
+import TicketAnalysis from '@/pages/TicketAnalysis';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <ModernLayout><Index /></ModernLayout>,
-    children: [
-      {
-        path: "tickets",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Tickets />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "orders",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Orders />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "dashboard",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Dashboard />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "clients",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Clients />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "admin",
-        element: (
-          <ProtectedRoute allowedRoles={['admin']}>
-            <Admin />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "loyalty",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Loyalty />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "expenses",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Expenses />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "inventory",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Inventory />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "feedback",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Feedback />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "analytics",
-        element: (
-          <ProtectedRoute allowedRoles={['admin', 'operator']}>
-            <Analytics />
-          </ProtectedRoute>
-        )
-      }
-    ]
+    element: <ModernLayout><Index /></ModernLayout>
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Dashboard /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/tickets",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Tickets /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/orders",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Orders /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/pickup",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><PickupOrders /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/delivered",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><DeliveredOrders /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/clients",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Clients /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/admin",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <ModernLayout><Admin /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/loyalty",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Loyalty /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/expenses",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Expenses /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/inventory",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Inventory /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/feedback",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Feedback /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/analytics",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Analytics /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/metrics",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><Metrics /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/ticket-analysis",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><TicketAnalysis /></ModernLayout>
+      </ProtectedRoute>
+    )
   },
   {
     path: "/auth",
@@ -120,4 +153,3 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
-

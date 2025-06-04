@@ -7,7 +7,6 @@ import PickupActionButtons from '@/components/orders/PickupActionButtons';
 import PickupTabsContent from '@/components/orders/PickupTabsContent';
 import CancelTicketDialog from '@/components/orders/CancelTicketDialog';
 import PaymentMethodDialog from '@/components/orders/PaymentMethodDialog';
-import Layout from '@/components/Layout';
 
 const PickupOrders: React.FC = () => {
   const {
@@ -61,62 +60,60 @@ const PickupOrders: React.FC = () => {
   }, [selectedTicket, loadTicketServices]);
 
   return (
-    <Layout>
-      <div className="container mx-auto">
-        <OrderHeader 
-          title="Tickets para Entrega" 
-          description="Visualiza y gestiona los tickets pendientes de entrega"
-        />
-        
-        <div className="mb-4">
-          <SearchBar 
-            searchQuery={searchQuery} 
-            setSearchQuery={setSearchQuery}
-            searchFilter={searchFilter} 
-            setSearchFilter={setSearchFilter}
-          />
-        </div>
-
-        <PickupActionButtons 
-          tickets={filteredTickets || []}
-          selectedTicket={selectedTicket}
-          handleMarkAsDelivered={handleMarkAsDelivered}
-          handleOpenCancelDialog={handleOpenCancelDialog}
-          handlePrintTicket={handlePrintTicket}
-          handleNotifyClient={handleNotifyClient}
-          handleShareWhatsApp={handleShareWhatsApp}
-          handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
-        />
-        
-        <PickupTabsContent 
-          isLoading={isLoading}
-          isError={isError}
-          error={error}
-          refetch={refetch}
-          filteredTickets={filteredTickets}
-          selectedTicket={selectedTicket}
-          setSelectedTicket={setSelectedTicket}
-          formatDate={formatDate}
-          ticketServices={ticketServices}
-          ticketDetailRef={ticketDetailRef}
-        />
-
-        {/* Dialogs */}
-        <CancelTicketDialog 
-          open={cancelDialogOpen}
-          onOpenChange={setCancelDialogOpen}
-          cancelReason={cancelReason}
-          setCancelReason={setCancelReason}
-          onCancel={handleCancelTicket}
-        />
-
-        <PaymentMethodDialog 
-          open={paymentMethodDialogOpen}
-          onOpenChange={setPaymentMethodDialogOpen}
-          onUpdatePaymentMethod={handleUpdatePaymentMethod}
+    <div className="space-y-6">
+      <OrderHeader 
+        title="Tickets para Entrega" 
+        description="Visualiza y gestiona los tickets pendientes de entrega"
+      />
+      
+      <div className="mb-4">
+        <SearchBar 
+          searchQuery={searchQuery} 
+          setSearchQuery={setSearchQuery}
+          searchFilter={searchFilter} 
+          setSearchFilter={setSearchFilter}
         />
       </div>
-    </Layout>
+
+      <PickupActionButtons 
+        tickets={filteredTickets || []}
+        selectedTicket={selectedTicket}
+        handleMarkAsDelivered={handleMarkAsDelivered}
+        handleOpenCancelDialog={handleOpenCancelDialog}
+        handlePrintTicket={handlePrintTicket}
+        handleNotifyClient={handleNotifyClient}
+        handleShareWhatsApp={handleShareWhatsApp}
+        handleOpenPaymentMethodDialog={handleOpenPaymentMethodDialog}
+      />
+      
+      <PickupTabsContent 
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        refetch={refetch}
+        filteredTickets={filteredTickets}
+        selectedTicket={selectedTicket}
+        setSelectedTicket={setSelectedTicket}
+        formatDate={formatDate}
+        ticketServices={ticketServices}
+        ticketDetailRef={ticketDetailRef}
+      />
+
+      {/* Dialogs */}
+      <CancelTicketDialog 
+        open={cancelDialogOpen}
+        onOpenChange={setCancelDialogOpen}
+        cancelReason={cancelReason}
+        setCancelReason={setCancelReason}
+        onCancel={handleCancelTicket}
+      />
+
+      <PaymentMethodDialog 
+        open={paymentMethodDialogOpen}
+        onOpenChange={setPaymentMethodDialogOpen}
+        onUpdatePaymentMethod={handleUpdatePaymentMethod}
+      />
+    </div>
   );
 };
 
