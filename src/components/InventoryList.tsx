@@ -7,8 +7,9 @@ import InventoryItemForm from '@/components/inventory/InventoryItemForm';
 import DeleteItemDialog from '@/components/inventory/DeleteItemDialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, AlertCircle } from 'lucide-react';
 import { useInventory } from '@/hooks/useInventory';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const InventoryList: React.FC = () => {
   const { 
@@ -16,6 +17,7 @@ const InventoryList: React.FC = () => {
     isCreating,
     isUpdating,
     isDeleting,
+    error,
     createItem,
     updateItem,
     deleteItem,
@@ -66,7 +68,7 @@ const InventoryList: React.FC = () => {
       console.log('Submitting form data:', formData);
       
       if (currentItem) {
-        // Update existing item - convert to the format expected by updateItem
+        // Update existing item
         const itemToUpdate = {
           id: currentItem.id,
           name: formData.name,
@@ -85,8 +87,10 @@ const InventoryList: React.FC = () => {
       }
       
       setIsFormOpen(false);
+      setCurrentItem(null);
     } catch (error) {
       console.error('Error al guardar el ítem:', error);
+      // El error ya se maneja en el hook useInventory
     }
   };
 
@@ -98,6 +102,13 @@ const InventoryList: React.FC = () => {
           <Plus className="h-4 w-4" /> Agregar Producto
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       
       <InventorySearch
         onSearch={handleSearch}
@@ -110,7 +121,10 @@ const InventoryList: React.FC = () => {
         onDelete={handleDelete}
       />
       
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isFormOpen} onOpenChange={(open) => {
+        setIsFormOpen(open);
+        if (!open) setCurrentItem(null);
+      }}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>{currentItem ? 'Editar' : 'Crear'} Ítem</DialogTitle>
@@ -125,7 +139,10 @@ const InventoryList: React.FC = () => {
             }}
             isSubmitting={isCreating || isUpdating}
             onSubmit={handleSubmit}
-            onCancel={() => setIsFormOpen(false)}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setCurrentItem(null);
+            }}
           />
         </DialogContent>
       </Dialog>

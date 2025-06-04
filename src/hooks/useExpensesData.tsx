@@ -1,118 +1,147 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/lib/toast';
-import { SyncableExpense } from '@/lib/types/sync.types';
+
+export interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  date: string;
+  created_at?: string;
+}
+
+export interface ExpenseFormData {
+  description: string;
+  amount: number;
+  date: string;
+}
 
 export const useExpensesData = () => {
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [newExpense, setNewExpense] = useState({
-    amount: 0,
-    description: '',
-    date: new Date().toISOString().split('T')[0]
-  });
-  const [isAddingExpense, setIsAddingExpense] = useState(false);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load expenses data
-  const loadExpensesData = async () => {
-    setIsLoading(true);
+  const fetchExpenses = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase
         .from('expenses')
         .select('*')
         .order('date', { ascending: false });
 
-      if (error) throw error;
-      
-      setExpenses(data || []);
-    } catch (error) {
-      console.error('Error loading expenses data:', error);
-      toast.error('Error al cargar datos de gastos');
-      
-      // Try to get expenses from local storage as fallback
-      const localExpenses = localStorage.getItem('expenses');
-      if (localExpenses) {
-        setExpenses(JSON.parse(localExpenses));
+      if (error) {
+        console.error('Error fetching expenses:', error);
+        throw error;
       }
+
+      const mappedExpenses: Expense[] = data.map(expense => ({
+        id: expense.id,
+        description: expense.description,
+        amount: expense.amount,
+        date: expense.date,
+        created_at: expense.created_at
+      }));
+
+      setExpenses(mappedExpenses);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar gastos';
+      console.error('Error in fetchExpenses:', errorMessage);
+      setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Load data on component mount
-  useEffect(() => {
-    loadExpensesData();
-  }, []);
-
-  // Handle adding a new expense
-  const handleAddExpense = async () => {
-    if (newExpense.amount <= 0) {
-      toast.error('El monto debe ser mayor que cero');
-      return;
-    }
-
-    if (!newExpense.description.trim()) {
-      toast.error('La descripción es requerida');
-      return;
-    }
-
-    setIsAddingExpense(true);
-    
+  const addExpense = async (expenseData: ExpenseFormData): Promise<void> => {
     try {
-      // Prepare the data ensuring it has all required properties
-      const expenseData = {
-        amount: newExpense.amount,
-        description: newExpense.description,
-        date: newExpense.date,
-        created_at: new Date().toISOString()
-      };
-      
+      setError(null);
+      console.log('Adding expense:', expenseData);
+
+      // Validate required fields
+      if (!expenseData.description || !expenseData.description.trim()) {
+        throw new Error('La descripción es requerida');
+      }
+
+      if (!expenseData.amount || expenseData.amount <= 0) {
+        throw new Error('El monto debe ser mayor a 0');
+      }
+
+      if (!expenseData.date) {
+        throw new Error('La fecha es requerida');
+      }
+
       const { data, error } = await supabase
         .from('expenses')
-        .insert([expenseData])
-        .select();
+        .insert([{
+          description: expenseData.description.trim(),
+          amount: expenseData.amount,
+          date: new Date(expenseData.date).toISOString()
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
-      
-      toast.success('Gasto agregado correctamente');
-      // Reset form
-      setNewExpense({
-        amount: 0,
-        description: '',
-        date: new Date().toISOString().split('T')[0]
-      });
-      // Refresh data
-      loadExpensesData();
-    } catch (error) {
-      console.error('Error adding expense:', error);
-      toast.error('Error al agregar el gasto');
-      
-      // Store in local storage for later sync
-      const localExpenses = localStorage.getItem('expenses');
-      const expenses = localExpenses ? JSON.parse(localExpenses) : [];
-      const newLocalExpense = {
-        ...newExpense,
-        id: `local-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        synced: false
+      if (error) {
+        console.error('Error creating expense:', error);
+        throw new Error(`Error al guardar el gasto: ${error.message}`);
+      }
+
+      console.log('Successfully created expense:', data);
+
+      const newExpense: Expense = {
+        id: data.id,
+        description: data.description,
+        amount: data.amount,
+        date: data.date,
+        created_at: data.created_at
       };
-      expenses.push(newLocalExpense);
-      localStorage.setItem('expenses', JSON.stringify(expenses));
-      
-      toast.info('Gasto guardado localmente para sincronización posterior');
-    } finally {
-      setIsAddingExpense(false);
+
+      setExpenses(prev => [newExpense, ...prev]);
+      console.log('Gasto agregado correctamente');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al guardar el gasto';
+      console.error('Error in addExpense:', errorMessage);
+      setError(errorMessage);
+      throw new Error(errorMessage);
     }
   };
+
+  const deleteExpense = async (id: string): Promise<void> => {
+    try {
+      setError(null);
+      console.log('Deleting expense:', id);
+
+      const { error } = await supabase
+        .from('expenses')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting expense:', error);
+        throw new Error(`Error al eliminar el gasto: ${error.message}`);
+      }
+
+      setExpenses(prev => prev.filter(expense => expense.id !== id));
+      console.log('Gasto eliminado correctamente');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al eliminar el gasto';
+      console.error('Error in deleteExpense:', errorMessage);
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpenses();
+  }, []);
 
   return {
     expenses,
-    isLoading,
-    newExpense,
-    setNewExpense,
-    isAddingExpense,
-    handleAddExpense,
-    refreshExpenses: loadExpensesData
+    loading,
+    error,
+    fetchExpenses,
+    addExpense,
+    deleteExpense
   };
 };

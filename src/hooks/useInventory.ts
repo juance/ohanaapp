@@ -26,6 +26,7 @@ export const useInventory = () => {
   const fetchItems = async () => {
     try {
       setLoading(true);
+      setError(null);
       console.log('Fetching inventory items...');
       
       const { data, error } = await supabase
@@ -65,12 +66,22 @@ export const useInventory = () => {
   const createItem = async (itemData: InventoryItemFormState) => {
     try {
       setIsCreating(true);
+      setError(null);
       console.log('Creating inventory item:', itemData);
+
+      // Validate required fields
+      if (!itemData.name || !itemData.name.trim()) {
+        throw new Error('El nombre del producto es requerido');
+      }
+
+      if (itemData.quantity < 0) {
+        throw new Error('La cantidad no puede ser negativa');
+      }
       
       const { data, error } = await supabase
         .from('inventory_items')
         .insert([{
-          name: itemData.name,
+          name: itemData.name.trim(),
           quantity: itemData.quantity,
           threshold: itemData.threshold || 5,
           unit: itemData.unit || 'unidad',
@@ -81,10 +92,10 @@ export const useInventory = () => {
 
       if (error) {
         console.error('Error creating inventory item:', error);
-        throw error;
+        throw new Error(`Error al crear el producto: ${error.message}`);
       }
 
-      console.log('Created inventory item:', data);
+      console.log('Successfully created inventory item:', data);
 
       const newItem: InventoryItem = {
         id: data.id,
@@ -96,14 +107,14 @@ export const useInventory = () => {
         createdAt: data.created_at
       };
 
-      setItems(prev => [...prev, newItem]);
-      setFilteredItems(prev => [...prev, newItem]);
-      console.log('Producto agregado correctamente');
+      setItems(prev => [newItem, ...prev]);
+      setFilteredItems(prev => [newItem, ...prev]);
+      console.log('Producto agregado correctamente al inventario');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al crear el producto';
       console.error('Error in createItem:', errorMessage);
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setIsCreating(false);
     }
@@ -112,12 +123,22 @@ export const useInventory = () => {
   const updateItem = async (updatedItem: InventoryItem) => {
     try {
       setIsUpdating(true);
+      setError(null);
       console.log('Updating inventory item:', updatedItem);
+
+      // Validate required fields
+      if (!updatedItem.name || !updatedItem.name.trim()) {
+        throw new Error('El nombre del producto es requerido');
+      }
+
+      if (updatedItem.quantity < 0) {
+        throw new Error('La cantidad no puede ser negativa');
+      }
       
       const { data, error } = await supabase
         .from('inventory_items')
         .update({
-          name: updatedItem.name,
+          name: updatedItem.name.trim(),
           quantity: updatedItem.quantity,
           threshold: updatedItem.threshold || 5,
           unit: updatedItem.unit || 'unidad',
@@ -129,10 +150,10 @@ export const useInventory = () => {
 
       if (error) {
         console.error('Error updating inventory item:', error);
-        throw error;
+        throw new Error(`Error al actualizar el producto: ${error.message}`);
       }
 
-      console.log('Updated inventory item:', data);
+      console.log('Successfully updated inventory item:', data);
 
       const updated: InventoryItem = {
         id: data.id,
@@ -152,10 +173,10 @@ export const useInventory = () => {
       ));
       console.log('Producto actualizado correctamente');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al actualizar el producto';
       console.error('Error in updateItem:', errorMessage);
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setIsUpdating(false);
     }
@@ -164,6 +185,7 @@ export const useInventory = () => {
   const deleteItem = async (id: string) => {
     try {
       setIsDeleting(true);
+      setError(null);
       console.log('Deleting inventory item:', id);
       
       const { error } = await supabase
@@ -173,17 +195,17 @@ export const useInventory = () => {
 
       if (error) {
         console.error('Error deleting inventory item:', error);
-        throw error;
+        throw new Error(`Error al eliminar el producto: ${error.message}`);
       }
 
       setItems(prev => prev.filter(item => item.id !== id));
       setFilteredItems(prev => prev.filter(item => item.id !== id));
       console.log('Producto eliminado correctamente');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al eliminar el producto';
       console.error('Error in deleteItem:', errorMessage);
       setError(errorMessage);
-      throw err;
+      throw new Error(errorMessage);
     } finally {
       setIsDeleting(false);
     }

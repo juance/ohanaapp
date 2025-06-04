@@ -3,18 +3,19 @@ import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, AlertCircle } from 'lucide-react';
 import InventoryList from '@/components/InventoryList';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import InventoryItemForm from '@/components/inventory/InventoryItemForm';
 import { useInventory } from '@/hooks/useInventory';
 import { InventoryItemFormState } from '@/lib/types/inventory-ui.types';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Inventory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  const { createItem, isCreating } = useInventory();
+  const { createItem, isCreating, error } = useInventory();
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -32,6 +33,7 @@ const Inventory: React.FC = () => {
       setIsFormOpen(false);
     } catch (error) {
       console.error("Error creating inventory item:", error);
+      // El error ya se maneja en el hook useInventory
     }
   };
 
@@ -44,6 +46,13 @@ const Inventory: React.FC = () => {
           <Plus className="mr-2 h-4 w-4" /> Agregar Producto
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>

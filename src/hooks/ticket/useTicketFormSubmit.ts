@@ -64,22 +64,16 @@ export const useTicketFormSubmit = (
       // Adjust the valet quantity if using a free one
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
 
-      // Prepare dry cleaning items for tintorería with better error handling
+      // Prepare dry cleaning items for tintorería with fixed data structure
       let dryCleaningItemsForTicket: any[] = [];
       if (activeTab === 'tintoreria' && selectedDryCleaningItems?.length > 0) {
         dryCleaningItemsForTicket = selectedDryCleaningItems.map(item => {
-          const itemDetails = dryCleaningItems.find(dci => dci.id === item.id);
-          const itemName = itemDetails?.name || item.name || 'Servicio de tintorería';
-          const itemQuantity = item.quantity || 1;
-          const itemPrice = (itemDetails?.price || 0) * itemQuantity;
+          console.log('Processing dry cleaning item:', item);
           
-          console.log('Processing dry cleaning item:', {
-            id: item.id,
-            name: itemName,
-            quantity: itemQuantity,
-            price: itemPrice,
-            itemDetails
-          });
+          // Use the item data directly from the form
+          const itemName = item.name || 'Servicio de tintorería';
+          const itemQuantity = item.quantity || 1;
+          const itemPrice = item.price || 0;
           
           return {
             name: itemName,
@@ -170,7 +164,7 @@ export const useTicketFormSubmit = (
       }
     } catch (error) {
       console.error('Error submitting ticket:', error);
-      toast.error('Error al generar el ticket');
+      toast.error('Error al generar el ticket: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
       setIsSubmitting(false);
     }
@@ -178,13 +172,3 @@ export const useTicketFormSubmit = (
 
   return { handleSubmit, isSubmitting };
 };
-
-// Mock data array for dry cleaning items - actualizar con nombres en español
-const dryCleaningItems = [
-  { id: 'shirt', name: 'Camisa', price: 20 },
-  { id: 'pants', name: 'Pantalón', price: 25 },
-  { id: 'suit', name: 'Traje', price: 45 },
-  { id: 'dress', name: 'Vestido', price: 35 },
-  { id: 'coat', name: 'Abrigo', price: 40 },
-  { id: 'blanket', name: 'Manta', price: 40 },
-];

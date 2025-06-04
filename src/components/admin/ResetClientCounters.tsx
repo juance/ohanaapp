@@ -5,24 +5,37 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/lib/toast";
 
 export const ResetClientCounters = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleReset = async () => {
     setIsResetting(true);
+    setError(null);
+    
     try {
+      console.log('Calling reset_all_loyalty_points function...');
+      
       const { data, error } = await supabase.rpc('reset_all_loyalty_points');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error calling reset_all_loyalty_points:', error);
+        throw new Error(`Error al reiniciar puntos de fidelidad: ${error.message}`);
+      }
 
-      toast.success('Puntos de fidelidad reiniciados', `Se reiniciaron los puntos de ${data} clientes`);
+      console.log('Reset function completed successfully. Affected customers:', data);
+      
+      // Show success message with count
+      const affectedCount = data || 0;
+      console.log(`Puntos de fidelidad reiniciados para ${affectedCount} clientes`);
+      
       setShowConfirmation(false);
-    } catch (error) {
-      console.error('Error al reiniciar los puntos de fidelidad:', error);
-      toast.error('Error al reiniciar los puntos de fidelidad');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Error desconocido al reiniciar puntos de fidelidad';
+      console.error('Error in handleReset:', errorMessage);
+      setError(errorMessage);
     } finally {
       setIsResetting(false);
     }
@@ -37,6 +50,14 @@ export const ResetClientCounters = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
         {showConfirmation ? (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -58,7 +79,10 @@ export const ResetClientCounters = () => {
           <>
             <Button
               variant="outline"
-              onClick={() => setShowConfirmation(false)}
+              onClick={() => {
+                setShowConfirmation(false);
+                setError(null);
+              }}
               disabled={isResetting}
             >
               Cancelar
@@ -82,6 +106,7 @@ export const ResetClientCounters = () => {
           <Button
             variant="secondary"
             onClick={() => setShowConfirmation(true)}
+            disabled={isResetting}
           >
             Reiniciar Puntos de Fidelidad
           </Button>
