@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { ModernLayout } from '@/components/ModernLayout';
@@ -25,7 +26,7 @@ const router = createBrowserRouter([
       {
         path: "tickets",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Tickets />
           </ProtectedRoute>
         )
@@ -33,7 +34,7 @@ const router = createBrowserRouter([
       {
         path: "orders",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Orders />
           </ProtectedRoute>
         )
@@ -41,7 +42,7 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Dashboard />
           </ProtectedRoute>
         )
@@ -49,7 +50,7 @@ const router = createBrowserRouter([
       {
         path: "clients",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Clients />
           </ProtectedRoute>
         )
@@ -65,7 +66,7 @@ const router = createBrowserRouter([
       {
         path: "loyalty",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Loyalty />
           </ProtectedRoute>
         )
@@ -73,7 +74,7 @@ const router = createBrowserRouter([
       {
         path: "expenses",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Expenses />
           </ProtectedRoute>
         )
@@ -81,7 +82,7 @@ const router = createBrowserRouter([
       {
         path: "inventory",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Inventory />
           </ProtectedRoute>
         )
@@ -89,7 +90,7 @@ const router = createBrowserRouter([
       {
         path: "feedback",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Feedback />
           </ProtectedRoute>
         )
@@ -97,7 +98,7 @@ const router = createBrowserRouter([
       {
         path: "analytics",
         element: (
-          <ProtectedRoute allowedRoles={['admin', 'employee']}>
+          <ProtectedRoute allowedRoles={['admin', 'operator']}>
             <Analytics />
           </ProtectedRoute>
         )
@@ -119,3 +120,4 @@ const AppRoutes = () => {
 };
 
 export default AppRoutes;
+
