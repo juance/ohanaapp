@@ -25,8 +25,45 @@ export const storeTicket = async (
     
     // 1. Get or create customer
     let customer = await getCustomerByPhone(customerData.phoneNumber);
+    
     if (!customer) {
-      customer = await storeCustomer(customerData);
+      console.log('Customer not found, creating new customer:', customerData);
+      
+      // Create new customer
+      const { data: newCustomer, error: customerError } = await supabase
+        .from('customers')
+        .insert({
+          name: customerData.name,
+          phone: customerData.phoneNumber,
+          loyalty_points: 0,
+          valets_count: 0,
+          free_valets: 0,
+          valets_redeemed: 0
+        })
+        .select()
+        .single();
+
+      if (customerError) {
+        console.error('Error creating customer:', customerError);
+        throw customerError;
+      }
+
+      customer = {
+        id: newCustomer.id,
+        name: newCustomer.name,
+        phone: newCustomer.phone,
+        phoneNumber: newCustomer.phone,
+        loyaltyPoints: newCustomer.loyalty_points || 0,
+        valetsCount: newCustomer.valets_count || 0,
+        freeValets: newCustomer.free_valets || 0,
+        valetsRedeemed: newCustomer.valets_redeemed || 0,
+        lastVisit: newCustomer.last_visit,
+        createdAt: newCustomer.created_at
+      };
+      
+      console.log('Customer created successfully:', customer);
+    } else {
+      console.log('Customer found:', customer);
     }
 
     if (!customer?.id) {
