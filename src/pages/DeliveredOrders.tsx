@@ -14,7 +14,18 @@ const DeliveredOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilter, setSearchFilter] = useState<'name' | 'phone'>('name');
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-  const [ticketServices, setTicketServices] = useState<any[]>([]);
+  const [ticketServices, setTicketServices] = useState<{
+    dryCleaningItems: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      price: number;
+    }>;
+    laundryOptions: Array<{
+      id: string;
+      option_type: string;
+    }>;
+  }>({ dryCleaningItems: [], laundryOptions: [] });
 
   // Fetch delivered tickets
   const { data: tickets = [], isLoading, error, refetch } = useQuery({
@@ -29,7 +40,7 @@ const DeliveredOrders = () => {
     if (selectedTicket) {
       loadTicketServices(selectedTicket);
     } else {
-      setTicketServices([]);
+      setTicketServices({ dryCleaningItems: [], laundryOptions: [] });
     }
   }, [selectedTicket]);
 

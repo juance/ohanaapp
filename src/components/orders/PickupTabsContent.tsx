@@ -4,7 +4,7 @@ import { Loading } from '@/components/ui/loading';
 import { ErrorMessage } from '@/components/ui/error-message';
 import PickupTicketList from '@/components/orders/PickupTicketList';
 import TicketDetailPanel from '@/components/orders/TicketDetailPanel';
-import { Ticket, TicketService } from '@/lib/types';
+import { Ticket } from '@/lib/types';
 
 interface PickupTabsContentProps {
   isLoading: boolean;
@@ -15,7 +15,18 @@ interface PickupTabsContentProps {
   selectedTicket: string | null;
   setSelectedTicket: (id: string | null) => void;
   formatDate: (dateString: string) => string;
-  ticketServices: TicketService[];
+  ticketServices: {
+    dryCleaningItems: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      price: number;
+    }>;
+    laundryOptions: Array<{
+      id: string;
+      option_type: string;
+    }>;
+  };
   ticketDetailRef: React.RefObject<HTMLDivElement>;
 }
 

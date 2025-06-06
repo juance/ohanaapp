@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
 
@@ -26,9 +27,11 @@ export const getTickets = async (): Promise<Ticket[]> => {
       clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
       total: ticket.total || 0,
+      totalPrice: ticket.total || 0, // Agregando totalPrice
       paymentMethod: ticket.payment_method || '',
       status: ticket.status,
       date: ticket.date || ticket.created_at,
+      createdAt: ticket.created_at, // Agregando createdAt
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,
       customerId: ticket.customer_id
@@ -203,9 +206,11 @@ export const getReadyTickets = async () => {
       clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
       total: ticket.total || 0,
+      totalPrice: ticket.total || 0,
       paymentMethod: ticket.payment_method || '',
       status: ticket.status,
       date: ticket.date || ticket.created_at,
+      createdAt: ticket.created_at,
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,
       customerId: ticket.customer_id
@@ -243,9 +248,11 @@ export const getDeliveredTickets = async () => {
       clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
       total: ticket.total || 0,
+      totalPrice: ticket.total || 0,
       paymentMethod: ticket.payment_method || '',
       status: ticket.status,
       date: ticket.date || ticket.created_at,
+      createdAt: ticket.created_at,
       deliveredDate: ticket.delivered_date,
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,

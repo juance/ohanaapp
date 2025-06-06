@@ -15,11 +15,6 @@ import {
   Download,
   Upload
 } from 'lucide-react';
-import UserManagement from '@/components/admin/UserManagement';
-import SystemSettings from '@/components/admin/SystemSettings';
-import DataReset from '@/components/admin/DataReset';
-import ErrorLogs from '@/components/admin/ErrorLogs';
-import SystemVersions from '@/components/admin/SystemVersions';
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -139,7 +134,10 @@ const Admin: React.FC = () => {
               <CardTitle>Gestión de Usuarios</CardTitle>
             </CardHeader>
             <CardContent>
-              <UserManagement />
+              <div className="text-center p-6 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Gestión de usuarios disponible próximamente</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -150,7 +148,10 @@ const Admin: React.FC = () => {
               <CardTitle>Configuración del Sistema</CardTitle>
             </CardHeader>
             <CardContent>
-              <SystemSettings />
+              <div className="text-center p-6 text-gray-500">
+                <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Configuraciones del sistema disponibles próximamente</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -161,7 +162,10 @@ const Admin: React.FC = () => {
               <CardTitle>Gestión de Datos</CardTitle>
             </CardHeader>
             <CardContent>
-              <DataReset />
+              <div className="text-center p-6 text-gray-500">
+                <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Herramientas de gestión de datos disponibles próximamente</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -172,7 +176,10 @@ const Admin: React.FC = () => {
               <CardTitle>Logs del Sistema</CardTitle>
             </CardHeader>
             <CardContent>
-              <ErrorLogs />
+              <div className="text-center p-6 text-gray-500">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Visualización de logs disponible próximamente</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -183,7 +190,10 @@ const Admin: React.FC = () => {
               <CardTitle>Información del Sistema</CardTitle>
             </CardHeader>
             <CardContent>
-              <SystemVersions />
+              <div className="text-center p-6 text-gray-500">
+                <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>Información del sistema disponible próximamente</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

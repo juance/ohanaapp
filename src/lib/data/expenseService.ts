@@ -94,3 +94,15 @@ export const deleteExpense = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+// Agregar función syncExpenses que faltaba
+export const syncExpenses = async () => {
+  try {
+    const expenses = await getStoredExpenses();
+    console.log('Synced expenses:', expenses.length);
+    return expenses.length;
+  } catch (error) {
+    console.error('Error syncing expenses:', error);
+    return 0;
+  }
+};
