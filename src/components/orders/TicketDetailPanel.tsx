@@ -1,152 +1,170 @@
 
 import React from 'react';
-import { Ticket, TicketService } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Phone, Calendar, CreditCard, AlertCircle } from 'lucide-react';
 
 interface TicketDetailPanelProps {
-  ticket?: Ticket;
-  services: TicketService[];
-  formatDate: (dateString: string) => string;
+  ticket?: {
+    id: string;
+    ticketNumber: string;
+    clientName: string;
+    phoneNumber: string;
+    total: number;
+    paymentMethod: string;
+    status: string;
+    date: string;
+    deliveredDate?: string;
+    isPaid: boolean;
+    valetQuantity: number;
+  };
+  services?: {
+    dryCleaningItems: Array<{
+      id: string;
+      name: string;
+      quantity: number;
+      price: number;
+    }>;
+    laundryOptions: Array<{
+      id: string;
+      option_type: string;
+    }>;
+  };
+  formatDate: (date: string) => string;
 }
 
-const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ ticket, services, formatDate }) => {
+const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ 
+  ticket, 
+  services,
+  formatDate 
+}) => {
   if (!ticket) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-gray-300 mb-4" />
-        <h3 className="text-lg font-medium text-gray-500">Seleccione un ticket</h3>
-        <p className="text-sm text-gray-400 mt-2">
-          Los detalles del ticket se mostrarán aquí
-        </p>
+      <div className="flex items-center justify-center h-64 text-gray-500">
+        <p>Selecciona un ticket para ver los detalles</p>
       </div>
     );
   }
 
-  // Format payment method for display
-  const getPaymentMethodText = (method?: string): string => {
-    switch (method) {
-      case 'cash': return 'Efectivo';
-      case 'debit': return 'Débito';
-      case 'mercadopago': return 'Mercado Pago';
-      case 'cuenta_dni': return 'Cuenta DNI';
-      default: return 'No especificado';
-    }
+  const getStatusBadge = (status: string) => {
+    const statusConfig = {
+      'pending': { label: 'Pendiente', variant: 'secondary' as const },
+      'ready': { label: 'Listo', variant: 'default' as const },
+      'delivered': { label: 'Entregado', variant: 'outline' as const }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || { label: status, variant: 'secondary' as const };
+    return <Badge variant={config.variant}>{config.label}</Badge>;
   };
 
-  // Determine which services to display with a preference order
-  // 1. Use provided services if available
-  // 2. Use ticket.dryCleaningItems if available
-  // 3. Fall back to ticket.services
-  let displayServices: TicketService[] = [];
-  
-  if (services && services.length > 0) {
-    displayServices = services;
-  } else if (ticket.dryCleaningItems && ticket.dryCleaningItems.length > 0) {
-    displayServices = ticket.dryCleaningItems.map(item => ({
-      id: item.id,
-      name: item.name || 'Servicio',
-      price: item.price || 0,
-      quantity: item.quantity || 1
-    }));
-  } else if (ticket.services && ticket.services.length > 0) {
-    displayServices = ticket.services;
-  }
-  
-  // Si no hay servicios y es un ticket, crear un servicio por defecto
-  if (displayServices.length === 0) {
-    displayServices = [{
-      id: 'default-service',
-      name: 'Servicio general',
-      price: ticket.totalPrice || 0,
-      quantity: 1
-    }];
-  }
-  
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-AR', {
+      style: 'currency',
+      currency: 'ARS'
+    }).format(amount);
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
+    <Card className="h-full">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>Ticket #{ticket.ticketNumber}</span>
+          {getStatusBadge(ticket.status)}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Información del Cliente */}
         <div>
-          <h2 className="text-xl font-bold">Ticket #{ticket.ticketNumber}</h2>
-          <div className="text-sm text-gray-500">
-            {ticket.clientName || 'Cliente sin nombre'}
-          </div>
+          <h4 className="font-semibold text-sm text-gray-600 mb-2">CLIENTE</h4>
+          <p className="font-medium">{ticket.clientName}</p>
+          <p className="text-sm text-gray-600">{ticket.phoneNumber}</p>
         </div>
 
-        <Badge variant={ticket.status === 'ready' ? 'success' : 'outline'}>
-          {ticket.status === 'ready' ? 'Listo para entrega' : 
-           ticket.status === 'processing' ? 'En proceso' : 'Pendiente'}
-        </Badge>
-      </div>
+        <Separator />
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">Información del ticket</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center gap-2">
-              <Phone className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">{ticket.phoneNumber || 'Sin teléfono'}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">{formatDate(ticket.createdAt)}</span>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <CreditCard className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">{getPaymentMethodText(ticket.paymentMethod)}</span>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Badge variant={ticket.isPaid ? "success" : "outline"} className="text-xs">
-                {ticket.isPaid ? "Pagado" : "Pendiente de pago"}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div>
-        <h3 className="text-lg font-medium mb-3">Servicios</h3>
-        <Card>
-          <CardContent className="p-4">
-            <div className="divide-y">
-              {displayServices.map((service, index) => (
-                <div key={service.id || `service-${index}`} className="py-2 flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">{service.name || 'Servicio'}</div>
-                    <div className="text-sm text-gray-500">
-                      Cantidad: {service.quantity || 1}
-                    </div>
+        {/* Servicios de Tintorería */}
+        {services?.dryCleaningItems && services.dryCleaningItems.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-sm text-gray-600 mb-2">SERVICIOS DE TINTORERÍA</h4>
+            <div className="space-y-2">
+              {services.dryCleaningItems.map((item) => (
+                <div key={item.id} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-b-0">
+                  <div className="flex-1">
+                    <p className="font-medium text-sm">{item.name}</p>
+                    <p className="text-xs text-gray-500">Cantidad: {item.quantity}</p>
                   </div>
-                  <div className="font-medium">
-                    $ {service.price?.toLocaleString() || '0'}
-                  </div>
+                  <p className="font-semibold text-sm">{formatCurrency(item.price)}</p>
                 </div>
               ))}
             </div>
-            
-            <Separator className="my-4" />
-            
-            <div className="flex justify-between items-center font-bold">
-              <span>Total:</span>
-              <span>$ {ticket.totalPrice?.toLocaleString() || '0'}</span>
+          </div>
+        )}
+
+        {/* Opciones de Lavandería */}
+        {services?.laundryOptions && services.laundryOptions.length > 0 && (
+          <div>
+            <h4 className="font-semibold text-sm text-gray-600 mb-2">OPCIONES DE LAVANDERÍA</h4>
+            <div className="flex flex-wrap gap-2">
+              {services.laundryOptions.map((option) => (
+                <Badge key={option.id} variant="outline" className="text-xs">
+                  {option.option_type}
+                </Badge>
+              ))}
             </div>
-            
-            {ticket.basketTicketNumber && (
-              <div className="mt-4 text-center bg-gray-100 py-2 rounded-md">
-                <span className="font-medium">Ticket de canasta: #{ticket.basketTicketNumber}</span>
+          </div>
+        )}
+
+        {/* Información de Valets */}
+        {ticket.valetQuantity > 0 && (
+          <div>
+            <h4 className="font-semibold text-sm text-gray-600 mb-2">VALETS</h4>
+            <p className="text-sm">Cantidad: {ticket.valetQuantity}</p>
+          </div>
+        )}
+
+        <Separator />
+
+        {/* Información de Pago */}
+        <div>
+          <h4 className="font-semibold text-sm text-gray-600 mb-2">PAGO</h4>
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span className="text-sm">Total:</span>
+              <span className="font-semibold">{formatCurrency(ticket.total)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm">Método:</span>
+              <span className="text-sm">{ticket.paymentMethod}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm">Estado:</span>
+              <Badge variant={ticket.isPaid ? "default" : "secondary"} className="text-xs">
+                {ticket.isPaid ? 'Pagado' : 'Pendiente'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Fechas */}
+        <div>
+          <h4 className="font-semibold text-sm text-gray-600 mb-2">FECHAS</h4>
+          <div className="space-y-1">
+            <div className="flex justify-between text-sm">
+              <span>Creado:</span>
+              <span>{formatDate(ticket.date)}</span>
+            </div>
+            {ticket.deliveredDate && (
+              <div className="flex justify-between text-sm">
+                <span>Entregado:</span>
+                <span>{formatDate(ticket.deliveredDate)}</span>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

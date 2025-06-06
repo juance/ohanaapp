@@ -1,188 +1,258 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket } from '@/lib/types';
-import { toast } from '@/lib/toast';
-import { 
-  isInStatus, 
-  getDatabaseStatuses, 
-  getStatusDisplayName, 
-  getStatusBadgeClass 
-} from './ticket/ticketStatusService';
 
-// Get tickets that are ready for pickup
-export const getReadyTickets = async (): Promise<Ticket[]> => {
+export const getTickets = async (): Promise<Ticket[]> => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
-      .eq('status', 'ready')
+      .select(`
+        *,
+        customers (
+          id,
+          name,
+          phone
+        )
+      `)
       .order('created_at', { ascending: false });
-      
-    if (error) throw error;
 
-    return data.map((ticket: any) => ({
+    if (error) {
+      console.error('Error fetching tickets:', error);
+      throw error;
+    }
+
+    return (data || []).map(ticket => ({
       id: ticket.id,
-      ticketNumber: ticket.ticket_number || '000',
-      clientName: ticket.customers?.name || 'Cliente',
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
       total: ticket.total || 0,
-      totalPrice: ticket.total || 0,
-      paymentMethod: ticket.payment_method || 'cash',
-      status: ticket.status || 'ready',
+      paymentMethod: ticket.payment_method || '',
+      status: ticket.status,
       date: ticket.date || ticket.created_at,
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,
-      createdAt: ticket.created_at,
-      deliveredDate: null
+      customerId: ticket.customer_id
     }));
   } catch (error) {
-    console.error('Error fetching ready tickets:', error);
-    toast.error('Error al cargar los tickets listos para entrega');
+    console.error('Error getting tickets:', error);
     return [];
   }
 };
 
-// Get delivered tickets
-export const getDeliveredTickets = async (): Promise<Ticket[]> => {
+export const updateTicketStatus = async (ticketId: string, status: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
-      .eq('status', 'delivered')
-      .order('created_at', { ascending: false });
-      
-    if (error) throw error;
+      .update({ status })
+      .eq('id', ticketId);
 
-    return data.map((ticket: any) => ({
-      id: ticket.id,
-      ticketNumber: ticket.ticket_number || '000',
-      clientName: ticket.customers?.name || 'Cliente',
-      phoneNumber: ticket.customers?.phone || '',
-      total: ticket.total || 0,
-      totalPrice: ticket.total || 0,
-      paymentMethod: ticket.payment_method || 'cash',
-      status: ticket.status || 'delivered',
-      date: ticket.date || ticket.created_at,
-      isPaid: ticket.is_paid || true,
-      valetQuantity: ticket.valet_quantity || 0,
-      createdAt: ticket.created_at,
-      deliveredDate: ticket.delivered_date
-    }));
+    if (error) {
+      console.error('Error updating ticket status:', error);
+      return false;
+    }
+
+    return true;
   } catch (error) {
-    console.error('Error fetching delivered tickets:', error);
-    toast.error('Error al cargar los tickets entregados');
-    return [];
+    console.error('Error updating ticket status:', error);
+    return false;
   }
 };
 
-// Get services for a specific ticket
-export const getTicketServices = async (ticketId: string): Promise<any[]> => {
+export const updateTicketPaymentStatus = async (ticketId: string, isPaid: boolean): Promise<boolean> => {
   try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ is_paid: isPaid })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error updating ticket payment status:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating ticket payment status:', error);
+    return false;
+  }
+};
+
+export const updateTicketPaymentMethod = async (ticketId: string, paymentMethod: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ payment_method: paymentMethod })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error updating ticket payment method:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error updating ticket payment method:', error);
+    return false;
+  }
+};
+
+export const cancelTicket = async (ticketId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ status: 'canceled', is_canceled: true })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error cancelling ticket:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error cancelling ticket:', error);
+    return false;
+  }
+};
+
+export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('tickets')
+      .update({ status: 'delivered', delivered_date: new Date().toISOString() })
+      .eq('id', ticketId);
+
+    if (error) {
+      console.error('Error marking ticket as delivered:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error marking ticket as delivered:', error);
+    return false;
+  }
+};
+
+export const getTicketServices = async (ticketId: string) => {
+  try {
+    console.log('Fetching services for ticket:', ticketId);
+    
     // Get dry cleaning items
     const { data: dryCleaningItems, error: dryCleaningError } = await supabase
       .from('dry_cleaning_items')
       .select('*')
       .eq('ticket_id', ticketId);
-      
-    if (dryCleaningError) throw dryCleaningError;
-    
+
+    if (dryCleaningError) {
+      console.error('Error fetching dry cleaning items:', dryCleaningError);
+      throw dryCleaningError;
+    }
+
     // Get laundry options
     const { data: laundryOptions, error: laundryError } = await supabase
       .from('ticket_laundry_options')
       .select('*')
       .eq('ticket_id', ticketId);
-      
-    if (laundryError) throw laundryError;
-    
-    // Combine and return services
-    const services = [
-      ...(dryCleaningItems || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price || 0,
-        quantity: item.quantity || 1,
-        type: 'dry_cleaning'
-      })),
-      ...(laundryOptions || []).map(option => ({
-        id: option.id,
-        name: option.option_type,
-        price: 0,
-        quantity: 1,
-        type: 'laundry_option'
-      }))
-    ];
-    
-    return services;
+
+    if (laundryError) {
+      console.error('Error fetching laundry options:', laundryError);
+      throw laundryError;
+    }
+
+    console.log('Dry cleaning items found:', dryCleaningItems);
+    console.log('Laundry options found:', laundryOptions);
+
+    return {
+      dryCleaningItems: dryCleaningItems || [],
+      laundryOptions: laundryOptions || []
+    };
   } catch (error) {
-    console.error('Error fetching ticket services:', error);
-    toast.error('Error al cargar los servicios del ticket');
-    return [];
+    console.error('Error in getTicketServices:', error);
+    return {
+      dryCleaningItems: [],
+      laundryOptions: []
+    };
   }
 };
 
-// Mark a ticket as delivered
-export const markTicketAsDelivered = async (ticketId: string): Promise<boolean> => {
-  try {
-    const now = new Date().toISOString();
-    
-    const { error } = await supabase
-      .from('tickets')
-      .update({
-        status: 'delivered',
-        delivered_date: now,
-        is_paid: true,
-        updated_at: now
-      })
-      .eq('id', ticketId);
-      
-    if (error) throw error;
-    
-    toast.success('Ticket marcado como entregado');
-    return true;
-  } catch (error) {
-    console.error('Error marking ticket as delivered:', error);
-    toast.error('Error al marcar el ticket como entregado');
-    return false;
-  }
-};
-
-// Get tickets that haven't been retrieved (ready but not delivered)
-export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
+export const getReadyTickets = async () => {
   try {
     const { data, error } = await supabase
       .from('tickets')
-      .select('*, customers(name, phone)')
+      .select(`
+        *,
+        customers (
+          id,
+          name,
+          phone
+        )
+      `)
       .eq('status', 'ready')
+      .eq('is_canceled', false)
       .order('created_at', { ascending: false });
-      
-    if (error) throw error;
 
-    return data.map((ticket: any) => ({
+    if (error) {
+      console.error('Error fetching ready tickets:', error);
+      throw error;
+    }
+
+    return (data || []).map(ticket => ({
       id: ticket.id,
-      ticketNumber: ticket.ticket_number || '000',
-      clientName: ticket.customers?.name || 'Cliente',
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
       phoneNumber: ticket.customers?.phone || '',
       total: ticket.total || 0,
-      totalPrice: ticket.total || 0,
-      paymentMethod: ticket.payment_method || 'cash',
-      status: ticket.status || 'ready',
+      paymentMethod: ticket.payment_method || '',
+      status: ticket.status,
       date: ticket.date || ticket.created_at,
       isPaid: ticket.is_paid || false,
       valetQuantity: ticket.valet_quantity || 0,
-      createdAt: ticket.created_at,
-      deliveredDate: null
+      customerId: ticket.customer_id
     }));
   } catch (error) {
-    console.error('Error fetching unretrieved tickets:', error);
-    toast.error('Error al cargar los tickets pendientes por retirar');
+    console.error('Error getting ready tickets:', error);
     return [];
   }
 };
 
-// Re-export useful functions from ticketStatusService
-export {
-  isInStatus,
-  getDatabaseStatuses,
-  getStatusDisplayName,
-  getStatusBadgeClass
+export const getDeliveredTickets = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('tickets')
+      .select(`
+        *,
+        customers (
+          id,
+          name,
+          phone
+        )
+      `)
+      .eq('status', 'delivered')
+      .eq('is_canceled', false)
+      .order('delivered_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching delivered tickets:', error);
+      throw error;
+    }
+
+    return (data || []).map(ticket => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      clientName: ticket.customers?.name || 'Cliente sin nombre',
+      phoneNumber: ticket.customers?.phone || '',
+      total: ticket.total || 0,
+      paymentMethod: ticket.payment_method || '',
+      status: ticket.status,
+      date: ticket.date || ticket.created_at,
+      deliveredDate: ticket.delivered_date,
+      isPaid: ticket.is_paid || false,
+      valetQuantity: ticket.valet_quantity || 0,
+      customerId: ticket.customer_id
+    }));
+  } catch (error) {
+    console.error('Error getting delivered tickets:', error);
+    return [];
+  }
 };
