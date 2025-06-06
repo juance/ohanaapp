@@ -2,7 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, DryCleaningItem, LaundryOption } from '@/lib/types';
 import { getNextTicketNumber } from './ticketNumberService';
-import { storeCustomer, getCustomerByPhone } from '../customer/customerStorageService';
 
 /**
  * Store a ticket in the database
@@ -21,15 +20,31 @@ export const storeTicket = async (
   laundryOptions: LaundryOption[]
 ): Promise<boolean> => {
   try {
-    console.log('Storing ticket with dry cleaning items:', dryCleaningItems);
+    console.log('Starting ticket storage process with customer:', customerData);
     
     // 1. Get or create customer
-    let customer = await getCustomerByPhone(customerData.phoneNumber);
+    let customerId: string;
     
-    if (!customer) {
+    // First, try to find existing customer by phone
+    const { data: existingCustomers, error: searchError } = await supabase
+      .from('customers')
+      .select('id, name, phone')
+      .eq('phone', customerData.phoneNumber)
+      .limit(1);
+
+    if (searchError) {
+      console.error('Error searching for customer:', searchError);
+      throw searchError;
+    }
+
+    if (existingCustomers && existingCustomers.length > 0) {
+      // Customer exists
+      customerId = existingCustomers[0].id;
+      console.log('Customer found with ID:', customerId);
+    } else {
+      // Customer doesn't exist, create new one
       console.log('Customer not found, creating new customer:', customerData);
       
-      // Create new customer
       const { data: newCustomer, error: customerError } = await supabase
         .from('customers')
         .insert({
@@ -40,7 +55,7 @@ export const storeTicket = async (
           free_valets: 0,
           valets_redeemed: 0
         })
-        .select()
+        .select('id')
         .single();
 
       if (customerError) {
@@ -48,26 +63,12 @@ export const storeTicket = async (
         throw customerError;
       }
 
-      customer = {
-        id: newCustomer.id,
-        name: newCustomer.name,
-        phone: newCustomer.phone,
-        phoneNumber: newCustomer.phone,
-        loyaltyPoints: newCustomer.loyalty_points || 0,
-        valetsCount: newCustomer.valets_count || 0,
-        freeValets: newCustomer.free_valets || 0,
-        valetsRedeemed: newCustomer.valets_redeemed || 0,
-        lastVisit: newCustomer.last_visit,
-        createdAt: newCustomer.created_at
-      };
-      
-      console.log('Customer created successfully:', customer);
-    } else {
-      console.log('Customer found:', customer);
-    }
+      if (!newCustomer?.id) {
+        throw new Error('Failed to create customer - no ID returned');
+      }
 
-    if (!customer?.id) {
-      throw new Error('Customer ID is missing');
+      customerId = newCustomer.id;
+      console.log('Customer created successfully with ID:', customerId);
     }
 
     // 2. Get next ticket number
@@ -83,7 +84,7 @@ export const storeTicket = async (
           total: ticketData.totalPrice,
           payment_method: ticketData.paymentMethod,
           valet_quantity: ticketData.valetQuantity,
-          customer_id: customer.id,
+          customer_id: customerId,
           date: ticketData.customDate?.toISOString() || new Date().toISOString(),
           is_paid: ticketData.isPaidInAdvance || ticketData.isPaid || false,
           status: ticketData.status || 'pending'
@@ -98,7 +99,7 @@ export const storeTicket = async (
     }
 
     if (!newTicket) {
-      throw new Error('Error creating ticket');
+      throw new Error('Error creating ticket - no data returned');
     }
 
     const ticketId = newTicket.id;
