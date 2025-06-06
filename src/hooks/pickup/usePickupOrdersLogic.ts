@@ -39,7 +39,10 @@ export const usePickupOrdersLogic = () => {
   // Transform ticketServices to the expected format
   const transformedTicketServices = {
     dryCleaningItems: ticketServices
-      .filter(service => service.type === 'dry_cleaning')
+      .filter(service => {
+        // Check if this service comes from dry_cleaning_items table
+        return service.services && 'name' in service.services && 'price' in service.services;
+      })
       .map(service => ({
         id: service.id,
         name: service.name,
@@ -47,7 +50,10 @@ export const usePickupOrdersLogic = () => {
         price: service.price
       })),
     laundryOptions: ticketServices
-      .filter(service => service.type === 'laundry_option')
+      .filter(service => {
+        // Check if this service comes from ticket_laundry_options table
+        return service.services && 'option_type' in service.services;
+      })
       .map(service => ({
         id: service.id,
         option_type: service.name
