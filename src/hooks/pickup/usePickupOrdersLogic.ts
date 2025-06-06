@@ -36,6 +36,24 @@ export const usePickupOrdersLogic = () => {
   // Apply filters to tickets
   const filteredTickets = filterTickets(pickupTickets);
 
+  // Transform ticketServices to the expected format
+  const transformedTicketServices = {
+    dryCleaningItems: ticketServices
+      .filter(service => service.type === 'dry_cleaning')
+      .map(service => ({
+        id: service.id,
+        name: service.name,
+        quantity: service.quantity,
+        price: service.price
+      })),
+    laundryOptions: ticketServices
+      .filter(service => service.type === 'laundry_option')
+      .map(service => ({
+        id: service.id,
+        option_type: service.name
+      }))
+  };
+
   /**
    * Handles errors in a consistent way
    */
@@ -64,7 +82,7 @@ export const usePickupOrdersLogic = () => {
   return {
     // Data
     filteredTickets,
-    ticketServices,
+    ticketServices: transformedTicketServices,
 
     // States
     selectedTicket,
