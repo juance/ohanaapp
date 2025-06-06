@@ -29,6 +29,8 @@ export const usePickupTicketServices = () => {
    */
   const loadTicketServices = useCallback(async (ticketId: string): Promise<void> => {
     try {
+      console.log('Loading services for ticket:', ticketId);
+
       // Get dry cleaning items
       const { data: dryCleaningItems, error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
@@ -55,28 +57,39 @@ export const usePickupTicketServices = () => {
         return;
       }
 
+      console.log('Dry cleaning items loaded:', dryCleaningItems);
+      console.log('Laundry options loaded:', laundryOptions);
+
       // Combine data from both tables
       const combinedServices = [
         ...(dryCleaningItems || []).map(item => ({
           id: item.id,
           ticket_id: item.ticket_id,
-          name: item.name,
+          name: item.name || 'Servicio de limpieza',
           price: item.price || 0,
           quantity: item.quantity || 1,
           type: 'dry_cleaning',
-          services: item
+          services: {
+            ...item,
+            name: item.name,
+            price: item.price
+          }
         })),
         ...(laundryOptions || []).map(option => ({
           id: option.id,
           ticket_id: option.ticket_id,
-          name: option.option_type,
+          name: option.option_type || 'Opción de lavandería',
           price: 0, // Laundry options don't have a price
           quantity: 1,
           type: 'laundry_option',
-          services: option
+          services: {
+            ...option,
+            option_type: option.option_type
+          }
         }))
       ] as TicketServiceWithDetails[];
 
+      console.log('Combined services:', combinedServices);
       setTicketServices(combinedServices);
     } catch (err: any) {
       console.error('Error loading ticket services:', err);

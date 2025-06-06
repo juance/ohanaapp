@@ -64,6 +64,9 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     }).format(amount);
   };
 
+  // Debug: log para verificar los servicios
+  console.log('Services in TicketDetailPanel:', services);
+
   return (
     <Card className="h-full">
       <CardHeader>
@@ -111,6 +114,20 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
                 </Badge>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Debug: mostrar si no hay servicios */}
+        {(!services?.dryCleaningItems || services.dryCleaningItems.length === 0) && 
+         (!services?.laundryOptions || services.laundryOptions.length === 0) && (
+          <div>
+            <h4 className="font-semibold text-sm text-gray-600 mb-2">SERVICIOS</h4>
+            <p className="text-sm text-gray-500">No se encontraron servicios asociados a este ticket</p>
+            {/* Debug info */}
+            <details className="mt-2 text-xs text-gray-400">
+              <summary>Debug info</summary>
+              <pre>{JSON.stringify(services, null, 2)}</pre>
+            </details>
           </div>
         )}
 

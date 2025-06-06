@@ -22,9 +22,33 @@ export const getNextTicketNumber = async (): Promise<string> => {
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
-    // Fallback: generate a random number if DB function fails
-    const randomNum = Math.floor(Math.random() * 100000000);
-    return randomNum.toString().padStart(8, '0');
+    
+    // Fallback: obtener el último número usado y generar el siguiente
+    try {
+      const { data: lastTicket, error: lastTicketError } = await supabase
+        .from('tickets')
+        .select('ticket_number')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastTicketError && lastTicketError.code !== 'PGRST116') {
+        throw lastTicketError;
+      }
+
+      let nextNumber = 1;
+      if (lastTicket && lastTicket.ticket_number) {
+        const lastNumber = parseInt(lastTicket.ticket_number);
+        nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
+      }
+
+      return nextNumber.toString().padStart(8, '0');
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
+      // Último recurso: generar un número basado en timestamp
+      const timestamp = Date.now();
+      return timestamp.toString().slice(-8).padStart(8, '0');
+    }
   }
 };
 
@@ -42,5 +66,34 @@ export const resetTicketNumbering = async (): Promise<boolean> => {
   } catch (error) {
     console.error('Error resetting ticket numbering:', error);
     return false;
+  }
+};
+
+/**
+ * Ensure ticket sequence is initialized
+ */
+export const initializeTicketSequence = async (): Promise<void> => {
+  try {
+    // Verificar si la secuencia existe
+    const { data: sequenceData, error: sequenceError } = await supabase
+      .from('ticket_sequence')
+      .select('*')
+      .eq('id', 1)
+      .single();
+
+    if (sequenceError && sequenceError.code === 'PGRST116') {
+      // No existe, crear la secuencia
+      const { error: insertError } = await supabase
+        .from('ticket_sequence')
+        .insert({ id: 1, last_number: 0 });
+
+      if (insertError) {
+        console.error('Error initializing ticket sequence:', insertError);
+      } else {
+        console.log('Ticket sequence initialized successfully');
+      }
+    }
+  } catch (error) {
+    console.error('Error checking/initializing ticket sequence:', error);
   }
 };
