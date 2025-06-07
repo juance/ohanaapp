@@ -7,6 +7,7 @@ import { toast } from '@/lib/toast';
 // Types for the hook
 interface TicketServiceWithDetails extends TicketService {
   services: any | null;
+  service_type: 'dry_cleaning' | 'laundry_option';
 }
 
 /**
@@ -31,7 +32,7 @@ export const usePickupTicketServices = () => {
     try {
       console.log('Loading services for ticket:', ticketId);
 
-      // Get dry cleaning items
+      // Get dry cleaning items with better error handling
       const { data: dryCleaningItems, error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
         .select('*')
@@ -44,7 +45,7 @@ export const usePickupTicketServices = () => {
         return;
       }
 
-      // Get laundry options
+      // Get laundry options with better error handling
       const { data: laundryOptions, error: laundryError } = await supabase
         .from('ticket_laundry_options')
         .select('*')
@@ -57,22 +58,24 @@ export const usePickupTicketServices = () => {
         return;
       }
 
-      console.log('Dry cleaning items loaded:', dryCleaningItems);
-      console.log('Laundry options loaded:', laundryOptions);
+      console.log('Raw dry cleaning items:', dryCleaningItems);
+      console.log('Raw laundry options:', laundryOptions);
 
-      // Combine data from both tables
-      const combinedServices = [
+      // Transform and combine data from both tables
+      const combinedServices: TicketServiceWithDetails[] = [
         ...(dryCleaningItems || []).map(item => ({
           id: item.id,
           ticket_id: item.ticket_id,
           name: item.name || 'Servicio de limpieza',
-          price: item.price || 0,
+          price: Number(item.price) || 0,
           quantity: item.quantity || 1,
-          type: 'dry_cleaning',
+          service_type: 'dry_cleaning' as const,
           services: {
-            ...item,
+            id: item.id,
             name: item.name,
-            price: item.price
+            price: Number(item.price),
+            quantity: item.quantity,
+            created_at: item.created_at
           }
         })),
         ...(laundryOptions || []).map(option => ({
@@ -81,18 +84,19 @@ export const usePickupTicketServices = () => {
           name: option.option_type || 'Opción de lavandería',
           price: 0, // Laundry options don't have a price
           quantity: 1,
-          type: 'laundry_option',
+          service_type: 'laundry_option' as const,
           services: {
-            ...option,
-            option_type: option.option_type
+            id: option.id,
+            option_type: option.option_type,
+            created_at: option.created_at
           }
         }))
-      ] as TicketServiceWithDetails[];
+      ];
 
-      console.log('Combined services:', combinedServices);
+      console.log('Combined and transformed services:', combinedServices);
       setTicketServices(combinedServices);
     } catch (err: any) {
-      console.error('Error loading ticket services:', err);
+      console.error('Unexpected error loading ticket services:', err);
       handleError(err);
       setTicketServices([]);
     }

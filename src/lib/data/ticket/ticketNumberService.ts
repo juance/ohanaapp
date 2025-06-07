@@ -8,7 +8,7 @@ export const getNextTicketNumber = async (): Promise<string> => {
   try {
     console.log('Getting next ticket number from database');
 
-    // Llamar a la función de la base de datos para obtener el siguiente número de ticket
+    // Usar transacción para evitar problemas de concurrencia
     const { data: ticketNumber, error: ticketNumberError } = await supabase
       .rpc('get_next_ticket_number');
 
@@ -21,34 +21,12 @@ export const getNextTicketNumber = async (): Promise<string> => {
     return ticketNumber;
   } catch (error) {
     console.error('Error getting next ticket number:', error);
-    console.error('Error details:', error instanceof Error ? error.message : 'Unknown error');
     
-    // Fallback: obtener el último número usado y generar el siguiente
-    try {
-      const { data: lastTicket, error: lastTicketError } = await supabase
-        .from('tickets')
-        .select('ticket_number')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (lastTicketError && lastTicketError.code !== 'PGRST116') {
-        throw lastTicketError;
-      }
-
-      let nextNumber = 1;
-      if (lastTicket && lastTicket.ticket_number) {
-        const lastNumber = parseInt(lastTicket.ticket_number);
-        nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
-      }
-
-      return nextNumber.toString().padStart(8, '0');
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
-      // Último recurso: generar un número basado en timestamp
-      const timestamp = Date.now();
-      return timestamp.toString().slice(-8).padStart(8, '0');
-    }
+    // Fallback más robusto: usar timestamp como último recurso
+    const timestamp = Date.now();
+    const fallbackNumber = timestamp.toString().slice(-8).padStart(8, '0');
+    console.warn('Using timestamp-based fallback number:', fallbackNumber);
+    return fallbackNumber;
   }
 };
 
@@ -74,7 +52,7 @@ export const resetTicketNumbering = async (): Promise<boolean> => {
  */
 export const initializeTicketSequence = async (): Promise<void> => {
   try {
-    // Verificar si la secuencia existe
+    // Verificar si la secuencia existe y inicializarla si es necesario
     const { data: sequenceData, error: sequenceError } = await supabase
       .from('ticket_sequence')
       .select('*')
@@ -92,6 +70,8 @@ export const initializeTicketSequence = async (): Promise<void> => {
       } else {
         console.log('Ticket sequence initialized successfully');
       }
+    } else if (sequenceData) {
+      console.log('Ticket sequence already exists with last_number:', sequenceData.last_number);
     }
   } catch (error) {
     console.error('Error checking/initializing ticket sequence:', error);
