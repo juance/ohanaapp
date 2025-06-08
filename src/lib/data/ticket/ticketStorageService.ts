@@ -20,7 +20,12 @@ export const storeTicket = async (
   laundryOptions: LaundryOption[]
 ): Promise<boolean> => {
   try {
-    console.log('Starting ticket storage process with customer:', customerData);
+    console.log('Starting ticket storage process with data:', {
+      customerData,
+      dryCleaningItems,
+      laundryOptions,
+      ticketData
+    });
     
     // 1. Get or create customer
     let customerId: string;
@@ -105,18 +110,22 @@ export const storeTicket = async (
     const ticketId = newTicket.id;
     console.log('Created ticket with ID:', ticketId);
 
-    // 4. Create dry cleaning items
+    // 4. Create dry cleaning items with detailed logging
     if (dryCleaningItems && dryCleaningItems.length > 0) {
-      console.log('Processing dry cleaning items:', dryCleaningItems);
+      console.log('Processing dry cleaning items for storage:', dryCleaningItems);
       
-      const dryCleaningItemsToInsert = dryCleaningItems.map(item => ({
-        name: item.name,
-        quantity: item.quantity || 1,
-        price: item.price || 0,
-        ticket_id: ticketId
-      }));
+      const dryCleaningItemsToInsert = dryCleaningItems.map(item => {
+        const itemToInsert = {
+          name: item.name || 'Servicio de tintorería',
+          quantity: Number(item.quantity) || 1,
+          price: Number(item.price) || 0,
+          ticket_id: ticketId
+        };
+        console.log('Inserting dry cleaning item:', itemToInsert);
+        return itemToInsert;
+      });
 
-      console.log('Inserting dry cleaning items:', dryCleaningItemsToInsert);
+      console.log('Final dry cleaning items to insert:', dryCleaningItemsToInsert);
 
       const { error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
@@ -168,7 +177,7 @@ export const storeTicket = async (
       }
     }
 
-    console.log('Ticket stored successfully');
+    console.log('Ticket stored successfully with all service details');
     return true;
   } catch (error) {
     console.error('Error storing ticket:', error);

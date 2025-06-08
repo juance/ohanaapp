@@ -64,16 +64,18 @@ export const useTicketFormSubmit = (
       // Adjust the valet quantity if using a free one
       const effectiveValetQuantity = useFreeValet ? 1 : valetQuantity;
 
-      // Prepare dry cleaning items for tintorería with fixed data structure
+      // Prepare dry cleaning items for tintorería with proper data structure
       let dryCleaningItemsForTicket: any[] = [];
       if (activeTab === 'tintoreria' && selectedDryCleaningItems?.length > 0) {
         dryCleaningItemsForTicket = selectedDryCleaningItems.map(item => {
-          console.log('Processing dry cleaning item:', item);
+          console.log('Processing dry cleaning item for ticket creation:', item);
           
-          // Use the item data directly from the form
-          const itemName = item.name || 'Servicio de tintorería';
-          const itemQuantity = item.quantity || 1;
-          const itemPrice = item.price || 0;
+          // Ensure we have proper item structure with name, quantity, and price
+          const itemName = item.name || item.title || 'Servicio de tintorería';
+          const itemQuantity = Number(item.quantity) || 1;
+          const itemPrice = Number(item.price) || 0;
+          
+          console.log('Prepared item:', { name: itemName, quantity: itemQuantity, price: itemPrice });
           
           return {
             name: itemName,
@@ -81,7 +83,7 @@ export const useTicketFormSubmit = (
             price: itemPrice
           };
         });
-        console.log('Prepared dry cleaning items for ticket:', dryCleaningItemsForTicket);
+        console.log('Final dry cleaning items for ticket:', dryCleaningItemsForTicket);
       }
 
       // Store the ticket using storeTicket function with correct parameters
