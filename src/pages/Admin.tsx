@@ -144,7 +144,7 @@ const Admin: React.FC = () => {
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Resumen
@@ -156,14 +156,6 @@ const Admin: React.FC = () => {
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Configuración
-            </TabsTrigger>
-            <TabsTrigger value="data" className="flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Datos
-            </TabsTrigger>
-            <TabsTrigger value="logs" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Logs
             </TabsTrigger>
             <TabsTrigger value="system" className="flex items-center gap-2">
               <AlertTriangle className="h-4 w-4" />
@@ -282,34 +274,6 @@ const Admin: React.FC = () => {
                 <div className="text-center p-6 text-gray-500">
                   <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
                   <p>Configuraciones del sistema disponibles próximamente</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="data">
-            <Card>
-              <CardHeader>
-                <CardTitle>Gestión de Datos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center p-6 text-gray-500">
-                  <Database className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Herramientas de gestión de datos disponibles próximamente</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="logs">
-            <Card>
-              <CardHeader>
-                <CardTitle>Logs del Sistema</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center p-6 text-gray-500">
-                  <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Visualización de logs disponible próximamente</p>
                 </div>
               </CardContent>
             </Card>

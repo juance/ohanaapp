@@ -28,6 +28,7 @@ interface PickupTabsContentProps {
     }>;
   };
   ticketDetailRef: React.RefObject<HTMLDivElement>;
+  isLoadingServices?: boolean;
 }
 
 const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
@@ -40,7 +41,8 @@ const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
   setSelectedTicket,
   formatDate,
   ticketServices,
-  ticketDetailRef
+  ticketDetailRef,
+  isLoadingServices = false
 }) => {
   return (
     <>
@@ -70,6 +72,7 @@ const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
                 ticket={filteredTickets?.find(t => t.id === selectedTicket)}
                 services={ticketServices}
                 formatDate={formatDate}
+                isLoadingServices={isLoadingServices}
               />
             </div>
           </div>

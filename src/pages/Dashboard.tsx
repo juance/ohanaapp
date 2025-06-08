@@ -39,11 +39,16 @@ const Dashboard = () => {
   const completedTickets = ticketsInRange.filter(t => t.status === 'delivered').length;
   const averageTicketValue = totalTickets > 0 ? incomeInRange / totalTickets : 0;
 
-  // Prepare chart data
+  // Unificar Valet y Lavandería como "Servicio de Lavado"
+  const unifiedServiceCounts = {
+    lavado: serviceCounts.valet + serviceCounts.lavanderia, // Unificar valet y lavandería
+    tintoreria: serviceCounts.tintoreria
+  };
+
+  // Prepare chart data with unified services
   const serviceData = [
-    { name: 'Valet', value: serviceCounts.valet, color: '#3B82F6' },
-    { name: 'Lavandería', value: serviceCounts.lavanderia, color: '#10B981' },
-    { name: 'Tintorería', value: serviceCounts.tintoreria, color: '#F59E0B' }
+    { name: 'Servicio de Lavado', value: unifiedServiceCounts.lavado, color: '#3B82F6' },
+    { name: 'Tintorería', value: unifiedServiceCounts.tintoreria, color: '#F59E0B' }
   ];
 
   const dryCleaningData = Object.entries(dryCleaningItems).map(([name, value]) => ({
@@ -232,20 +237,11 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="h-3 w-3 bg-blue-500 rounded-full"></div>
-                    <span className="font-medium">Servicio Valet</span>
+                    <span className="font-medium">Servicio de Lavado</span>
+                    <span className="text-sm text-gray-500">(Valet + Lavandería)</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold">{serviceCounts.valet}</div>
-                    <div className="text-sm text-gray-500">servicios</div>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 bg-green-500 rounded-full"></div>
-                    <span className="font-medium">Lavandería</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">{serviceCounts.lavanderia}</div>
+                    <div className="font-bold">{unifiedServiceCounts.lavado}</div>
                     <div className="text-sm text-gray-500">servicios</div>
                   </div>
                 </div>
@@ -255,7 +251,7 @@ const Dashboard = () => {
                     <span className="font-medium">Tintorería</span>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold">{serviceCounts.tintoreria}</div>
+                    <div className="font-bold">{unifiedServiceCounts.tintoreria}</div>
                     <div className="text-sm text-gray-500">servicios</div>
                   </div>
                 </div>

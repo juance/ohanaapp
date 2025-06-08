@@ -2,31 +2,56 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Get the next ticket number from the database
+ * Get the next ticket number from the database with improved sequential numbering
  */
 export const getNextTicketNumber = async (): Promise<string> => {
   try {
-    console.log('Getting next ticket number from database');
+    console.log('Getting next sequential ticket number from database');
 
-    // Usar transacción para evitar problemas de concurrencia
-    const { data: ticketNumber, error: ticketNumberError } = await supabase
-      .rpc('get_next_ticket_number');
+    // Use a transaction to ensure sequential numbering
+    const { data: result, error } = await supabase.rpc('get_next_sequential_ticket_number');
 
-    if (ticketNumberError) {
-      console.error('Error getting next ticket number:', ticketNumberError);
-      throw ticketNumberError;
+    if (error) {
+      console.error('Error getting next ticket number:', error);
+      throw error;
     }
 
-    console.log('Ticket number generated successfully:', ticketNumber);
+    const ticketNumber = result?.toString().padStart(8, '0') || '00000001';
+    console.log('Sequential ticket number generated:', ticketNumber);
     return ticketNumber;
   } catch (error) {
     console.error('Error getting next ticket number:', error);
     
-    // Fallback más robusto: usar timestamp como último recurso
-    const timestamp = Date.now();
-    const fallbackNumber = timestamp.toString().slice(-8).padStart(8, '0');
-    console.warn('Using timestamp-based fallback number:', fallbackNumber);
-    return fallbackNumber;
+    // Fallback: get the last ticket number and increment
+    try {
+      const { data: lastTicket, error: lastTicketError } = await supabase
+        .from('tickets')
+        .select('ticket_number')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (lastTicketError && lastTicketError.code !== 'PGRST116') {
+        throw lastTicketError;
+      }
+
+      let nextNumber = 1;
+      if (lastTicket?.ticket_number) {
+        const lastNumber = parseInt(lastTicket.ticket_number, 10);
+        nextNumber = isNaN(lastNumber) ? 1 : lastNumber + 1;
+      }
+
+      const fallbackNumber = nextNumber.toString().padStart(8, '0');
+      console.warn('Using fallback sequential number:', fallbackNumber);
+      return fallbackNumber;
+    } catch (fallbackError) {
+      console.error('Fallback method also failed:', fallbackError);
+      // Ultimate fallback: use timestamp-based number
+      const timestamp = Date.now();
+      const ultimateFallback = timestamp.toString().slice(-8).padStart(8, '0');
+      console.warn('Using ultimate fallback number:', ultimateFallback);
+      return ultimateFallback;
+    }
   }
 };
 
@@ -48,11 +73,11 @@ export const resetTicketNumbering = async (): Promise<boolean> => {
 };
 
 /**
- * Ensure ticket sequence is initialized
+ * Initialize ticket sequence to ensure it starts properly
  */
 export const initializeTicketSequence = async (): Promise<void> => {
   try {
-    // Verificar si la secuencia existe y inicializarla si es necesario
+    // Verify sequence exists and initialize if necessary
     const { data: sequenceData, error: sequenceError } = await supabase
       .from('ticket_sequence')
       .select('*')
@@ -60,7 +85,7 @@ export const initializeTicketSequence = async (): Promise<void> => {
       .single();
 
     if (sequenceError && sequenceError.code === 'PGRST116') {
-      // No existe, crear la secuencia
+      // Sequence doesn't exist, create it
       const { error: insertError } = await supabase
         .from('ticket_sequence')
         .insert({ id: 1, last_number: 0 });
@@ -75,5 +100,25 @@ export const initializeTicketSequence = async (): Promise<void> => {
     }
   } catch (error) {
     console.error('Error checking/initializing ticket sequence:', error);
+  }
+};
+
+/**
+ * Set ticket sequence to a specific number
+ */
+export const setTicketSequence = async (number: number): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('ticket_sequence')
+      .upsert({ id: 1, last_number: number })
+      .select();
+
+    if (error) throw error;
+
+    console.log(`Ticket sequence set to ${number} successfully`);
+    return true;
+  } catch (error) {
+    console.error('Error setting ticket sequence:', error);
+    return false;
   }
 };
