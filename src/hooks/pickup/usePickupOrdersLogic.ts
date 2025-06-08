@@ -36,16 +36,19 @@ export const usePickupOrdersLogic = () => {
   // Apply filters to tickets
   const filteredTickets = filterTickets(pickupTickets);
 
-  // Transform ticketServices to the expected format with correct filtering
+  // Transform ticketServices to the expected format with correct filtering and real data
   const transformedTicketServices = {
     dryCleaningItems: ticketServices
       .filter(service => service.service_type === 'dry_cleaning')
-      .map(service => ({
-        id: service.id,
-        name: service.name,
-        quantity: service.quantity,
-        price: service.price
-      })),
+      .map(service => {
+        console.log('Transforming dry cleaning service:', service);
+        return {
+          id: service.id,
+          name: service.name, // This should now contain the real name from database
+          quantity: service.quantity, // This should now contain the real quantity
+          price: service.price // This should now contain the real price
+        };
+      }),
     laundryOptions: ticketServices
       .filter(service => service.service_type === 'laundry_option')
       .map(service => ({
@@ -53,6 +56,8 @@ export const usePickupOrdersLogic = () => {
         option_type: service.name
       }))
   };
+
+  console.log('Transformed ticket services:', transformedTicketServices);
 
   /**
    * Handles errors in a consistent way

@@ -69,6 +69,7 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
   const getPaymentMethodLabel = (method: string) => {
     const paymentMethods: Record<string, string> = {
       'cash': 'Efectivo',
+      'efectivo': 'Efectivo',
       'debit': 'Tarjeta de Débito',
       'mercadopago': 'Mercado Pago',
       'cuenta_dni': 'Cuenta DNI'

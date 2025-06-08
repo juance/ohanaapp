@@ -82,15 +82,15 @@ export const usePicketTicketServices = () => {
         ...(dryCleaningItems || []).map(item => ({
           id: item.id,
           ticket_id: item.ticket_id,
-          name: item.name || 'Servicio de limpieza',
-          price: Number(item.price) || 0,
-          quantity: item.quantity || 1,
+          name: item.name || 'Servicio de tintorería', // Use the actual name from database
+          price: Number(item.price) || 0, // Use the actual price from database
+          quantity: item.quantity || 1, // Use the actual quantity from database
           service_type: 'dry_cleaning' as const,
           services: {
             id: item.id,
-            name: item.name,
-            price: Number(item.price),
-            quantity: item.quantity,
+            name: item.name || 'Servicio de tintorería',
+            price: Number(item.price) || 0,
+            quantity: item.quantity || 1,
             created_at: item.created_at,
             total: (Number(item.price) || 0) * (item.quantity || 1)
           }
