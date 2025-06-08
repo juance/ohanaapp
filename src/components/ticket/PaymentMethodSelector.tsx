@@ -2,7 +2,7 @@
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PaymentMethod } from '@/lib/types/ticket.types'; // Updated import path
+import { PaymentMethod } from '@/lib/types/ticket.types';
 
 interface PaymentMethodSelectorProps {
   value: PaymentMethod;

@@ -13,9 +13,10 @@ interface TicketServiceWithDetails extends TicketService {
 /**
  * Hook for managing ticket services
  */
-export const usePickupTicketServices = () => {
+export const usePicketTicketServices = () => {
   // State for ticket services
   const [ticketServices, setTicketServices] = useState<TicketServiceWithDetails[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(false);
 
   /**
    * Handles errors in a consistent way
@@ -29,39 +30,54 @@ export const usePickupTicketServices = () => {
    * Loads the services associated with a ticket
    */
   const loadTicketServices = useCallback(async (ticketId: string): Promise<void> => {
+    if (!ticketId) {
+      console.log('No ticket ID provided');
+      setTicketServices([]);
+      return;
+    }
+
     try {
+      setIsLoadingServices(true);
       console.log('Loading services for ticket:', ticketId);
 
-      // Get dry cleaning items with better error handling
+      // Get dry cleaning items with detailed error handling
       const { data: dryCleaningItems, error: dryCleaningError } = await supabase
         .from('dry_cleaning_items')
-        .select('*')
+        .select(`
+          id,
+          ticket_id,
+          name,
+          price,
+          quantity,
+          created_at
+        `)
         .eq('ticket_id', ticketId);
 
       if (dryCleaningError) {
         console.error('Error loading dry cleaning items:', dryCleaningError);
-        handleError(dryCleaningError);
-        setTicketServices([]);
-        return;
+        throw dryCleaningError;
       }
 
-      // Get laundry options with better error handling
+      // Get laundry options with detailed error handling
       const { data: laundryOptions, error: laundryError } = await supabase
         .from('ticket_laundry_options')
-        .select('*')
+        .select(`
+          id,
+          ticket_id,
+          option_type,
+          created_at
+        `)
         .eq('ticket_id', ticketId);
 
       if (laundryError) {
         console.error('Error loading laundry options:', laundryError);
-        handleError(laundryError);
-        setTicketServices([]);
-        return;
+        throw laundryError;
       }
 
-      console.log('Raw dry cleaning items:', dryCleaningItems);
-      console.log('Raw laundry options:', laundryOptions);
+      console.log('Loaded dry cleaning items:', dryCleaningItems);
+      console.log('Loaded laundry options:', laundryOptions);
 
-      // Transform and combine data from both tables
+      // Transform and combine data from both tables with real data
       const combinedServices: TicketServiceWithDetails[] = [
         ...(dryCleaningItems || []).map(item => ({
           id: item.id,
@@ -75,7 +91,8 @@ export const usePickupTicketServices = () => {
             name: item.name,
             price: Number(item.price),
             quantity: item.quantity,
-            created_at: item.created_at
+            created_at: item.created_at,
+            total: (Number(item.price) || 0) * (item.quantity || 1)
           }
         })),
         ...(laundryOptions || []).map(option => ({
@@ -99,11 +116,14 @@ export const usePickupTicketServices = () => {
       console.error('Unexpected error loading ticket services:', err);
       handleError(err);
       setTicketServices([]);
+    } finally {
+      setIsLoadingServices(false);
     }
   }, [handleError]);
 
   return {
     ticketServices,
+    isLoadingServices,
     loadTicketServices
   };
 };

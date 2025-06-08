@@ -21,6 +21,7 @@ const PickupOrders: React.FC = () => {
     cancelDialogOpen,
     cancelReason,
     paymentMethodDialogOpen,
+    isLoadingServices,
 
     // References
     ticketDetailRef,
@@ -97,6 +98,7 @@ const PickupOrders: React.FC = () => {
         formatDate={formatDate}
         ticketServices={ticketServices}
         ticketDetailRef={ticketDetailRef}
+        isLoadingServices={isLoadingServices}
       />
 
       {/* Dialogs */}
