@@ -36,8 +36,8 @@ const EnhancedDryCleaningTab: React.FC<EnhancedDryCleaningTabProps> = ({
           </CardHeader>
           <CardContent>
             <PaymentMethodSelector
-              paymentMethod={paymentMethod}
-              handlePaymentMethodChange={handlePaymentMethodChange}
+              value={paymentMethod}
+              onValueChange={handlePaymentMethodChange}
             />
           </CardContent>
         </Card>
@@ -49,7 +49,6 @@ const EnhancedDryCleaningTab: React.FC<EnhancedDryCleaningTabProps> = ({
           <CardContent>
             <PriceDisplay 
               totalPrice={totalPrice}
-              showBreakdown={selectedDryCleaningItems.length > 0}
             />
           </CardContent>
         </Card>

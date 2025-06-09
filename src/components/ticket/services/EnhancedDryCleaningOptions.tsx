@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Grid, List, Shirt, Briefcase, Dress, Coat } from 'lucide-react';
+import { Search, Filter, Grid, List, Shirt, Briefcase, ShoppingBag } from 'lucide-react';
 import DryCleaningServiceCard, { DryCleaningService, SelectedService } from './DryCleaningServiceCard';
 import ServicesSummary from './ServicesSummary';
 
@@ -87,7 +87,7 @@ const categories = ['Todos', 'Básico', 'Premium', 'Accesorios'];
 const categoryIcons = {
   'Básico': Shirt,
   'Premium': Briefcase,
-  'Accesorios': Dress
+  'Accesorios': ShoppingBag
 };
 
 interface EnhancedDryCleaningOptionsProps {
