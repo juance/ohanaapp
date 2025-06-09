@@ -37,7 +37,7 @@ const EnhancedDryCleaningTab: React.FC<EnhancedDryCleaningTabProps> = ({
           <CardContent>
             <PaymentMethodSelector
               value={paymentMethod}
-              onValueChange={handlePaymentMethodChange}
+              onChange={handlePaymentMethodChange}
             />
           </CardContent>
         </Card>
