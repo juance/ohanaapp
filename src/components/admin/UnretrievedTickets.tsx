@@ -1,13 +1,27 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets, markTicketAsDelivered, TicketWithCustomer } from '@/lib/ticketServices';
+import { getUnretrievedTickets } from '@/lib/dataService';
+import { markTicketAsDelivered } from '@/lib/ticketServices';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { DataTable } from '@/components/ui/data-table';
 import { toast } from '@/lib/toast';
+
+export interface TicketWithCustomer {
+  id: string;
+  ticketNumber: string;
+  clientName: string;
+  phoneNumber: string;
+  totalPrice: number;
+  createdAt: string;
+  customer?: {
+    name: string;
+    phone: string;
+  };
+}
 
 export const UnretrievedTickets = () => {
   const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
