@@ -23,10 +23,20 @@ export const useExecutiveAnalytics = (period: 'week' | 'month' = 'month') => {
     setData(prev => ({ ...prev, isLoading: true, error: null }));
     
     try {
+      console.log('Loading executive analytics data...');
+      
       const [demandAnalysis, profitabilityAnalysis] = await Promise.all([
-        demandPredictionService.predictDemand(7),
-        profitabilityAnalysisService.analyzeProfitability(period)
+        demandPredictionService.predictDemand(7).catch(err => {
+          console.error('Error loading demand analysis:', err);
+          return null;
+        }),
+        profitabilityAnalysisService.analyzeProfitability(period).catch(err => {
+          console.error('Error loading profitability analysis:', err);
+          return null;
+        })
       ]);
+
+      console.log('Executive analytics loaded:', { demandAnalysis, profitabilityAnalysis });
 
       setData({
         demandAnalysis,

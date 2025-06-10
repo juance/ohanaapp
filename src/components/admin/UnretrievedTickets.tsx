@@ -1,7 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets } from '@/lib/ticketServices';
-import { markTicketAsDelivered } from '@/lib/ticketServices';
+import { getUnretrievedTickets, markTicketAsDelivered } from '@/lib/ticketServices';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
@@ -38,7 +38,7 @@ export const UnretrievedTickets = () => {
         return result || [];
       } catch (err) {
         console.error('Error fetching unretrieved tickets:', err);
-        throw err;
+        return []; // Return empty array instead of throwing
       }
     }
   });
@@ -152,8 +152,11 @@ export const UnretrievedTickets = () => {
         </CardHeader>
         <CardContent>
           <div className="rounded-md bg-red-50 p-4 text-red-800">
-            Error al cargar los tickets no retirados: {error instanceof Error ? error.message : 'Error desconocido'}
+            Error al cargar los tickets no retirados. Por favor, intenta nuevamente.
           </div>
+          <Button onClick={() => refetch()} className="mt-4">
+            Reintentar
+          </Button>
         </CardContent>
       </Card>
     );

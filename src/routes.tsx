@@ -19,6 +19,10 @@ import PickupOrders from '@/pages/PickupOrders';
 import DeliveredOrders from '@/pages/DeliveredOrders';
 import Metrics from '@/pages/Metrics';
 import TicketAnalysis from '@/pages/TicketAnalysis';
+import ExecutiveDashboard from '@/pages/ExecutiveDashboard';
+import QualityControl from '@/pages/QualityControl';
+import PWAInstaller from '@/pages/PWAInstaller';
+import CustomerPortal from '@/pages/CustomerPortal';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const router = createBrowserRouter([
@@ -31,6 +35,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute allowedRoles={['admin', 'operator']}>
         <ModernLayout><Dashboard /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/executive-dashboard",
+    element: (
+      <ProtectedRoute allowedRoles={['admin']}>
+        <ModernLayout><ExecutiveDashboard /></ModernLayout>
       </ProtectedRoute>
     )
   },
@@ -137,6 +149,26 @@ const router = createBrowserRouter([
         <ModernLayout><TicketAnalysis /></ModernLayout>
       </ProtectedRoute>
     )
+  },
+  {
+    path: "/quality-control",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><QualityControl /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/pwa-installer",
+    element: (
+      <ProtectedRoute allowedRoles={['admin', 'operator']}>
+        <ModernLayout><PWAInstaller /></ModernLayout>
+      </ProtectedRoute>
+    )
+  },
+  {
+    path: "/customer-portal",
+    element: <ModernLayout><CustomerPortal /></ModernLayout>
   },
   {
     path: "/auth",
