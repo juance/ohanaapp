@@ -14,6 +14,7 @@ export * from './operations/useTicketCancellationOperations';
 export * from './operations/useTicketPaymentOperations';
 export * from './operations/useTicketPrintOperations';
 export * from './operations/useTicketNotificationOperations';
+export * from './operations/useTicketPriceOperations';
 
 // Export utilities
 export * from './utils/ticketFormatters';

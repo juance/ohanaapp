@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import TicketPriceEditor from './TicketPriceEditor';
 
 interface TicketDetailPanelProps {
   ticket?: {
@@ -32,13 +33,15 @@ interface TicketDetailPanelProps {
   };
   formatDate: (date: string) => string;
   isLoadingServices?: boolean;
+  onPriceUpdate?: (ticketId: string, newPrice: number) => Promise<void>;
 }
 
 const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({ 
   ticket, 
   services,
   formatDate,
-  isLoadingServices = false
+  isLoadingServices = false,
+  onPriceUpdate
 }) => {
   if (!ticket) {
     return (
@@ -89,6 +92,9 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
     hasAnyServices,
     isLoadingServices
   });
+
+  // Only allow price editing for pending and ready tickets
+  const canEditPrice = ticket.status === 'pending' || ticket.status === 'ready';
 
   return (
     <Card className="h-full">
@@ -179,14 +185,24 @@ const TicketDetailPanel: React.FC<TicketDetailPanelProps> = ({
 
         <Separator />
 
-        {/* Información de Pago */}
+        {/* Información de Pago con Editor de Precios */}
         <div>
           <h4 className="font-semibold text-sm text-gray-600 mb-2">PAGO</h4>
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-sm">Total:</span>
-              <span className="font-semibold">{formatCurrency(ticket.total)}</span>
-            </div>
+          <div className="space-y-3">
+            {/* Editor de Precio o Precio de Solo Lectura */}
+            {canEditPrice && onPriceUpdate ? (
+              <TicketPriceEditor
+                ticketId={ticket.id}
+                currentPrice={ticket.total}
+                onPriceUpdate={onPriceUpdate}
+              />
+            ) : (
+              <div className="flex justify-between">
+                <span className="text-sm">Total:</span>
+                <span className="font-semibold">{formatCurrency(ticket.total)}</span>
+              </div>
+            )}
+            
             <div className="flex justify-between">
               <span className="text-sm">Método:</span>
               <span className="text-sm">{getPaymentMethodLabel(ticket.paymentMethod)}</span>

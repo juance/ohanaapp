@@ -4,6 +4,7 @@ import { useTicketCancellationOperations } from './operations/useTicketCancellat
 import { useTicketPaymentOperations } from './operations/useTicketPaymentOperations';
 import useTicketPrintOperations from './operations/useTicketPrintOperations';
 import { useTicketNotificationOperations } from './operations/useTicketNotificationOperations';
+import { useTicketPriceOperations } from './operations/useTicketPriceOperations';
 
 /**
  * Hook for ticket operations like marking as delivered, cancelling, etc.
@@ -14,6 +15,7 @@ export const usePickupTicketOperations = () => {
   const { handleUpdatePaymentMethod } = useTicketPaymentOperations();
   const { handlePrintTicket } = useTicketPrintOperations();
   const { handleShareWhatsApp, handleNotifyClient } = useTicketNotificationOperations();
+  const { handleUpdateTicketPrice } = useTicketPriceOperations();
 
   return {
     handleMarkAsDelivered,
@@ -21,6 +23,7 @@ export const usePickupTicketOperations = () => {
     handleUpdatePaymentMethod,
     handlePrintTicket,
     handleShareWhatsApp,
-    handleNotifyClient
+    handleNotifyClient,
+    handleUpdateTicketPrice
   };
 };

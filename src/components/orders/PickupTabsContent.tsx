@@ -29,6 +29,7 @@ interface PickupTabsContentProps {
   };
   ticketDetailRef: React.RefObject<HTMLDivElement>;
   isLoadingServices?: boolean;
+  onPriceUpdate?: (ticketId: string, newPrice: number) => Promise<void>;
 }
 
 const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
@@ -42,7 +43,8 @@ const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
   formatDate,
   ticketServices,
   ticketDetailRef,
-  isLoadingServices = false
+  isLoadingServices = false,
+  onPriceUpdate
 }) => {
   return (
     <>
@@ -73,6 +75,7 @@ const PickupTabsContent: React.FC<PickupTabsContentProps> = ({
                 services={ticketServices}
                 formatDate={formatDate}
                 isLoadingServices={isLoadingServices}
+                onPriceUpdate={onPriceUpdate}
               />
             </div>
           </div>

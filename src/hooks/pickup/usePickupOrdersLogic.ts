@@ -30,7 +30,7 @@ export const usePickupOrdersLogic = () => {
   const { formatDate } = usePickupUtils();
   const { 
     handleMarkAsDelivered, handleCancelTicket, handleUpdatePaymentMethod, 
-    handlePrintTicket, handleNotifyClient, handleShareWhatsApp 
+    handlePrintTicket, handleNotifyClient, handleShareWhatsApp, handleUpdateTicketPrice
   } = usePickupTicketOperations();
 
   // Apply filters to tickets
@@ -84,6 +84,11 @@ export const usePickupOrdersLogic = () => {
     refetch();
   };
 
+  const handleUpdateTicketPriceWrapper = async (ticketId: string, newPrice: number): Promise<void> => {
+    await handleUpdateTicketPrice(ticketId, newPrice);
+    refetch();
+  };
+
   return {
     // Data
     filteredTickets,
@@ -130,6 +135,7 @@ export const usePickupOrdersLogic = () => {
       handleShareWhatsApp(ticketId, phoneNumber, pickupTickets),
     handleOpenPaymentMethodDialog,
     handleUpdatePaymentMethod: handleUpdatePaymentMethodWrapper,
+    handleUpdateTicketPrice: handleUpdateTicketPriceWrapper,
     handleError,
     formatDate
   };

@@ -50,6 +50,7 @@ const PickupOrders: React.FC = () => {
     handleShareWhatsApp,
     handleOpenPaymentMethodDialog,
     handleUpdatePaymentMethod,
+    handleUpdateTicketPrice,
     formatDate
   } = usePickupOrdersLogic();
 
@@ -99,6 +100,7 @@ const PickupOrders: React.FC = () => {
         ticketServices={ticketServices}
         ticketDetailRef={ticketDetailRef}
         isLoadingServices={isLoadingServices}
+        onPriceUpdate={handleUpdateTicketPrice}
       />
 
       {/* Dialogs */}
