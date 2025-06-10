@@ -1,6 +1,4 @@
 
-import { ResetTicketNumbers } from './ResetTicketNumbers';
-import { ResetClientCounters } from './ResetClientCounters';
 import { ResetRevenueData } from './ResetRevenueData';
 import { ResetAllCounters } from './ResetAllCounters';
 
@@ -10,8 +8,6 @@ export const ResetCountersPage = () => {
       <h1 className="text-2xl font-bold">Reinicio de Contadores</h1>
       
       <div className="grid gap-6 md:grid-cols-2">
-        <ResetTicketNumbers />
-        <ResetClientCounters />
         <ResetRevenueData />
         <ResetAllCounters />
       </div>

@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import LoyaltyInfo from '@/components/LoyaltyInfo';
-import { ResetClientCounters } from '@/components/admin/ResetClientCounters';
 
 const Loyalty: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<{name: string, valetsCount: number, freeValets: number} | null>(null);
@@ -74,10 +73,6 @@ const Loyalty: React.FC = () => {
           Busque un cliente para ver su información de fidelidad
         </div>
       )}
-
-      <div className="mt-12 pt-6 border-t border-muted">
-        <ResetClientCounters />
-      </div>
     </div>
   );
 };
