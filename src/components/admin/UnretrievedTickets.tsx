@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets } from '@/lib/dataService';
+import { getUnretrievedTickets } from '@/lib/ticketServices';
 import { markTicketAsDelivered } from '@/lib/ticketServices';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -47,7 +46,20 @@ export const UnretrievedTickets = () => {
   useEffect(() => {
     if (data) {
       console.log('Setting tickets data:', data);
-      setTickets(Array.isArray(data) ? data : []);
+      // Ensure the data matches our interface by properly transforming it
+      const transformedTickets: TicketWithCustomer[] = data.map(ticket => ({
+        id: ticket.id,
+        ticketNumber: ticket.ticketNumber,
+        clientName: ticket.clientName,
+        phoneNumber: ticket.phoneNumber || '', // Ensure phone is always a string
+        totalPrice: ticket.totalPrice,
+        createdAt: ticket.createdAt,
+        customer: ticket.customer ? {
+          name: ticket.customer.name,
+          phone: ticket.customer.phone || '' // Ensure phone is always a string
+        } : undefined
+      }));
+      setTickets(transformedTickets);
     }
   }, [data]);
 

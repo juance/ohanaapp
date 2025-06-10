@@ -39,10 +39,13 @@ export const getUnretrievedTickets = async (): Promise<TicketWithCustomer[]> => 
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
       clientName: ticket.customers?.name || 'Cliente sin nombre',
-      phoneNumber: ticket.customers?.phone || '',
+      phoneNumber: ticket.customers?.phone || '', // Ensure this is always a string
       totalPrice: Number(ticket.total || 0),
       createdAt: ticket.created_at,
-      customer: ticket.customers
+      customer: ticket.customers ? {
+        name: ticket.customers.name,
+        phone: ticket.customers.phone || '' // Ensure this is always a string
+      } : undefined
     }));
   } catch (error) {
     console.error('Error fetching unretrieved tickets:', error);
