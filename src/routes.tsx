@@ -22,74 +22,76 @@ const AppRoutes = () => {
   const { user } = useAuth();
 
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/login" element={<Navigate to="/auth" replace />} />
-      <Route path="/register" element={<Navigate to="/auth" replace />} />
-      
-      <Route 
-        path="/" 
-        element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/tickets" 
-        element={
-          <ProtectedRoute>
-            <Tickets />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/new-ticket" 
-        element={
-          <ProtectedRoute>
-            <Tickets />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/pickup-orders" 
-        element={
-          <ProtectedRoute>
-            <PickupOrders />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/admin" 
-        element={
-          <ProtectedRoute>
-            <Admin />
-          </ProtectedRoute>
-        } 
-      />
+    <Router>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/login" element={<Navigate to="/auth" replace />} />
+        <Route path="/register" element={<Navigate to="/auth" replace />} />
+        
+        <Route 
+          path="/" 
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/tickets" 
+          element={
+            <ProtectedRoute>
+              <Tickets />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/new-ticket" 
+          element={
+            <ProtectedRoute>
+              <Tickets />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/pickup-orders" 
+          element={
+            <ProtectedRoute>
+              <PickupOrders />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <Admin />
+            </ProtectedRoute>
+          } 
+        />
 
-      <Route 
-        path="/loyalty" 
-        element={
-          <ProtectedRoute>
-            <Loyalty />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/payment-test" 
-        element={
-          <ProtectedRoute>
-            <PaymentTest />
-          </ProtectedRoute>
-        } 
-      />
-    </Routes>
+        <Route 
+          path="/loyalty" 
+          element={
+            <ProtectedRoute>
+              <Loyalty />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/payment-test" 
+          element={
+            <ProtectedRoute>
+              <PaymentTest />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </Router>
   );
 };
 

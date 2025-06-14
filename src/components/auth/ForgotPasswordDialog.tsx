@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,6 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
     setIsLoading(true);
     
     try {
-      // Call the function to request password reset
       await requestPasswordReset(phoneNumber);
       setStep('success');
     } catch (error) {
@@ -46,7 +46,6 @@ export function ForgotPasswordDialog({ open, onOpenChange }: ForgotPasswordDialo
   };
 
   const handleClose = () => {
-    // Reset state when dialog is closed
     setPhoneNumber('');
     setStep('request');
     onOpenChange(false);
