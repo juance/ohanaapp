@@ -1,7 +1,6 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { usePickupTicketQueries } from './usePickupTicketQueries';
-import { usePicketTicketServices } from './usePickupTicketServices';
+import { usePickupTicketServices } from './usePickupTicketServices';
 import { usePickupTicketOperations } from './usePickupTicketOperations';
 import { usePickupDialogs } from './usePickupDialogs';
 import { usePickupTicketFilters } from './usePickupTicketFilters';
@@ -20,7 +19,7 @@ export const usePickupOrdersLogic = () => {
 
   // Get data and functionality from other hooks
   const { pickupTickets, isLoading, isError, error, refetch } = usePickupTicketQueries();
-  const { ticketServices, isLoadingServices, loadTicketServices } = usePicketTicketServices();
+  const { ticketServices, isLoadingServices, loadTicketServices } = usePickupTicketServices();
   const { searchQuery, searchFilter, setSearchQuery, setSearchFilter, filterTickets } = usePickupTicketFilters();
   const { 
     cancelDialogOpen, cancelReason, paymentMethodDialogOpen,
