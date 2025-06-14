@@ -13,7 +13,7 @@ interface TicketServiceWithDetails extends TicketService {
 /**
  * Hook for managing ticket services
  */
-export const usePicketTicketServices = () => {
+export const usePickupTicketServices = () => {
   // State for ticket services
   const [ticketServices, setTicketServices] = useState<TicketServiceWithDetails[]>([]);
   const [isLoadingServices, setIsLoadingServices] = useState(false);
@@ -130,3 +130,4 @@ export const usePicketTicketServices = () => {
 
 // Export the type so it can be used elsewhere
 export type { TicketServiceWithDetails };
+
