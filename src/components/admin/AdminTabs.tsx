@@ -5,8 +5,6 @@ import { GeneralSettings } from './GeneralSettings';
 import { SystemSettings } from './SystemSettings';
 import { TicketSettings } from './TicketSettings';
 import { UserManagement } from './UserManagement';
-import { ResetClientCounters } from './ResetClientCounters';
-import { ResetTicketNumbers } from './ResetTicketNumbers';
 
 interface AdminTabsProps {
   defaultTab?: string;
@@ -24,8 +22,6 @@ export const AdminTabs = ({ defaultTab = "general" }: AdminTabsProps) => {
       
       <TabsContent value="general" className="space-y-6">
         <GeneralSettings />
-        <ResetClientCounters />
-        <ResetTicketNumbers />
       </TabsContent>
       
       <TabsContent value="users" className="space-y-6">
