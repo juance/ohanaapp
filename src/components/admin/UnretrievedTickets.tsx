@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUnretrievedTickets } from '@/lib/dataService';
@@ -27,6 +26,7 @@ export const UnretrievedTickets = () => {
   const [tickets, setTickets] = useState<TicketWithCustomer[]>([]);
   
   console.log('UnretrievedTickets component mounting...');
+  console.log('getUnretrievedTickets function imported:', typeof getUnretrievedTickets);
   
   // Fetch tickets that are ready but not delivered
   const { data, isLoading, error, refetch } = useQuery({

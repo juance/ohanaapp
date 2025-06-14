@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Ticket, Customer, ClientVisit } from '@/lib/types';
 import { toast } from '@/lib/toast';
@@ -252,10 +251,12 @@ export const getAllClients = async (): Promise<Customer[]> => {
 };
 
 /**
- * Get unretrieved tickets
+ * Get unretrieved tickets - tickets that are ready but not delivered
  */
 export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
   try {
+    console.log('Fetching unretrieved tickets from database...');
+    
     const { data, error } = await supabase
       .from('tickets')
       .select(`
@@ -276,10 +277,18 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       .order('created_at', { ascending: false });
 
     if (error) {
+      console.error('Database error fetching unretrieved tickets:', error);
       throw error;
     }
 
-    return data.map((ticket: any) => ({
+    console.log('Raw data from database:', data);
+
+    if (!data || !Array.isArray(data)) {
+      console.log('No data returned or data is not an array');
+      return [];
+    }
+
+    const transformedTickets = data.map((ticket: any) => ({
       id: ticket.id,
       ticketNumber: ticket.ticket_number,
       clientName: ticket.customers?.name || 'Cliente sin nombre',
@@ -288,13 +297,20 @@ export const getUnretrievedTickets = async (): Promise<Ticket[]> => {
       totalPrice: Number(ticket.total),
       paymentMethod: ticket.payment_method,
       status: ticket.status,
-      date: ticket.date || ticket.created_at, // Ensure date is always set
+      date: ticket.date || ticket.created_at,
       isPaid: ticket.is_paid,
       valetQuantity: ticket.valet_quantity,
       createdAt: ticket.created_at,
       deliveredDate: ticket.delivered_date,
-      customerId: ticket.customer_id
+      customerId: ticket.customer_id,
+      customer: ticket.customers ? {
+        name: ticket.customers.name,
+        phone: ticket.customers.phone || ''
+      } : undefined
     }));
+
+    console.log('Transformed tickets:', transformedTickets);
+    return transformedTickets;
   } catch (error) {
     console.error('Error fetching unretrieved tickets:', error);
     return [];
