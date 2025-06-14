@@ -1,10 +1,10 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
+import Auth from '@/pages/Auth';
 import Dashboard from '@/pages/Dashboard';
-import NewTicket from '@/pages/NewTicket';
+import Tickets from '@/pages/Tickets';
 import PickupOrders from '@/pages/PickupOrders';
 import Admin from '@/pages/Admin';
 import Loyalty from '@/pages/Loyalty';
@@ -13,7 +13,7 @@ import PaymentTest from '@/pages/PaymentTest';
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/auth" />;
   }
   return <>{children}</>;
 };
@@ -23,8 +23,9 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/login" element={<Navigate to="/auth" replace />} />
+      <Route path="/register" element={<Navigate to="/auth" replace />} />
       
       <Route 
         path="/" 
@@ -36,10 +37,19 @@ const AppRoutes = () => {
       />
       
       <Route 
+        path="/tickets" 
+        element={
+          <ProtectedRoute>
+            <Tickets />
+          </ProtectedRoute>
+        } 
+      />
+      
+      <Route 
         path="/new-ticket" 
         element={
           <ProtectedRoute>
-            <NewTicket />
+            <Tickets />
           </ProtectedRoute>
         } 
       />
@@ -71,7 +81,6 @@ const AppRoutes = () => {
         } 
       />
       
-      {/* Add new payment test route */}
       <Route 
         path="/payment-test" 
         element={
