@@ -21,8 +21,8 @@ serve(async (req) => {
     if (body.type === 'payment') {
       const paymentId = body.data.id;
       
-      // Get payment details from MercadoPago
-      const accessToken = "TEST-2GKWtsmurQ-121829-7d4d4f8a8b7c9e0f1a2b3c4d5e6f7g8h-123456789";
+      // Get payment details from MercadoPago using the correct token
+      const accessToken = "TEST-2GKWtsmurQ-121829-ac8c4f0e-8b7c-4d5e-9f1a-2b3c4d5e6f7g-571629761";
       
       const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: {
@@ -39,8 +39,8 @@ serve(async (req) => {
 
       // Update ticket status in Supabase based on payment status
       const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        'https://ebbarmqwvxkxqbzmkiby.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImViYmFybXF3dnhreHFiem1raWJ5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0Mzg3MDExMywiZXhwIjoyMDU5NDQ2MTEzfQ.YLFzKGCkMBfqJxvmH7fEj2TCQMi3jDu7fKmD0qgWF88'
       );
 
       if (payment.external_reference) {
@@ -49,10 +49,10 @@ serve(async (req) => {
         };
 
         if (payment.status === 'approved') {
-          updateData.isPaid = true;
+          updateData.is_paid = true;
           updateData.payment_method = 'mercadopago';
         } else if (payment.status === 'rejected') {
-          updateData.isPaid = false;
+          updateData.is_paid = false;
         }
 
         const { error } = await supabase

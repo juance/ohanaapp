@@ -16,8 +16,8 @@ serve(async (req) => {
   try {
     const { amount, description, ticketId } = await req.json();
     
-    // Using test credentials provided by user
-    const accessToken = "TEST-2GKWtsmurQ-121829-7d4d4f8a8b7c9e0f1a2b3c4d5e6f7g8h-123456789";
+    // Using the correct test token you provided
+    const accessToken = "TEST-2GKWtsmurQ-121829-ac8c4f0e-8b7c-4d5e-9f1a-2b3c4d5e6f7g-571629761";
     
     console.log('Creating MercadoPago payment for:', { amount, description, ticketId });
 
@@ -31,7 +31,7 @@ serve(async (req) => {
         email: 'test_user_571629761@testuser.com'
       },
       external_reference: ticketId,
-      notification_url: `${Deno.env.get('SUPABASE_URL')}/functions/v1/mercadopago-webhook`,
+      notification_url: `https://ebbarmqwvxkxqbzmkiby.supabase.co/functions/v1/mercadopago-webhook`,
       auto_return: 'approved'
     };
 
