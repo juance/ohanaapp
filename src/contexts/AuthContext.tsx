@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Role, User } from '@/lib/types/auth.types';
 import { toast } from '@/lib/toast';
@@ -63,6 +64,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (phone: string, password: string) => {
     try {
+      console.log('=== INICIANDO LOGIN EN CONTEXTO ===');
+      console.log(`Teléfono: ${phone}`);
+      console.log(`Contraseña: "${password}"`);
+      
       setLoading(true);
       setError(null);
       
@@ -71,6 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
       localStorage.setItem('authUser', JSON.stringify(userData));
       
+      console.log('=== LOGIN EXITOSO ===');
+      console.log('Usuario autenticado:', userData);
+      
       toast({
         title: "Inicio de sesión exitoso",
         description: `Bienvenido, ${userData.name}`,
@@ -78,6 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
     } catch (err) {
       const error = err as Error;
+      console.error('=== ERROR EN LOGIN ===', error);
       setError(error);
       
       await logError(error, { 

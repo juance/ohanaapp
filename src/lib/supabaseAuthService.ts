@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, Role } from './types/auth.types';
 import { toast } from '@/lib/toast';
@@ -26,6 +25,8 @@ export const checkSupabaseConnection = async (): Promise<boolean> => {
 
 // Función para verificar contraseñas de demostración
 const verifyDemoPassword = (phoneNumber: string, password: string): boolean => {
+  console.log(`Verificando credenciales demo para: ${phoneNumber} con contraseña: ${password}`);
+  
   const demoCredentials = {
     '1123989718': 'Juance001',  // Superusuario
     '1234567890': 'password',   // Admin
@@ -33,16 +34,27 @@ const verifyDemoPassword = (phoneNumber: string, password: string): boolean => {
     '5555555555': 'password'    // Cliente
   };
   
-  return demoCredentials[phoneNumber as keyof typeof demoCredentials] === password;
+  const expectedPassword = demoCredentials[phoneNumber as keyof typeof demoCredentials];
+  console.log(`Contraseña esperada para ${phoneNumber}: ${expectedPassword}`);
+  
+  const isValid = expectedPassword === password;
+  console.log(`Credenciales demo válidas: ${isValid}`);
+  
+  return isValid;
 };
 
 // Autenticar usuario con la tabla users
 export const authenticateUser = async (phoneNumber: string, password: string): Promise<User> => {
   try {
-    console.log(`Autenticando usuario: ${phoneNumber}`);
+    console.log(`=== INICIANDO AUTENTICACIÓN ===`);
+    console.log(`Teléfono: ${phoneNumber}`);
+    console.log(`Contraseña recibida: "${password}"`);
     
     // Primero verificar credenciales de demostración
-    if (verifyDemoPassword(phoneNumber, password)) {
+    const isDemoValid = verifyDemoPassword(phoneNumber, password);
+    console.log(`¿Es credencial demo válida?: ${isDemoValid}`);
+    
+    if (isDemoValid) {
       // Crear usuarios de demostración si no existen
       const demoUsers = {
         '1123989718': { name: 'Superusuario', role: 'admin', email: 'super@demo.com' },
@@ -53,7 +65,8 @@ export const authenticateUser = async (phoneNumber: string, password: string): P
       
       const userData = demoUsers[phoneNumber as keyof typeof demoUsers];
       
-      console.log(`Autenticación de demostración exitosa para: ${phoneNumber}`);
+      console.log(`=== AUTENTICACIÓN DEMO EXITOSA ===`);
+      console.log(`Usuario: ${userData.name}, Rol: ${userData.role}`);
       
       return {
         id: `demo-${phoneNumber}`,
@@ -65,24 +78,27 @@ export const authenticateUser = async (phoneNumber: string, password: string): P
       };
     }
 
+    console.log('Credenciales demo no válidas, buscando en base de datos...');
+
     // Si no es credencial de demostración, buscar en la base de datos
     const { data: userData, error } = await supabase
       .rpc('get_user_by_phone', { phone: phoneNumber });
     
     if (error || !userData || userData.length === 0) {
-      console.error('Usuario no encontrado:', phoneNumber);
+      console.error('Usuario no encontrado en base de datos:', phoneNumber);
       throw new Error('Credenciales inválidas');
     }
     
     const user = userData[0];
+    console.log(`Usuario encontrado en BD: ${user.name}`);
     
     // Verificar contraseña simple (en producción usar bcrypt)
     if (user.password !== password) {
-      console.error('Contraseña incorrecta');
+      console.error('Contraseña incorrecta para usuario de BD');
       throw new Error('Credenciales inválidas');
     }
     
-    console.log(`Autenticación exitosa para: ${phoneNumber}`);
+    console.log(`=== AUTENTICACIÓN BD EXITOSA ===`);
     
     // Retornar usuario sin contraseña
     return {
@@ -95,7 +111,7 @@ export const authenticateUser = async (phoneNumber: string, password: string): P
     };
     
   } catch (error) {
-    console.error('Error en autenticación:', error);
+    console.error('=== ERROR EN AUTENTICACIÓN ===', error);
     throw error;
   }
 };
