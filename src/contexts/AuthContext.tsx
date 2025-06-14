@@ -5,7 +5,7 @@ import { toast } from '@/lib/toast';
 import { 
   authenticateUser, 
   registerUser, 
-  requestPasswordReset, 
+  requestPasswordReset, // this one should be from supabaseAuthService
   hasPermission,
   checkSupabaseConnection,
   changePassword
