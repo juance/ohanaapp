@@ -1,7 +1,8 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getUnretrievedTickets, markTicketAsDelivered } from '@/lib/ticketServices';
+import { getUnretrievedTickets } from '@/lib/dataService';
+import { markTicketAsDelivered } from '@/lib/ticket/ticketStatusTransitionService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
