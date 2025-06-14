@@ -25,8 +25,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <ConnectionStatusProvider>
-            <AppRoutes />
-            <Toaster />
+            <div className="min-h-screen bg-gray-50">
+              <AppRoutes />
+              <Toaster />
+            </div>
           </ConnectionStatusProvider>
         </AuthProvider>
       </QueryClientProvider>

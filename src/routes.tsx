@@ -11,16 +11,27 @@ import Loyalty from '@/pages/Loyalty';
 import PaymentTest from '@/pages/PaymentTest';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  if (!user) {
-    return <Navigate to="/auth" />;
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Cargando...</p>
+        </div>
+      </div>
+    );
   }
+  
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+  
   return <>{children}</>;
 };
 
 const AppRoutes = () => {
-  const { user } = useAuth();
-
   return (
     <Router>
       <Routes>
@@ -90,6 +101,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
+
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
