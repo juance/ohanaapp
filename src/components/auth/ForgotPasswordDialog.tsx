@@ -1,9 +1,11 @@
+
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast'; // <-- Always import from here
 import { MessageSquare, Loader2 } from 'lucide-react';
+// FIX: Make sure we import from the correct file!
 import { requestPasswordReset } from '@/lib/supabaseAuthService';
 
 interface ForgotPasswordDialogProps {
