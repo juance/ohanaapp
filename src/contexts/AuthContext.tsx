@@ -5,10 +5,12 @@ import { toast } from '@/lib/toast';
 import { 
   authenticateUser, 
   registerUser, 
-  requestPasswordReset, // this one should be from supabaseAuthService
+  // REMOVE this line if present:
+  // requestPasswordReset, // this one should be from supabaseAuthService
   hasPermission,
   checkSupabaseConnection,
-  changePassword
+  changePassword,
+  requestPasswordReset // <-- CORRECTLY import it here from supabaseAuthService
 } from '@/lib/supabaseAuthService';
 import { logError } from '@/lib/errorService';
 
