@@ -9,6 +9,10 @@ import PickupOrders from '@/pages/PickupOrders';
 import Admin from '@/pages/Admin';
 import Loyalty from '@/pages/Loyalty';
 import PaymentTest from '@/pages/PaymentTest';
+// Nuevos imports de las páginas solicitadas:
+import Clients from '@/pages/Clients';
+import Inventory from '@/pages/Inventory';
+import Metrics from '@/pages/Metrics';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -47,7 +51,31 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
+        {/* Acciones rápidas nuevas */}
+        <Route 
+          path="/clients" 
+          element={
+            <ProtectedRoute>
+              <Clients />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/metrics" 
+          element={
+            <ProtectedRoute>
+              <Metrics />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/inventory" 
+          element={
+            <ProtectedRoute>
+              <Inventory />
+            </ProtectedRoute>
+          } 
+        />
         <Route 
           path="/tickets" 
           element={
@@ -56,7 +84,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/new-ticket" 
           element={
@@ -65,7 +92,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/pickup-orders" 
           element={
@@ -74,7 +100,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/admin" 
           element={
@@ -83,7 +108,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-
         <Route 
           path="/loyalty" 
           element={
@@ -92,7 +116,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-        
         <Route 
           path="/payment-test" 
           element={
@@ -101,7 +124,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } 
         />
-
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

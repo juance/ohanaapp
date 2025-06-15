@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +20,7 @@ import {
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import DateRangeSelector from '@/components/shared/DateRangeSelector';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
   const {
@@ -32,6 +32,8 @@ const Dashboard = () => {
     serviceCounts,
     dryCleaningItems
   } = useDashboardData();
+
+  const navigate = useNavigate();
 
   // Calculate metrics
   const totalTickets = ticketsInRange.length;
@@ -330,19 +332,39 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button className="h-20 flex flex-col gap-2" variant="outline">
+            <Button
+              className="h-20 flex flex-col gap-2"
+              variant="outline"
+              onClick={() => navigate('/tickets')}
+              aria-label="Nuevo Ticket"
+            >
               <Package className="h-6 w-6" />
               <span className="text-sm">Nuevo Ticket</span>
             </Button>
-            <Button className="h-20 flex flex-col gap-2" variant="outline">
+            <Button
+              className="h-20 flex flex-col gap-2"
+              variant="outline"
+              onClick={() => navigate('/clients')}
+              aria-label="Gestionar Clientes"
+            >
               <Users className="h-6 w-6" />
               <span className="text-sm">Gestionar Clientes</span>
             </Button>
-            <Button className="h-20 flex flex-col gap-2" variant="outline">
+            <Button
+              className="h-20 flex flex-col gap-2"
+              variant="outline"
+              onClick={() => navigate('/metrics')}
+              aria-label="Ver Métricas"
+            >
               <BarChart3 className="h-6 w-6" />
               <span className="text-sm">Ver Métricas</span>
             </Button>
-            <Button className="h-20 flex flex-col gap-2" variant="outline">
+            <Button
+              className="h-20 flex flex-col gap-2"
+              variant="outline"
+              onClick={() => navigate('/inventory')}
+              aria-label="Inventario"
+            >
               <Droplets className="h-6 w-6" />
               <span className="text-sm">Inventario</span>
             </Button>
