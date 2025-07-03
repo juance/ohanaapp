@@ -77,7 +77,7 @@ serve(async (req) => {
       auto_return: "approved"
     };
 
-    console.log('Creando pago MercadoPago:', paymentData);
+    console.log('Creating MercadoPago payment:', paymentData);
 
     // Llamada API MercadoPago
     let mpResp;
@@ -92,11 +92,11 @@ serve(async (req) => {
         body: JSON.stringify(paymentData)
       });
     } catch (fetchError) {
-      console.error("Error de red/fetch con MercadoPago:", fetchError);
+      console.error("Network/fetch error with MercadoPago:", fetchError);
       return new Response(JSON.stringify({
         success: false,
         error: "No se pudo contactar a MercadoPago",
-        details: fetchError?.toString?.() || fetchError
+        details: fetchError?.toString?.() || String(fetchError)
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 502,
@@ -108,34 +108,35 @@ serve(async (req) => {
     try {
       mpJson = await mpResp.json();
     } catch (parseError) {
-      console.error("No se pudo parsear respuesta de MercadoPago:", parseError);
+      console.error("Could not parse MercadoPago response:", parseError);
       return new Response(JSON.stringify({
         success: false,
         error: "Respuesta inválida de MercadoPago",
-        details: parseError?.toString?.() || parseError
+        details: parseError?.toString?.() || String(parseError)
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 502,
       });
     }
-    console.log("Respuesta de MercadoPago, status:", respStatus);
-    console.log(mpJson);
+    
+    console.log("MercadoPago response status:", respStatus);
+    console.log("MercadoPago response:", mpJson);
 
-    // Caso error 400 o similares de MP
+    // Handle MercadoPago API errors (400, 401, etc.)
     if (!mpResp.ok) {
       const errorMsg = mpJson.message || mpJson.error || mpJson.cause?.[0]?.description || "Error desconocido MercadoPago";
-      console.error("Error API MercadoPago:", errorMsg, mpJson);
+      console.error("MercadoPago API error:", errorMsg, mpJson);
       return new Response(JSON.stringify({
         success: false,
-        error: `[MercadoPago] ${errorMsg}`,
+        error: `MercadoPago Error: ${errorMsg}`,
         details: mpJson
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: respStatus,
+        status: 400, // Return 400 instead of original status to avoid edge function errors
       });
     }
 
-    // Devolvemos solo los campos útiles para el frontend
+    // Return success response with payment data
     return new Response(JSON.stringify({
       success: true,
       payment_id: mpJson.id,
@@ -150,7 +151,7 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('Error inesperado en función MercadoPago:', error);
+    console.error('Unexpected error in MercadoPago function:', error);
     return new Response(JSON.stringify({ 
       error: error?.message || error?.toString() || 'Unexpected error occurred',
       success: false 
