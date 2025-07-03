@@ -22,7 +22,7 @@ serve(async (req) => {
       const paymentId = body.data.id;
       
       // Get payment details from MercadoPago using the correct token
-      const accessToken = "TEST-2GKWtsmurQ-121829-ac8c4f0e-8b7c-4d5e-9f1a-2b3c4d5e6f7g-571629761";
+      const accessToken = "TEST-1276318702369620-061405-675482fd2025b24a27ca8a2d93d0cdf0-136940674";
       
       const paymentResponse = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
         headers: {

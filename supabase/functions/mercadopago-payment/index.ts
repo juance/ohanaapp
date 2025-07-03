@@ -60,8 +60,8 @@ serve(async (req) => {
       });
     }
 
-    // Datos de test de MercadoPago
-    const accessToken = "TEST-2GKWtsmurQ-121829-ac8c4f0e-8b7c-4d5e-9f1a-2b3c4d5e6f7g-571629761";
+    // Credenciales actualizadas de MercadoPago
+    const accessToken = "TEST-1276318702369620-061405-675482fd2025b24a27ca8a2d93d0cdf0-136940674";
 
     const paymentData = {
       transaction_amount: Number(amount),
@@ -69,8 +69,8 @@ serve(async (req) => {
       payment_method_id: "account_money",
       installments: 1,
       payer: {
-        id: "TESTUSER571629761",
-        email: "test_user_571629761@testuser.com"
+        id: "TESTUSER136940674",
+        email: "test_user_136940674@testuser.com"
       },
       external_reference: ticketId,
       notification_url: `https://ebbarmqwvxkxqbzmkiby.supabase.co/functions/v1/mercadopago-webhook`,

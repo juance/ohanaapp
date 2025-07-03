@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { CreditCard } from 'lucide-react';
 import MercadoPagoButton from './MercadoPagoButton';
 import { toast } from '@/lib/toast';
 
@@ -34,11 +35,13 @@ const PaymentTestPage: React.FC = () => {
             Prueba de MercadoPago
           </CardTitle>
           <CardDescription>
-            Prueba la integración con MercadoPago usando las credenciales de test.
+            Prueba la integración con MercadoPago usando las credenciales de test actualizadas.
             <br />
-            <strong>Usuario:</strong> TESTUSER571629761
+            <strong>Usuario:</strong> TESTUSER136940674
             <br />
-            <strong>Token:</strong> 2GKWtsmurQ (truncado por seguridad)
+            <strong>Access Token:</strong> TEST-1276318702369620-061405... (versión actualizada)
+            <br />
+            <strong>Public Key:</strong> TEST-c604b4fb-41bd-4601-9859-6fbb770fa04c
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -103,15 +106,16 @@ const PaymentTestPage: React.FC = () => {
 
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader>
-          <CardTitle className="text-blue-800">Información de Testing</CardTitle>
+          <CardTitle className="text-blue-800">Información de Testing Actualizada</CardTitle>
         </CardHeader>
         <CardContent className="text-blue-700">
           <p className="mb-2">
-            <strong>Credenciales de prueba configuradas:</strong>
+            <strong>Credenciales de prueba actualizadas:</strong>
           </p>
           <ul className="list-disc list-inside space-y-1">
-            <li>Usuario de prueba: TESTUSER571629761</li>
-            <li>Token de acceso: configurado (versión de test)</li>
+            <li>Usuario de prueba: TESTUSER136940674</li>
+            <li>Access Token: TEST-1276318702369620-061405... (actualizado)</li>
+            <li>Public Key: TEST-c604b4fb-41bd-4601-9859-6fbb770fa04c</li>
             <li>Ambiente: Sandbox de MercadoPago</li>
           </ul>
           <p className="mt-4 text-sm">
@@ -122,7 +126,5 @@ const PaymentTestPage: React.FC = () => {
     </div>
   );
 };
-
-import { CreditCard } from 'lucide-react';
 
 export default PaymentTestPage;
