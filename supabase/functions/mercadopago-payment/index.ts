@@ -18,7 +18,8 @@ serve(async (req) => {
     let payload;
     try {
       payload = await req.json();
-    } catch {
+    } catch (parseError) {
+      console.error('Failed to parse request body:', parseError);
       return new Response(JSON.stringify({
         success: false,
         error: "Request body must be JSON"
@@ -33,6 +34,7 @@ serve(async (req) => {
 
     // INPUT VALIDATION
     if (typeof amount !== "number" || isNaN(amount)) {
+      console.error('Invalid amount:', amount);
       return new Response(JSON.stringify({
         success: false,
         error: "El monto debe ser un número válido"
@@ -42,6 +44,7 @@ serve(async (req) => {
       });
     }
     if (!amount || amount <= 0) {
+      console.error('Amount must be greater than zero:', amount);
       return new Response(JSON.stringify({
         success: false,
         error: "Ingresa un monto mayor a cero"
@@ -51,6 +54,7 @@ serve(async (req) => {
       });
     }
     if (!ticketId || typeof ticketId !== 'string' || ticketId.length < 3) {
+      console.error('Invalid ticketId:', ticketId);
       return new Response(JSON.stringify({
         success: false,
         error: "El Ticket ID es obligatorio"
@@ -60,28 +64,27 @@ serve(async (req) => {
       });
     }
 
-    // Credenciales actualizadas de MercadoPago
+    // Updated MercadoPago credentials
     const accessToken = "TEST-1276318702369620-061405-675482fd2025b24a27ca8a2d93d0cdf0-136940674";
 
+    // Simplified payment data for testing
     const paymentData = {
       transaction_amount: Number(amount),
       description: description || "Pago Lavandería Ohana",
       payment_method_id: "account_money",
-      installments: 1,
       payer: {
-        id: "TESTUSER136940674",
         email: "test_user_136940674@testuser.com"
       },
       external_reference: ticketId,
-      notification_url: `https://ebbarmqwvxkxqbzmkiby.supabase.co/functions/v1/mercadopago-webhook`,
-      auto_return: "approved"
+      notification_url: `https://ebbarmqwvxkxqbzmkiby.supabase.co/functions/v1/mercadopago-webhook`
     };
 
-    console.log('Creating MercadoPago payment:', paymentData);
+    console.log('Creating MercadoPago payment with data:', JSON.stringify(paymentData, null, 2));
 
-    // Llamada API MercadoPago
+    // MercadoPago API call
     let mpResp;
     try {
+      console.log('Making request to MercadoPago API...');
       mpResp = await fetch("https://api.mercadopago.com/v1/payments", {
         method: "POST",
         headers: {
@@ -91,52 +94,56 @@ serve(async (req) => {
         },
         body: JSON.stringify(paymentData)
       });
+      
+      console.log('MercadoPago API response status:', mpResp.status);
+      
     } catch (fetchError) {
-      console.error("Network/fetch error with MercadoPago:", fetchError);
+      console.error("Network error with MercadoPago:", fetchError);
       return new Response(JSON.stringify({
         success: false,
         error: "No se pudo contactar a MercadoPago",
-        details: fetchError?.toString?.() || String(fetchError)
+        details: String(fetchError)
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 502,
+        status: 500,
       });
     }
 
-    const respStatus = mpResp.status;
     let mpJson;
     try {
       mpJson = await mpResp.json();
+      console.log('MercadoPago response body:', JSON.stringify(mpJson, null, 2));
     } catch (parseError) {
       console.error("Could not parse MercadoPago response:", parseError);
       return new Response(JSON.stringify({
         success: false,
         error: "Respuesta inválida de MercadoPago",
-        details: parseError?.toString?.() || String(parseError)
+        details: String(parseError)
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 502,
+        status: 500,
       });
     }
-    
-    console.log("MercadoPago response status:", respStatus);
-    console.log("MercadoPago response:", mpJson);
 
-    // Handle MercadoPago API errors (400, 401, etc.)
+    // Handle MercadoPago API errors
     if (!mpResp.ok) {
       const errorMsg = mpJson.message || mpJson.error || mpJson.cause?.[0]?.description || "Error desconocido MercadoPago";
       console.error("MercadoPago API error:", errorMsg, mpJson);
+      
+      // Return a successful HTTP response but with error details
       return new Response(JSON.stringify({
         success: false,
         error: `MercadoPago Error: ${errorMsg}`,
+        status_code: mpResp.status,
         details: mpJson
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400, // Return 400 instead of original status to avoid edge function errors
+        status: 200, // Always return 200 to avoid edge function errors
       });
     }
 
-    // Return success response with payment data
+    // Success response
+    console.log('Payment created successfully:', mpJson.id);
     return new Response(JSON.stringify({
       success: true,
       payment_id: mpJson.id,
@@ -144,7 +151,8 @@ serve(async (req) => {
       status_detail: mpJson.status_detail,
       point_of_interaction: mpJson.point_of_interaction,
       payment_method: mpJson.payment_method_id,
-      amount: mpJson.transaction_amount
+      amount: mpJson.transaction_amount,
+      mp_response: mpJson
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -153,11 +161,12 @@ serve(async (req) => {
   } catch (error) {
     console.error('Unexpected error in MercadoPago function:', error);
     return new Response(JSON.stringify({ 
-      error: error?.message || error?.toString() || 'Unexpected error occurred',
-      success: false 
+      success: false,
+      error: 'Error interno del servidor',
+      details: String(error)
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
+      status: 200, // Return 200 to avoid edge function errors
     });
   }
 });
